@@ -351,6 +351,9 @@ scored — it is no longer the energy stand-in.
 - [lm-rich-2d.md](lm-rich-2d.md) — project short û vs rich û.
 - [lm-faithful-2d.md](lm-faithful-2d.md) — raw poles vs attributes.
 - [lm-hold-overlap.md](lm-hold-overlap.md) — hold-ê raw vs ê_⊥û.
+- [lm-2d-adv.md](lm-2d-adv.md) — RpGAN + `b_cap` vs leftover-gated
+  supervised baselines on the sheet / exam cells (CPU; not a live
+  `--pole_mode`).
 
 ## How to run
 
