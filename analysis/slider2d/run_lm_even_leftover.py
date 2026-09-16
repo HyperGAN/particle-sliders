@@ -114,14 +114,32 @@ def score_candidate(cand: dict, *, exam_steps: int, sheet_steps: int, seed: int)
     for cell in ("divergent", "close", "unused_e"):
         field = CELLS[cell](seed=seed)
         e = field.declared_e()
-        row = score_exam(
-            cand["name"],
-            field,
-            leak_dir=e,
-            steps=exam_steps,
-            seed=seed,
-            **kwargs,
-        )
+        try:
+            row = score_exam(
+                cand["name"],
+                field,
+                leak_dir=e,
+                steps=exam_steps,
+                seed=seed,
+                **kwargs,
+            )
+        except ValueError as exc:
+            if "needs a declared ê" not in str(exc):
+                raise
+            # Unguarded subtract teacher on a pair with no declared ê
+            # (close): the teacher is undefined there. Record unscored,
+            # not a faithful fit under a subtract name.
+            exam[cell] = {
+                "pass": None,
+                "leak_frac": None,
+                "leftover_leak": None,
+                "overlap": None,
+                "swing": None,
+                "coherence": None,
+                "reason": f"unscored: {exc}",
+                "blend_teacher": None,
+            }
+            continue
         exam[cell] = {
             "pass": bool(row["pass"]),
             "leak_frac": float(row["collapse"]),
@@ -151,11 +169,14 @@ def score_candidate(cand: dict, *, exam_steps: int, sheet_steps: int, seed: int)
     }
     exam_div = exam["divergent"]
     # Official #36 leak_frac is leftover-sheet collapse. Also log exam collapse.
-    hit = bool(exam_div["pass"]) and (
-        float(sheet_out["leak_frac"]) < 0.0 or float(exam_div["leak_frac"]) < 0.0
+    div_pass = bool(exam_div["pass"]) if exam_div["pass"] is not None else False
+    div_frac = exam_div["leak_frac"]
+    hit = div_pass and (
+        float(sheet_out["leak_frac"]) < 0.0
+        or (div_frac is not None and float(div_frac) < 0.0)
     )
     # Banned Goodhart: leak_frac ≈ −1 and divergent fail.
-    goodhart = (not exam_div["pass"]) and float(exam_div["leak_frac"]) < -0.80
+    goodhart = (not div_pass) and div_frac is not None and float(div_frac) < -0.80
     return {
         "name": cand["name"],
         "teacher": cand["teacher"],
@@ -182,6 +203,12 @@ def _f(value, spec: str = "+.3f", empty: str = "N/A") -> str:
     if value is None:
         return empty
     return format(float(value), spec)
+
+
+def _cell(value: bool | None) -> str:
+    if value is None:
+        return "—"
+    return "pass" if value else "**fail**"
 
 
 def write_markdown(rows: list[dict], path: Path) -> None:
@@ -211,9 +238,9 @@ def write_markdown(rows: list[dict], path: Path) -> None:
         lines.append(
             "| `{name}` | {div} | {close} | {unused} | {lfs} | {lfd} | {leak} | {sheet} | {hit} |".format(
                 name=row["name"],
-                div="pass" if row["exam_divergent"] else "**fail**",
-                close="pass" if row["exam_close"] else "**fail**",
-                unused="pass" if row["exam_unused_e"] else "**fail**",
+                div=_cell(row["exam_divergent"]),
+                close=_cell(row["exam_close"]),
+                unused=_cell(row["exam_unused_e"]),
                 lfs=_f(row["leak_frac_sheet"]),
                 lfd=_f(row["leak_frac_divergent"]),
                 leak=_f(row["leftover_leak"]),

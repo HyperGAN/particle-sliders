@@ -28,6 +28,7 @@ trainer default.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from analysis.slider2d.exam import (
@@ -188,7 +189,9 @@ def na(value: Any) -> Any:
 
 
 def _finite(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    return math.isfinite(float(value))
 
 
 def leak_ok(leak: float | None) -> bool | None:
@@ -485,13 +488,13 @@ def _row(
 
     leftover_pass = cell_works(
         leak=leftover_leak,
-        on_sheet_kept=leftover.get("on_sheet_kept", on_sheet_kept if leftover else None),
-        off_sheet=leftover.get("garble", off_sheet if leftover else None),
-        argmax_on_sheet=leftover.get("argmax_on_sheet", argmax_on_sheet if leftover else None),
-        swing_kept=leftover.get("swing_kept", swing_kept if leftover else None),
+        on_sheet_kept=leftover.get("on_sheet_kept"),
+        off_sheet=leftover.get("garble", leftover.get("off_sheet")),
+        argmax_on_sheet=leftover.get("argmax_on_sheet"),
+        swing_kept=leftover.get("swing_kept"),
         intended_cos=leftover.get("cos_intended", leftover.get("cos_slider_plus")),
         content_cos=leftover.get("cos_concept"),
-        rich_kept=leftover.get("rich_kept", rich_kept if leftover else None),
+        rich_kept=leftover.get("rich_kept"),
         strength=leftover.get("strength", leftover.get("strength_on_u")),
         pair_odd_cos=pair_odd_cos,
         collapse=collapse,
@@ -509,10 +512,10 @@ def _row(
         pair_odd_cos=gender.get("pair_odd_cos"),
         collapse=gender.get("collapse", gender.get("cos_plus_minus")),
     )
-    # Recipes that only have leftover numbers should not inherit a
-    # gender pass from a missing gender cell.
-    if not gender and leftover:
-        gender_pass = False if leftover_pass is False else gender_pass
+    # A missing gender cell is unscored (None) in both the display
+    # column and the compiled cells — never a propagated leftover fail.
+    # (An earlier revision set gender_works=False when leftover failed
+    # while cells stayed None, so the two stamps disagreed.)
 
     found = exam_cells_for(recipe_id, exam)
     cells: dict[str, bool | None] = dict(found["cells"])

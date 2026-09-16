@@ -819,11 +819,15 @@ def teacher_points(
         )
     if mode in (
         "faithful_guard_e",
-        "faithful_sub_even_e",
         "faithful_sub_even_e_guard",
         "faithful_gate_odd_sub_even",
         "faithful_gate_odd_sub_even_blend",
     ) and leak_dir is None:
+        # Guarded / gated teachers with nothing declared: the teacher is
+        # the caption. Unguarded subtract teachers (pair_odd_sub_e,
+        # faithful_sub_e, faithful_sub_even_e) require ê and raise below —
+        # silently returning raw poles would mask a missing leak wire as a
+        # passing caption fit.
         return pos, neg
     if leak_dir is None and mode not in (
         "faithful_sub_even_blend",

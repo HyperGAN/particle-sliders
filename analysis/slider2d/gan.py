@@ -282,17 +282,36 @@ def _coverage(
     poles_m: torch.Tensor,
     neus: torch.Tensor,
 ) -> dict[str, float]:
-    """How close ±1 land on the teacher poles (row 0)."""
-    neu = neus[0]
-    pred_p = neu + residual.delta(1.0)
-    pred_m = neu + residual.delta(-1.0)
-    err_p = float((pred_p - poles_p[0]).norm() / poles_p[0].norm().clamp_min(1e-8))
-    err_m = float((pred_m - poles_m[0]).norm() / poles_m[0].norm().clamp_min(1e-8))
+    """How close ±1 land on the teacher poles (worst row, not row 0).
+
+    The residual is shared across rows whose pole strength varies
+    (row_scales 1.0 / 0.92 / 1.08), so row 0 is the middle case, not the
+    claim. Report the max relative error and the min cosine across rows;
+    ``covered`` requires every row within 0.20.
+    """
+    errs_p: list[float] = []
+    errs_m: list[float] = []
+    cos_p: list[float] = []
+    cos_m: list[float] = []
+    for i in range(int(neus.shape[0])):
+        neu = neus[i]
+        pred_p = neu + residual.delta(1.0)
+        pred_m = neu + residual.delta(-1.0)
+        errs_p.append(
+            float((pred_p - poles_p[i]).norm() / poles_p[i].norm().clamp_min(1e-8))
+        )
+        errs_m.append(
+            float((pred_m - poles_m[i]).norm() / poles_m[i].norm().clamp_min(1e-8))
+        )
+        cos_p.append(cosine(pred_p - neu, poles_p[i] - neu))
+        cos_m.append(cosine(pred_m - neu, poles_m[i] - neu))
+    err_p = max(errs_p)
+    err_m = max(errs_m)
     return {
         "pole_rel_err_plus": err_p,
         "pole_rel_err_minus": err_m,
-        "pole_cos_plus": cosine(pred_p - neu, poles_p[0] - neu),
-        "pole_cos_minus": cosine(pred_m - neu, poles_m[0] - neu),
+        "pole_cos_plus": min(cos_p),
+        "pole_cos_minus": min(cos_m),
         "covered": err_p <= 0.20 and err_m <= 0.20,
     }
 
@@ -491,19 +510,34 @@ def train_lm_adv(
     data fix). Ungated poles copy even leftover ê the same way
     ``faithful_raw`` does — leak_ratio ~1.3 — so the 2-D polarity cell
     would Goodhart a leaky teacher.
+
+    ``with_attrs`` selects the pair expansion only. The ``teacher`` name
+    always selects the pole rewrite: ``faithful`` is raw poles,
+    ``faithful_sub_e_if_unused`` / ``faithful_guard_e`` apply the
+    leftover-ê rewrite even when the pairs are attribute-pinned (where the
+    rewrite is a measured no-op because the odd has no attr component, not
+    a skipped branch). Unknown teacher names fail closed instead of
+    silently mapping onto the guard.
     """
     cfg = cfg or AdvConfig()
     torch.manual_seed(int(cfg.seed))
     pairs = pairs if pairs is not None else music3_pairs(with_attrs)
     t = 0.5
     plus, minus, neus = [], [], []
+    mode = str(teacher).strip().lower()
+    if mode not in ("faithful", "faithful_sub_e_if_unused", "faithful_guard_e"):
+        raise ValueError(
+            "train_lm_adv teacher must be one of "
+            "('faithful', 'faithful_sub_e_if_unused', 'faithful_guard_e'), "
+            f"got {teacher!r}"
+        )
     for pair in pairs:
         pos = field.embed(pair.positive, t)
         neg = field.embed(pair.negative, t)
         neu = field.embed(pair.neutral, t)
-        if teacher == "faithful" or with_attrs:
+        if mode == "faithful":
             t_plus, t_minus = pos, neg
-        elif teacher == "faithful_sub_e_if_unused":
+        elif mode == "faithful_sub_e_if_unused":
             t_plus, t_minus = lm_faithful_sub_e_if_unused(
                 pos, neg, neu, E_ATTR, slider_dir=E_SLIDER
             )

@@ -80,6 +80,7 @@ from conceptmod.textsliders.slider_targets import (
     lm_dual_band_pole_loss,
     lm_faithful_gate_odd_sub_even,
     lm_faithful_guard_e,
+    lm_faithful_sub_e,
     lm_faithful_sub_e_if_unused,
     lm_faithful_sub_even_blend,
     lm_faithful_sub_even_blend_guard,
@@ -625,13 +626,6 @@ TEACHERS = (
 POLE_MODES = ("hidden", "semantic_kl", "semantic_kl_null", "dual_band")
 
 
-def _sub_e(h: torch.Tensor, neu: torch.Tensor, held: torch.Tensor | None) -> torch.Tensor:
-    if held is None:
-        return h
-    unit = lm_unit(held)
-    return h - ((h - neu).flatten() @ unit) * unit
-
-
 def teacher_points(
     field: SheetField,
     row: int,
@@ -667,8 +661,11 @@ def teacher_points(
     if mode == "faithful_sub_e":
         if leak_dir is None:
             raise ValueError("faithful_sub_e needs a declared ê")
-        held = hold_direction(field, leak_dir)
-        return _sub_e(pos, neu, held), _sub_e(neg, neu, held)
+        # Single source: the live rewrite removes leftover ê from the odd
+        # part only and keeps the midpoint at ½(h++h−). A per-pole
+        # (h−h0)·ê subtraction agrees on the current fields (common ⊥ ê)
+        # but shifts the midpoint when common carries ê.
+        return lm_faithful_sub_e(pos, neg, neu, leak_dir, slider_dir=field.short_u())
     if mode == "faithful_sub_e_if_unused":
         return lm_faithful_sub_e_if_unused(
             pos, neg, neu, leak_dir, slider_dir=field.short_u()

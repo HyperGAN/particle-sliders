@@ -92,7 +92,7 @@ def collect(
         fm_weight=fm_weight,
         cover_weight=cover_weight,
     )
-    field2d = score_field2d(cfg)
+    field2d = score_field2d(cfg, teacher=teacher)
     leftover = score_adv_sheet(leaky_field(), teacher=teacher, cfg=cfg)
     gender = score_adv_sheet(gender_like_field(), teacher=teacher, cfg=cfg)
     divergent = score_adv_exam(divergent_field(seed=seed), teacher=teacher, cfg=exam_cfg)
@@ -123,7 +123,20 @@ def collect(
         steps=baseline_steps,
         seed=seed,
     )
+    # Same-teacher baseline on both live pairs: the GAN real cloud is
+    # leftover-gated captions, so close compares against the caption
+    # (faithful_raw, which passes close on the scoreboard), not against a
+    # midpoint strawman. The midpoint row is kept alongside for the
+    # delivery-ablation story, never as the only comparator.
     base_close = score_exam(
+        "faithful_raw",
+        close_field(seed=seed),
+        pole_mode="hidden",
+        teacher="faithful",
+        steps=baseline_steps,
+        seed=seed,
+    )
+    base_close_mid = score_exam(
         "pair_odd_midpoint",
         close_field(seed=seed),
         pole_mode="hidden",
@@ -172,7 +185,8 @@ def collect(
         "baseline_sheet_faithful": base_left,
         "baseline_sheet_midpoint": base_mid,
         "baseline_exam_faithful_divergent": base_div,
-        "baseline_exam_midpoint_close": base_close,
+        "baseline_exam_faithful_close": base_close,
+        "baseline_exam_midpoint_close": base_close_mid,
         "cells": cells,
         "exam_score": score,
         "compiled": verdict,
@@ -200,6 +214,7 @@ def write_findings(blob: dict, path: Path) -> None:
     raw = blob["baseline_sheet_faithful"]
     mid = blob["baseline_sheet_midpoint"]
     raw_div = blob["baseline_exam_faithful_divergent"]
+    raw_close = blob["baseline_exam_faithful_close"]
     mid_close = blob["baseline_exam_midpoint_close"]
     cfg = blob["cfg"]
     lines = [
@@ -215,6 +230,7 @@ def write_findings(blob: dict, path: Path) -> None:
         "## Recipe",
         "",
         f"- teacher: `{cfg['teacher']}` (blend-guarded leftover ê; refuses when ê restates the axis)",
+        f"  (field2d uses the same teacher on attribute-pinned pairs; the guard is a measured no-op there, not a skipped branch)",
         f"- b_cap coeff: `{cfg['b_cap']}`, κ: `{cfg['kappa']}` (ParticleGAN `GradRegularizer`, one-sided, free below κ)",
         f"- feature matching: `{cfg['fm_weight']}` (0 = off; raw FM is uncapped by b_cap)",
         f"- cover_weight: `{cfg['cover_weight']}` (mode pin on the shared residual; needed on sheet/exam width)",
@@ -253,7 +269,10 @@ def write_findings(blob: dict, path: Path) -> None:
         f"same caption target; leftover-gate refuses to eat the axis |",
         f"| exam close | {_pass(blob['cells']['exam_close'])} "
         f"(overlap {_fmt(close.get('roll_overlap'), '.3f')}, swing {_fmt(close.get('roll_swing_kept'), '.3f')}) | "
-        f"{_pass(mid_close.get('pass'))} "
+        f"{_pass(raw_close.get('pass'))} "
+        f"(overlap {_fmt(raw_close.get('roll_overlap'), '.3f')}) | `faithful_raw` | "
+        f"same caption target; both keep delivery |",
+        f"| exam close (midpoint) | — | {_pass(mid_close.get('pass'))} "
         f"(overlap {_fmt(mid_close.get('roll_overlap'), '.3f')}) | `pair_odd_midpoint` | "
         f"midpoint teacher has no delivery to roll out |",
         f"| exam unused_e | {_pass(blob['cells']['exam_unused_e'])} "
@@ -358,6 +377,9 @@ def main(argv: list[str] | None = None) -> int:
         "exam_unused_e": _slim(blob["exam_unused_e"]),
         "baseline_sheet_faithful": _slim(blob["baseline_sheet_faithful"]),
         "baseline_sheet_midpoint": _slim(blob["baseline_sheet_midpoint"]),
+        "baseline_exam_faithful_divergent": _slim(blob["baseline_exam_faithful_divergent"]),
+        "baseline_exam_faithful_close": _slim(blob["baseline_exam_faithful_close"]),
+        "baseline_exam_midpoint_close": _slim(blob["baseline_exam_midpoint_close"]),
         "live_default_unchanged": True,
         "claims_music3_audio": False,
     }

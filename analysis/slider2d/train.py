@@ -327,9 +327,18 @@ def train_lm(
         if subtract_dir is not None:
             pos = subtract_axes(pos, neu, subtract_dir)
             neg = subtract_axes(neg, neu, subtract_dir)
-        declared = slider_dir if slider_dir is not None else (
-            pair_slider_dir(pair) if (project_odd or (hold_w > 0.0 and leak_dir is None)) else None
-        )
+        if slider_dir is not None:
+            declared = slider_dir
+        elif project_odd or hold_w > 0.0:
+            # Declared axis from caption polarity. Only valid when it lives
+            # in the field's embed space (Field2D, 2-D): rich/energy fields
+            # are wider, so a 2-D polarity vector would both crash the
+            # align probe and corrupt ê_⊥. There, leave declared None and
+            # the hold falls back to raw ê, as before.
+            cand = pair_slider_dir(pair)
+            declared = cand if cand.numel() == pos.numel() else None
+        else:
+            declared = None
         align = float(lm_odd_align(pos, neg, declared)) if declared is not None else 0.0
         packed.append((pos, neg, neu, declared, pair))
         aligns.append(align)
