@@ -386,3 +386,48 @@ def test_particle_prior_rejects_empty_counts():
         ParticlePrior(0, 2)
     with pytest.raises(ValueError):
         ParticlePrior(-2, 2)
+
+
+# -- Fire #91: AdvConfig() dataclass defaults == locked #94 shape ----------
+
+
+def test_advconfig_defaults_match_locked_baseline_shape():
+    """Bare AdvConfig() must match LOCKED_* (#94) — fail-closed drift detector.
+
+    Product is the regression lock: AdvConfig defaults already are cover1.5 /
+    FM0 / n=12 / l2=0.02 / b_cap=1 / kappa=1 / grad_arm=b_cap / grad_norm=l2;
+    this test + assert_advconfig_defaults_match_locked() pin that forever.
+    Does not change AdvConfig fields or Music trainer argv (propose_only).
+    """
+    from analysis.slider2d.gan import DEFAULT_TEACHER
+    from analysis.slider2d.locked_baseline_defaults import (
+        LOCKED_BCAP,
+        LOCKED_COVER,
+        LOCKED_FM,
+        LOCKED_GRAD_ARM,
+        LOCKED_GRAD_NORM,
+        LOCKED_KAPPA,
+        LOCKED_N_PARTICLES,
+        LOCKED_N_PARTICLES_MAX,
+        LOCKED_PARTICLE_L2,
+        LOCKED_STEPS,
+        LOCKED_TEACHER,
+        assert_advconfig_defaults_match_locked,
+        check_locked_baseline_adv_config,
+    )
+
+    bare = AdvConfig()
+    assert bare.cover_weight == pytest.approx(LOCKED_COVER)
+    assert bare.fm_weight == pytest.approx(LOCKED_FM)
+    assert bare.b_cap == pytest.approx(LOCKED_BCAP)
+    assert bare.kappa == pytest.approx(LOCKED_KAPPA)
+    assert bare.grad_arm == LOCKED_GRAD_ARM
+    assert bare.grad_norm == LOCKED_GRAD_NORM
+    assert bare.particle_l2 == pytest.approx(LOCKED_PARTICLE_L2)
+    assert bare.n_particles == LOCKED_N_PARTICLES
+    assert bare.n_particles <= LOCKED_N_PARTICLES_MAX
+    assert bare.steps == LOCKED_STEPS
+    assert check_locked_baseline_adv_config(bare) == []
+    assert_advconfig_defaults_match_locked(bare)
+    assert_advconfig_defaults_match_locked()  # constructs AdvConfig() internally
+    assert DEFAULT_TEACHER == LOCKED_TEACHER == "faithful_guard_e"
