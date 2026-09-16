@@ -1,0 +1,2423 @@
+{
+  "arms": {
+    "production_baseline": {
+      "identity": "production YuE2 loop via yue2_gan_exam (reference)",
+      "propose_only": false,
+      "knobs": {
+        "g_lr": 0.0005,
+        "d_lr": 0.00075,
+        "beta2": 0.999,
+        "schedule": "constant",
+        "ema": 0.0,
+        "critic": "thick256"
+      },
+      "tags": {
+        "note": "REFERENCE",
+        "gan_loss": "MATCH(Rp pair logistic)",
+        "b_cap": "MATCH(kappa=1 coeff=1)",
+        "particles": "HOLD(no ParticlePrior in YuE2 port; prior x10 N/A)",
+        "vicreg": "HOLD(none; Rp-only G)",
+        "cover_weight": "HOLD(0; Rp-only G, no MSE)",
+        "teacher": "HOLD(raw positive faithful_plus_neu; not modes/spans)"
+      },
+      "summary": {
+        "600": "FAIL",
+        "1200": "FAIL",
+        "3400": "PASS"
+      },
+      "controls_all_hit": true,
+      "detail": [
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.5865699115356566,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9980987906455994
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9324890896694736,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999943971633911
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9339086321157883,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999983310699463
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.5856110594975359,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9981573224067688
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.932144610214123,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999904632568359
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9342971975662359,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999996423721313
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.5855171890304427,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9980392456054688
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.9309244113830455,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999972939491272
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9337988358912139,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999998152256012
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.4819798114103134,
+          "off_caption": 0.0625,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9479287266731262
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.659618303364223,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9802858233451843
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9314344361748902,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999991655349731
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.483623835293346,
+          "off_caption": 0.041666666666666664,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9451051950454712
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.6583827383945566,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9800583720207214
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9310559999665792,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999980926513672
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.4831735130244952,
+          "off_caption": 0.08333333333333333,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9478399753570557
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.6605489184399498,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9804104566574097
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9310516985969173,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999982714653015
+        }
+      ]
+    },
+    "c0_production": {
+      "identity": "reference: production YuE2 knobs (constant LR, beta2 0.999, no EMA, thick critic)",
+      "propose_only": false,
+      "knobs": {
+        "identity": "reference: production YuE2 knobs (constant LR, beta2 0.999, no EMA, thick critic)",
+        "propose_only": false,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075,
+        "beta2": 0.999,
+        "schedule": "constant",
+        "ema": 0.0,
+        "critic": "thick256",
+        "tags": {
+          "schedule": "REFERENCE",
+          "beta2": "REFERENCE",
+          "ema": "REFERENCE",
+          "critic": "REFERENCE"
+        }
+      },
+      "tags": {
+        "schedule": "REFERENCE",
+        "beta2": "REFERENCE",
+        "ema": "REFERENCE",
+        "critic": "REFERENCE",
+        "gan_loss": "MATCH(Rp pair logistic)",
+        "b_cap": "MATCH(kappa=1 coeff=1)",
+        "particles": "HOLD(no ParticlePrior in YuE2 port; prior x10 N/A)",
+        "vicreg": "HOLD(none; Rp-only G)",
+        "cover_weight": "HOLD(0; Rp-only G, no MSE)",
+        "teacher": "HOLD(raw positive faithful_plus_neu; not modes/spans)"
+      },
+      "summary": {
+        "600": "FAIL",
+        "1200": "FAIL",
+        "3400": "PASS"
+      },
+      "controls_all_hit": true,
+      "detail": [
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.5865699115356566,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9980987906455994
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9324890896694736,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999943971633911
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9339086321157883,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999983310699463
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.5856110594975359,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9981573224067688
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.932144610214123,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999904632568359
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9342971975662359,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999996423721313
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.5855171890304427,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9980392456054688
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.9309244113830455,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999972939491272
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9337988358912139,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999998152256012
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.4819798114103134,
+          "off_caption": 0.0625,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9479287266731262
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.659618303364223,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9802858233451843
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9314344361748902,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999991655349731
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.483623835293346,
+          "off_caption": 0.041666666666666664,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9451051950454712
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.6583827383945566,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9800583720207214
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9310559999665792,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999980926513672
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.4831735130244952,
+          "off_caption": 0.08333333333333333,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9478399753570557
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.6605489184399498,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9804104566574097
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9310516985969173,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999982714653015
+        }
+      ]
+    },
+    "c1_beta2_099": {
+      "identity": "beta2 0.99 (ParticleGAN / locked-toy value); else production",
+      "propose_only": true,
+      "knobs": {
+        "identity": "beta2 0.99 (ParticleGAN / locked-toy value); else production",
+        "propose_only": true,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075,
+        "beta2": 0.99,
+        "schedule": "constant",
+        "ema": 0.0,
+        "critic": "thick256",
+        "tags": {
+          "schedule": "MATCH(constant=production drift; beta2 is the clone)",
+          "beta2": "MATCH",
+          "ema": "DRIFT(off)",
+          "critic": "DRIFT(thick)"
+        }
+      },
+      "tags": {
+        "schedule": "MATCH(constant=production drift; beta2 is the clone)",
+        "beta2": "MATCH",
+        "ema": "DRIFT(off)",
+        "critic": "DRIFT(thick)",
+        "gan_loss": "MATCH(Rp pair logistic)",
+        "b_cap": "MATCH(kappa=1 coeff=1)",
+        "particles": "HOLD(no ParticlePrior in YuE2 port; prior x10 N/A)",
+        "vicreg": "HOLD(none; Rp-only G)",
+        "cover_weight": "HOLD(0; Rp-only G, no MSE)",
+        "teacher": "HOLD(raw positive faithful_plus_neu; not modes/spans)"
+      },
+      "summary": {
+        "600": "FAIL",
+        "1200": "FAIL",
+        "3400": "PASS"
+      },
+      "controls_all_hit": true,
+      "detail": [
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.5837955078945725,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9982267022132874
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9338254798053617,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999980330467224
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9338563007919941,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999984502792358
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.5832795658182611,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.998176634311676
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.9334341084938268,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999967813491821
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9333451033662622,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999959468841553
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.5831100448602472,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.998085618019104
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.9337285604570287,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999997615814209
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9338855023442224,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999984502792358
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.48556071119977345,
+          "off_caption": 0.08333333333333333,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9397973418235779
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.6609012700342562,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9744706749916077
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.931596669764493,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999995827674866
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.48704892481229356,
+          "off_caption": 0.020833333333333332,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9377646446228027
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.6603126502891297,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9745365977287292
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.931779190882024,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999999403953552
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.4866479529999879,
+          "off_caption": 0.08333333333333333,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9397556781768799
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.6616646569751606,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9746074080467224
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9313164472347449,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999991059303284
+        }
+      ]
+    },
+    "c2_ema_on": {
+      "identity": "EMA 0.995 residual-only on; else production",
+      "propose_only": true,
+      "knobs": {
+        "identity": "EMA 0.995 residual-only on; else production",
+        "propose_only": true,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075,
+        "beta2": 0.999,
+        "schedule": "constant",
+        "ema": 0.995,
+        "critic": "thick256",
+        "tags": {
+          "schedule": "DRIFT(constant)",
+          "beta2": "DRIFT(0.999)",
+          "ema": "PARTIAL(residual-only; proper is G+particles)",
+          "critic": "DRIFT(thick)"
+        }
+      },
+      "tags": {
+        "schedule": "DRIFT(constant)",
+        "beta2": "DRIFT(0.999)",
+        "ema": "PARTIAL(residual-only; proper is G+particles)",
+        "critic": "DRIFT(thick)",
+        "gan_loss": "MATCH(Rp pair logistic)",
+        "b_cap": "MATCH(kappa=1 coeff=1)",
+        "particles": "HOLD(no ParticlePrior in YuE2 port; prior x10 N/A)",
+        "vicreg": "HOLD(none; Rp-only G)",
+        "cover_weight": "HOLD(0; Rp-only G, no MSE)",
+        "teacher": "HOLD(raw positive faithful_plus_neu; not modes/spans)"
+      },
+      "summary": {
+        "600": "FAIL",
+        "1200": "FAIL",
+        "3400": "PASS"
+      },
+      "controls_all_hit": true,
+      "detail": [
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.46613113711352466,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9951602220535278
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9064287442421918,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999669790267944
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9346967822265152,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.46606044847089606,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9951254725456238
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.9062565414180366,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999675750732422
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9347059896925515,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.4655692283413783,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.994837760925293
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.9064855235880018,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999661445617676
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9346958665841639,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.4455977718065754,
+          "off_caption": 0.10416666666666667,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9428985118865967
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.5900278161617535,
+          "off_caption": 0.041666666666666664,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9721470475196838
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9319345739432686,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.4474248558918108,
+          "off_caption": 0.07291666666666667,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9382805824279785
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.5896929492382658,
+          "off_caption": 0.010416666666666666,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9715532064437866
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9319325235067901,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.4466882834268839,
+          "off_caption": 0.125,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9425581693649292
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.5911430111622001,
+          "off_caption": 0.020833333333333332,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9722318053245544
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9319348116273994,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        }
+      ]
+    },
+    "c3_delay80": {
+      "identity": "delayed cosine, absolute delay 80, floor 0.05; else production",
+      "propose_only": true,
+      "knobs": {
+        "identity": "delayed cosine, absolute delay 80, floor 0.05; else production",
+        "propose_only": true,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075,
+        "beta2": 0.999,
+        "schedule": "delayed_abs",
+        "ema": 0.0,
+        "critic": "thick256",
+        "tags": {
+          "schedule": "MATCH(locked-toy delay80)",
+          "beta2": "DRIFT(0.999)",
+          "ema": "DRIFT(off)",
+          "critic": "DRIFT(thick)"
+        }
+      },
+      "tags": {
+        "schedule": "MATCH(locked-toy delay80)",
+        "beta2": "DRIFT(0.999)",
+        "ema": "DRIFT(off)",
+        "critic": "DRIFT(thick)",
+        "gan_loss": "MATCH(Rp pair logistic)",
+        "b_cap": "MATCH(kappa=1 coeff=1)",
+        "particles": "HOLD(no ParticlePrior in YuE2 port; prior x10 N/A)",
+        "vicreg": "HOLD(none; Rp-only G)",
+        "cover_weight": "HOLD(0; Rp-only G, no MSE)",
+        "teacher": "HOLD(raw positive faithful_plus_neu; not modes/spans)"
+      },
+      "summary": {
+        "600": "FAIL",
+        "1200": "FAIL",
+        "3400": "PASS"
+      },
+      "controls_all_hit": true,
+      "detail": [
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.5783045486009972,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9979920387268066
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9325592392607311,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999896287918091
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9335610914935352,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999969005584717
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.5773991677137481,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9980494976043701
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.9312343198037986,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999817609786987
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9336932099372829,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999976754188538
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.5772784728133633,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9979215860366821
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.9324181854052984,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999878406524658
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9338865911640162,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999983310699463
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.47981432979795663,
+          "off_caption": 0.0625,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9475919604301453
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.6285318941900058,
+          "off_caption": 0.020833333333333332,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9755235910415649
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.8780816558692761,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9986949563026428
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.48155521635503146,
+          "off_caption": 0.041666666666666664,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9445101618766785
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.627844435335443,
+          "off_caption": 0.010416666666666666,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9751675128936768
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.8766854340452142,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9986419081687927
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.48110674809038656,
+          "off_caption": 0.08333333333333333,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9474289417266846
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.6296775474642338,
+          "off_caption": 0.010416666666666666,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9756084680557251
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.8789131247489363,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9987267255783081
+        }
+      ]
+    },
+    "c4_hold60": {
+      "identity": "delayed cosine, 60% hold (delay=0.6*budget), floor 0.05; else production",
+      "propose_only": true,
+      "knobs": {
+        "identity": "delayed cosine, 60% hold (delay=0.6*budget), floor 0.05; else production",
+        "propose_only": true,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075,
+        "beta2": 0.999,
+        "schedule": "hold60",
+        "ema": 0.0,
+        "critic": "thick256",
+        "tags": {
+          "schedule": "MATCH(ParticleGAN 60% hold)",
+          "beta2": "DRIFT(0.999)",
+          "ema": "DRIFT(off)",
+          "critic": "DRIFT(thick)"
+        }
+      },
+      "tags": {
+        "schedule": "MATCH(ParticleGAN 60% hold)",
+        "beta2": "DRIFT(0.999)",
+        "ema": "DRIFT(off)",
+        "critic": "DRIFT(thick)",
+        "gan_loss": "MATCH(Rp pair logistic)",
+        "b_cap": "MATCH(kappa=1 coeff=1)",
+        "particles": "HOLD(no ParticlePrior in YuE2 port; prior x10 N/A)",
+        "vicreg": "HOLD(none; Rp-only G)",
+        "cover_weight": "HOLD(0; Rp-only G, no MSE)",
+        "teacher": "HOLD(raw positive faithful_plus_neu; not modes/spans)"
+      },
+      "summary": {
+        "600": "FAIL",
+        "1200": "FAIL",
+        "3400": "PASS"
+      },
+      "controls_all_hit": true,
+      "detail": [
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.5865699115356566,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9980987906455994
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9324890896694736,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999943971633911
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9337918973815594,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999980926513672
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.5856110594975359,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9981573224067688
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.932144610214123,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999904632568359
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9341725740928459,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999994039535522
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.5855171890304427,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9980392456054688
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.9309244113830455,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999972939491272
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9339053242472874,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999984502792358
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.4819798114103134,
+          "off_caption": 0.0625,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9479287266731262
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.659618303364223,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9802858233451843
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9307398567332879,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999966025352478
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.483623835293346,
+          "off_caption": 0.041666666666666664,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9451051950454712
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.6583827383945566,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9800583720207214
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9313278337856548,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999992251396179
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.4831735130244952,
+          "off_caption": 0.08333333333333333,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9478399753570557
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.6605489184399498,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9804104566574097
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9303273860245356,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999947547912598
+        }
+      ]
+    },
+    "c5_d1x": {
+      "identity": "shared LR (D 1.0x: G 5e-4 / D 5e-4); else production",
+      "propose_only": true,
+      "knobs": {
+        "identity": "shared LR (D 1.0x: G 5e-4 / D 5e-4); else production",
+        "propose_only": true,
+        "g_lr": 0.0005,
+        "d_lr": 0.0005,
+        "beta2": 0.999,
+        "schedule": "constant",
+        "ema": 0.0,
+        "critic": "thick256",
+        "tags": {
+          "schedule": "DRIFT(1.0x D; proper is 1.5x)",
+          "beta2": "DRIFT(0.999)",
+          "ema": "DRIFT(off)",
+          "critic": "DRIFT(thick)"
+        }
+      },
+      "tags": {
+        "schedule": "DRIFT(1.0x D; proper is 1.5x)",
+        "beta2": "DRIFT(0.999)",
+        "ema": "DRIFT(off)",
+        "critic": "DRIFT(thick)",
+        "gan_loss": "MATCH(Rp pair logistic)",
+        "b_cap": "MATCH(kappa=1 coeff=1)",
+        "particles": "HOLD(no ParticlePrior in YuE2 port; prior x10 N/A)",
+        "vicreg": "HOLD(none; Rp-only G)",
+        "cover_weight": "HOLD(0; Rp-only G, no MSE)",
+        "teacher": "HOLD(raw positive faithful_plus_neu; not modes/spans)"
+      },
+      "summary": {
+        "600": "FAIL",
+        "1200": "FAIL",
+        "3400": "PASS"
+      },
+      "controls_all_hit": true,
+      "detail": [
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.5939516645472377,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.99821937084198
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9334960289959296,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999972581863403
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9341697373279114,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999992847442627
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.5895414009031388,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.998218297958374
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.9314736167806968,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999862909317017
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9331446282290701,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999943971633911
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.590390757784794,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9980441927909851
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.9303872304571668,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999653100967407
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9341037243343299,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999992251396179
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.48289671656144934,
+          "off_caption": 0.0625,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9497997760772705
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.6622457249134324,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9805600047111511
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.931051198567315,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999983906745911
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.4852589037386423,
+          "off_caption": 0.041666666666666664,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9451530575752258
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.6604657751041353,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9805947542190552
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9314995842825389,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999993443489075
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.4853958242841662,
+          "off_caption": 0.08333333333333333,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9473872780799866
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.6627649413178401,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9805396795272827
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9312770233962052,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999988675117493
+        }
+      ]
+    },
+    "c6_g2x": {
+      "identity": "2x G LR keeping 1.5x D (G 1e-3 / D 1.5e-3); else production",
+      "propose_only": true,
+      "knobs": {
+        "identity": "2x G LR keeping 1.5x D (G 1e-3 / D 1.5e-3); else production",
+        "propose_only": true,
+        "g_lr": 0.001,
+        "d_lr": 0.0015,
+        "beta2": 0.999,
+        "schedule": "constant",
+        "ema": 0.0,
+        "critic": "thick256",
+        "tags": {
+          "schedule": "DRIFT(2x LR hunt for early cover)",
+          "beta2": "DRIFT(0.999)",
+          "ema": "DRIFT(off)",
+          "critic": "DRIFT(thick)"
+        }
+      },
+      "tags": {
+        "schedule": "DRIFT(2x LR hunt for early cover)",
+        "beta2": "DRIFT(0.999)",
+        "ema": "DRIFT(off)",
+        "critic": "DRIFT(thick)",
+        "gan_loss": "MATCH(Rp pair logistic)",
+        "b_cap": "MATCH(kappa=1 coeff=1)",
+        "particles": "HOLD(no ParticlePrior in YuE2 port; prior x10 N/A)",
+        "vicreg": "HOLD(none; Rp-only G)",
+        "cover_weight": "HOLD(0; Rp-only G, no MSE)",
+        "teacher": "HOLD(raw positive faithful_plus_neu; not modes/spans)"
+      },
+      "summary": {
+        "600": "FAIL",
+        "1200": "PASS",
+        "3400": "PASS"
+      },
+      "controls_all_hit": true,
+      "detail": [
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.930731522799597,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999711513519287
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9328245841166173,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999920129776001
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9340089661997374,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999988675117493
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.9301224204873226,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999597668647766
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.9337164884605409,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999997615814209
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9343802851902926,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999997019767761
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.9308595484644163,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999806880950928
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.9333411808956483,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999955892562866
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9342407166714358,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999999463558197
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.6607197255314795,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9806360602378845
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9282826611666426,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999784827232361
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9318730593847221,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.6597504140817705,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9804071187973022
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.9285679571666924,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999834895133972
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9317202168314086,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999998211860657
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.6615430527474149,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9807837605476379
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.929552272469655,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999898672103882
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9318690182925623,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999999403953552
+        }
+      ]
+    },
+    "c7_sched_clone": {
+      "identity": "schedule clone: beta2 0.99 + EMA on + 60% hold cosine + D 1.5x, thick critic",
+      "propose_only": true,
+      "knobs": {
+        "identity": "schedule clone: beta2 0.99 + EMA on + 60% hold cosine + D 1.5x, thick critic",
+        "propose_only": true,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075,
+        "beta2": 0.99,
+        "schedule": "hold60",
+        "ema": 0.995,
+        "critic": "thick256",
+        "tags": {
+          "schedule": "MATCH(60% hold)",
+          "beta2": "MATCH",
+          "ema": "PARTIAL(residual-only)",
+          "critic": "DRIFT(thick)"
+        }
+      },
+      "tags": {
+        "schedule": "MATCH(60% hold)",
+        "beta2": "MATCH",
+        "ema": "PARTIAL(residual-only)",
+        "critic": "DRIFT(thick)",
+        "gan_loss": "MATCH(Rp pair logistic)",
+        "b_cap": "MATCH(kappa=1 coeff=1)",
+        "particles": "HOLD(no ParticlePrior in YuE2 port; prior x10 N/A)",
+        "vicreg": "HOLD(none; Rp-only G)",
+        "cover_weight": "HOLD(0; Rp-only G, no MSE)",
+        "teacher": "HOLD(raw positive faithful_plus_neu; not modes/spans)"
+      },
+      "summary": {
+        "600": "FAIL",
+        "1200": "FAIL",
+        "3400": "PASS"
+      },
+      "controls_all_hit": true,
+      "detail": [
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.46518937646759695,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9951409101486206
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9057885503250276,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999622702598572
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9346920291382149,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.46518484909356655,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9950858354568481
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.905737885822241,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999632835388184
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9346960488368882,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999999403953552
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.46479032825291444,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9947793483734131
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.9056456837636703,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999600648880005
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.934694406039542,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.4468903211135717,
+          "off_caption": 0.10416666666666667,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9366998672485352
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.595250822997149,
+          "off_caption": 0.03125,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9646405577659607
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9319426113800587,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0000001192092896
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.44833374178999935,
+          "off_caption": 0.08333333333333333,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9334504008293152
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.5949758927907802,
+          "off_caption": 0.010416666666666666,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9645004272460938
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.931942569739212,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.44765147591272586,
+          "off_caption": 0.11458333333333333,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9366009831428528
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.5960977491165959,
+          "off_caption": 0.020833333333333332,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9647521376609802
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.931943234117811,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999999403953552
+        }
+      ]
+    },
+    "c8_fourier_sched": {
+      "identity": "c7 schedule clone + Fourier-2 critic w64 (full locked-toy optimizer/critic/schedule clone; Rp-only G)",
+      "propose_only": true,
+      "knobs": {
+        "identity": "c7 schedule clone + Fourier-2 critic w64 (full locked-toy optimizer/critic/schedule clone; Rp-only G)",
+        "propose_only": true,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075,
+        "beta2": 0.99,
+        "schedule": "hold60",
+        "ema": 0.995,
+        "critic": "fourier64",
+        "tags": {
+          "schedule": "MATCH(60% hold)",
+          "beta2": "MATCH",
+          "ema": "PARTIAL(residual-only)",
+          "critic": "MATCH(Fourier-2)"
+        }
+      },
+      "tags": {
+        "schedule": "MATCH(60% hold)",
+        "beta2": "MATCH",
+        "ema": "PARTIAL(residual-only)",
+        "critic": "MATCH(Fourier-2)",
+        "gan_loss": "MATCH(Rp pair logistic)",
+        "b_cap": "MATCH(kappa=1 coeff=1)",
+        "particles": "HOLD(no ParticlePrior in YuE2 port; prior x10 N/A)",
+        "vicreg": "HOLD(none; Rp-only G)",
+        "cover_weight": "HOLD(0; Rp-only G, no MSE)",
+        "teacher": "HOLD(raw positive faithful_plus_neu; not modes/spans)"
+      },
+      "summary": {
+        "600": "FAIL",
+        "1200": "FAIL",
+        "3400": "FAIL"
+      },
+      "controls_all_hit": true,
+      "detail": [
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.46287860685759274,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": -0.16294977068901062
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.4611032855943084,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": -0.7497936487197876
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.32545301702650603,
+          "off_caption": 0.59375,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": -0.6190770864486694
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.3710160449596045,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": -0.1350630521774292
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.2867882923681712,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.24265256524085999
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.26832995017531963,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.7711881995201111
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.4802219384554956,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.8094470500946045
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.751212571024729,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9935405254364014
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9239269412691837,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999997615814209
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.4068810624808603,
+          "off_caption": 0.11458333333333333,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.8194180130958557
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.5480558318340641,
+          "off_caption": 0.03125,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9739315509796143
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9234046303233309,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.44428219599931684,
+          "off_caption": 0.07291666666666667,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.8459060788154602
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.5779055259995698,
+          "off_caption": 0.010416666666666666,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9685006737709045
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9242635727628814,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.2429267259770762,
+          "off_caption": 0.7395833333333334,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": -0.3706025779247284
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.27249451069480213,
+          "off_caption": 0.6041666666666666,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": -0.10280799865722656
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.7023535337698009,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9938656687736511
+        }
+      ]
+    },
+    "c9_g4x": {
+      "identity": "4x G LR keeping 1.5x D (G 2e-3 / D 3e-3); follow-up rung after clean c6 win, tests 600 PASS",
+      "propose_only": true,
+      "knobs": {
+        "identity": "4x G LR keeping 1.5x D (G 2e-3 / D 3e-3); follow-up rung after clean c6 win, tests 600 PASS",
+        "propose_only": true,
+        "g_lr": 0.002,
+        "d_lr": 0.003,
+        "beta2": 0.999,
+        "schedule": "constant",
+        "ema": 0.0,
+        "critic": "thick256",
+        "tags": {
+          "schedule": "DRIFT(4x LR hunt for 600 cover)",
+          "beta2": "DRIFT(0.999)",
+          "ema": "DRIFT(off)",
+          "critic": "DRIFT(thick)"
+        }
+      },
+      "tags": {
+        "schedule": "DRIFT(4x LR hunt for 600 cover)",
+        "beta2": "DRIFT(0.999)",
+        "ema": "DRIFT(off)",
+        "critic": "DRIFT(thick)",
+        "gan_loss": "MATCH(Rp pair logistic)",
+        "b_cap": "MATCH(kappa=1 coeff=1)",
+        "particles": "HOLD(no ParticlePrior in YuE2 port; prior x10 N/A)",
+        "vicreg": "HOLD(none; Rp-only G)",
+        "cover_weight": "HOLD(0; Rp-only G, no MSE)",
+        "teacher": "HOLD(raw positive faithful_plus_neu; not modes/spans)"
+      },
+      "summary": {
+        "600": "PASS",
+        "1200": "PASS",
+        "3400": "PASS"
+      },
+      "controls_all_hit": true,
+      "detail": [
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.932446564552591,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999880790710449
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9342112490346893,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999994039535522
+        },
+        {
+          "cell": "close",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.934151406607696,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999992251396179
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.9309707285012966,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999707937240601
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.9333199182676438,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999954700469971
+        },
+        {
+          "cell": "close",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9343077297652966,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999996423721313
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.931920355868605,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999828338623047
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.934130120858314,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999991655349731
+        },
+        {
+          "cell": "close",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9321223775168076,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999831914901733
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 600,
+          "cover": 0.9191134015974005,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9997464418411255
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 1200,
+          "cover": 0.9309760357185807,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999985098838806
+        },
+        {
+          "cell": "divergent",
+          "seed": 0,
+          "step": 3400,
+          "cover": 0.9308447856795476,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999971389770508
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 600,
+          "cover": 0.9232929270497517,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999877393245697
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 1200,
+          "cover": 0.9308006259871106,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999967813491821
+        },
+        {
+          "cell": "divergent",
+          "seed": 1,
+          "step": 3400,
+          "cover": 0.9318656235027373,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 1.0
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 600,
+          "cover": 0.9272452668824774,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999527931213379
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 1200,
+          "cover": 0.9300026654531153,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999930262565613
+        },
+        {
+          "cell": "divergent",
+          "seed": 7,
+          "step": 3400,
+          "cover": 0.9315931406977865,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999997019767761
+        }
+      ]
+    }
+  },
+  "budgets": [
+    600,
+    1200,
+    3400
+  ],
+  "seeds": [
+    0,
+    1,
+    7
+  ]
+}

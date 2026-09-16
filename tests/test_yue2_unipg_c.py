@@ -60,9 +60,20 @@ def test_schedule_shapes():
     assert unipg.lr_scale(999, unipg.ARMS["c0_production"], 3400) == 1.0
 
 
+def test_lr_rung_knobs():
+    assert unipg.ARMS["c6_g2x"]["g_lr"] == 0.001
+    assert unipg.ARMS["c6_g2x"]["d_lr"] == 0.0015
+    assert unipg.ARMS["c9_g4x"]["g_lr"] == 0.002
+    assert unipg.ARMS["c9_g4x"]["d_lr"] == 0.003
+    for arm in ("c6_g2x", "c9_g4x"):
+        assert unipg.ARMS[arm]["schedule"] == "constant"
+        assert unipg.ARMS[arm]["critic"] == "thick256"
+        assert float(unipg.ARMS[arm]["ema"]) == 0.0
+
+
 def test_ema_and_fourier_smokes_stay_gan_only():
     torch.set_num_threads(1)
-    for arm in ("c2_ema_on", "c7_sched_clone", "c8_fourier_sched"):
+    for arm in ("c2_ema_on", "c7_sched_clone", "c8_fourier_sched", "c9_g4x"):
         out = unipg.run_cell("close", arm, steps=(20,), seed=0)
         assert out["control"]["hit"]
         assert out["checkpoints"][0]["neu_hold"] == 1.0

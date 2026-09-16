@@ -206,6 +206,17 @@ ARMS: dict[str, dict] = {
         "critic": "fourier64",
         "tags": {"schedule": "MATCH(60% hold)", "beta2": "MATCH", "ema": "PARTIAL(residual-only)", "critic": "MATCH(Fourier-2)"},
     },
+    "c9_g4x": {
+        "identity": "4x G LR keeping 1.5x D (G 2e-3 / D 3e-3); follow-up rung after clean c6 win, tests 600 PASS",
+        "propose_only": True,
+        "g_lr": 0.002,
+        "d_lr": 0.003,
+        "beta2": 0.999,
+        "schedule": "constant",
+        "ema": 0.0,
+        "critic": "thick256",
+        "tags": {"schedule": "DRIFT(4x LR hunt for 600 cover)", "beta2": "DRIFT(0.999)", "ema": "DRIFT(off)", "critic": "DRIFT(thick)"},
+    },
 }
 
 # Shared gap ledger for every arm: no particles / VICReg / cover on G.
