@@ -24,8 +24,33 @@ from __future__ import annotations
 
 from dataclasses import fields
 
-from analysis.slider2d.adv import AdvConfig
+from analysis.slider2d.adv import AdvConfig, make_grad_regularizer
 from analysis.slider2d.gan import DEFAULT_TEACHER
+
+__all__ = [
+    "LOCKED",
+    "LOCKED_TEACHER",
+    "LOCKED_COVER",
+    "LOCKED_FM",
+    "LOCKED_BCAP",
+    "LOCKED_KAPPA",
+    "LOCKED_GRAD_ARM",
+    "LOCKED_GRAD_NORM",
+    "LOCKED_PARTICLE_L2",
+    "LOCKED_N_PARTICLES",
+    "LOCKED_N_PARTICLES_MAX",
+    "LOCKED_STEPS",
+    "PRODUCTION_ARGV_DEFAULTS",
+    "BUDGET_KEYS",
+    "FORMULATION_ARMS",
+    "locked_cfg",
+    "arm_cfg",
+    "assert_only_delta",
+    "check_locked_baseline_adv_config",
+    "check_grad_regularizer_champion",
+    "check_demo_teacher",
+    "assert_advconfig_defaults_match_locked",
+]
 
 # Full AdvConfig mirror. `test_pg_clone_consolidated` asserts this stays
 # identical to `AdvConfig()` field-by-field, so drift fails loudly.
@@ -140,3 +165,109 @@ def assert_only_delta(cfg: AdvConfig, name: str, *, budget: dict | None = None) 
         assert got == want, f"arm {name!r} moved locked knob {f.name}: {got!r} != {want!r}"
     for key, value in arm["delta"].items():
         assert getattr(cfg, key) == value, f"arm {name!r} delta {key} not applied"
+
+
+# -- Fire #91 scalar pins + fail-closed gates ------------------------------
+# Readable names for the locked #94 shape, derived from the single-source
+# LOCKED mirror above (no redefined knobs). The fail-closed gate below
+# pins bare AdvConfig() dataclass defaults against this shape.
+
+LOCKED_COVER = LOCKED["cover_weight"]  # 1.5
+LOCKED_FM = LOCKED["fm_weight"]  # 0.0
+LOCKED_BCAP = LOCKED["b_cap"]  # 1.0
+LOCKED_KAPPA = LOCKED["kappa"]  # 1.0
+LOCKED_GRAD_ARM = LOCKED["grad_arm"]  # b_cap
+LOCKED_GRAD_NORM = LOCKED["grad_norm"]  # l2
+LOCKED_PARTICLE_L2 = LOCKED["particle_l2"]  # 0.02
+LOCKED_N_PARTICLES = LOCKED["n_particles"]  # 12
+LOCKED_N_PARTICLES_MAX = FORMULATION_ARMS["pg_big_particles"]["feasible_max"]  # 256
+LOCKED_STEPS = LOCKED["steps"]  # 1200
+
+
+def check_locked_baseline_adv_config(
+    cfg: AdvConfig,
+    *,
+    require_steps: bool = False,
+    require_exact_n: bool = False,
+) -> list:
+    """List mismatches between `cfg` and the locked #94 shape ([] if clean).
+
+    Defaults are lenient (budget keys `steps`/`seed` skipped, `n_particles`
+    allowed up to the propose-only feasible max) so arm configs can reuse
+    this; the fail-closed gate below passes `require_steps=True,
+    require_exact_n=True` for bare `AdvConfig()` defaults.
+    """
+    bad: list = []
+    for key, want in LOCKED.items():
+        if key in BUDGET_KEYS and not require_steps:
+            continue
+        got = getattr(cfg, key, "<missing>")
+        if key == "n_particles" and not require_exact_n:
+            if got == want or (
+                isinstance(got, int) and got <= LOCKED_N_PARTICLES_MAX
+            ):
+                continue
+            bad.append(
+                f"n_particles: {got!r} != locked {want!r} "
+                f"(feasible max {LOCKED_N_PARTICLES_MAX})"
+            )
+            continue
+        if got != want:
+            bad.append(f"{key}: {got!r} != locked {want!r}")
+    return bad
+
+
+def check_grad_regularizer_champion(reg) -> list:
+    """List mismatches between `reg` and the locked b_cap champion ([] if clean)."""
+    bad: list = []
+    want = {
+        "arm": LOCKED_GRAD_ARM,
+        "coeff": LOCKED_BCAP,
+        "kappa": LOCKED_KAPPA,
+        "norm": LOCKED_GRAD_NORM,
+        "lazy_k": LOCKED["grad_lazy"],
+        "target_anneal": LOCKED["target_anneal"],
+    }
+    for key, value in want.items():
+        if getattr(reg, key, "<missing>") != value:
+            bad.append(f"reg.{key}: {getattr(reg, key, '<missing>')!r} != locked {value!r}")
+    return bad
+
+
+def check_demo_teacher(teacher: str | None = None) -> list:
+    """List mismatches between the demo teacher and locked ([] if clean)."""
+    bad: list = []
+    got = DEFAULT_TEACHER if teacher is None else teacher
+    if got != LOCKED_TEACHER:
+        bad.append(f"teacher: {got!r} != locked {LOCKED_TEACHER!r}")
+    if LOCKED_TEACHER != "faithful_guard_e":
+        bad.append(f"LOCKED_TEACHER: {LOCKED_TEACHER!r} != 'faithful_guard_e'")
+    return bad
+
+
+def assert_advconfig_defaults_match_locked(
+    cfg: AdvConfig | None = None,
+    *,
+    check_teacher: bool = True,
+    check_reg: bool = True,
+) -> None:
+    """Fail-closed: bare ``AdvConfig()`` dataclass defaults match locked #94 shape.
+
+    Analysis / selection drift detector (Fire #91). Does **not** mutate
+    ``AdvConfig`` fields or Music trainer argv — propose_only. Prefer this
+    named gate when asserting stock dataclass defaults specifically (vs
+    ``check_locked_baseline_adv_config`` which also accepts a constructed cfg).
+    """
+    cfg = cfg if cfg is not None else AdvConfig()
+    # Explicit field-by-field against LOCKED_* (readable failure strings).
+    bad = check_locked_baseline_adv_config(
+        cfg, require_steps=True, require_exact_n=True
+    )
+    if check_reg:
+        bad.extend(check_grad_regularizer_champion(make_grad_regularizer(cfg)))
+    if check_teacher:
+        bad.extend(check_demo_teacher())
+    if bad:
+        raise AssertionError(
+            "AdvConfig() defaults drifted from locked #94 shape: " + "; ".join(bad)
+        )
