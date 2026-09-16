@@ -45,6 +45,7 @@ from analysis.slider2d.exam import (
     teacher_points,
     unused_e_field,
 )
+from analysis.slider2d.rng import isolated_seed
 from analysis.slider2d.plus_exam import (
     PLUS_COVER_MIN,
     PLUS_OFF_MAX,
@@ -200,6 +201,7 @@ def neu_bags(field: PairField) -> frozenset[int]:
     return frozenset(words)
 
 
+@isolated_seed()
 def fit_plus_neu_exam(
     field: PairField,
     *,
@@ -222,7 +224,6 @@ def fit_plus_neu_exam(
         for row in range(int(field.rows))
     ]
     neutrals = [field.poles(row)[2] for row in range(int(field.rows))]
-    torch.manual_seed(int(seed))
     residual = OriginResidual.create(field)
     opt = torch.optim.Adam(residual.parameters(), lr=float(lr))
     for _ in range(int(steps)):

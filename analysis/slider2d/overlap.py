@@ -29,6 +29,7 @@ from analysis.slider2d.energy import (
     energy_verdicts,
 )
 from analysis.slider2d.field import E_ATTR, E_SLIDER, cosine
+from analysis.slider2d.rng import isolated_seed
 from analysis.slider2d.train import Residual
 from conceptmod.textsliders.slider_targets import (
     LEAK_HOLD_WEIGHT,
@@ -175,6 +176,7 @@ def live_fit_metrics(
     }
 
 
+@isolated_seed()
 def _history_train(
     field: EnergyLiveField2D,
     *,
@@ -261,7 +263,6 @@ def _history_train(
         fit = live_fit_metrics(frozen, field, leak_dir=leak_dir, hold_weight=hold_weight)
         return {"step": step, "loss": float(loss_val), **fit}
 
-    torch.manual_seed(seed)
     opt = torch.optim.Adam(residual.parameters(), lr=0.08)
     hist = [snap(residual, float(loss_fn(residual).detach()), 0)]
     for i in range(steps):

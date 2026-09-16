@@ -99,7 +99,7 @@ def test_empty_or_missing_lyric_span_fails_closed():
         _lyric_token_mask(neu, mask, tok, "", where="empty")
     no_span = torch.tensor([[1, 2, 10, 11, 3, 6, 99]])
     no_mask = torch.ones_like(no_span)
-    with pytest.raises(RuntimeError, match="span not found"):
+    with pytest.raises(RuntimeError, match="span cannot be found"):
         _lyric_token_mask(no_span, no_mask, tok, "feel air", where="missing")
     pos = torch.tensor([_POS_IDS])
     pos_mask = torch.ones_like(pos)

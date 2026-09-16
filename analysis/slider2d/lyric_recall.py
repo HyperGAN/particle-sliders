@@ -53,6 +53,7 @@ from analysis.slider2d.plus_exam import (
     plus_cover,
 )
 from analysis.slider2d.sheet import GARBLE_MAX
+from analysis.slider2d.rng import isolated_seed
 from analysis.slider2d.plus_neu_exam import (
     PLUS_NEU_HOLD_MIN,
     drift_from_neu,
@@ -575,6 +576,7 @@ def last_hidden_cannot_see_transplant(field: PairField) -> dict:
     }
 
 
+@isolated_seed()
 def fit_lyric_exam(
     field: PairField,
     *,
@@ -611,7 +613,6 @@ def fit_lyric_exam(
         )
         for row in range(int(field.rows))
     ]
-    torch.manual_seed(int(seed))
     residual = SequenceResidual.create(field)
     opt = torch.optim.Adam(residual.parameters(), lr=float(lr))
     for _ in range(int(steps)):

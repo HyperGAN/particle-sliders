@@ -87,6 +87,7 @@ from dataclasses import dataclass
 import torch
 
 from analysis.slider2d.field import cosine
+from analysis.slider2d.rng import isolated_seed
 from analysis.slider2d.sheet import nucleus
 from conceptmod.textsliders.slider_targets import (
     DUAL_BAND_WEIGHT,
@@ -1163,6 +1164,7 @@ class SharedResidual:
         return SharedResidual(self.w.detach().clone(), self.w_even.detach().clone())
 
 
+@isolated_seed()
 def fit_exam(
     field: PairField,
     *,
@@ -1215,7 +1217,6 @@ def fit_exam(
     ]
     neutrals = [field.poles(row)[2] for row in range(int(field.rows))]
 
-    torch.manual_seed(int(seed))
     residual = SharedResidual.create(field)
     opt = torch.optim.Adam(residual.parameters(), lr=float(lr))
 

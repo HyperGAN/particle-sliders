@@ -17,6 +17,7 @@ from dataclasses import dataclass
 import torch
 import torch.nn.functional as F
 
+from analysis.slider2d.rng import isolated_seed
 from analysis.tf_leak.captions import extract_bpm, load_row, tokenize
 from conceptmod.textsliders.slider_targets import (
     expand_attributes_music3,
@@ -155,6 +156,7 @@ def pair_from_catalog(name: str, *, attributes: bool = False) -> Pair:
     )
 
 
+@isolated_seed()
 def train_music3(
     field: MusicField2D,
     pair: Pair,
@@ -168,7 +170,6 @@ def train_music3(
     mag_weight: float = 0.25,
     gain_weight: float = 0.0,
 ) -> Residual:
-    torch.manual_seed(seed)
     residual = Residual(torch.zeros(2, requires_grad=True))
     opt = torch.optim.Adam([residual.w_odd], lr=lr)
     xs = field.train_points()

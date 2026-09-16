@@ -27,6 +27,7 @@ from analysis.slider2d.adv import (
     rp_g_loss,
     vicreg_loss,
 )
+from analysis.slider2d.rng import isolated_seed
 
 
 def mixture_means(n_modes: int, radius: float = 2.0) -> torch.Tensor:
@@ -74,6 +75,7 @@ def hq_and_cover(
     }
 
 
+@isolated_seed()
 def train_gaussians(
     *,
     n_modes: int = 8,
@@ -85,7 +87,6 @@ def train_gaussians(
     n_particles: int | None = None,
     lr: float = 2.0e-3,
 ) -> dict:
-    torch.manual_seed(int(seed))
     means = mixture_means(n_modes)
     n_particles = int(n_particles or max(n_modes, 2 * n_modes))
     prior = ParticlePrior(n_particles, 2, init_std=0.15)
