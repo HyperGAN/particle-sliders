@@ -25,6 +25,8 @@ from analysis.slider2d.adv import (
 from analysis.slider2d.grad_regularizers import GradRegularizer
 from analysis.slider2d.exam import close_field, divergent_field, unused_e_field
 from analysis.slider2d.gan import (
+    AdvResidual,
+    _coverage,
     default_cfg,
     score_adv_exam,
     score_adv_sheet,
@@ -227,6 +229,24 @@ def test_eight_gaussians_cover_modes_with_b_cap():
     means = mixture_means(8)
     dead = hq_and_cover(torch.zeros(200, 2), means, 0.05)
     assert dead["modes"] == 0
+
+
+def test_coverage_reports_worst_row_not_row0():
+    """`covered` used to read row 0 only: rows 1-2 could drift arbitrarily."""
+    neus = torch.zeros(3, 2)
+    poles_p = torch.tensor([[1.0, 0.0], [5.0, 5.0], [-5.0, 5.0]])
+    poles_m = torch.tensor([[-1.0, 0.0], [-5.0, -5.0], [5.0, -5.0]])
+    row0_fit = AdvResidual(torch.tensor([1.0, 0.0]), torch.tensor([0.0, 0.0]))
+    row = _coverage(row0_fit, poles_p, poles_m, neus)
+    assert row["covered"] is True  # row 0 lands exactly ...
+    assert row["covered_all_rows"] is False  # ... while rows 1-2 are far
+    assert row["worst_row_rel_err"] > 0.20
+    good_p = torch.tensor([[1.0, 0.0], [1.0, 0.1], [1.0, -0.1]])
+    good_m = torch.tensor([[-1.0, 0.0], [-1.0, 0.1], [-1.0, -0.1]])
+    both = _coverage(row0_fit, good_p, good_m, neus)
+    assert both["covered"] is True
+    assert both["covered_all_rows"] is True
+    assert both["worst_row_rel_err"] <= 0.20
 
 
 # -- live default stays put ----------------------------------------------

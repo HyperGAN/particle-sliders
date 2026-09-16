@@ -283,18 +283,42 @@ def _coverage(
     poles_m: torch.Tensor,
     neus: torch.Tensor,
 ) -> dict[str, float]:
-    """How close ±1 land on the teacher poles (row 0)."""
+    """How close ±1 land on the teacher poles.
+
+    Row-0 keys (``pole_rel_err_*``, ``pole_cos_*``, ``covered``) are kept for
+    continuity. The ``worst_row_*`` keys aggregate over every row: a shared
+    residual that fits row 0 while rows 1+ drift used to report
+    ``covered=True`` with nothing recording the miss.
+    """
     neu = neus[0]
     pred_p = neu + residual.delta(1.0)
     pred_m = neu + residual.delta(-1.0)
     err_p = float((pred_p - poles_p[0]).norm() / poles_p[0].norm().clamp_min(1e-8))
     err_m = float((pred_m - poles_m[0]).norm() / poles_m[0].norm().clamp_min(1e-8))
+    worst_err, worst_cos = err_p, min(
+        cosine(pred_p - neu, poles_p[0] - neu),
+        cosine(pred_m - neu, poles_m[0] - neu),
+    )
+    for i in range(1, int(neus.shape[0])):
+        base = neus[i]
+        pp, pm = base + residual.delta(1.0), base + residual.delta(-1.0)
+        err_p_i = float((pp - poles_p[i]).norm() / poles_p[i].norm().clamp_min(1e-8))
+        err_m_i = float((pm - poles_m[i]).norm() / poles_m[i].norm().clamp_min(1e-8))
+        worst_err = max(worst_err, err_p_i, err_m_i)
+        worst_cos = min(
+            worst_cos,
+            cosine(pp - base, poles_p[i] - base),
+            cosine(pm - base, poles_m[i] - base),
+        )
     return {
         "pole_rel_err_plus": err_p,
         "pole_rel_err_minus": err_m,
         "pole_cos_plus": cosine(pred_p - neu, poles_p[0] - neu),
         "pole_cos_minus": cosine(pred_m - neu, poles_m[0] - neu),
         "covered": err_p <= 0.20 and err_m <= 0.20,
+        "worst_row_rel_err": worst_err,
+        "worst_row_cos": worst_cos,
+        "covered_all_rows": worst_err <= 0.20,
     }
 
 
