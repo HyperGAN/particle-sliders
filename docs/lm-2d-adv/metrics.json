@@ -6,6 +6,7 @@
     "seed": 0,
     "teacher": "faithful_guard_e",
     "b_cap": 1.0,
+    "kappa": 1.0,
     "fm_weight": 0.0,
     "cover_weight": 1.5
   },

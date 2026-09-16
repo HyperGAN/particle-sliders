@@ -10,7 +10,7 @@ Music 3 listen quality.
 ## Recipe
 
 - teacher: `faithful_guard_e` (blend-guarded leftover ê; refuses when ê restates the axis)
-- b_cap coeff: `1.0` (soft cap above 1, free below)
+- b_cap coeff: `1.0`, κ: `1.0` (ParticleGAN `GradRegularizer`, one-sided, free below κ)
 - feature matching: `0.0` (0 = off; raw FM is uncapped by b_cap)
 - cover_weight: `1.5` (mode pin on the shared residual; needed on sheet/exam width)
 - GAN steps: field/sheet `1200`, exam `1200`, seed `0`
