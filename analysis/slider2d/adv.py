@@ -6,12 +6,18 @@ VICReg on particles, EMA G+particles, Adam β1=0, delayed cosine LR) plus
 the Music-LM extras that have a 2-D analogue (span samples, end-margin,
 optional *normalized* feature matching).
 
-``b_cap`` is the soft steepness cap::
+``b_cap`` is the soft steepness cap (ParticleGAN-faithful, κ explicit)::
 
-    0.5 * coeff * (mean(relu(||∇D(real)|| − 1)²) + mean(relu(||∇D(fake)|| − 1)²))
+    0.5 * coeff * (mean(relu(‖∇D(real)‖ − κ)²) + mean(relu(‖∇D(fake)‖ − κ)²))
 
-Free below 1, quadratic above. Feature matching on raw D features is
-*not* capped by this — keep it off or L2-normalize the pooled features.
+with ``‖g‖ = √(Σ gᵢ² + 1e-12)``. Free below κ, quadratic above. The penalty is
+computed by ParticleGAN's ``GradRegularizer`` (vendored verbatim in
+``analysis.slider2d.grad_regularizers``) — not by a reimplementation.
+``cap_penalty`` is a thin shim over the same ``GradRegularizer`` phi for
+callers that already hold input-gradient tensors; the train paths call
+``make_grad_regularizer(...).penalty(D, x_real, x_fake)`` directly.
+Feature matching on raw D features is *not* capped by this — keep it off
+or L2-normalize the pooled features.
 
 CPU-sized. No Hub, no GPU, no Music 3 weights. Does not change the live
 trainer default.
@@ -26,6 +32,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from analysis.slider2d.grad_regularizers import GradRegularizer
+
 
 def rp_d_loss(d_real: torch.Tensor, d_fake: torch.Tensor) -> torch.Tensor:
     """Relativistic-pair logistic critic loss: prefer D(real) > D(fake)."""
@@ -37,21 +45,68 @@ def rp_g_loss(d_real: torch.Tensor, d_fake: torch.Tensor) -> torch.Tensor:
     return F.softplus(-(d_fake - d_real)).mean()
 
 
+def make_grad_regularizer(
+    cfg: "AdvConfig | None" = None,
+    *,
+    arm: str | None = None,
+    coeff: float | None = None,
+    kappa: float | None = None,
+    norm: str | None = None,
+    lazy_k: int | None = None,
+    target_anneal: str | None = None,
+    total_steps: int | None = None,
+) -> GradRegularizer:
+    """ParticleGAN-faithful ``GradRegularizer`` for the b_cap arm.
+
+    Defaults come from ``AdvConfig`` (arm ``b_cap``, coeff ``b_cap``,
+    ``kappa=1.0``, ``norm=l2``); explicit kwargs override. This is the
+    Strategy-B entry point — every train path must build its penalty here
+    rather than reimplementing the cap.
+    """
+    cfg = cfg if cfg is not None else AdvConfig()
+    arm = cfg.grad_arm if arm is None else arm
+    coeff = float(cfg.b_cap) if coeff is None else float(coeff)
+    kappa = float(cfg.kappa) if kappa is None else float(kappa)
+    norm = cfg.grad_norm if norm is None else norm
+    lazy_k = int(cfg.grad_lazy) if lazy_k is None else int(lazy_k)
+    target_anneal = cfg.target_anneal if target_anneal is None else target_anneal
+    steps = int(cfg.steps) if total_steps is None else int(total_steps)
+    return GradRegularizer(
+        arm=arm,
+        coeff=coeff,
+        kappa=kappa,
+        lazy_k=lazy_k,
+        norm=norm,
+        target_anneal=target_anneal,
+        total_steps=steps if target_anneal != "none" else 0,
+    )
+
+
+def _l2_norm(g: torch.Tensor) -> torch.Tensor:
+    """Per-sample L2 input-gradient norm, ParticleGAN convention (eps 1e-12)."""
+    return torch.sqrt(g.flatten(1).pow(2).sum(dim=1) + 1e-12)
+
+
 def cap_penalty(
     grad_real: torch.Tensor,
     grad_fake: torch.Tensor,
     *,
     coeff: float = 1.0,
+    kappa: float = 1.0,
 ) -> torch.Tensor:
     """One-sided b_cap on input-gradient norms of D.
 
-    ``0.5 * coeff * (mean(relu(||∇D(x_r)||−1)²) + mean(relu(||∇D(x_f)||−1)²))``.
+    ``0.5 * coeff * (mean(relu(‖∇D(x_r)‖−κ)²) + mean(relu(‖∇D(x_f)‖−κ)²))``
+    with ``‖g‖ = √(Σgᵢ² + 1e-12)``. Thin shim: the phi is ParticleGAN's
+    ``GradRegularizer._phi`` for arm ``b_cap``, not a local reimplementation.
+    Prefer ``make_grad_regularizer(...).penalty(D, x_real, x_fake)`` on train
+    paths so the autograd norm stays inside the ParticleGAN module too.
     """
-    real_n = grad_real.flatten(1).norm(dim=1)
-    fake_n = grad_fake.flatten(1).norm(dim=1)
-    return 0.5 * float(coeff) * (
-        F.relu(real_n - 1.0).pow(2).mean() + F.relu(fake_n - 1.0).pow(2).mean()
-    )
+    reg = GradRegularizer(arm="b_cap", coeff=coeff, kappa=kappa)
+    center = reg.center(0)
+    phi_r = reg._phi(_l2_norm(grad_real), center)
+    phi_f = reg._phi(_l2_norm(grad_fake), center)
+    return (float(coeff) / 2.0) * (phi_r.mean() + phi_f.mean())
 
 
 def input_grad(critic: nn.Module, x: torch.Tensor) -> torch.Tensor:
@@ -211,6 +266,11 @@ class AdvConfig:
     beta1: float = 0.0
     beta2: float = 0.99
     b_cap: float = 1.0
+    kappa: float = 1.0
+    grad_arm: str = "b_cap"
+    grad_norm: str = "l2"
+    grad_lazy: int = 1
+    target_anneal: str = "none"
     n_particles: int = 12
     batch: int = 32
     cloud_std: float = 0.03

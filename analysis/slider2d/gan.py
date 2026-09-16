@@ -27,10 +27,10 @@ from analysis.slider2d.adv import (
     EMA,
     Fourier2MLP,
     ParticlePrior,
-    cap_penalty,
     delayed_cosine,
     feature_match_loss,
     input_grad,
+    make_grad_regularizer,
     rp_d_loss,
     rp_g_loss,
     sample_real_cloud,
@@ -165,6 +165,7 @@ def fit_adv(
     )
     half = max(1, int(cfg.batch) // 2)
     logs = {"d": [], "g": [], "cap": [], "grad_real": [], "grad_fake": []}
+    reg = make_grad_regularizer(cfg)
 
     def set_lr(step: int) -> None:
         scale = delayed_cosine(
@@ -204,15 +205,11 @@ def fit_adv(
         for _ in range(int(cfg.d_steps)):
             fake_p, fake_m = fake_batch()
             fake = torch.cat([fake_p, fake_m], dim=0).detach()
-            real_g = real.detach().requires_grad_(True)
-            fake_g = fake.detach().requires_grad_(True)
+            real_g = real.detach()
+            fake_g = fake.detach()
             d_real = critic(real_g)
             d_fake = critic(fake_g)
-            cap = cap_penalty(
-                input_grad(critic, real_g),
-                input_grad(critic, fake_g),
-                coeff=cfg.b_cap,
-            )
+            cap, _cap_stats = reg.penalty(critic, real_g, fake_g, step=step + 1)
             d_loss = rp_d_loss(d_real, d_fake) + cap
             opt_d.zero_grad()
             d_loss.backward()
@@ -533,6 +530,7 @@ def train_lm_adv(
     opt_d = torch.optim.Adam(critic.parameters(), lr=cfg.lr, betas=(cfg.beta1, cfg.beta2))
     ema = EMA(residual.parameters(), decay=cfg.ema)
     half = max(1, int(cfg.batch) // 2)
+    reg = make_grad_regularizer(cfg)
 
     def set_lr(step: int) -> None:
         scale = delayed_cosine(
@@ -564,12 +562,10 @@ def train_lm_adv(
         for _ in range(int(cfg.d_steps)):
             fake_p, fake_m = fake_batch()
             fake = torch.cat([fake_p, fake_m], dim=0).detach()
-            real_g = real.detach().requires_grad_(True)
-            fake_g = fake.detach().requires_grad_(True)
-            d_loss = rp_d_loss(critic(real_g), critic(fake_g)) + cap_penalty(
-                input_grad(critic, real_g),
-                input_grad(critic, fake_g),
-                coeff=cfg.b_cap,
+            real_g = real.detach()
+            fake_g = fake.detach()
+            d_loss = rp_d_loss(critic(real_g), critic(fake_g)) + reg(
+                critic, real_g, fake_g, step=step + 1
             )
             opt_d.zero_grad()
             d_loss.backward()

@@ -71,6 +71,7 @@ def collect(
     seed: int,
     teacher: str,
     b_cap: float,
+    kappa: float,
     fm_weight: float,
     baseline_steps: int,
     cover_weight: float = 1.5,
@@ -79,6 +80,7 @@ def collect(
         steps=steps,
         seed=seed,
         b_cap=b_cap,
+        kappa=kappa,
         fm_weight=fm_weight,
         cover_weight=cover_weight,
     )
@@ -86,6 +88,7 @@ def collect(
         steps=exam_steps,
         seed=seed,
         b_cap=b_cap,
+        kappa=kappa,
         fm_weight=fm_weight,
         cover_weight=cover_weight,
     )
@@ -156,6 +159,7 @@ def collect(
             "seed": seed,
             "teacher": teacher,
             "b_cap": b_cap,
+            "kappa": kappa,
             "fm_weight": fm_weight,
             "cover_weight": cover_weight,
         },
@@ -211,7 +215,7 @@ def write_findings(blob: dict, path: Path) -> None:
         "## Recipe",
         "",
         f"- teacher: `{cfg['teacher']}` (blend-guarded leftover ê; refuses when ê restates the axis)",
-        f"- b_cap coeff: `{cfg['b_cap']}` (soft cap above 1, free below)",
+        f"- b_cap coeff: `{cfg['b_cap']}`, κ: `{cfg['kappa']}` (ParticleGAN `GradRegularizer`, one-sided, free below κ)",
         f"- feature matching: `{cfg['fm_weight']}` (0 = off; raw FM is uncapped by b_cap)",
         f"- cover_weight: `{cfg['cover_weight']}` (mode pin on the shared residual; needed on sheet/exam width)",
         f"- GAN steps: field/sheet `{cfg['steps']}`, exam `{cfg['exam_steps']}`, seed `{cfg['seed']}`",
@@ -323,6 +327,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--teacher", type=str, default=DEFAULT_TEACHER)
     parser.add_argument("--b-cap", type=float, default=1.0)
+    parser.add_argument("--kappa", type=float, default=1.0)
     parser.add_argument("--fm-weight", type=float, default=0.0)
     parser.add_argument("--cover-weight", type=float, default=1.5)
     args = parser.parse_args(argv)
@@ -333,6 +338,7 @@ def main(argv: list[str] | None = None) -> int:
         seed=args.seed,
         teacher=args.teacher,
         b_cap=args.b_cap,
+        kappa=args.kappa,
         fm_weight=args.fm_weight,
         baseline_steps=args.baseline_steps,
         cover_weight=args.cover_weight,
