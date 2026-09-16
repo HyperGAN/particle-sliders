@@ -2632,9 +2632,32 @@ def parse_args(argv=None):
     p.add_argument("--early_cos", type=float, default=0.97, help="min mean c+ and c- in the window")
     p.add_argument("--early_collapse", type=float, default=-0.95, help="max mean collapse (more negative is better)")
     p.add_argument("--early_perc", type=float, default=0.20, help="max mean pperc/nperc in the window")
+    p.add_argument(
+        "--arm_b",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Music Arm B (RpGAN + b_cap) operator preset: applies the honored "
+        "trainer subset (--lm_target faithful_guard_e) from "
+        "conceptmod.textsliders.music_arm_b and prints the full winning argv. "
+        "Adversarial keys (critic/RpGAN/b_cap/parts/cover/pole) are propose-only "
+        "on this supervised trainer. Fails closed on --lm_target conflicts. "
+        "Default off; the live default stays v9",
+    )
     args = p.parse_args(argv)
     if args.steps < 1:
         p.error("--steps must be >= 1")
+    if args.arm_b:
+        from conceptmod.textsliders.music_arm_b import apply_arm_b_defaults
+
+        raw = argv if argv is not None else sys.argv[1:]
+        explicit_lm_target = any(
+            tok == "--lm_target" or tok.startswith("--lm_target=")
+            for tok in raw
+        )
+        try:
+            apply_arm_b_defaults(args, explicit_lm_target=explicit_lm_target)
+        except ValueError as exc:
+            p.error(str(exc))
     return args
 
 

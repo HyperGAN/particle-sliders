@@ -28,6 +28,16 @@ Music 3 default. Anima / ZiT / H3 are not in this trainer.
 Fruit-bowl control: `a bowl of fruit on a table`. Does not change the
 Music 3 default.
 
+**Music Arm B (RpGAN + b_cap) operator recipe:** see
+[docs/music-arm-b.md](docs/music-arm-b.md). Winning argv is
+`--lm_target faithful_guard_e --adv_arch mlp --fm_weight 0 --b_cap 1
+--adv_reg_kappa 1 --cover_weight 1.0 --pole_weight 1.0 --parts 0`, eval
+scales `-1, 0, 0.5, 1`. Recipe adapter:
+`conceptmod/textsliders/music_arm_b.py`; weight-free smoke:
+`python scripts/smoke_music_arm_b_argv.py` (exits 0 only on shape match).
+Supervised-trainer preset: `--arm_b` (teacher subset only; adv keys are
+propose-only; live default stays `v9`).
+
 ###  [Project Website](https://sliders.baulab.info) | [Arxiv Preprint](https://arxiv.org/pdf/2311.12092.pdf) | [Trained Sliders](https://sliders.baulab.info/weights/xl_sliders/) | [Colab Demo](https://colab.research.google.com/github/rohitgandikota/sliders/blob/main/demo_concept_sliders.ipynb) <br>
 Official code implementation of "Concept Sliders: LoRA Adaptors for Precise Control in Diffusion Models"
 
