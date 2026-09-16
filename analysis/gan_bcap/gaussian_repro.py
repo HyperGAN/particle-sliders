@@ -20,9 +20,8 @@ from analysis.slider2d.adv import (
     EMA,
     Fourier2MLP,
     ParticlePrior,
-    cap_penalty,
     delayed_cosine,
-    input_grad,
+    make_grad_regularizer,
     rp_d_loss,
     rp_g_loss,
     vicreg_loss,
@@ -80,6 +79,7 @@ def train_gaussians(
     steps: int = 1500,
     seed: int = 1234,
     b_cap: float = 1.0,
+    kappa: float = 1.0,
     sigma: float = 0.05,
     batch: int = 64,
     n_particles: int | None = None,
@@ -101,6 +101,7 @@ def train_gaussians(
     ema_g = EMA(list(gen.parameters()), decay=0.995)
     ema_p = EMA(list(prior.parameters()), decay=0.995)
     delay = max(50, int(0.12 * steps))
+    reg = make_grad_regularizer(coeff=b_cap, kappa=kappa)
 
     for step in range(int(steps)):
         scale = delayed_cosine(step, total=steps, delay=delay, min_ratio=0.05)
@@ -110,12 +111,10 @@ def train_gaussians(
         real = sample_mixture(means, batch, sigma)
         z = prior.sample(batch, jitter=0.02)
         fake = gen(z).detach()
-        real_g = real.detach().requires_grad_(True)
-        fake_g = fake.detach().requires_grad_(True)
-        d_loss = rp_d_loss(critic(real_g), critic(fake_g)) + cap_penalty(
-            input_grad(critic, real_g),
-            input_grad(critic, fake_g),
-            coeff=b_cap,
+        real_g = real.detach()
+        fake_g = fake.detach()
+        d_loss = rp_d_loss(critic(real_g), critic(fake_g)) + reg(
+            critic, real_g, fake_g, step=step + 1
         )
         opt_d.zero_grad()
         d_loss.backward()
@@ -144,6 +143,7 @@ def train_gaussians(
             "steps": int(steps),
             "seed": int(seed),
             "b_cap": float(b_cap),
+            "kappa": float(kappa),
             "sigma": float(sigma),
             "d_loss": float(d_loss.detach()),
             "g_loss": float(g_loss.detach()),
