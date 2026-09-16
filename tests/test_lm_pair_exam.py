@@ -13,6 +13,7 @@ import torch
 
 from analysis.slider2d.exam import (
     CELLS,
+    E_REQUIRED_RECIPES,
     EXAM_COHERENCE,
     EXAM_MATCH_KEPT,
     EXAM_ROLL_OFF_MAX,
@@ -32,10 +33,12 @@ from analysis.slider2d.exam import (
     hold_direction,
     live_exam_rows,
     near_gate,
+    recipes,
     rollouts,
     score_exam,
     shared_from_probe_cos,
     target_geometry,
+    teacher_points,
     teacher_rollouts,
     teacher_self_match,
     unused_e_field,
@@ -567,3 +570,35 @@ def test_the_live_trainer_default_is_untouched():
     assert args.lm_target == "v9"
     assert args.pole_mode == "hidden"
     assert args.common_beta == 0.0
+
+
+# -- registration: no cell silently unscored (BUG HUNT B) -----------------
+
+
+def test_every_registered_cell_is_scored():
+    assert set(CELLS) == {"divergent", "close", "unused_e"}
+    assert set(table()) == set(CELLS)
+
+
+def test_close_cell_skips_only_e_requiring_recipes():
+    """The ê-less close pair omits exactly E_REQUIRED_RECIPES, nothing else."""
+    full = {name for name, _ in recipes(divergent_field())}
+    assert {name for name, _ in recipes(unused_e_field())} == full
+    assert set(full) - {name for name, _ in recipes(close_field())} == set(
+        E_REQUIRED_RECIPES
+    )
+    assert E_REQUIRED_RECIPES == frozenset(
+        {"hold_e_perp_l8", "pair_odd_sub_e", "faithful_sub_e", "semantic_kl_sub_e"}
+    )
+    by_name = dict(recipes(divergent_field()))
+    field = close_field()
+    assert field.declared_e() is None
+    for name in E_REQUIRED_RECIPES:
+        kwargs = by_name[name]
+        if float(kwargs.get("hold_weight", 0.0)) > 0.0:
+            # Hold with no ê degenerates to the midpoint row; skip, don't duplicate it.
+            assert hold_direction(field, None) is None
+        else:
+            # Subtract teachers need a declared ê; the skip is principled, not silent.
+            with pytest.raises(ValueError):
+                teacher_points(field, 0, teacher=kwargs["teacher"], leak_dir=None)

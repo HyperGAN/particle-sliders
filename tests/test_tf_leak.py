@@ -35,7 +35,13 @@ def geo():
 
 
 def field_fits():
-    """Train the four load-bearing cells once for the module."""
+    """Train the load-bearing cells once for the module.
+
+    Covers every method row of docs/tf-leak.md's field table: default
+    ``nmse``/``axis``, ``pole``, ``nmse_ortho``, the gender-``attributes``
+    variant (prefixing must not move BPM), the fixed-BPM control, and the
+    pure-tempo control.
+    """
     global _FIELD
     if _FIELD is None:
         field = MusicField2D()
@@ -44,12 +50,17 @@ def field_fits():
             ("energy", "energy", {"kind": "nmse", "target_mode": "axis"}),
             ("energy_pole", "energy", {"kind": "nmse", "target_mode": "pole"}),
             ("energy_ortho", "energy", {"kind": "nmse_ortho", "target_mode": "axis"}),
+            ("energy_attrs", "energy", {"kind": "nmse", "target_mode": "axis", "attributes": True}),
             ("cand_energy", "cand_energy", {"kind": "nmse", "target_mode": "axis"}),
             ("tempo", "tempo", {"kind": "nmse", "target_mode": "axis"}),
         ):
             attrs = name.endswith("_attrs")
+            assert attrs == bool(kwargs.get("attributes", False)), (
+                f"{name}: _attrs suffix and attributes flag disagree"
+            )
+            rest = {k: v for k, v in kwargs.items() if k != "attributes"}
             pair = pair_from_catalog(catalog, attributes=attrs)
-            residual = train_music3(field, pair, steps=120, seed=0, **kwargs)
+            residual = train_music3(field, pair, steps=120, seed=0, **rest)
             _FIELD[name] = {"pair": pair, "fit": score_residual(residual), "teacher": teacher_leak(pair)}
     return _FIELD
 
@@ -185,3 +196,24 @@ def test_tempo_default_tf_does_not_leak_energy():
     fit = field_fits()["tempo"]["fit"]
     assert fit["cos_tempo_plus"] > 0.90
     assert abs(fit["cos_energy_plus"]) < 0.20
+
+
+def test_field_suite_covers_every_docs_method_row():
+    """Fail-closed: the docs table's attrs row used to train nothing."""
+    assert set(field_fits()) == {
+        "energy",
+        "energy_pole",
+        "energy_ortho",
+        "energy_attrs",
+        "cand_energy",
+        "tempo",
+    }
+
+
+def test_gender_attributes_do_not_unpin_bpm():
+    """Docs row: prefixing the energy pair keeps energy cos, keeps tempo leak."""
+    fit = field_fits()["energy_attrs"]["fit"]
+    raw = field_fits()["energy"]["fit"]
+    assert fit["cos_energy_plus"] > 0.70
+    assert abs(fit["leak_ratio"]) > 0.20
+    assert fit["leak_ratio"] == pytest.approx(raw["leak_ratio"], abs=0.05)
