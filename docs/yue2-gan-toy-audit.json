@@ -1,0 +1,328 @@
+{
+  "reference_main": "14e9aac",
+  "production_recipe_commit": "3e5a3a0",
+  "seeds": [
+    0,
+    1,
+    7
+  ],
+  "required_cells": [
+    "divergent",
+    "close"
+  ],
+  "gates": {
+    "cover_min": 0.85,
+    "off_caption_max": 0.05,
+    "neu_hold_min": 0.85
+  },
+  "recipe": {
+    "lm_target": "faithful_plus_neu",
+    "adv_arch": "mlp",
+    "adv_norm": "l2",
+    "fm_weight": 0.0,
+    "parts": 0,
+    "pole_weight": 0.0,
+    "cover_weight": 0.0,
+    "adv_reg_kappa": 1.0,
+    "adv_b_cap": 1.0,
+    "vicreg_weight": 0.0,
+    "name": "unipolar-rpgan-bcap-yue2-v3",
+    "polarity": "unipolar",
+    "adv_weight": 1.0,
+    "end_weight": 0.0,
+    "lyrichold_weight": 0.0,
+    "plan_weight": 0.0,
+    "anchor_weight": 0.0,
+    "critic_hidden": 256,
+    "critic_layers": 2,
+    "adv_in": "scaled",
+    "adv_batch": 4,
+    "g_lr": 0.0005,
+    "d_lr": 0.00075,
+    "betas": [
+      0.0,
+      0.999
+    ],
+    "g_weight_decay": 1e-06,
+    "schedule": "constant",
+    "grad_clip_value": 1.0,
+    "trained_scales": [
+      1.0
+    ],
+    "zero_behavior": "exact_base_by_adapter_scale",
+    "recommended_range": [
+      0.0,
+      1.0
+    ],
+    "penalty_method": "autograd",
+    "penalty_lazy_k": 1,
+    "penalty_anneal": "none",
+    "cap_coordinates": "fixed_teacher_rms",
+    "generator_objective": "positive_rpgan_only",
+    "critic_positions": "music_start_only",
+    "phase_changes": [],
+    "prompt_policy": "balanced_shuffled_passes",
+    "history_policy": "none_prompt_states_only"
+  },
+  "accepted_by_budget": {
+    "600": false,
+    "1200": false,
+    "3400": true
+  },
+  "sources": {
+    "analysis/slider2d/yue2_gan_exam.py": "ac4af4b6be985ecb88bd985c4e45611cd8aff6db331150ed72995361ebfd7c8d",
+    "analysis/slider2d/plus_neu_exam.py": "2cbc0a0d2cce2c35ac2bcfa8d6113fe843831d1b61ba97dd8bac16d5552fecf0",
+    "conceptmod/textsliders/yue2_arm_b.py": "23a77228e80cbe7bff4b9fbaa352cebd2c481f8b898d38b2f34e96bdf85c2410",
+    "conceptmod/textsliders/lm_adv.py": "8b42a4bad78e2a5314289ef23598908a5d967281aab91c88841ef344a9d33a68",
+    "analysis/slider2d/adv.py": "1a939c65626574028a90f7a96c95b6363d59f4199833d74950ba625b3f9491fb",
+    "analysis/slider2d/grad_regularizers.py": "c1372f537c8f53b6d3fdedc3dc9521533d3b5f954c8d1e012af02d5c87f864e5"
+  },
+  "results": [
+    {
+      "cell": "divergent",
+      "seed": 0,
+      "batch": 3,
+      "control": {
+        "cover": 0.931980895716657,
+        "off_caption": 0.0,
+        "neu_hold": 0.9999999736430404,
+        "hit": true,
+        "pole_cos": 1.0
+      },
+      "checkpoints": [
+        {
+          "step": 600,
+          "cover": 0.48230615808887195,
+          "off_caption": 0.0625,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9481264352798462
+        },
+        {
+          "step": 1200,
+          "cover": 0.6595981251607644,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9803180694580078
+        },
+        {
+          "step": 3400,
+          "cover": 0.9313540178205694,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999990463256836
+        }
+      ],
+      "peak_g_adv": 3.2631903489430742,
+      "peak_d_loss": 0.7459468245506287,
+      "peak_g_grad_norm": 1.7787201299458097
+    },
+    {
+      "cell": "close",
+      "seed": 0,
+      "batch": 3,
+      "control": {
+        "cover": 0.9347082616268442,
+        "off_caption": 0.0,
+        "neu_hold": 0.9999998695040779,
+        "hit": true,
+        "pole_cos": 0.9999998807907104
+      },
+      "checkpoints": [
+        {
+          "step": 600,
+          "cover": 0.5865667665229372,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9981018304824829
+        },
+        {
+          "step": 1200,
+          "cover": 0.931347136086551,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999979555606842
+        },
+        {
+          "step": 3400,
+          "cover": 0.9342013939821712,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999994039535522
+        }
+      ],
+      "peak_g_adv": 3.1320752302805586,
+      "peak_d_loss": 0.8833677172660828,
+      "peak_g_grad_norm": 3.3593535666558267
+    },
+    {
+      "cell": "divergent",
+      "seed": 1,
+      "batch": 3,
+      "control": {
+        "cover": 0.931980895716657,
+        "off_caption": 0.0,
+        "neu_hold": 0.9999999736430404,
+        "hit": true,
+        "pole_cos": 1.0
+      },
+      "checkpoints": [
+        {
+          "step": 600,
+          "cover": 0.4836238165262774,
+          "off_caption": 0.041666666666666664,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9451051354408264
+        },
+        {
+          "step": 1200,
+          "cover": 0.6583817005290985,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9800587296485901
+        },
+        {
+          "step": 3400,
+          "cover": 0.9312443329151613,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999985694885254
+        }
+      ],
+      "peak_g_adv": 3.2860809167226153,
+      "peak_d_loss": 0.7528116106987,
+      "peak_g_grad_norm": 1.7833845499592753
+    },
+    {
+      "cell": "close",
+      "seed": 1,
+      "batch": 3,
+      "control": {
+        "cover": 0.9347082616268442,
+        "off_caption": 0.0,
+        "neu_hold": 0.9999998695040779,
+        "hit": true,
+        "pole_cos": 0.9999998807907104
+      },
+      "checkpoints": [
+        {
+          "step": 600,
+          "cover": 0.5856170340845551,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9981529116630554
+        },
+        {
+          "step": 1200,
+          "cover": 0.9318940858142372,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999986469745636
+        },
+        {
+          "step": 3400,
+          "cover": 0.9340837576068393,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999990463256836
+        }
+      ],
+      "peak_g_adv": 3.238105694452922,
+      "peak_d_loss": 0.7122551798820496,
+      "peak_g_grad_norm": 3.377664573833174
+    },
+    {
+      "cell": "divergent",
+      "seed": 7,
+      "batch": 3,
+      "control": {
+        "cover": 0.931980895716657,
+        "off_caption": 0.0,
+        "neu_hold": 0.9999999736430404,
+        "hit": true,
+        "pole_cos": 1.0
+      },
+      "checkpoints": [
+        {
+          "step": 600,
+          "cover": 0.48342423115640426,
+          "off_caption": 0.08333333333333333,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9477814435958862
+        },
+        {
+          "step": 1200,
+          "cover": 0.6606347251983049,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9803836941719055
+        },
+        {
+          "step": 3400,
+          "cover": 0.9314062940984776,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999994039535522
+        }
+      ],
+      "peak_g_adv": 3.2564142545064287,
+      "peak_d_loss": 0.784374475479126,
+      "peak_g_grad_norm": 1.7790180075700597
+    },
+    {
+      "cell": "close",
+      "seed": 7,
+      "batch": 3,
+      "control": {
+        "cover": 0.9347082616268442,
+        "off_caption": 0.0,
+        "neu_hold": 0.9999998695040779,
+        "hit": true,
+        "pole_cos": 0.9999998807907104
+      },
+      "checkpoints": [
+        {
+          "step": 600,
+          "cover": 0.5855080211400553,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": false,
+          "pole_cos": 0.9980508089065552
+        },
+        {
+          "step": 1200,
+          "cover": 0.9324757712336079,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.999992847442627
+        },
+        {
+          "step": 3400,
+          "cover": 0.9336626585853679,
+          "off_caption": 0.0,
+          "neu_hold": 1.0,
+          "hit": true,
+          "pole_cos": 0.9999974966049194
+        }
+      ],
+      "peak_g_adv": 3.2109104792277017,
+      "peak_d_loss": 0.796654224395752,
+      "peak_g_grad_norm": 3.3274247413338625
+    }
+  ]
+}

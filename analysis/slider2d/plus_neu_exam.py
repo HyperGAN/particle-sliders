@@ -269,6 +269,27 @@ def score_plus_neu_exam(
         steps=steps,
         seed=seed,
     )
+    return score_plus_neu_residual(
+        name, field, residual, teacher=teacher, even_scale=even_scale,
+        plus_only=plus_only, plus_neu=plus_neu,
+    )
+
+
+def score_plus_neu_residual(
+    name: str,
+    field: PairField,
+    residual,
+    *,
+    teacher: str,
+    even_scale: float = 1.0,
+    plus_only: bool = False,
+    plus_neu: bool = False,
+) -> dict:
+    """Score an already fitted student with the unchanged continuation gates.
+
+    ``residual`` supplies ``delta(scale)``. Keeping fitting separate lets
+    production update loops face exactly the same exam as the toy fits.
+    """
     bags = plus_bags(field)
     neu_bag = neu_bags(field)
     d_plus = residual.delta(1.0)

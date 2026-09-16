@@ -27,6 +27,12 @@ rendering. Upstream code is Apache 2.0; model weights have their separate
 
 ## Train: unipolar RpGAN
 
+**Validation status (September 16): the 600-step GAN-only transfer is not
+validated.** Its production update fails the required toy continuation gates
+at that budget, and the live metal run has a large instability near step 357.
+See the [direct production-loop audit](yue2-gan-toy-audit.md) before another
+music run. Passing the existing toy suite alone does not validate this port.
+
 The metal recipe is **unipolar and GAN-only**. One adapter is trained at +1;
 scale 0 disables it exactly. The real examples are the raw positive-caption
 hidden deltas relative to the neutral caption. There is no negative caption,
@@ -222,7 +228,8 @@ short caps can truncate music and are reported in the artifacts.
 
 The trained mode is `--cot off`. `--cot full` / `--cot melody` and `--abc_file`
 are available for experiments using the native planning protocol, but the recipe
-does not establish transfer to those modes. Negative scales are trained for Arm B; they are extrapolation for UNI16.
+does not establish transfer to those modes. Negative scales are untrained
+extrapolation for both the current unipolar GAN and UNI16 recipes.
 The recipe is experimental: loss reduction and successful rendering do not prove
 audible concept control or lyric preservation. Gate trained releases on matched
 off/on listening comparisons and lyric checks.
