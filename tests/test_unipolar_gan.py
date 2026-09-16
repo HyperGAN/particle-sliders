@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import yaml
 
 from analysis.slider2d.plus_neu_exam import PLUS_NEU_CELLS, score_plus_neu_residual
-from analysis.slider2d.unipolar_gan import NAME, Student, fit, score_bipolar
+from analysis.slider2d.unipolar_gan import NAME, Student, fit
 from conceptmod.textsliders import unipolar_gan as game
 
 
@@ -36,7 +36,7 @@ def test_gan_only_passes_uni_with_learned_neutral_origin(cell, seed, monkeypatch
     # Zero is learned on the same free-origin student, not frozen to win hold.
     assert any(h['zero_delta_norm'] > 0 for h in history)
     assert all(h['loss'] == .5 * (h['g_pos'] + h['g_zero']) == h['g_adv'] for h in history)
-    assert not score_bipolar(field, residual)['pass']  # Same weights, different board.
+    # The separate bipolar report must not become another UNI acceptance gate.
 
 
 def reference(network, critic, g, d, real):

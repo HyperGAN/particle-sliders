@@ -87,3 +87,36 @@ The four sound-only training rows are shuffled in balanced passes. There is
 no generated-history sampling in this prompt-state objective. Evaluation uses
 two held-out prompts and seeds 1709/2903, with 0/0.5/1 and the positive caption
 reference. Native audio quality remains a separate listening check.
+
+## Native 600-step trial result
+
+The requested metal trial completed on GPU 1 from source `94fc990`, with
+2400 prompt draws and checkpoints at 100/200/300/400/500/600. The final export
+matches the saved adapter state exactly; all adapter/critic tensors are
+finite, all 600 updates use the recorded GAN objective, scale-zero delta
+stays exactly zero, and the recorded source hashes match the frozen checkout.
+
+Final total G loss: **0.693340**; positive G term: **0.693534**; D loss:
+**0.693441**; positive-direction cosine: **0.984768**.
+
+**Native stability is not established.** A full-history check found an
+excursion at steps 237–238: total G loss peaked at **5.586524**, its positive
+term at **10.479901**, and cosine fell to **-0.086036** at step 238 before
+recovering. The logged b_cap penalty was zero throughout. Early spot checks
+missed this event; the complete trajectory, not those spot checks or the
+good final values, is the evidence. This is substantially smaller than the
+prior run's spike but is still an unresolved transfer limitation. No losses
+or optimizer settings were changed during the run.
+
+Weights: `models/metal-yue2-gan-plus-neu-600-20260916/metal-yue2-gan-plus-neu_last.safetensors`.
+SHA-256: `850b75fe1bac967d60fff5b3452d2ecb056efc76c778b839db6e6ec73101f060`.
+The checkpoint remains experimental. Toy HIT is not a native stability or
+audio-quality verdict.
+
+All 16 held-out comparisons completed as valid, non-silent stereo 48 kHz
+clips (about 20 seconds each). Off/half/full outputs differ for every matched
+prompt/seed. All four off clips are byte-identical to the previous run's
+base-model renders, and the downloadable weights match the final checkpoint.
+Listening page: `eval/listen/yue2-metal-gan-plus-neu-600-20260916/` (the earlier
+`yue2-metal-arm-b-600-20260916/` URL also points to it). The earlier experiment
+is preserved at `eval/listen/yue2-metal-unipolar-gan-600-20260916/`.
