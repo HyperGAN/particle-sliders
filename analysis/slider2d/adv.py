@@ -284,6 +284,8 @@ class AdvConfig:
     lr: float = 5.0e-3
     beta1: float = 0.0
     beta2: float = 0.99
+    d_lr_mult: float = 1.0
+    prior_lr_mult: float = 1.0
     b_cap: float = 1.0
     kappa: float = 1.0
     grad_arm: str = "b_cap"
@@ -308,6 +310,26 @@ class AdvConfig:
     critic_hidden: int = 64
     critic_n_rand: int = 16
     seed: int = 0
+
+
+def toy_lr_triplet(cfg: "AdvConfig") -> tuple[float, float, float]:
+    """Per-party LRs from the shared base: ``(g_lr, d_lr, prior_lr)``.
+
+    ``d_lr = lr * d_lr_mult`` (ParticleGAN/Music ``D_LR_MULT = 1.5``),
+    ``prior_lr = lr * prior_lr_mult``. Defaults are 1.0, which reproduces
+    the locked shared-LR toy exactly. Fail-closed on non-positive or
+    non-finite multipliers: a silent 0× LR would freeze a party with no
+    error, and a negative LR would ascend.
+    """
+    base = float(cfg.lr)
+    d_mult = float(cfg.d_lr_mult)
+    p_mult = float(cfg.prior_lr_mult)
+    for name, mult in (("d_lr_mult", d_mult), ("prior_lr_mult", p_mult)):
+        if not (0.0 < mult < float("inf")):
+            raise ValueError(
+                f"{name} must be positive and finite, got {mult!r}"
+            )
+    return base, base * d_mult, base * p_mult
 
 
 def sample_real_cloud(

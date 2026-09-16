@@ -75,6 +75,9 @@ def collect(
     fm_weight: float,
     baseline_steps: int,
     cover_weight: float = 1.5,
+    lr: float = 5.0e-3,
+    d_lr_mult: float = 1.0,
+    prior_lr_mult: float = 1.0,
 ) -> dict:
     cfg = default_cfg(
         steps=steps,
@@ -83,6 +86,9 @@ def collect(
         kappa=kappa,
         fm_weight=fm_weight,
         cover_weight=cover_weight,
+        lr=lr,
+        d_lr_mult=d_lr_mult,
+        prior_lr_mult=prior_lr_mult,
     )
     exam_cfg = default_cfg(
         steps=exam_steps,
@@ -91,6 +97,9 @@ def collect(
         kappa=kappa,
         fm_weight=fm_weight,
         cover_weight=cover_weight,
+        lr=lr,
+        d_lr_mult=d_lr_mult,
+        prior_lr_mult=prior_lr_mult,
     )
     field2d = score_field2d(
         cfg,
@@ -182,6 +191,9 @@ def collect(
             "kappa": kappa,
             "fm_weight": fm_weight,
             "cover_weight": cover_weight,
+            "lr": lr,
+            "d_lr_mult": d_lr_mult,
+            "prior_lr_mult": prior_lr_mult,
         },
         "field2d": field2d,
         "sheet_leftover": leftover,
@@ -356,6 +368,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--kappa", type=float, default=1.0)
     parser.add_argument("--fm-weight", type=float, default=0.0)
     parser.add_argument("--cover-weight", type=float, default=1.5)
+    parser.add_argument("--lr", type=float, default=5.0e-3)
+    parser.add_argument("--d-lr-mult", type=float, default=1.0)
+    parser.add_argument("--prior-lr-mult", type=float, default=1.0)
     args = parser.parse_args(argv)
 
     blob = collect(
@@ -368,6 +383,9 @@ def main(argv: list[str] | None = None) -> int:
         fm_weight=args.fm_weight,
         baseline_steps=args.baseline_steps,
         cover_weight=args.cover_weight,
+        lr=args.lr,
+        d_lr_mult=args.d_lr_mult,
+        prior_lr_mult=args.prior_lr_mult,
     )
     out = args.out
     out.mkdir(parents=True, exist_ok=True)
@@ -391,8 +409,22 @@ def main(argv: list[str] | None = None) -> int:
         "claims_music3_audio": False,
     }
     (out / "metrics.json").write_text(json.dumps(slim, indent=2) + "\n", encoding="utf-8")
-    write_findings(blob, _REPO / "analysis" / "slider2d" / "gan_bcap_findings.md")
-    write_findings(blob, out.parent / "lm-2d-adv.md")
+    if (
+        float(args.lr) != 5.0e-3
+        or float(args.d_lr_mult) != 1.0
+        or float(args.prior_lr_mult) != 1.0
+    ):
+        # LR-clone smoke (e.g. pg_2x_lr): report stdout + metrics.json only.
+        # The locked findings pages stay locked; an arm run must not
+        # overwrite them.
+        print(
+            "lr-clone run: locked findings pages untouched "
+            f"(lr={args.lr:g} d_mult={args.d_lr_mult:g} "
+            f"prior_mult={args.prior_lr_mult:g})"
+        )
+    else:
+        write_findings(blob, _REPO / "analysis" / "slider2d" / "gan_bcap_findings.md")
+        write_findings(blob, out.parent / "lm-2d-adv.md")
     print(
         f"{blob['compiled']:20s} rpgan_bcap exam={_fmt(blob.get('exam_score'), '.3f')} "
         f"left={_pass(blob['cells']['sheet_leftover'])} "
