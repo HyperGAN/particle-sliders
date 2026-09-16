@@ -13,6 +13,7 @@ from conceptmod.textsliders.yue2_arm_b import load_prompts,RECIPE
 from conceptmod.textsliders.yue2_backend import YuE2Slider,file_digest
 from conceptmod.textsliders.infer_yue2 import render
 from conceptmod.textsliders.train_lora_yue2_fresh import write_json
+from scripts.yue2_training_dashboard import dashboard_html
 
 TAKES=[('clean',-1.,'neutral'),('off',0.,'neutral'),('half',.5,'neutral'),
        ('metal',1.,'neutral'),('metal-caption',0.,'positive'),('clean-caption',0.,'negative')]
@@ -33,16 +34,14 @@ def page(output,rows,seeds):
                 else:cells.append(f'<div><b>{html.escape(name)}</b> · pending</div>')
             cards.append(f'<section><h2>Prompt {i+1}, seed {seed}</h2><p>{html.escape(row["neutral"])}</p>'
                 +''.join(cells)+'</section>')
-    (output/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>YuE2 metal · Arm B</title>'
+    document=('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YuE2 metal · Arm B</title>'
         '<style>body{max-width:1100px;margin:40px auto;padding:0 20px;background:#16191d;color:#eee;font:16px system-ui}'
         'section{padding:20px;border:1px solid #46505b;margin:20px 0}audio{display:block;width:100%;margin:10px 0}'
         'section>div{display:inline-block;vertical-align:top;width:46%;margin:1%}a{color:#a9d7ff}</style>'
         '<h1>YuE2 metal · Music Arm B</h1><p id="status">Matched prompts and seeds. Experimental checkpoints.</p>'
         '<p><a href="metal-yue2.safetensors">Download trained slider</a> · <a href="metal-yue2.json">Training details</a></p>'
-        +''.join(cards)+
-        '<script>async function poll(){try{const r=await fetch("status.json",{cache:"no-store"});'
-        'if(r.ok){const s=await r.json();document.getElementById("status").textContent=s.stage||'
-        '`${s.status}: ${s.completed}/${s.total} updates`;}}catch(e){}}poll();setInterval(poll,15000);</script>')
+        +dashboard_html()+'<h2>Held-out listening comparisons</h2>'+''.join(cards))
+    temporary=output/'index.html.tmp';temporary.write_text(document);temporary.replace(output/'index.html')
 
 
 def main(argv=None):

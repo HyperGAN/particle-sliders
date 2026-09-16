@@ -14,6 +14,7 @@ sys.path.insert(0,str(ROOT))
 from conceptmod.textsliders.train_lora_yue2_fresh import write_json
 from conceptmod.textsliders.yue2_arm_b import load_prompts
 from scripts.evaluate_yue2_arm_b import page
+from scripts.yue2_training_dashboard import publish_metrics
 
 
 def main(argv=None):
@@ -40,6 +41,9 @@ def main(argv=None):
         stop=True
     def status(stage,**extra):
         write_json(a.output_dir/'status.json',dict(stage=stage,pid=os.getpid(),**extra))
+        try:publish_metrics(a.save_dir,a.output_dir)
+        except (OSError,ValueError) as exc:
+            print(f'Chart metrics unavailable: {exc}',file=sys.stderr,flush=True)
     def command(cmd,label):
         if stop:raise InterruptedError('Campaign stopped')
         with (a.save_dir/f'{label}.log').open('a') as log:
@@ -52,7 +56,7 @@ def main(argv=None):
                 status('Stopping after the current update' if stop else
                     f'Training {progress.get("completed",0)}/{a.steps}' if label=='training' else 'Rendering held-out comparisons',
                     child_pid=child.pid,training=progress)
-                time.sleep(5)
+                time.sleep(1)
         if stop:raise InterruptedError('Campaign stopped')
         if child.returncode:raise RuntimeError(f'{label} exited {child.returncode}; see {a.save_dir}/{label}.log')
     with (a.save_dir/'campaign.lock').open('a') as lock:

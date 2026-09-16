@@ -92,6 +92,9 @@ The comparison page has two held-out prompts, two fixed seeds, scales
 artifacts and publishes a local download only after rendering succeeds.
 Progress is in `status.json`; training and evaluation logs stay in the run
 folder. This does not rank intermediate checkpoints or publish to the Hub.
+The listening page refreshes its loss and alignment charts every second, with
+raw values, optional moving averages, and hover inspection. Chart data is
+exported to `training-metrics.json` from the completed training-log records.
 
 See [the formulation audit](yue2-arm-b-verification.md) and
 `tests/test_yue2_arm_b.py` for numeric update parity and native model checks.
