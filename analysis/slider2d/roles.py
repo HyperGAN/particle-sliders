@@ -33,6 +33,7 @@ import torch
 import torch.nn.functional as F
 
 from analysis.slider2d.exam import PairField, close_field, divergent_field
+from analysis.slider2d.rng import isolated_seed
 from analysis.slider2d.lyric_recall import (
     ATTEND,
     LYRIC_RECALL_MIN,
@@ -247,6 +248,7 @@ def concept_tokens(field: PairField, concept: torch.Tensor) -> list[str]:
     return out
 
 
+@isolated_seed()
 def fit_role_exam(
     field: PairField,
     *,
@@ -269,7 +271,6 @@ def fit_role_exam(
         plus_neu_teacher(field, row, teacher=teacher, leak_dir=leak_dir)
         for row in range(int(field.rows))
     ]
-    torch.manual_seed(int(seed))
     residual = RoleResidual.create(field)
     opt = torch.optim.Adam(residual.parameters(), lr=float(lr))
     for _ in range(int(steps)):

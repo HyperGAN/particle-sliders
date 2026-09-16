@@ -47,6 +47,7 @@ from analysis.slider2d.exam import (
     teacher_rollouts,
     teacher_self_match,
 )
+from analysis.slider2d.rng import isolated_seed
 from analysis.slider2d.field import E_ATTR, E_SLIDER, Field2D, cosine
 from analysis.slider2d.sheet import (
     SheetField,
@@ -131,6 +132,7 @@ def _collect_teachers(
     return torch.stack(plus), torch.stack(minus), torch.stack(neus)
 
 
+@isolated_seed("cfg.seed", default=0)
 def fit_adv(
     field,
     *,
@@ -142,7 +144,6 @@ def fit_adv(
     cfg = cfg or AdvConfig()
     if leak_dir is None:
         leak_dir = _field_leak_dir(field)
-    torch.manual_seed(int(cfg.seed))
     dim = int(field.dim)
     residual = AdvResidual(
         torch.zeros(dim, requires_grad=True),
@@ -478,6 +479,7 @@ def score_adv_sheet(
     return row
 
 
+@isolated_seed("cfg.seed", default=0)
 def train_lm_adv(
     field: Field2D,
     pairs=None,
@@ -506,7 +508,6 @@ def train_lm_adv(
             "teacher='faithful' for pinned poles"
         )
     cfg = cfg or AdvConfig()
-    torch.manual_seed(int(cfg.seed))
     pairs = pairs if pairs is not None else music3_pairs(with_attrs)
     t = 0.5
     plus, minus, neus = [], [], []

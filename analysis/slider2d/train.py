@@ -8,6 +8,7 @@ import torch
 import torch.nn.functional as F
 
 from analysis.slider2d.field import E_ATTR, E_SLIDER, Field2D, Prompt, PROMPTS, cosine, project
+from analysis.slider2d.rng import isolated_seed
 from conceptmod.textsliders.slider_targets import (
     LEAK_HOLD_WEIGHT,
     encoder_mse_loss,
@@ -139,8 +140,8 @@ def music3_pairs(with_attrs: bool, action: str = "enhance", guidance: float = 4.
     return pairs_from_rows(expand_attributes_music3(row), action, guidance)
 
 
+@isolated_seed()
 def _optimize(residual: Residual, loss_fn, steps: int, lr: float, seed: int) -> Residual:
-    torch.manual_seed(seed)
     opt = torch.optim.Adam(residual.parameters(), lr=lr)
     for _ in range(steps):
         loss = loss_fn(residual)

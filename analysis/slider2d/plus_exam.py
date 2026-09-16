@@ -31,6 +31,7 @@ from analysis.slider2d.exam import (
     teacher_points,
     unused_e_field,
 )
+from analysis.slider2d.rng import isolated_seed
 from conceptmod.textsliders.slider_targets import (
     EVEN_BLEND_SCALE as LIVE_EVEN_BLEND_SCALE,
     lm_faithful_plus,
@@ -185,6 +186,7 @@ def nearest_pole(
     return min(dist, key=dist.get)
 
 
+@isolated_seed()
 def fit_plus_exam(
     field: PairField,
     *,
@@ -204,7 +206,6 @@ def fit_plus_exam(
         for row in range(int(field.rows))
     ]
     neutrals = [field.poles(row)[2] for row in range(int(field.rows))]
-    torch.manual_seed(int(seed))
     residual = SharedResidual.create(field)
     opt = torch.optim.Adam(residual.parameters(), lr=float(lr))
     for _ in range(int(steps)):
