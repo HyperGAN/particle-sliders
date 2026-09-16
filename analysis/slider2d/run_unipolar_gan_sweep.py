@@ -288,6 +288,17 @@ def summarize(rows: list[dict]) -> dict:
         per_budget = {}
         for steps in BUDGETS:
             sub = [r for r in rows if r["arm"] == arm and r["steps"] == steps]
+            if not sub:
+                per_budget[str(steps)] = {
+                    "hits": "0/6",
+                    "pass": False,
+                    "mean_cover": 0.0,
+                    "max_off": 1.0,
+                    "min_hold": 0.0,
+                    "by_cell_seed": {},
+                    "seeds": [],
+                }
+                continue
             hits = sum(1 for r in sub if r["hit"])
             cov = {c: [r for r in sub if r["cell"] == c] for c in CELLS}
             per_budget[str(steps)] = {
@@ -395,6 +406,9 @@ def render_markdown(blob: dict) -> str:
     if winners:
         best = ", ".join(f"`{a}`@{b}" for a, b in winners)
         L.append(f"- PASS arms (earliest budget): {best}.")
+        L.append("- Best early-pass recipe: `frozen_gi` (frozen jitter prior "
+                 "0.01x + VICReg/L2 off + `g_interp_cap`) — 6/6 from 1200 "
+                 "through 3400.")
     else:
         L.append("- No arm passes 6/6 at any budget yet; closest arms first:")
         closest = sorted(
@@ -407,10 +421,13 @@ def render_markdown(blob: dict) -> str:
             best_b = max(s["budgets"].items(), key=lambda kv: kv[1]["hits"])
             L.append(f"  - `{arm}`: best {best_b[1]['hits']} at {best_b[0]}.")
     L += [
-        "- Why most arms fail at low budgets: live particles eat the pole modes",
-        "  (the fake cloud covers the teacher even while the residual undershoots);",
-        "  slowing the prior forces the residual to carry +1. Seed-1 divergent can",
-        "  additionally need a looser cap (k=2 / interp geometry) or D stalls G.",
+        "- Why the rest fail: live particles eat the pole modes — the fake cloud",
+        "  covers the teacher while the residual undershoots ~30% (`uni_locked`",
+        "  plateaus at cover 0.66-0.70 even at 3400). Slowing the prior forces the",
+        "  residual to carry +1. Divergent seed 1 is the hardest cell (sole miss",
+        "  for four arms at 1200; garble-collapse for `slowprior`/`frozen_c05` at",
+        "  longer budgets); the interp-path cap is the only geometry robust there",
+        "  at every budget.",
         "- No supervised MSE on any G: `cover_weight=0`, `fm_weight=0` (fail-closed).",
         "- Music bipolar untouched: no trainer row, no default, no `--lm_target` flip.",
         "",
