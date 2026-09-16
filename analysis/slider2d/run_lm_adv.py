@@ -344,7 +344,12 @@ def write_findings(blob: dict, path: Path) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """Production argv. Defaults are pinned by locked_baseline_defaults.
+
+    Behavior-neutral extraction: same flags, same defaults as before.
+    Formulation arms are propose_only and never change these.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--steps", type=int, default=1200)
@@ -356,6 +361,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--kappa", type=float, default=1.0)
     parser.add_argument("--fm-weight", type=float, default=0.0)
     parser.add_argument("--cover-weight", type=float, default=1.5)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
     args = parser.parse_args(argv)
 
     blob = collect(
