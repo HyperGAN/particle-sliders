@@ -210,11 +210,12 @@ TARGET_REPLACE = ["Qwen3Attention"]
 # The gradient penalty math lives in ParticleGAN's `GradRegularizer` (vendored
 # verbatim at `analysis/slider2d/grad_regularizers.py`); the trainer only
 # carries the knobs and builds the penalty via `make_music_grad_regularizer`.
-# `--adv_preset arm_b` verifies the full row below and refuses to train a
-# drifted recipe (the handoff's "stop and report the diff"). The live default
-# stays `--lm_target v9` with the adv loop inert (`--adv_arch mlp` only
-# declares the critic family the penalty math assumes; no GAN loop consumes
-# these flags yet, so live runs are behavior-identical).
+# `--adv_preset arm_b` (or `--require_arm_b`) verifies the full row below and
+# refuses to train a drifted recipe (the handoff's "stop and report the diff").
+# The live default stays `--lm_target v9` with the adv loop inert
+# (`--adv_arch mlp` only declares the critic family the penalty math assumes;
+# no GAN loop consumes these flags yet, so live runs are behavior-identical).
+# `vicreg_weight` is 0 at `--parts 0` (regularizer absent by construction).
 ADV_ARCHES = ("none", "mlp", "tx")
 ADV_PRESETS = ("none", "arm_b")
 ARM_B = {
@@ -227,6 +228,7 @@ ARM_B = {
     "cover_weight": 1.0,
     "adv_reg_kappa": 1.0,
     "adv_b_cap": 1.0,
+    "vicreg_weight": 0.0,
 }
 
 # Row fields this trainer actually consumes (`attributes` is expanded away by
@@ -2413,6 +2415,7 @@ def train(args: argparse.Namespace) -> Path:
             "cover_weight": float(getattr(args, "cover_weight", 1.0)),
             "adv_reg_kappa": float(getattr(args, "adv_reg_kappa", 1.0)),
             "adv_b_cap": float(getattr(args, "adv_b_cap", 1.0)),
+            "vicreg_weight": float(getattr(args, "vicreg_weight", 0.0)),
             "penalty": "particlegan GradRegularizer arm=b_cap "
             "(coeff/2)(E_r[relu(n-kappa)^2]+E_f[relu(n-kappa)^2]), "
             "n=sqrt(sum g^2+1e-12)",
@@ -2462,15 +2465,27 @@ def validate_adv_args(p, args):
     - ``tx`` + ``faithful_guard_e`` is dual-arm incompatible (Arm B critic
       is ``mlp``): always an error, preset or not.
     - ``--adv_preset arm_b`` additionally requires every Arm B row value
-      (teacher, critic, fm, parts, pole/cover, kappa, b_cap); any diff is
-      reported, never silently trained.
+      (teacher, critic, norm, fm, parts, pole/cover, kappa, b_cap, vicreg);
+      any diff is reported, never silently trained.
+    - ``--require_arm_b`` (Strategy E port) is the same full-row check
+      without needing ``--adv_preset arm_b``: parse-time refusal before
+      any GPU spend.
     """
     if str(args.adv_arch) == "tx" and str(args.lm_target) == "faithful_guard_e":
         p.error(
             "--adv_arch tx cannot combine with --lm_target faithful_guard_e "
             "(dual-arm incompatible; Music Arm B critic is mlp)"
         )
-    if str(getattr(args, "adv_preset", "none")) == "arm_b":
+    gate = (
+        str(getattr(args, "adv_preset", "none")) == "arm_b"
+        or bool(getattr(args, "require_arm_b", False))
+    )
+    if gate:
+        label = (
+            "--adv_preset arm_b"
+            if str(getattr(args, "adv_preset", "none")) == "arm_b"
+            else "--require_arm_b"
+        )
         diffs = []
         for key, want in ARM_B.items():
             got = getattr(args, key, None)
@@ -2482,8 +2497,7 @@ def validate_adv_args(p, args):
                 diffs.append(f"--{key}={got!r} (Arm B wants {want!r})")
         if diffs:
             p.error(
-                "--adv_preset arm_b drifted from the winning config: "
-                + "; ".join(diffs)
+                f"{label} drifted from the winning config: " + "; ".join(diffs)
             )
     return args
 
@@ -2731,8 +2745,9 @@ def parse_args(argv=None):
         choices=ADV_PRESETS,
         help="adversarial recipe gate (default none = supervised live behavior). "
         "arm_b verifies the Music Arm B winning config before train: "
-        "--lm_target faithful_guard_e, --adv_arch mlp, --fm_weight 0, "
-        "--parts 0, --pole_weight/--cover_weight 1, --adv_reg_kappa/--adv_b_cap 1. "
+        "--lm_target faithful_guard_e, --adv_arch mlp, --adv_norm l2, "
+        "--fm_weight 0, --parts 0, --pole_weight/--cover_weight 1, "
+        "--adv_reg_kappa/--adv_b_cap 1, --vicreg_weight 0. "
         "Any drift is a hard error, never a silent retrain",
     )
     p.add_argument(
@@ -2787,6 +2802,21 @@ def parse_args(argv=None):
         default=1.0,
         help="mode-cover weight on the adv residual (default 1.0, Arm B Music transfer; "
         "Field3D demo uses 1.5)",
+    )
+    p.add_argument(
+        "--vicreg_weight",
+        type=float,
+        default=0.0,
+        help="VICReg weight (default 0 = off; Arm B keeps it 0 at --parts 0, "
+        "regularizer absent by construction)",
+    )
+    p.add_argument(
+        "--require_arm_b",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="fail closed at parse time unless argv is exactly the Music Arm B "
+        "shape (same full-row check as --adv_preset arm_b, without needing "
+        "the preset; stops a drifted recipe before any GPU spend)",
     )
     args = p.parse_args(argv)
     if args.steps < 1:
