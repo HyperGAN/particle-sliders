@@ -523,9 +523,16 @@ def train_lm_adv(
     already cancel the attribute the leftover gate would remove, so a
     leftover-gated teacher on pinned pairs is a contradiction. Passing any
     other teacher with ``with_attrs=True`` raises instead of silently
-    training on raw poles.
+    training on raw poles. Unknown teacher names fail closed.
     """
-    if with_attrs and str(teacher).strip().lower() != "faithful":
+    mode = str(teacher).strip().lower()
+    if mode not in ("faithful", "faithful_sub_e_if_unused", "faithful_guard_e"):
+        raise ValueError(
+            "train_lm_adv teacher must be one of "
+            "('faithful', 'faithful_sub_e_if_unused', 'faithful_guard_e'), "
+            f"got {teacher!r}"
+        )
+    if with_attrs and mode != "faithful":
         raise ValueError(
             f"teacher={teacher!r} is silently raw poles when with_attrs=True; "
             "pass with_attrs=False to use a leftover-gated teacher, or "
@@ -539,9 +546,9 @@ def train_lm_adv(
         pos = field.embed(pair.positive, t)
         neg = field.embed(pair.negative, t)
         neu = field.embed(pair.neutral, t)
-        if teacher == "faithful" or with_attrs:
+        if mode == "faithful":
             t_plus, t_minus = pos, neg
-        elif teacher == "faithful_sub_e_if_unused":
+        elif mode == "faithful_sub_e_if_unused":
             t_plus, t_minus = lm_faithful_sub_e_if_unused(
                 pos, neg, neu, E_ATTR, slider_dir=E_SLIDER
             )
