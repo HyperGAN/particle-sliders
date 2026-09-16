@@ -26,6 +26,7 @@ from analysis.slider2d.adv import (
     rp_g_loss,
     vicreg_loss,
 )
+from analysis.slider2d.grad_regularizers import grad_norm_stats
 
 
 def mixture_means(n_modes: int, radius: float = 2.0) -> torch.Tensor:
@@ -102,6 +103,7 @@ def train_gaussians(
     ema_p = EMA(list(prior.parameters()), decay=0.995)
     delay = max(50, int(0.12 * steps))
     reg = make_grad_regularizer(coeff=b_cap, kappa=kappa)
+    grad_peak_med = 0.0
 
     for step in range(int(steps)):
         scale = delayed_cosine(step, total=steps, delay=delay, min_ratio=0.05)
@@ -131,6 +133,15 @@ def train_gaussians(
         opt_g.step()
         ema_g.update(list(gen.parameters()))
         ema_p.update(list(prior.parameters()))
+        if (step + 1) % 100 == 0:
+            # Measurement only (detached clones, no graph kept): how steep D
+            # gets mid-run. The b_cap claim is a bound on this trajectory —
+            # final coverage alone cannot tell cap from no-cap.
+            with torch.no_grad():
+                probe_r = sample_mixture(means, 256, sigma)
+                probe_f = gen(prior.sample(256, jitter=0.02)).detach()
+                probe = grad_norm_stats(critic, probe_r, probe_f)
+            grad_peak_med = max(grad_peak_med, probe["med_nr"], probe["med_nf"])
 
     ema_g.copy_to(list(gen.parameters()))
     ema_p.copy_to(list(prior.parameters()))
@@ -147,6 +158,7 @@ def train_gaussians(
             "sigma": float(sigma),
             "d_loss": float(d_loss.detach()),
             "g_loss": float(g_loss.detach()),
+            "grad_peak_med": float(grad_peak_med),
         }
     )
     return metrics

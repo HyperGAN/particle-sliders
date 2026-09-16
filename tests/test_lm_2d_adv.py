@@ -223,9 +223,20 @@ def test_delayed_cosine_holds_then_decays():
 
 
 def test_eight_gaussians_cover_modes_with_b_cap():
-    row = train_gaussians(n_modes=8, steps=1200, seed=1234, b_cap=1.0)
-    assert row["modes"] >= 6
-    assert row["hq"] >= 0.70
+    # Seed loop: one lucky seed used to carry the whole claim.
+    for seed in (1234, 0, 1):
+        row = train_gaussians(n_modes=8, steps=1200, seed=seed, b_cap=1.0)
+        assert row["modes"] >= 6, seed
+        assert row["hq"] >= 0.70, seed
+        # The cap claim is a bound on D's mid-run steepness, not coverage:
+        # coverage alone cannot tell cap from no-cap (b_cap=0 covers 8/8
+        # at hq 1.0 on this fixture). Peak median on-sample ||grad D||
+        # stays O(1) with the cap, ~7-13 without it.
+        assert row["grad_peak_med"] <= 2.0, (seed, row["grad_peak_med"])
+    # Negative control: without the cap the bound is violated, so the
+    # assertion above is not vacuous.
+    nocap = train_gaussians(n_modes=8, steps=1200, seed=1234, b_cap=0.0)
+    assert nocap["grad_peak_med"] > 2.0, nocap["grad_peak_med"]
     means = mixture_means(8)
     dead = hq_and_cover(torch.zeros(200, 2), means, 0.05)
     assert dead["modes"] == 0
