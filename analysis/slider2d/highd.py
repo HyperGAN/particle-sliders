@@ -45,6 +45,7 @@ import torch
 
 from analysis.slider2d.energy import CONCEPT_SCALE
 from analysis.slider2d.field import cosine
+from analysis.slider2d.rng import isolated_seed
 from conceptmod.textsliders.slider_targets import (
     LEAK_HOLD_WEIGHT,
     leftover_bipolar,
@@ -448,6 +449,7 @@ def teacher_poles(
     return lm_hidden_targets(pos, neg, neu, target_mode="symmetric")
 
 
+@isolated_seed()
 def fit_highd(
     field: HighDLeakField,
     *,
@@ -472,7 +474,6 @@ def fit_highd(
     lam = float(hold_weight) if held is not None else 0.0
     tgt_plus, tgt_minus = teacher_poles(field, teacher=teacher, leak_dir=leak_dir)
     _pos, _neg, neu = field.poles()
-    torch.manual_seed(int(seed))
     residual = BendResidual.create(field, free_even=free_even)
     opt = torch.optim.Adam(residual.parameters(), lr=float(lr))
     history: list[dict] = []

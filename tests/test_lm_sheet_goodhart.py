@@ -471,23 +471,34 @@ def test_the_bend_student_reproduces_the_live_log_and_is_no_better():
 # -- the loss primitives -------------------------------------------------
 
 
+def _unit_gen(seed: int) -> torch.Generator:
+    """Local generator so these unit draws never touch the global RNG."""
+    gen = torch.Generator()
+    gen.manual_seed(seed)
+    return gen
+
+
+def _randn(shape: tuple[int, ...], seed: int) -> torch.Tensor:
+    return torch.randn(shape, generator=_unit_gen(seed))
+
+
 def test_next_token_logits_is_the_head_applied_to_the_hidden():
-    hidden = torch.randn(4, 6)
-    weight = torch.randn(9, 6)
+    hidden = _randn((4, 6), 11)
+    weight = _randn((9, 6), 12)
     assert torch.allclose(lm_next_token_logits(hidden, weight), hidden @ weight.T)
-    bias = torch.randn(9)
+    bias = _randn((9,), 13)
     assert torch.allclose(
         lm_next_token_logits(hidden, weight, bias=bias), hidden @ weight.T + bias
     )
 
 
 def test_semantic_kl_is_zero_only_on_the_same_policy():
-    logits = torch.randn(3, 7)
+    logits = _randn((3, 7), 21)
     assert float(lm_semantic_kl(logits, logits)) == pytest.approx(0.0, abs=1e-7)
     # A constant per-row shift is the same policy.
-    shifted = logits + torch.randn(3, 1)
+    shifted = logits + _randn((3, 1), 22)
     assert float(lm_semantic_kl(shifted, logits)) == pytest.approx(0.0, abs=1e-6)
-    assert float(lm_semantic_kl(torch.randn(3, 7), logits)) > 0.0
+    assert float(lm_semantic_kl(_randn((3, 7), 23), logits)) > 0.0
 
 
 def test_semantic_kl_is_the_forward_kl():
@@ -503,8 +514,8 @@ def test_semantic_kl_is_the_forward_kl():
 
 
 def test_semantic_pole_loss_adds_the_hold_like_the_mse_one():
-    plus, minus = torch.randn(1, 5), torch.randn(1, 5)
-    t_plus, t_minus = torch.randn(1, 5), torch.randn(1, 5)
+    plus, minus = _randn((1, 5), 31), _randn((1, 5), 32)
+    t_plus, t_minus = _randn((1, 5), 33), _randn((1, 5), 34)
     bare = float(lm_semantic_pole_loss(plus, minus, t_plus, t_minus))
     hold = torch.tensor(0.25)
     with_hold = float(

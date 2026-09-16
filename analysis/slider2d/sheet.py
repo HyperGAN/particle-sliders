@@ -72,6 +72,7 @@ import torch
 
 from analysis.slider2d.field import cosine
 from analysis.slider2d.highd import BEND_GENDER
+from analysis.slider2d.rng import isolated_seed
 from conceptmod.textsliders.slider_targets import (
     DUAL_BAND_WEIGHT,
     LEAK_HOLD_WEIGHT,
@@ -756,6 +757,7 @@ def teacher_sheet_row(
     return report
 
 
+@isolated_seed()
 def fit_sheet(
     field: SheetField,
     *,
@@ -793,7 +795,6 @@ def fit_sheet(
     ]
     neutrals = [field.poles(row)[2] for row in range(int(field.rows))]
 
-    torch.manual_seed(int(seed))
     residual = SharedResidual.create(field, student)
     opt = torch.optim.Adam(residual.parameters(), lr=float(lr))
 
