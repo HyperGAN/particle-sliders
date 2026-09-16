@@ -9,8 +9,8 @@ import math
 from pathlib import Path
 import time
 
-FIELDS = ('loss', 'g_adv', 'pole', 'end', 'd_loss', 'd_pen', 'grad_norm',
-          'cos_pos', 'cos_neg', 'step_seconds')
+FIELDS = ('loss', 'g_adv', 'd_loss', 'd_pen', 'grad_norm',
+          'cos_pos', 'step_seconds')
 
 
 def dashboard_html():

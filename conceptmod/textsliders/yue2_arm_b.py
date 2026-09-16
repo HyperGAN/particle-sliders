@@ -1,7 +1,7 @@
-"""YuE2 model adapter for the locked Music Arm B transfer (not UNI16).
+"""Unipolar YuE2 RpGAN with the verified Arm B discriminator gradient cap.
 
-Pole MSE is summed over +/-; adversarial and end losses average the two.
-The toy cover pin maps to this single pole loss. No separate cover term.
+Train +1 toward the raw positive caption; scale 0 is the exact base model.
+The generator has only the adversarial loss. There are no auxiliary losses.
 """
 from __future__ import annotations
 
@@ -14,83 +14,65 @@ import yaml
 
 from analysis.slider2d.adv import make_grad_regularizer, rp_d_loss, rp_g_loss
 from conceptmod.textsliders.lm_adv import LMDiscriminator, param_grad_norm
-from conceptmod.textsliders.slider_targets import lm_faithful_guard_e
+from conceptmod.textsliders.slider_targets import lm_faithful_plus_neu
 from conceptmod.textsliders.train_lm_slider_music3 import ARM_B
 from conceptmod.textsliders.yue2_backend import sound_only
-from conceptmod.textsliders.yue2_uni import end_margins
 
-# Operational settings are the locked Music transfer card, not toy defaults.
-RECIPE = dict(ARM_B, name='music-arm-b-yue2-v1', adv_weight=1., end_weight=1.,
+# Explicitly retain the GAN and cap, not Arm B's bipolar teacher/auxiliary pins.
+RECIPE = dict(ARM_B, name='unipolar-rpgan-bcap-yue2-v3',
+    lm_target='faithful_plus_neu', polarity='unipolar', adv_weight=1., end_weight=0.,
+    pole_weight=0., cover_weight=0.,
     lyrichold_weight=0., plan_weight=0., anchor_weight=0.,
     critic_hidden=256, critic_layers=2, adv_in='scaled', adv_batch=4,
     g_lr=.0005, d_lr=.00075, betas=[0.,.999], g_weight_decay=1e-6,
-    schedule='constant', grad_clip_value=1., trained_scales=[1.,-1.],
+    schedule='constant', grad_clip_value=1., trained_scales=[1.],
+    zero_behavior='exact_base_by_adapter_scale', recommended_range=[0.,1.],
     penalty_method='autograd', penalty_lazy_k=1, penalty_anneal='none',
-    cap_coordinates='fixed_teacher_rms', cover_mapping='pole_loss_once',
-    pole_reduction='sum_poles_mean_rows', end_reduction='mean_poles_mean_rows',
+    cap_coordinates='fixed_teacher_rms', generator_objective='positive_rpgan_only',
     critic_positions='music_start_only', phase_changes=[],
-    prompt_policy='balanced_shuffled_passes', history_policy='fresh_base_each_draw_from_step_1')
+    prompt_policy='balanced_shuffled_passes', history_policy='none_prompt_states_only')
 
 
 def load_prompts(path):
     raw = yaml.safe_load(Path(path).read_text())
     if not isinstance(raw,dict) or not isinstance(raw.get('rows'),list) or not raw['rows']:
         raise ValueError('Prompts need a nonempty rows list')
-    allowed={'rows','slider_positive','slider_negative','leak_positive','leak_negative',
-             'plus_label','minus_label','recommended_range'}
+    allowed={'rows','plus_label','zero_label','recommended_range'}
     if set(raw)-allowed: raise ValueError(f'Unsupported prompt metadata: {set(raw)-allowed}')
     meta={k:v for k,v in raw.items() if k!='rows'}
-    for pair in [('slider_positive','slider_negative'),('leak_positive','leak_negative')]:
-        values=[meta.get(k) for k in pair]
-        if any(values) and not all(isinstance(v,str) and v.strip() for v in values):
-            raise ValueError('Declared axes require two nonempty captions')
-    if meta.get('leak_positive') and not meta.get('slider_positive'):
-        raise ValueError('A leak axis requires an independently declared slider axis')
+    if meta.get('recommended_range',[0,1]) != [0,1]:
+        raise ValueError('Unipolar Arm B uses the range [0, 1]')
     for v in meta.values():
         if isinstance(v,str): sound_only(v)
     rows=[]
     for item in raw['rows']:
-        if not isinstance(item,dict) or set(item)!={'neutral','positive','negative','lyrics'}:
-            raise ValueError('Each Arm B row must contain neutral, positive, negative, lyrics only')
+        if not isinstance(item,dict) or set(item)!={'neutral','positive','lyrics'}:
+            raise ValueError('Each unipolar row must contain neutral, positive, lyrics only; no negative teacher')
         if any(not isinstance(v,str) or not v.strip() for v in item.values()):
             raise ValueError('Prompt values must be nonempty strings')
         row={k:sound_only(v.strip()) for k,v in item.items()}
-        if len({row[k] for k in ('neutral','positive','negative')}) != 3:
-            raise ValueError('Bipolar Arm B requires three distinct captions')
+        if row['neutral']==row['positive']:
+            raise ValueError('Unipolar Arm B requires distinct neutral and positive captions')
         rows.append(row)
     return rows,meta
 
 
 @torch.no_grad()
-def prepare(backend,rows,meta,frames,max_seq_len):
+def prepare(backend,rows,meta,max_seq_len):
     limit=min(max_seq_len,backend.model.config.max_position_embeddings)
     def encode(style,lyrics):
         ids=backend.prefix(style,lyrics)
-        if len(ids)+frames>limit: raise ValueError('Prompt and history exceed context limit')
+        if len(ids)>limit: raise ValueError('Prompt exceeds context limit')
         return ids,backend.hidden(ids)[:,-1].float()
-    directions={}
-    for name in ('slider','leak'):
-        if meta.get(name+'_positive'):
-            _,a=encode(meta[name+'_positive'],rows[0]['lyrics'])
-            _,b=encode(meta[name+'_negative'],rows[0]['lyrics'])
-            directions[name]=a-b
-            if not torch.isfinite(a-b).all() or float((a-b).norm())<=1e-8:
-                raise ValueError(f'Degenerate declared {name} axis')
     prepared=[]
     for row in rows:
         ids,neu=encode(row['neutral'],row['lyrics'])
         _,pos=encode(row['positive'],row['lyrics'])
-        _,neg=encode(row['negative'],row['lyrics'])
-        if 'leak' in directions:
-            plus,minus=lm_faithful_guard_e(pos,neg,neu,directions['leak'],slider_dir=directions['slider'])
-        else:
-            # This is the shared Music faithful_guard_e no-leak behavior.
-            plus,minus=pos,neg
+        # The shared UNI helper ignores its legacy negative argument.
+        # Pass the already encoded neutral, never encode an opposite caption.
+        plus=lm_faithful_plus_neu(pos,neu,neu)
         prepared.append(dict(prefix=ids,prefix_len=len(ids),neutral=neu.cpu(),
-            targets=torch.cat([plus,minus]).cpu(),
-            guard_applied=not (torch.equal(plus,pos) and torch.equal(minus,neg)),
-            target_shift=float((plus-pos).norm()),
-            raw_targets=torch.cat([pos,neg]).cpu()))
+            targets=plus.cpu(),guard_applied=False,target_shift=0.,raw_targets=pos.cpu()))
     return prepared
 
 
@@ -122,7 +104,7 @@ def penalty(regularizer,critic,real,fake,step):
 def forward(backend,row,checkpointing):
     hidden=backend.hidden(row['ids'],checkpointing=checkpointing)
     index=row['prefix_len']-1
-    return hidden[:,index].float(),end_margins(backend.model,hidden[:,index:])
+    return hidden[:,index].float()
 
 
 def update(backend,network,critic,g,d,rows,*,step,checkpointing=True):
@@ -135,12 +117,11 @@ def update(backend,network,critic,g,d,rows,*,step,checkpointing=True):
     with torch.no_grad():
         for row in rows:
             neutral=row['neutral'].to(device)
-            for pole,scale in enumerate(RECIPE['trained_scales']):
-                with network.scaled(scale):
-                    # The D phase only needs the music-start vector.
-                    pred=backend.hidden(row['ids'])[:,row['prefix_len']-1].float()
-                real.append(row['targets'][pole:pole+1].to(device)-neutral)
-                fake.append(pred-neutral)
+            with network.scaled(1.):
+                # The D phase only needs the music-start vector.
+                pred=backend.hidden(row['ids'])[:,row['prefix_len']-1].float()
+            real.append(row['targets'].to(device)-neutral)
+            fake.append(pred-neutral)
     real=torch.cat(real); fake=torch.cat(fake)
     cap,stats=penalty(regularizer,critic,real,fake,step)
     d_loss=rp_d_loss(critic(real),critic(fake))+cap
@@ -153,29 +134,24 @@ def update(backend,network,critic,g,d,rows,*,step,checkpointing=True):
     critic.requires_grad_(False)
     with torch.no_grad(): real_scores=critic(real)
     g.zero_grad(set_to_none=True)
-    totals=dict(g_adv=0.,pole=0.,end=0.,cos_pos=0.,cos_neg=0.)
+    totals=dict(g_adv=0.,cos_pos=0.)
     for i,row in enumerate(rows):
         neutral=row['neutral'].to(device)
-        for pole,scale in enumerate(RECIPE['trained_scales']):
-            # Keep scale active during checkpoint recomputation in backward.
-            with network.scaled(scale):
-                pred,margins=forward(backend,row,checkpointing)
-                target=row['targets'][pole:pole+1].to(device)
-                adv=rp_g_loss(real_scores[2*i+pole:2*i+pole+1],critic(pred-neutral))
-                pin=F.mse_loss(pred,target)
-                end=F.mse_loss(margins,row['end_teacher'].to(device))
-                loss=(.5*adv+pin+.5*end)/len(rows)
-                if not torch.isfinite(loss): raise FloatingPointError('Non-finite G loss')
-                loss.backward()
-            totals['g_adv']+=float(adv.detach())/(2*len(rows))
-            totals['pole']+=float(pin.detach())/len(rows)
-            totals['end']+=float(end.detach())/(2*len(rows))
-            cos=F.cosine_similarity(pred-neutral,target-neutral,dim=-1).mean()
-            totals['cos_pos' if pole==0 else 'cos_neg']+=float(cos.detach())/len(rows)
+        # Keep +1 active during checkpoint recomputation in backward.
+        with network.scaled(1.):
+            pred=forward(backend,row,checkpointing)
+            target=row['targets'].to(device)
+            adv=rp_g_loss(real_scores[i:i+1],critic(pred-neutral))
+            loss=adv/len(rows)
+            if not torch.isfinite(loss): raise FloatingPointError('Non-finite G loss')
+            loss.backward()
+        totals['g_adv']+=float(adv.detach())/len(rows)
+        cos=F.cosine_similarity(pred-neutral,target-neutral,dim=-1).mean()
+        totals['cos_pos']+=float(cos.detach())/len(rows)
     norm=param_grad_norm(network.parameters())
     if not math.isfinite(norm): raise FloatingPointError('Non-finite G gradient')
     torch.nn.utils.clip_grad_value_(network.parameters(),RECIPE['grad_clip_value'])
     g.step()
-    return dict(totals,loss=totals['g_adv']+totals['pole']+totals['end'],
+    return dict(totals,loss=totals['g_adv'],
                 d_loss=float(d_loss.detach()),d_pen=float(cap.detach()),grad_norm=norm,
                 penalty_center=stats['center'])

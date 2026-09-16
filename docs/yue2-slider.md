@@ -25,81 +25,74 @@ Training only loads the composition model and tokenizer; the VAE is needed for
 rendering. Upstream code is Apache 2.0; model weights have their separate
 [CC BY-NC 4.0 license](https://huggingface.co/m-a-p/YuE2-3B).
 
-## Train: Music Arm B
+## Train: unipolar RpGAN
 
-New metal training uses the explicit Arm B entry point. This is a different
-recipe from the historical UNI16 female experiments below.
+The metal recipe is **unipolar and GAN-only**. One adapter is trained at +1;
+scale 0 disables it exactly. The real examples are the raw positive-caption
+hidden deltas relative to the neutral caption. There is no negative caption,
+negative-scale training, or auxiliary generator loss.
+
+This retains the paired logistic game and exact `b_cap` implementation from
+[Music Arm B](music-arm-b-gates.md). It deliberately does **not** inherit
+Arm B's bipolar `faithful_guard_e` teacher or pole/cover MSE. The raw positive
+teacher follows the existing UNI `faithful_plus_neu` contract. Neutral remains
+exact by adapter construction and requires no learned anchor.
+
+```text
+G = mean softplus(D(real) - D(fake_at_+1))
+D = mean softplus(D(fake_at_+1) - D(real)) + b_cap
+```
+
+The discriminator cap has coefficient 1 and threshold 1, using exact autograd
+on real and fake samples in fixed teacher-RMS coordinates. The critic is the
+two-layer 256-wide MLP on the music-start hidden delta. Generator AdamW
+0.0005 (weight decay 1e-6), discriminator Adam 0.00075, betas (0, 0.999),
+rank/alpha 8, generator gradient-value clipping at 1, and four distinct prompt
+rows per update remain fixed throughout.
+
+There is no ending regularizer, pole MSE, cover loss, feature matching, lyric
+hold, plan loss, VICReg, or learned zero anchor. Only AR q/k/v/o adapters
+train. Base AR/NAR/VAE weights stay frozen. Rows follow balanced shuffled
+passes. This prompt-state loss does not depend on generated continuations,
+so training does not sample audio. The initialization/row sampler seed is
+fixed for reproducibility; audio seeds are used during held-out rendering.
 
 ```bash
 CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python conceptmod/textsliders/train_lora_yue2_arm_b.py \
   --prompts_file conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml \
-  --save_dir models/metal-yue2-arm-b --steps 600
+  --save_dir models/metal-yue2-unipolar-gan --steps 600
 ```
 
-The source recipe is [Music Arm B](music-arm-b-gates.md):
-`faithful_guard_e`, last-token MLP, RpGAN, exact vendored `b_cap` with
-coefficient and threshold 1, pole weight 1, FM 0, parts 0, VICReg 0.
-Both +1 and -1 are trained. The metal prompts declare metal/clean band as
-the concept axis and singer gender as the unrelated axis. The shared guard
-removes only the admissible odd leftover; it preserves the caption midpoint
-and falls back to the original poles when subtraction would destroy the axis.
+The historical entry-point filename is retained, but the checkpoint recipe is
+`unipolar-rpgan-bcap-yue2-v3`. It rejects bipolar/auxiliary-loss recovery states;
+the correction starts from the base model. The earlier bipolar run was stopped
+and preserved at update 142.
 
-The generator objective, averaged over rows, is exactly:
+`--until 2` limits a preflight to two updates. Rerun without `--until` to
+continue from the adapter, critic, optimizers, prompt sampler, and RNG states.
+Source/config/model changes reject resume. Every 100 updates and at the
+requested endpoint, full recovery states and exports are retained. SIGTERM
+finishes the current update and saves. A run lock prevents concurrent writers.
 
-```text
-MSE(h+, target+) + MSE(h-, target-)
-+ 0.5 * (RpGAN_G(+) + RpGAN_G(-))
-+ 0.5 * (end_margin_MSE(+) + end_margin_MSE(-))
-```
-
-The toy cover term maps to the single pole term above; it is not added again.
-The ending term is the existing locked Music transfer ending term, evaluated
-on YuE2's native music-end versus semantic-code log odds. There is no feature
-matching, lyric hold, plan loss, learned zero anchor, second critic, row mining,
-EMA, or parameter-step cap. Scale zero is the exact base model.
-
-The critic is Music's two-layer 256-wide MLP on the music-start hidden delta.
-Both scores and the gradient penalty use fixed teacher-RMS coordinates. The
-vendored `GradRegularizer` receives the MLP core and the already scaled
-vectors, preserving the cap's units without dividing twice. It uses exact
-autograd, both real and fake samples including zeros, every update; no finite
-differences, lazy interval, interpolation penalty, or annealed threshold.
-
-Rank/alpha 8, four distinct rows per update, generator AdamW 0.0005
-(weight decay 1e-6), discriminator Adam 0.00075, betas (0, 0.999), constant
-learning rates, and generator gradient-value clipping at 1 come from the
-locked Music transfer. Only AR q/k/v/o adapters train; base AR/NAR/VAE weights
-stay frozen. Each draw gets a fresh base continuation and a new seed, and rows
-follow balanced shuffled passes from the first update. No step-601 switch.
-
-`--until 2` limits a preflight to two updates without changing the recipe.
-Rerun the same command without `--until` to continue from the complete state
-(adapter, critic, optimizers, sampler, cached targets, and CPU/CUDA RNG).
-Source/config/model changes reject resume. Every 100 updates and at a requested
-endpoint, exports and complete states are retained; SIGTERM finishes the current
-update and saves. A run lock prevents concurrent trainers sharing a directory.
-
-To train and automatically render all held-out cases afterward:
+To train and render held-out comparisons automatically:
 
 ```bash
 .venv-yue2/bin/python scripts/train_yue2_arm_b_campaign.py \
-  --save_dir models/metal-yue2-arm-b --steps 600 --gpu 1 \
-  --output_dir eval/listen/yue2-metal-arm-b
+  --save_dir models/metal-yue2-unipolar-gan --steps 600 --gpu 1 \
+  --output_dir eval/listen/yue2-metal-unipolar-gan
 ```
 
-The comparison page has two held-out prompts, two fixed seeds, scales
--1/0/0.5/1, and both caption references (24 clips). It retains original native
-artifacts and publishes a local download only after rendering succeeds.
-Progress is in `status.json`; training and evaluation logs stay in the run
-folder. This does not rank intermediate checkpoints or publish to the Hub.
-The listening page refreshes its loss and alignment charts every second, with
-raw values, optional moving averages, and hover inspection. Chart data is
-exported to `training-metrics.json` from the completed training-log records.
+The page compares two held-out prompts and two fixed seeds at 0/0.5/1 plus
+the positive caption reference (16 clips). It includes live GAN loss,
+discriminator, alignment, cap, and gradient charts, refreshed every second.
+Chart data is `training-metrics.json`; status is `status.json`. Training and
+rendering logs stay in the run folder. Raw values, optional moving averages,
+and hover inspection are available. A local weight download appears after
+rendering completes. Audio quality remains experimental.
 
 See [the formulation audit](yue2-arm-b-verification.md) and
-`tests/test_yue2_arm_b.py` for numeric update parity and native model checks.
-The CPU tests verify implementation, not audible quality. Metal quality must be
-assessed from held-out matched renders at -1, 0, 0.5 and 1.
+`tests/test_yue2_arm_b.py` for numeric parity, positive-only execution, no-sampling,
+exact-zero and recovery checks.
 
 ## Historical UNI16 training
 

@@ -44,10 +44,11 @@
   </div>
   <div class="charts" id="training-charts"></div>
   <div class="formula">
-    <h3>The fixed Arm B objective</h3>
+    <h3>The fixed unipolar objective</h3>
     <p><b>Discriminator:</b> <code>mean softplus(D(fake) − D(real)) + gradient cap</code></p>
-    <p><b>Generator:</b> <code>mean softplus(D(real) − D(fake)) + pole error + ending error</code></p>
-    <p class="subtle">Pole error sums the +1 and −1 errors; GAN and ending terms average the two. All terms average across four prompt rows. The cap penalizes input-gradient norms above 1 in teacher-RMS coordinates, with coefficient 1. One recipe throughout; fresh history seeds every update.</p>
+    <p><b>Generator:</b> <code>mean softplus(D(real) − D(fake))</code></p>
+    <p class="subtle">The generator trains +1 only, using the adversarial loss averaged across four shuffled prompt rows. Real samples are raw metal-caption deltas. Scale 0 is exactly the base model. The discriminator cap penalizes input-gradient norms above 1 in teacher-RMS coordinates, with coefficient 1.</p>
+    <p class="subtle">No ending, pole-MSE, feature-matching, lyric-hold or other auxiliary losses. This game uses prompt states, so training does not sample audio. Fixed render seeds are used for the held-out listening comparisons.</p>
     <p class="subtle">D loss is measured before its update; the G objective uses the updated D. Loss values alone do not establish audio quality or each term’s contribution to the gradient.</p>
   </div>
 </div>
@@ -55,10 +56,9 @@
 (() => {
   const $ = id => document.getElementById(id);
   const specs = [
-    {title:'Generator loss',note:'Total objective and its adversarial component.',series:[['loss','Total','#8bbfff'],['g_adv','GAN','#cba8ff']]},
-    {title:'Pole and ending preservation',note:'Separate scale so the smaller loss terms remain visible.',series:[['pole','Pole error','#ffcb80'],['end','Ending error','#78dfc0']]},
+    {title:'Generator loss',note:'The entire objective is the unipolar GAN loss.',series:[['g_adv','GAN (+1)','#8bbfff']]},
     {title:'Discriminator loss',note:'Paired logistic loss plus the gradient cap.',series:[['d_loss','D total','#ef9aab']]},
-    {title:'Direction alignment',note:'Cosine to each target direction; 1 means aligned.',range:[-1,1],series:[['cos_pos','Metal (+1)','#8bbfff'],['cos_neg','Clean (−1)','#ffcb80']]},
+    {title:'Direction alignment',note:'Cosine to the metal target direction; 1 means aligned.',range:[-1,1],series:[['cos_pos','Metal (+1)','#8bbfff']]},
     {title:'Gradient-cap penalty',note:'One-sided penalty; zero below the cap is allowed.',series:[['d_pen','Cap penalty','#78dfc0']]},
     {title:'Generator gradient norm',note:'Global L2 norm before per-element clipping at 1.',series:[['grad_norm','G gradient norm','#cba8ff']]}
   ];

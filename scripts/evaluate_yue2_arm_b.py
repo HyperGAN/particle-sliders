@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Matched held-out YuE2 Arm B renders at -1, 0, 0.5, 1 plus caption references."""
+"""Matched held-out unipolar YuE2 renders at 0, 0.5, 1 plus the metal caption."""
 from pathlib import Path
 import argparse
 import html
@@ -15,8 +15,8 @@ from conceptmod.textsliders.infer_yue2 import render
 from conceptmod.textsliders.train_lora_yue2_fresh import write_json
 from scripts.yue2_training_dashboard import dashboard_html
 
-TAKES=[('clean',-1.,'neutral'),('off',0.,'neutral'),('half',.5,'neutral'),
-       ('metal',1.,'neutral'),('metal-caption',0.,'positive'),('clean-caption',0.,'negative')]
+TAKES=[('off',0.,'neutral'),('half',.5,'neutral'),
+       ('metal',1.,'neutral'),('metal-caption',0.,'positive')]
 
 
 def page(output,rows,seeds):
@@ -34,11 +34,12 @@ def page(output,rows,seeds):
                 else:cells.append(f'<div><b>{html.escape(name)}</b> · pending</div>')
             cards.append(f'<section><h2>Prompt {i+1}, seed {seed}</h2><p>{html.escape(row["neutral"])}</p>'
                 +''.join(cells)+'</section>')
-    document=('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YuE2 metal · Arm B</title>'
+    document=('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YuE2 metal · Unipolar GAN</title>'
         '<style>body{max-width:1100px;margin:40px auto;padding:0 20px;background:#16191d;color:#eee;font:16px system-ui}'
         'section{padding:20px;border:1px solid #46505b;margin:20px 0}audio{display:block;width:100%;margin:10px 0}'
         'section>div{display:inline-block;vertical-align:top;width:46%;margin:1%}a{color:#a9d7ff}</style>'
-        '<h1>YuE2 metal · Music Arm B</h1><p id="status">Matched prompts and seeds. Experimental checkpoints.</p>'
+        '<h1>YuE2 metal · Unipolar GAN</h1><p>0 = Off · 1 = Metal. Trained only at +1.</p>'
+        '<p id="status">Matched prompts and seeds. Experimental checkpoints.</p>'
         '<p><a href="metal-yue2.safetensors">Download trained slider</a> · <a href="metal-yue2.json">Training details</a></p>'
         +dashboard_html()+'<h2>Held-out listening comparisons</h2>'+''.join(cards))
     temporary=output/'index.html.tmp';temporary.write_text(document);temporary.replace(output/'index.html')
@@ -61,7 +62,8 @@ def main(argv=None):
     with YuE2Pipeline.from_pretrained('m-a-p/YuE2-3B',vae='m-a-p/YuE2-Vae',local_files_only=True,
             device='cuda:0',backend='torch-eager',memory_budget_gib=18,quantization='none',offload_ar=False) as pipe:
         network,record=YuE2Slider.load(pipe._load_model(),args.weights)
-        if record.get('recipe')!=RECIPE['name']:raise ValueError('Expected a native Arm B checkpoint')
+        if record.get('recipe')!=RECIPE['name'] or record.get('trained_scales')!=[1.]:
+            raise ValueError('Expected a unipolar GAN checkpoint; bipolar checkpoints are not accepted')
         if record['model_identity']!=pipe.weights['mot']:raise ValueError('Base model differs from training')
         if {r['lyrics'] for r in record['rows']}&{r['lyrics'] for r in rows}:raise ValueError('Evaluation lyrics overlap training')
         for i,row in enumerate(rows):

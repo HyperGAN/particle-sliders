@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Train the locked YuE2 Arm B recipe, then render held-out comparisons."""
+"""Train the unipolar YuE2 GAN recipe, then render held-out comparisons."""
 from pathlib import Path
 import argparse
 import fcntl

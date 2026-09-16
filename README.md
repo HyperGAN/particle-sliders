@@ -2,8 +2,8 @@
 
 **YuE2 composition sliders (opt-in):** see [docs/yue2-slider.md](docs/yue2-slider.md)
 for the native AR-attention trainer, strict checkpoint loader and matched-scale
-audio renderer. Includes the verified Music Arm B formulation and metal prompts,
-with fresh histories throughout training. Separate YuE2 environment; physical
+audio renderer. Includes unipolar GAN-only metal training with the verified
+Arm B gradient cap. Separate YuE2 environment; physical
 GPU 1 while the studio uses GPU 0. Audio quality remains experimental.
 
 **MiniMax Music 3 port:** see [MUSIC3.md](MUSIC3.md) (current trainer defaults,
