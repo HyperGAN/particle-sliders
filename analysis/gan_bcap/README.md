@@ -1,7 +1,10 @@
 # Gaussian / b_cap toys
 
 The 2-D slider wiring and diagnostic table live in
-[`../slider2d/gan_bcap_findings.md`](../slider2d/gan_bcap_findings.md).
+[`../slider2d/gan_bcap_findings.md`](../slider2d/gan_bcap_findings.md)
+and [`../../docs/lm-2d-adv.md`](../../docs/lm-2d-adv.md). Operator
+index: [`../../docs/README.md`](../../docs/README.md). This is not a
+live `--pole_mode`.
 
 This folder is the ParticleGAN 100-Gaussians smoke for the same
 `RpGAN + b_cap` core (`gaussian_repro.py`). CI runs 8 modes; `--modes 100`

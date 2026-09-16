@@ -258,3 +258,10 @@ python scripts/smoke_ltx25_slider.py
 
 `--dummy` never downloads Hub weights. Tests use CPU mocks and a tiny
 fake pack only.
+
+## Related
+
+- [docs/README.md](README.md) — backend map and shared UNI pitfalls
+- [docs/prompts.md](prompts.md) — `prompts-ltx25-smile.yaml` / `prompts-ltx25-chiaroscuro.yaml`
+- [docs/minimax-h3-slider.md](minimax-h3-slider.md) — velocity UNI (plus pack); different live box
+- Music 3 live defaults stay `--lm_target v9 --pole_mode hidden`.
