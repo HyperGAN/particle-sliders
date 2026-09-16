@@ -62,6 +62,14 @@ LoRA'd model over that composition, penalizing drift of the end margin —
 logit(<|audio_end|>) minus logsumexp over the semantic-code band — at every
 decode position. The slider keeps moving the musical plan; it must not move
 the stop-decision axis.
+
+Music Arm B (winning config, Strategy A CLI-defaults): the --adv_* / --b_cap /
+--fm_weight / --cover_weight / --pole_weight / --parts / --vicreg_weight flags
+default to ParticleGAN-faithful RpGAN + b_cap (rpgan, mlp critic, b_cap 1,
+kappa 1, l2, FM off, cover 1.0, pole 1.0, parts 0, vicreg 0). They are
+declare-only until a critic update lands in the LM step. Arm B Music argv is
+these defaults plus `--lm_target faithful_guard_e` (--lm_target default stays
+v9 for gender; pass the teacher explicitly).
 """
 
 from __future__ import annotations
@@ -2461,7 +2469,9 @@ def parse_args(argv=None):
         "fits h0, and the last-token update must not lie in the lyric-"
         "token hidden span (fail closed if that span cannot be found). "
         "Vocal Details are not held. "
-        "No minus MSE, no pair-odd, no h0 ± a. Not the default",
+        "No minus MSE, no pair-odd, no h0 ± a. Not the default. "
+        "Music Arm B passes --lm_target faithful_guard_e explicitly "
+        "(the --lm_target default stays v9 for gender)",
     )
     p.add_argument(
         "--even_blend_scale",
@@ -2632,6 +2642,85 @@ def parse_args(argv=None):
     p.add_argument("--early_cos", type=float, default=0.97, help="min mean c+ and c- in the window")
     p.add_argument("--early_collapse", type=float, default=-0.95, help="max mean collapse (more negative is better)")
     p.add_argument("--early_perc", type=float, default=0.20, help="max mean pperc/nperc in the window")
+    # --- Music Arm B (ParticleGAN-faithful RpGAN + b_cap, leftover-gated) ----
+    # CLI-defaults only (Strategy A): these flags default to the Arm B winning
+    # config so `-h` / default argv matches it. They are declare-only for now:
+    # the LM training step below has no critic update / GradRegularizer path
+    # yet, so nothing below reads them (see module docstring gap note).
+    # Arm B Music argv = these defaults + `--lm_target faithful_guard_e`.
+    p.add_argument(
+        "--adv_loss",
+        default="rpgan",
+        choices=("rpgan", "off"),
+        help="adversarial loss family (Arm B default rpgan = relativistic-pair "
+        "logistic: prefer D(fake) > D(real) on pairs). Declare-only: the LM "
+        "training step runs no critic update yet",
+    )
+    p.add_argument(
+        "--adv_arch",
+        default="mlp",
+        choices=("mlp", "tx"),
+        help="critic architecture (Arm B default mlp). Do NOT combine tx with "
+        "--lm_target faithful_guard_e (dual-arm incompatible). Declare-only: "
+        "the LM training step runs no critic update yet",
+    )
+    p.add_argument(
+        "--b_cap",
+        type=float,
+        default=1.0,
+        help="ParticleGAN-faithful b_cap coefficient (Arm B default 1.0): "
+        "(coeff/2)(E_r+E_f) relu(||grad D||-kappa)^2, one-sided, real+fake, "
+        "free below kappa. Declare-only: the trainer has no GradRegularizer "
+        "path yet",
+    )
+    p.add_argument(
+        "--adv_reg_kappa",
+        type=float,
+        default=1.0,
+        help="b_cap steepness knee kappa (Arm B default 1.0). Declare-only: "
+        "the trainer has no GradRegularizer path yet",
+    )
+    p.add_argument(
+        "--adv_reg_norm",
+        default="l2",
+        help="b_cap gradient norm (Arm B default l2, ParticleGAN-faithful). "
+        "Declare-only: the trainer has no GradRegularizer path yet",
+    )
+    p.add_argument(
+        "--fm_weight",
+        type=float,
+        default=0.0,
+        help="feature-matching weight (Arm B default 0.0 = OFF: raw FM is "
+        "uncapped by b_cap). Declare-only: the LM step has no FM term yet",
+    )
+    p.add_argument(
+        "--cover_weight",
+        type=float,
+        default=1.0,
+        help="cover / mode-pin weight (Arm B Music default 1.0; the Field3D "
+        "demo uses 1.5). Declare-only: the LM step has no cover term yet",
+    )
+    p.add_argument(
+        "--pole_weight",
+        type=float,
+        default=1.0,
+        help="pole supervision weight (Arm B Music default 1.0). "
+        "Declare-only: the LM step has no pole-weight term yet",
+    )
+    p.add_argument(
+        "--parts",
+        type=int,
+        default=0,
+        help="particle count (Arm B Music default 0 = no particles). "
+        "Declare-only: the LM step has no particle system yet",
+    )
+    p.add_argument(
+        "--vicreg_weight",
+        type=float,
+        default=0.0,
+        help="VICReg weight on particles (Arm B Music default 0.0, matching "
+        "--parts 0). Declare-only: the LM step has no particle system yet",
+    )
     args = p.parse_args(argv)
     if args.steps < 1:
         p.error("--steps must be >= 1")
