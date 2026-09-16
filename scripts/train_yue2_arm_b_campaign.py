@@ -19,6 +19,7 @@ from scripts.yue2_training_dashboard import publish_metrics
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
     p.add_argument('--save_dir',type=Path,required=True)
     p.add_argument('--output_dir',type=Path,required=True)
     p.add_argument('--name',default='metal-yue2-arm-b')
@@ -32,7 +33,7 @@ def main(argv=None):
     env=dict(os.environ,CUDA_VISIBLE_DEVICES=a.gpu,HF_HOME=os.getenv('HF_HOME','/ml2/music/.cache/huggingface'),
         HF_HUB_OFFLINE='1',OMP_NUM_THREADS='4',MKL_NUM_THREADS='4',PYTORCH_CUDA_ALLOC_CONF='expandable_segments:True')
     env.pop('TRANSFORMERS_CACHE',None)
-    rows,_=load_prompts(a.eval_prompts_file);page(a.output_dir,rows,[1709,2903])
+    rows,_=load_prompts(a.eval_prompts_file);page(a.output_dir,rows,[1709,2903],a.recipe)
     train_rows,_=load_prompts(a.prompts_file)
     if {r['lyrics'] for r in train_rows}&{r['lyrics'] for r in rows}:raise ValueError('Held-out lyrics overlap training')
     stop=False
@@ -64,8 +65,9 @@ def main(argv=None):
         old={sig:signal.signal(sig,interrupted) for sig in (signal.SIGTERM,signal.SIGINT)}
         try:
             command([sys.executable,'-u',str(ROOT/'conceptmod/textsliders/train_lora_yue2_arm_b.py'),
-                '--save_dir',str(a.save_dir),'--name',a.name,'--steps',str(a.steps),'--prompts_file',str(a.prompts_file)],'training')
+                '--recipe',a.recipe,'--save_dir',str(a.save_dir),'--name',a.name,'--steps',str(a.steps),'--prompts_file',str(a.prompts_file)],'training')
             command([sys.executable,'-u',str(ROOT/'scripts/evaluate_yue2_arm_b.py'),
+                '--recipe',a.recipe,
                 '--weights',str(a.save_dir/f'{a.name}_last.safetensors'),'--prompts_file',str(a.eval_prompts_file),
                 '--output_dir',str(a.output_dir)],'evaluation')
             status('Training and held-out comparisons complete')

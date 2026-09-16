@@ -13,8 +13,14 @@ FIELDS = ('loss', 'g_adv', 'd_loss', 'd_pen', 'grad_norm',
           'cos_pos', 'step_seconds')
 
 
-def dashboard_html():
-    return (Path(__file__).parent / 'assets/yue2-training-dashboard.html').read_text()
+def dashboard_html(recipe='unipolar_gan'):
+    document = (Path(__file__).parent / 'assets/yue2-training-dashboard.html').read_text()
+    if recipe == 'gan_plus_neu':
+        document = document.replace('The generator trains +1 only, using the adversarial loss averaged across four shuffled prompt rows.',
+            'The GAN judges +1 and 0 separately using a scale-conditioned discriminator, averaging across both endpoints and four shuffled prompt rows. The exact-zero endpoint contributes a constant log(2) and no adapter gradient.')
+        document = document.replace('GAN (+1)', 'GAN (+/0)').replace('Global L2 norm before per-element clipping at 1.',
+            'Global L2 norm before the optimizer update; no gradient clipping.')
+    return document
 
 
 def publish_metrics(run: Path, output: Path):

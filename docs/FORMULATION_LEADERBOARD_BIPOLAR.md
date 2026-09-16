@@ -19,6 +19,7 @@ One residual serving a +/- pair: `delta(+1)` must sing the + pole AND `delta(-1)
 | 3 | `faithful_sub_e_if_unused` | bi | **yes** | 1.000 | **HIT** | **HIT** |
 | 4 | `semantic_kl_null` | bi | **yes** | 0.994 | **HIT** | **HIT** |
 | 5 | `pair_odd_midpoint` | bi | — | 0.974 | — | **HIT** |
+| 6 | `rpgan_bcap_plus_neu` | bi | — | 0.393 | — | — |
 
 ## Per-cell board
 
@@ -29,8 +30,9 @@ One residual serving a +/- pair: `delta(+1)` must sing the + pole AND `delta(-1)
 | `pair_odd_midpoint` | 0.984 | 0.984 | 0.016 | 1.000 | N/A | -1.000 | — |
 | `faithful_raw` | 1.000 | 1.000 | 0.000 | 1.000 | N/A | +0.015 | **HIT** |
 | `faithful_sub_e_if_unused` | 1.000 | 1.000 | 0.000 | 1.000 | N/A | +0.015 | **HIT** |
-| `semantic_kl_null` | 1.000 | 1.000 | 0.000 | 1.000 | N/A | +0.000 | **HIT** |
+| `semantic_kl_null` | 1.000 | 1.000 | 0.000 | 1.000 | N/A | -0.000 | **HIT** |
 | `faithful_guard_e` | 1.000 | 1.000 | 0.000 | 1.000 | N/A | +0.015 | **HIT** |
+| `rpgan_bcap_plus_neu` | 0.682 | 0.568 | 0.198 | 0.946 | N/A | -0.729 | — |
 
 ### `close`
 
@@ -41,6 +43,7 @@ One residual serving a +/- pair: `delta(+1)` must sing the + pole AND `delta(-1)
 | `faithful_sub_e_if_unused` | 1.000 | 1.000 | 0.000 | 0.982 | N/A | -0.080 | **HIT** |
 | `semantic_kl_null` | 1.000 | 0.994 | 0.000 | 0.988 | N/A | -0.203 | **HIT** |
 | `faithful_guard_e` | 1.000 | 1.000 | 0.000 | 0.982 | N/A | -0.080 | **HIT** |
+| `rpgan_bcap_plus_neu` | 0.833 | 0.393 | 0.000 | 0.958 | N/A | +0.454 | — |
 
 ### `unused_e`
 
@@ -51,6 +54,7 @@ One residual serving a +/- pair: `delta(+1)` must sing the + pole AND `delta(-1)
 | `faithful_sub_e_if_unused` | 0.974 | 0.995 | 0.021 | 0.982 | +0.000 | +0.098 | **HIT** |
 | `semantic_kl_null` | 1.000 | 1.000 | 0.000 | 1.000 | +0.227 | -0.102 | **HIT** |
 | `faithful_guard_e` | 0.974 | 0.995 | 0.021 | 0.982 | +0.000 | +0.098 | **HIT** |
+| `rpgan_bcap_plus_neu` | 0.615 | 0.398 | 0.156 | 0.964 | N/A | +0.569 | — |
 
 ![both-pole ranking (bipolar)](formulation-leaderboard/bi-score.png)
 

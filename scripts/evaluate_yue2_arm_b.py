@@ -10,6 +10,7 @@ import numpy as np
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from conceptmod.textsliders.yue2_arm_b import load_prompts,RECIPE
+from conceptmod.textsliders.yue2_gan_plus_neu import RECIPE as PLUS_NEU_RECIPE
 from conceptmod.textsliders.yue2_backend import YuE2Slider,file_digest
 from conceptmod.textsliders.infer_yue2 import render
 from conceptmod.textsliders.train_lora_yue2_fresh import write_json
@@ -19,7 +20,9 @@ TAKES=[('off',0.,'neutral'),('half',.5,'neutral'),
        ('metal',1.,'neutral'),('metal-caption',0.,'positive')]
 
 
-def page(output,rows,seeds):
+def page(output,rows,seeds,recipe='unipolar_gan'):
+    title = 'YuE2 metal · GAN + neutral' if recipe == 'gan_plus_neu' else 'YuE2 metal · Unipolar GAN'
+    detail = 'Trained with the +/0 conditional GAN.' if recipe == 'gan_plus_neu' else 'Trained only at +1.'
     cards=[]
     for i,row in enumerate(rows):
         for seed in seeds:
@@ -34,19 +37,20 @@ def page(output,rows,seeds):
                 else:cells.append(f'<div><b>{html.escape(name)}</b> · pending</div>')
             cards.append(f'<section><h2>Prompt {i+1}, seed {seed}</h2><p>{html.escape(row["neutral"])}</p>'
                 +''.join(cells)+'</section>')
-    document=('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YuE2 metal · Unipolar GAN</title>'
+    document=(f'<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title>'
         '<style>body{max-width:1100px;margin:40px auto;padding:0 20px;background:#16191d;color:#eee;font:16px system-ui}'
         'section{padding:20px;border:1px solid #46505b;margin:20px 0}audio{display:block;width:100%;margin:10px 0}'
         'section>div{display:inline-block;vertical-align:top;width:46%;margin:1%}a{color:#a9d7ff}</style>'
-        '<h1>YuE2 metal · Unipolar GAN</h1><p>0 = Off · 1 = Metal. Trained only at +1.</p>'
+        f'<h1>{title}</h1><p>0 = Off · 1 = Metal. {detail}</p>'
         '<p id="status">Matched prompts and seeds. Experimental checkpoints.</p>'
         '<p><a href="metal-yue2.safetensors">Download trained slider</a> · <a href="metal-yue2.json">Training details</a></p>'
-        +dashboard_html()+'<h2>Held-out listening comparisons</h2>'+''.join(cards))
+        +dashboard_html(recipe)+'<h2>Held-out listening comparisons</h2>'+''.join(cards))
     temporary=output/'index.html.tmp';temporary.write_text(document);temporary.replace(output/'index.html')
 
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
     p.add_argument('--weights',type=Path,required=True)
     p.add_argument('--prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml')
     p.add_argument('--output_dir',type=Path,required=True)
@@ -55,14 +59,15 @@ def main(argv=None):
     args=p.parse_args(argv)
     if args.max_tokens<1 or not args.seeds or any(not 0<=s<2**63 for s in args.seeds):p.error('Invalid sampling budget or seeds')
     rows,meta=load_prompts(args.prompts_file)
-    args.output_dir.mkdir(parents=True,exist_ok=True);page(args.output_dir,rows,args.seeds)
+    args.output_dir.mkdir(parents=True,exist_ok=True);page(args.output_dir,rows,args.seeds,args.recipe)
     from yue2 import YuE2Pipeline
     from yue2.storage import verify_result
     digest=file_digest(args.weights)
     with YuE2Pipeline.from_pretrained('m-a-p/YuE2-3B',vae='m-a-p/YuE2-Vae',local_files_only=True,
             device='cuda:0',backend='torch-eager',memory_budget_gib=18,quantization='none',offload_ar=False) as pipe:
         network,record=YuE2Slider.load(pipe._load_model(),args.weights)
-        if record.get('recipe')!=RECIPE['name'] or record.get('trained_scales')!=[1.]:
+        expected = PLUS_NEU_RECIPE if args.recipe == 'gan_plus_neu' else RECIPE
+        if record.get('recipe')!=expected['name'] or record.get('trained_scales')!=expected['trained_scales']:
             raise ValueError('Expected a unipolar GAN checkpoint; bipolar checkpoints are not accepted')
         if record['model_identity']!=pipe.weights['mot']:raise ValueError('Base model differs from training')
         if {r['lyrics'] for r in record['rows']}&{r['lyrics'] for r in rows}:raise ValueError('Evaluation lyrics overlap training')
@@ -90,12 +95,12 @@ def main(argv=None):
                         clipped_fraction=float(np.mean(np.abs(audio)>=.999)),truncated=result.truncated,
                         audio_sha256=file_digest(staging/'audio.flac'))
                     write_json(staging/'evaluation.json',stats);staging.rename(dest)
-                    page(args.output_dir,rows,args.seeds)
+                    page(args.output_dir,rows,args.seeds,args.recipe)
                     print(json.dumps(dict(row=i,seed=seed,take=name,duration=stats['duration'],rms=stats['rms'])),flush=True)
     import shutil
     shutil.copy2(args.weights,args.output_dir/'metal-yue2.safetensors')
     shutil.copy2(args.weights.with_suffix('.json'),args.output_dir/'metal-yue2.json')
     write_json(args.output_dir/'status.json',dict(stage='Training and matched rendering complete'))
-    page(args.output_dir,rows,args.seeds)
+    page(args.output_dir,rows,args.seeds,args.recipe)
 
 if __name__=='__main__':main()

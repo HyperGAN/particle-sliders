@@ -428,7 +428,7 @@ def plus_neu_rank(table: dict[str, list[dict]]) -> list[dict]:
     by: dict[str, dict[str, dict]] = {}
     for cell, rows in table.items():
         by[cell] = {r["name"]: r for r in rows}
-    names = [c["name"] for c in PLUS_NEU_RECIPES]
+    names = [r["name"] for r in table['divergent']]
     ranked: list[dict] = []
     for name in names:
         cells = [by[c][name] for c in ("divergent", "close")]

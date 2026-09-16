@@ -30,9 +30,11 @@
         "cell": "divergent",
         "polarity": "uni",
         "train": "plus+neu",
-        "cover": 0.9319808758399849,
+        "objective": "supervised",
+        "propose_only": false,
+        "cover": 0.931980895716657,
         "off_caption": 0.0,
-        "neu_hold": 0.9999999694889935,
+        "neu_hold": 0.9999999736430404,
         "overlap_pos": 1.0,
         "overlap_neu": 1.0,
         "hit": true,
@@ -44,7 +46,7 @@
         "half_scale": {
           "scored": false,
           "scale": 0.5,
-          "half_cover": 0.5021484056519219
+          "half_cover": 0.5021483965343742
         },
         "canary": {
           "scored": false,
@@ -60,9 +62,11 @@
         "cell": "divergent",
         "polarity": "uni",
         "train": "plus-only",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.9319808802492732,
         "off_caption": 0.0,
-        "neu_hold": 0.6129133239328667,
+        "neu_hold": 0.6129133178132481,
         "overlap_pos": 1.0,
         "overlap_neu": 1.0,
         "hit": false,
@@ -74,7 +78,7 @@
         "half_scale": {
           "scored": false,
           "scale": 0.5,
-          "half_cover": 0.6160154459830669
+          "half_cover": 0.6160154324294925
         },
         "canary": {
           "scored": false,
@@ -90,6 +94,8 @@
         "cell": "divergent",
         "polarity": "uni",
         "train": "bipolar \u00b1",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.931980895716657,
         "off_caption": 0.0,
         "neu_hold": 0.497852940734201,
@@ -120,6 +126,8 @@
         "cell": "divergent",
         "polarity": "uni",
         "train": "bipolar \u00b1",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.7312064722443149,
         "off_caption": 0.0,
         "neu_hold": 0.636580448006553,
@@ -150,6 +158,8 @@
         "cell": "divergent",
         "polarity": "uni",
         "train": "bipolar \u00b1",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.583963552952664,
         "off_caption": 0.03125,
         "neu_hold": 1.0,
@@ -174,17 +184,17 @@
           "dangerous": false
         },
         "antipodal_consulted": false
-      }
-    ],
-    "close": [
+      },
       {
-        "name": "faithful_plus_neu",
-        "cell": "close",
+        "name": "rpgan_bcap_plus_neu",
+        "cell": "divergent",
         "polarity": "uni",
-        "train": "plus+neu",
-        "cover": 0.9347083385325266,
+        "train": "GAN +/0",
+        "objective": "rpgan_only",
+        "propose_only": true,
+        "cover": 0.9287899128410902,
         "off_caption": 0.0,
-        "neu_hold": 0.9999999796799193,
+        "neu_hold": 0.9932126348737776,
         "overlap_pos": 1.0,
         "overlap_neu": 1.0,
         "hit": true,
@@ -196,7 +206,41 @@
         "half_scale": {
           "scored": false,
           "scale": 0.5,
-          "half_cover": 0.5022409197924494
+          "half_cover": 0.5020227315402751
+        },
+        "canary": {
+          "scored": false,
+          "minus_landed": "neu",
+          "minus_overlap_neg": 0.375,
+          "minus_off_caption": 0.625,
+          "dangerous": true
+        },
+        "antipodal_consulted": false
+      }
+    ],
+    "close": [
+      {
+        "name": "faithful_plus_neu",
+        "cell": "close",
+        "polarity": "uni",
+        "train": "plus+neu",
+        "objective": "supervised",
+        "propose_only": false,
+        "cover": 0.9347082616268442,
+        "off_caption": 0.0,
+        "neu_hold": 0.9999998695040779,
+        "overlap_pos": 1.0,
+        "overlap_neu": 1.0,
+        "hit": true,
+        "eval_scales": [
+          0.0,
+          0.5,
+          1.0
+        ],
+        "half_scale": {
+          "scored": false,
+          "scale": 0.5,
+          "half_cover": 0.5022409254723063
         },
         "canary": {
           "scored": false,
@@ -212,6 +256,8 @@
         "cell": "close",
         "polarity": "uni",
         "train": "plus-only",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.9347083385325266,
         "off_caption": 0.0,
         "neu_hold": 0.6060942403190687,
@@ -242,6 +288,8 @@
         "cell": "close",
         "polarity": "uni",
         "train": "bipolar \u00b1",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.9347083360666902,
         "off_caption": 0.0,
         "neu_hold": 0.49785293360866384,
@@ -272,6 +320,8 @@
         "cell": "close",
         "polarity": "uni",
         "train": "bipolar \u00b1",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.9347083360666902,
         "off_caption": 0.0,
         "neu_hold": 0.49785293360866384,
@@ -302,6 +352,8 @@
         "cell": "close",
         "polarity": "uni",
         "train": "bipolar \u00b1",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.5957589097524106,
         "off_caption": 0.0,
         "neu_hold": 1.0,
@@ -326,6 +378,38 @@
           "dangerous": false
         },
         "antipodal_consulted": false
+      },
+      {
+        "name": "rpgan_bcap_plus_neu",
+        "cell": "close",
+        "polarity": "uni",
+        "train": "GAN +/0",
+        "objective": "rpgan_only",
+        "propose_only": true,
+        "cover": 0.9265151624308139,
+        "off_caption": 0.0,
+        "neu_hold": 0.982017809790373,
+        "overlap_pos": 1.0,
+        "overlap_neu": 1.0,
+        "hit": true,
+        "eval_scales": [
+          0.0,
+          0.5,
+          1.0
+        ],
+        "half_scale": {
+          "scored": false,
+          "scale": 0.5,
+          "half_cover": 0.5035992691378186
+        },
+        "canary": {
+          "scored": false,
+          "minus_landed": "neu",
+          "minus_overlap_neg": 1.0,
+          "minus_off_caption": 0.0,
+          "dangerous": false
+        },
+        "antipodal_consulted": false
       }
     ],
     "unused_e": [
@@ -334,9 +418,11 @@
         "cell": "unused_e",
         "polarity": "uni",
         "train": "plus+neu",
-        "cover": 0.9319808966334184,
+        "objective": "supervised",
+        "propose_only": false,
+        "cover": 0.9319808880032175,
         "off_caption": 0.0,
-        "neu_hold": 0.9999999835543235,
+        "neu_hold": 0.9999999823018669,
         "overlap_pos": 1.0,
         "overlap_neu": 1.0,
         "hit": true,
@@ -364,6 +450,8 @@
         "cell": "unused_e",
         "polarity": "uni",
         "train": "plus-only",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.6973203287365809,
         "off_caption": 0.041666666666666664,
         "neu_hold": 0.6185033984369254,
@@ -394,6 +482,8 @@
         "cell": "unused_e",
         "polarity": "uni",
         "train": "bipolar \u00b1",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.6973203295536162,
         "off_caption": 0.041666666666666664,
         "neu_hold": 0.4978529615244048,
@@ -424,6 +514,8 @@
         "cell": "unused_e",
         "polarity": "uni",
         "train": "bipolar \u00b1",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.6973203295536162,
         "off_caption": 0.041666666666666664,
         "neu_hold": 0.4978529615244048,
@@ -454,6 +546,8 @@
         "cell": "unused_e",
         "polarity": "uni",
         "train": "bipolar \u00b1",
+        "objective": "supervised",
+        "propose_only": false,
         "cover": 0.5839635445380673,
         "off_caption": 0.041666666666666664,
         "neu_hold": 1.0,
@@ -478,6 +572,38 @@
           "dangerous": false
         },
         "antipodal_consulted": false
+      },
+      {
+        "name": "rpgan_bcap_plus_neu",
+        "cell": "unused_e",
+        "polarity": "uni",
+        "train": "GAN +/0",
+        "objective": "rpgan_only",
+        "propose_only": true,
+        "cover": 0.928481893219551,
+        "off_caption": 0.0,
+        "neu_hold": 0.9862177712820527,
+        "overlap_pos": 1.0,
+        "overlap_neu": 1.0,
+        "hit": true,
+        "eval_scales": [
+          0.0,
+          0.5,
+          1.0
+        ],
+        "half_scale": {
+          "scored": false,
+          "scale": 0.5,
+          "half_cover": 0.502417949323815
+        },
+        "canary": {
+          "scored": false,
+          "minus_landed": "neu",
+          "minus_overlap_neg": 0.3333333333333333,
+          "minus_off_caption": 0.6666666666666666,
+          "dangerous": true
+        },
+        "antipodal_consulted": false
       }
     ]
   },
@@ -487,13 +613,28 @@
       "in_box": true,
       "hit_divergent": true,
       "hit_close": true,
-      "neu_hold": 0.9999999745844563,
-      "cover": 0.9333446071862557,
+      "neu_hold": 0.9999999215735591,
+      "cover": 0.9333445786717506,
       "off_caption": 0.0,
       "plus_neu": true,
       "plus_only": false,
       "rank": 1,
-      "polarity": "uni"
+      "polarity": "uni",
+      "train": "plus+neu"
+    },
+    {
+      "name": "rpgan_bcap_plus_neu",
+      "in_box": true,
+      "hit_divergent": true,
+      "hit_close": true,
+      "neu_hold": 0.9876152223320753,
+      "cover": 0.9276525376359521,
+      "off_caption": 0.0,
+      "plus_neu": true,
+      "plus_only": false,
+      "rank": 2,
+      "polarity": "uni",
+      "train": "GAN +/0"
     },
     {
       "name": "pair_odd_midpoint",
@@ -505,21 +646,23 @@
       "off_caption": 0.015625,
       "plus_neu": false,
       "plus_only": false,
-      "rank": 2,
-      "polarity": "uni"
+      "rank": 3,
+      "polarity": "uni",
+      "train": "bipolar \u00b1"
     },
     {
       "name": "faithful_plus",
       "in_box": false,
       "hit_divergent": false,
       "hit_close": false,
-      "neu_hold": 0.6095037821259677,
+      "neu_hold": 0.6095037790661584,
       "cover": 0.9333446093908999,
       "off_caption": 0.0,
       "plus_neu": false,
       "plus_only": true,
-      "rank": 3,
-      "polarity": "uni"
+      "rank": 4,
+      "polarity": "uni",
+      "train": "plus-only"
     },
     {
       "name": "faithful_even_blend",
@@ -531,8 +674,9 @@
       "off_caption": 0.0,
       "plus_neu": false,
       "plus_only": false,
-      "rank": 4,
-      "polarity": "uni"
+      "rank": 5,
+      "polarity": "uni",
+      "train": "bipolar \u00b1"
     },
     {
       "name": "leftover_gate_bipolar",
@@ -544,8 +688,9 @@
       "off_caption": 0.0,
       "plus_neu": false,
       "plus_only": false,
-      "rank": 5,
-      "polarity": "uni"
+      "rank": 6,
+      "polarity": "uni",
+      "train": "bipolar \u00b1"
     }
   ],
   "steps": 400,

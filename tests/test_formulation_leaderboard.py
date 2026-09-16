@@ -85,6 +85,7 @@ def test_unipolar_board_emits_with_polarity_and_scales():
         "leftover_gate_bipolar",
         "faithful_even_blend",
         "pair_odd_midpoint",
+        "rpgan_bcap_plus_neu",
     ]
     for cell, rows in board["cells"].items():
         for row in rows:

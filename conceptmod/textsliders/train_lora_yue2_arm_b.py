@@ -24,24 +24,27 @@ from conceptmod.textsliders.yue2_backend import YuE2Backend,YuE2Slider,file_dige
 def source_hashes():
     names=['train_lora_yue2_arm_b.py','yue2_arm_b.py','train_lora_yue2_fresh.py',
            'yue2_uni.py','yue2_backend.py','lora.py','lm_adv.py','slider_targets.py',
-           'train_lm_slider_music3.py']
+           'train_lm_slider_music3.py','unipolar_gan.py','yue2_gan_plus_neu.py']
     paths=[ROOT/'conceptmod/textsliders'/n for n in names]
     paths += [ROOT/'analysis/slider2d'/n for n in ['adv.py','grad_regularizers.py']]
     return {str(p.relative_to(ROOT)):file_digest(p) for p in paths}
 
 
 def train(args):
-    rows,meta=game.load_prompts(args.prompts_file)
-    batch=game.RECIPE['adv_batch']
+    selected = game
+    if args.recipe == 'gan_plus_neu':
+        from conceptmod.textsliders import yue2_gan_plus_neu as selected
+    rows,meta=selected.load_prompts(args.prompts_file)
+    batch=selected.RECIPE['adv_batch']
     if len(rows)<batch or len(rows)%batch:
         raise ValueError('Arm B needs a multiple of four rows for distinct balanced batches')
     args.save_dir.mkdir(parents=True,exist_ok=True)
     with (args.save_dir/'train.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        return _train_locked(args,rows,meta)
+        return _train_locked(args,rows,meta,selected)
 
 
-def _train_locked(args,rows,meta):
+def _train_locked(args,rows,meta,game):
     torch.set_num_threads(4)
     torch.manual_seed(args.seed)
     batch=game.RECIPE['adv_batch']
@@ -50,6 +53,8 @@ def _train_locked(args,rows,meta):
         seed=args.seed,max_seq_len=args.max_seq_len,
         checkpointing=not args.no_checkpointing,rank=8,alpha=8.,dummy=args.dummy,
         model_id=args.model_id,sources=source_hashes())
+    if args.recipe == 'gan_plus_neu':
+        settings['schedule_horizon'] = args.steps
     saved=torch.load(path,map_location='cpu',weights_only=True,mmap=True) if path.exists() else None
     if saved and saved['signature']['settings']!=settings:
         raise ValueError('Resume recipe, prompts, model settings, or source differs')
@@ -79,7 +84,7 @@ def _train_locked(args,rows,meta):
     metadata=dict(backend='yue2',recipe=game.RECIPE['name'],recipe_settings=signature,
         model_id=args.model_id,model_identity=backend.identity,dummy=args.dummy,
         rows=rows,prompt_metadata=meta,cot='off',recommended_range=[0,1],
-        polarity='unipolar',trained_scales=[1.],zero_behavior='exact_base_by_adapter_scale',
+        polarity='unipolar',trained_scales=game.RECIPE['trained_scales'],zero_behavior='exact_base_by_adapter_scale',
         validation_status='experimental',teacher_rms=float(critic.input_scale))
     write_json(run/'manifest.json',signature)
     write_json(run/'teacher-audit.json',dict(rows=[{k:r[k] for k in ('guard_applied','target_shift')} for r in fixed],
@@ -125,7 +130,9 @@ def _train_locked(args,rows,meta):
                 assert len(set(indices))==batch
                 status('training',next_step=step,rows=indices)
                 current=[dict(fixed[index],ids=fixed[index]['prefix']) for index in indices]
-                metrics=game.update(backend,network,critic,g,d,current,step=step,checkpointing=not args.no_checkpointing)
+                extra={'total_steps':args.steps} if args.recipe=='gan_plus_neu' else {}
+                metrics=game.update(backend,network,critic,g,d,current,step=step,
+                    checkpointing=not args.no_checkpointing,**extra)
                 completed=step
                 record=dict(metrics,step=step,rows=indices,step_seconds=time.monotonic()-begin)
                 history.append(record);log.write(json.dumps(record,allow_nan=False)+'\n');log.flush()
@@ -140,6 +147,7 @@ def _train_locked(args,rows,meta):
 
 def parse_args(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
     p.add_argument('--name',default='metal-yue2-arm-b')
     p.add_argument('--prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml')
     p.add_argument('--save_dir',type=Path,required=True)

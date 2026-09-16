@@ -19,10 +19,11 @@ In-box first (hit on both required pairs), then neu_hold, then cover, then off-c
 | rank | recipe | train | polarity | in-box | neu_hold | cover | off-caption | hit divergent | hit close |
 |---:|---|---|---|---|---:|---:|---:|---|---|
 | 1 | `faithful_plus_neu` | plus+neu | uni | **yes** | 1.000 | 0.933 | 0.000 | **HIT** | **HIT** |
-| 2 | `pair_odd_midpoint` | bipolar ± | uni | — | 1.000 | 0.590 | 0.016 | — | — |
-| 3 | `faithful_plus` | plus-only | uni | — | 0.610 | 0.933 | 0.000 | — | — |
-| 4 | `faithful_even_blend` | bipolar ± | uni | — | 0.567 | 0.833 | 0.000 | — | — |
-| 5 | `leftover_gate_bipolar` | bipolar ± | uni | — | 0.498 | 0.933 | 0.000 | — | — |
+| 2 | `rpgan_bcap_plus_neu` | GAN +/0 | uni | **yes** | 0.988 | 0.928 | 0.000 | **HIT** | **HIT** |
+| 3 | `pair_odd_midpoint` | bipolar ± | uni | — | 1.000 | 0.590 | 0.016 | — | — |
+| 4 | `faithful_plus` | plus-only | uni | — | 0.610 | 0.933 | 0.000 | — | — |
+| 5 | `faithful_even_blend` | bipolar ± | uni | — | 0.567 | 0.833 | 0.000 | — | — |
+| 6 | `leftover_gate_bipolar` | bipolar ± | uni | — | 0.498 | 0.933 | 0.000 | — | — |
 
 ## Per-cell board
 
@@ -35,6 +36,7 @@ In-box first (hit on both required pairs), then neu_hold, then cover, then off-c
 | `leftover_gate_bipolar` | bipolar ± | 0.932 | 0.000 | 0.498 | 0.504 | neg/0.000 | — |
 | `faithful_even_blend` | bipolar ± | 0.731 | 0.000 | 0.637 | 0.502 | neg/0.000 | — |
 | `pair_odd_midpoint` | bipolar ± | 0.584 | 0.031 | 1.000 | 0.500 | neu/0.000 | — |
+| `rpgan_bcap_plus_neu` | GAN +/0 | 0.929 | 0.000 | 0.993 | 0.502 | neu/0.625 **danger** | **HIT** |
 
 ### `close`
 
@@ -45,6 +47,7 @@ In-box first (hit on both required pairs), then neu_hold, then cover, then off-c
 | `leftover_gate_bipolar` | bipolar ± | 0.935 | 0.000 | 0.498 | 0.504 | neg/0.000 | — |
 | `faithful_even_blend` | bipolar ± | 0.935 | 0.000 | 0.498 | 0.504 | neg/0.000 | — |
 | `pair_odd_midpoint` | bipolar ± | 0.596 | 0.000 | 1.000 | 0.500 | neg/0.000 | — |
+| `rpgan_bcap_plus_neu` | GAN +/0 | 0.927 | 0.000 | 0.982 | 0.504 | neu/0.000 | **HIT** |
 
 ### `unused_e`
 
@@ -55,6 +58,7 @@ In-box first (hit on both required pairs), then neu_hold, then cover, then off-c
 | `leftover_gate_bipolar` | bipolar ± | 0.697 | 0.042 | 0.498 | 0.448 | neg/0.010 | — |
 | `faithful_even_blend` | bipolar ± | 0.697 | 0.042 | 0.498 | 0.448 | neg/0.010 | — |
 | `pair_odd_midpoint` | bipolar ± | 0.584 | 0.042 | 1.000 | 0.500 | neu/0.000 | — |
+| `rpgan_bcap_plus_neu` | GAN +/0 | 0.928 | 0.000 | 0.986 | 0.502 | neu/0.667 **danger** | **HIT** |
 
 ![cover vs neu_hold (unipolar)](formulation-leaderboard/uni-scale.png)
 

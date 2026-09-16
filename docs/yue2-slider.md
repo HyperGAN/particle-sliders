@@ -25,7 +25,15 @@ Training only loads the composition model and tokenizer; the VAE is needed for
 rendering. Upstream code is Apache 2.0; model weights have their separate
 [CC BY-NC 4.0 license](https://huggingface.co/m-a-p/YuE2-3B).
 
-## Train: unipolar RpGAN
+## Train: verified unipolar GAN candidate
+
+The opt-in `--recipe gan_plus_neu` uses a scale-conditioned RpGAN at +1 and
+0, with no MSE or auxiliary generator losses. Its shared training update
+passes the unipolar toy gates at 400 steps on seeds 0, 1, and 7. See the
+[recipe, proof, and metal trial command](unipolar-gan-plus-neu.md).
+Toy acceptance does not establish native audio quality.
+
+## Earlier plus-only unipolar RpGAN
 
 **Validation status (September 16): the 600-step GAN-only transfer is not
 validated.** Its production update fails the required toy continuation gates

@@ -191,10 +191,7 @@ def write_uni_markdown(board: dict, path: Path) -> None:
             "{cover} | {off} | {hd} | {hc} |".format(
                 rank=row["rank"],
                 name=row["name"],
-                train=(
-                    "plus+neu" if row.get("plus_neu")
-                    else ("plus-only" if row.get("plus_only") else "bipolar ±")
-                ),
+                train=row['train'],
                 pol=row.get("polarity", "uni"),
                 box="**yes**" if row["in_box"] else "—",
                 hold=_f(row["neu_hold"]),

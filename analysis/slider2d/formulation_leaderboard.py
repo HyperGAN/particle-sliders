@@ -61,7 +61,9 @@ from analysis.slider2d.plus_neu_exam import (
     neu_hold,
     plus_neu_exam_table,
     plus_neu_rank,
+    score_plus_neu_residual,
 )
+from analysis.slider2d.unipolar_gan import NAME as GAN_NAME, fit as fit_uni_gan, score_bipolar as score_uni_gan_bipolar
 
 POLARITY_UNI = "uni"
 POLARITY_BI = "bi"
@@ -82,6 +84,7 @@ BI_FORMULATION_ARMS = (
     "faithful_guard_e",
     "pair_odd_midpoint",
     "semantic_kl_null",
+    GAN_NAME,
 )
 
 # Shared explainer rendered into both markdown boards.
@@ -102,6 +105,8 @@ POLARITY_NOTE = (
 
 
 def _train_label(row: dict) -> str:
+    if row['name'] == GAN_NAME:
+        return 'GAN +/0'
     if row.get("plus_neu"):
         return "plus+neu"
     if row.get("plus_only"):
@@ -162,6 +167,11 @@ def half_scale_diagnostic(
         steps=steps,
         seed=seed,
     )
+    return half_scale_residual(field, residual)
+
+
+def half_scale_residual(field, residual) -> dict:
+    """The same unscored halfway readout for any already fitted student."""
     bags = plus_bags(field)
     half = None
     for prow in range(int(field.rows)):
@@ -187,9 +197,15 @@ def collect_unipolar_board(*, steps: int = 400, seed: int = 0) -> dict:
     by_recipe = {c["name"]: c for c in PLUS_NEU_RECIPES}
     cells: dict[str, list[dict]] = {}
     for cell, rows in table.items():
+        field = {'divergent': divergent_field, 'close': close_field, 'unused_e': unused_e_field}[cell](seed=seed)
+        residual, _ = fit_uni_gan(field, steps=steps, seed=seed)
+        gan_row = score_plus_neu_residual(GAN_NAME, field, residual,
+            teacher='faithful_plus_neu', plus_neu=True)
+        rows.append(gan_row)
+        gan_half = half_scale_residual(field, residual)
         out = []
         for row in rows:
-            half = half_scale_diagnostic(
+            half = gan_half if row['name'] == GAN_NAME else half_scale_diagnostic(
                 recipe=by_recipe[row["name"]], cell=cell,
                 steps=steps, seed=seed,
             )
@@ -200,6 +216,8 @@ def collect_unipolar_board(*, steps: int = 400, seed: int = 0) -> dict:
                     "cell": cell,
                     "polarity": POLARITY_UNI,
                     "train": _train_label(row),
+                    "objective": 'rpgan_only' if row['name'] == GAN_NAME else 'supervised',
+                    "propose_only": row['name'] == GAN_NAME,
                     "cover": float(row["cover"]),
                     "off_caption": float(row["off_caption"]),
                     "neu_hold": float(row["neu_hold"]),
@@ -224,6 +242,7 @@ def collect_unipolar_board(*, steps: int = 400, seed: int = 0) -> dict:
     rank = plus_neu_rank(table)
     for entry in rank:
         entry["polarity"] = POLARITY_UNI
+        entry['train'] = _train_label(entry)
     return {
         "polarity": POLARITY_UNI,
         "eval_scales": list(UNIPOLAR_EVAL_SCALES),
@@ -269,6 +288,9 @@ def collect_bipolar_board(*, steps: int = 400, seed: int = 0) -> dict:
     table = exam_table(steps=steps, seed=seed)
     cells: dict[str, list[dict]] = {}
     for cell, rows in table.items():
+        field = {'divergent': divergent_field, 'close': close_field, 'unused_e': unused_e_field}[cell](seed=seed)
+        residual, _ = fit_uni_gan(field, steps=steps, seed=seed)
+        rows.append(score_uni_gan_bipolar(field, residual))
         out = []
         for row in rows:
             if row["name"] not in BI_FORMULATION_ARMS:

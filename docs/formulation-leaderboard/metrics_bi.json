@@ -88,9 +88,9 @@
         "roll_coherence": 1.0,
         "leak_tok": null,
         "sings_both_poles": "punk punk punk punk punk punk punk punk | lull lull hush lull hush hush hush hush | punk punk slam punk punk slam slam slam | lull lull lull lull lull lull lull lull | punk punk punk punk punk punk punk punk | lull lull lull hush lull hush hush hush",
-        "antipodal_collapse": 6.778724491596222e-05,
+        "antipodal_collapse": -2.8191134333610535e-05,
         "antipodal_consulted": false,
-        "pair_odd_cos_logged": 0.7065653800964355,
+        "pair_odd_cos_logged": 0.707075297832489,
         "reason": "on-continuation"
       },
       {
@@ -110,6 +110,24 @@
         "antipodal_consulted": false,
         "pair_odd_cos_logged": 0.7017834186553955,
         "reason": "on-continuation"
+      },
+      {
+        "name": "rpgan_bcap_plus_neu",
+        "cell": "divergent",
+        "polarity": "bi",
+        "teacher": "faithful_plus_neu; trained +/0 only",
+        "pass": false,
+        "hit": false,
+        "roll_overlap": 0.6822916666666666,
+        "roll_swing_kept": 0.5677083276562501,
+        "roll_off_corpus": 0.19791666666666666,
+        "roll_coherence": 0.9464285714285715,
+        "leak_tok": null,
+        "sings_both_poles": "punk punk punk punk punk punk punk punk | punk hush hush hush hush hush hush hush | punk punk slam punk punk slam slam slam | female female hush punk hush punk female female | punk punk punk punk punk punk punk punk | male male male male male male male male",
+        "antipodal_collapse": -0.7285120487213135,
+        "antipodal_consulted": false,
+        "pair_odd_cos_logged": null,
+        "reason": "Same unipolar weights; negative endpoint was not trained"
       }
     ],
     "close": [
@@ -123,7 +141,7 @@
         "roll_overlap": 0.9739583333333334,
         "roll_swing_kept": 0.9768786018751043,
         "roll_off_corpus": 0.0,
-        "roll_coherence": 0.9821428571428572,
+        "roll_coherence": 0.9821428571428571,
         "leak_tok": null,
         "sings_both_poles": "slam slam slam slam slam slam slam slam | punk punk hush hush hush hush hush hush | punk slam slam slam slam slam slam slam | female hush hush hush hush hush hush hush | slam slam slam slam slam slam slam slam | male hush hush hush hush hush hush hush",
         "antipodal_collapse": -0.9999999403953552,
@@ -180,9 +198,9 @@
         "roll_coherence": 0.9880952380952381,
         "leak_tok": null,
         "sings_both_poles": "slam slam slam slam slam slam slam slam | punk male hush hush hush hush hush hush | punk punk slam slam slam slam slam slam | female hush hush hush hush hush hush hush | slam slam slam slam slam slam slam slam | male hush hush hush hush hush hush hush",
-        "antipodal_collapse": -0.2030140608549118,
+        "antipodal_collapse": -0.20285290479660034,
         "antipodal_consulted": false,
-        "pair_odd_cos_logged": 0.7755753993988037,
+        "pair_odd_cos_logged": 0.7757564187049866,
         "reason": "on-continuation"
       },
       {
@@ -202,6 +220,24 @@
         "antipodal_consulted": false,
         "pair_odd_cos_logged": 0.7348468899726868,
         "reason": "on-continuation"
+      },
+      {
+        "name": "rpgan_bcap_plus_neu",
+        "cell": "close",
+        "polarity": "bi",
+        "teacher": "faithful_plus_neu; trained +/0 only",
+        "pass": false,
+        "hit": false,
+        "roll_overlap": 0.8333333333333334,
+        "roll_swing_kept": 0.39306357945270476,
+        "roll_off_corpus": 0.0,
+        "roll_coherence": 0.9583333333333335,
+        "leak_tok": null,
+        "sings_both_poles": "slam slam slam slam slam slam slam slam | punk hush hush hush hush hush hush hush | punk punk slam slam slam slam slam slam | female female punk punk punk punk punk punk | slam slam slam slam slam slam slam slam | male male male male male male male male",
+        "antipodal_collapse": 0.4544154107570648,
+        "antipodal_consulted": false,
+        "pair_odd_cos_logged": null,
+        "reason": "Same unipolar weights; negative endpoint was not trained"
       }
     ],
     "unused_e": [
@@ -216,7 +252,7 @@
         "roll_swing_kept": 0.9623655814637532,
         "roll_off_corpus": 0.020833333333333332,
         "roll_coherence": 0.9880952380952381,
-        "leak_tok": 0.22745715415647033,
+        "leak_tok": 0.22745715800708433,
         "sings_both_poles": "slam slam slam slam slam slam slam slam | hush hush hush hush hush hush hush hush | lull slam slam slam slam slam slam slam | hush hush hush hush hush hush hush hush | slam slam slam slam slam slam slam slam | hush hush hush hush hush hush hush hush",
         "antipodal_collapse": -1.0,
         "antipodal_consulted": false,
@@ -234,7 +270,7 @@
         "roll_swing_kept": 0.9999999896774194,
         "roll_off_corpus": 0.0,
         "roll_coherence": 1.0,
-        "leak_tok": 0.22772485185744074,
+        "leak_tok": 0.2277248322947613,
         "sings_both_poles": "slam slam slam slam slam slam slam slam | female hush hush hush hush hush hush hush | male slam slam slam slam slam slam slam | hush hush hush hush hush hush hush hush | slam slam slam slam slam slam slam slam | hush hush hush hush hush hush hush hush",
         "antipodal_collapse": 0.015000082552433014,
         "antipodal_consulted": false,
@@ -270,11 +306,11 @@
         "roll_swing_kept": 0.9999999896774194,
         "roll_off_corpus": 0.0,
         "roll_coherence": 1.0,
-        "leak_tok": 0.2273816689046321,
+        "leak_tok": 0.2273816354214244,
         "sings_both_poles": "slam slam slam slam slam slam slam slam | female hush hush hush hush hush hush hush | male slam slam slam slam slam slam slam | hush hush hush hush hush hush hush hush | slam slam slam slam slam slam slam slam | hush hush hush hush hush hush hush hush",
-        "antipodal_collapse": -0.10174542665481567,
+        "antipodal_collapse": -0.1019812673330307,
         "antipodal_consulted": false,
-        "pair_odd_cos_logged": 0.7422522306442261,
+        "pair_odd_cos_logged": 0.7422059774398804,
         "reason": "on-continuation"
       },
       {
@@ -294,6 +330,24 @@
         "antipodal_consulted": false,
         "pair_odd_cos_logged": 0.6182523965835571,
         "reason": "on-continuation"
+      },
+      {
+        "name": "rpgan_bcap_plus_neu",
+        "cell": "unused_e",
+        "polarity": "bi",
+        "teacher": "faithful_plus_neu; trained +/0 only",
+        "pass": false,
+        "hit": false,
+        "roll_overlap": 0.6145833333333334,
+        "roll_swing_kept": 0.3978494582587583,
+        "roll_off_corpus": 0.15625,
+        "roll_coherence": 0.9642857142857144,
+        "leak_tok": null,
+        "sings_both_poles": "slam slam slam slam slam slam slam slam | punk hush hush hush hush hush hush hush | male slam slam slam slam slam slam slam | female female punk punk punk punk punk punk | slam slam slam slam slam slam slam slam | male male male male male male male male",
+        "antipodal_collapse": 0.5694121718406677,
+        "antipodal_consulted": false,
+        "pair_odd_cos_logged": null,
+        "reason": "Same unipolar weights; negative endpoint was not trained"
       }
     ]
   },
@@ -342,6 +396,15 @@
       "hits_required": false,
       "bi_score": 0.9739583333333334,
       "rank": 5
+    },
+    {
+      "name": "rpgan_bcap_plus_neu",
+      "polarity": "bi",
+      "hit_divergent": false,
+      "hit_close": false,
+      "hits_required": false,
+      "bi_score": 0.39306357945270476,
+      "rank": 6
     }
   ],
   "steps": 400,
