@@ -133,23 +133,33 @@ def test_require_arm_b_defaults_off():
     assert parse_args(BASE_ARGV).require_arm_b is False
 
 
+def _argv_tokens(argv: list[str]) -> set[str]:
+    """Exact `--key=value` tokens for the Arm B row (no substring matching)."""
+    args = parse_args(argv)
+    return {f"--{key}={getattr(args, key)}" for key in WANT}
+
+
 def test_handoff_verify_tokens_present_on_arm_b_argv():
-    shown = " ".join(
-        f"--{k}={getattr(parse_args(ARM_B_PRESET_ARGV), k)}" for k in WANT
-    )
-    for token in (
-        "faithful_guard_e",
-        "mlp",
-        "l2",
-        "fm_weight=0",
-        "adv_b_cap=1",
-        "adv_reg_kappa=1",
-        "parts=0",
-        "pole_weight=1",
-        "cover_weight=1",
-        "vicreg_weight=0",
+    got = _argv_tokens(ARM_B_PRESET_ARGV)
+    want = {f"--{key}={value}" for key, value in WANT.items()}
+    assert got == want, f"adv argv drifted: {sorted(got ^ want)}"
+    # Prefix-extension drifts the old substring check blessed: fm 0.0->0.1,
+    # cover 1.0->1.5 and vicreg 0.0->0.05 all still contain "fm_weight=0" /
+    # "cover_weight=1" / "vicreg_weight=0" as substrings. Exact tokens catch
+    # every one of them.
+    for drifted in (
+        {"fm_weight": 0.1},
+        {"cover_weight": 1.5},
+        {"vicreg_weight": 0.05},
+        {"pole_weight": 0.5},
+        {"adv_b_cap": 0.5},
+        {"adv_reg_kappa": 2.0},
     ):
-        assert token in shown, f"adv argv printout missing {token!r}: {shown}"
+        key, bad = next(iter(drifted.items()))
+        shown = " ".join(sorted(got))
+        assert f"--{key}={WANT[key]}" in shown  # sanity: good row has the token
+        assert f"--{key}={bad}" not in shown  # ... and not the drifted one
+        assert (got - {f"--{key}={WANT[key]}"}) | {f"--{key}={bad}"} != want
 
 
 # -- drift fails closed ----------------------------------------------------

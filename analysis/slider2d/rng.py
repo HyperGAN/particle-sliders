@@ -32,10 +32,11 @@ Intentional multi-seed knives (seed-sensitive by design, pinned budgets):
 - ``tests/test_lm_pair_exam.py::test_the_live_exam_verdicts_are_seed_robust``
   sweeps seeds ``[0, 1, 2]`` -- verdict flips across seeds fail loudly.
 - ``tests/test_lm_2d_adv.py::test_eight_gaussians_cover_modes_with_b_cap``
-  pins ``seed=1234`` at 1200 steps; the 8-mode game is seed-sensitive at
-  small budgets (5-8 modes at 300 steps across seeds 0/1/2/1234) but
-  robust (8 modes, hq 1.0) at the pinned budget. Keep the pin; do not
-  "fix" it by lowering thresholds.
+  sweeps seeds ``(1234, 0, 1)`` at 1200 steps (coverage + a mid-run
+  ``grad_peak_med`` bound with a ``b_cap=0`` negative control). The 8-mode
+  game is seed-sensitive at small budgets (5-8 modes at 300 steps across
+  seeds 0/1/2/1234) but robust at the pinned budget. Keep the sweep; do
+  not "fix" it by lowering thresholds.
 - Everything else asserts on ``seed=0`` through an isolated entry, so a
   failure on another seed without a sweep is an isolation bug, not a
   threshold bug.
