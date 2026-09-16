@@ -75,6 +75,8 @@ def collect(
     fm_weight: float,
     baseline_steps: int,
     cover_weight: float = 1.5,
+    grad_arm: str = "b_cap",
+    target_anneal: str = "none",
 ) -> dict:
     cfg = default_cfg(
         steps=steps,
@@ -83,6 +85,8 @@ def collect(
         kappa=kappa,
         fm_weight=fm_weight,
         cover_weight=cover_weight,
+        grad_arm=grad_arm,
+        target_anneal=target_anneal,
     )
     exam_cfg = default_cfg(
         steps=exam_steps,
@@ -91,6 +95,8 @@ def collect(
         kappa=kappa,
         fm_weight=fm_weight,
         cover_weight=cover_weight,
+        grad_arm=grad_arm,
+        target_anneal=target_anneal,
     )
     field2d = score_field2d(
         cfg,
@@ -182,6 +188,8 @@ def collect(
             "kappa": kappa,
             "fm_weight": fm_weight,
             "cover_weight": cover_weight,
+            "grad_arm": grad_arm,
+            "target_anneal": target_anneal,
         },
         "field2d": field2d,
         "sheet_leftover": leftover,
@@ -239,6 +247,7 @@ def write_findings(blob: dict, path: Path) -> None:
         f"- teacher: `{cfg['teacher']}` (blend-guarded leftover ê; refuses when ê restates the axis)",
         f"  (field2d uses the same teacher; gated teachers run on unpinned pairs per B fail-closed, faithful stays pinned)",
         f"- b_cap coeff: `{cfg['b_cap']}`, κ: `{cfg['kappa']}` (ParticleGAN `GradRegularizer`, one-sided, free below κ)",
+        f"- grad arm / anneal: `{cfg.get('grad_arm', 'b_cap')}` / `{cfg.get('target_anneal', 'none')}` (locked default; propose-only overrides are explicit)",
         f"- feature matching: `{cfg['fm_weight']}` (0 = off; raw FM is uncapped by b_cap)",
         f"- cover_weight: `{cfg['cover_weight']}` (mode pin on the shared residual; needed on sheet/exam width)",
         f"- GAN steps: field/sheet `{cfg['steps']}`, exam `{cfg['exam_steps']}`, seed `{cfg['seed']}`",
@@ -344,7 +353,7 @@ def write_findings(blob: dict, path: Path) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--steps", type=int, default=1200)
@@ -356,7 +365,30 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--kappa", type=float, default=1.0)
     parser.add_argument("--fm-weight", type=float, default=0.0)
     parser.add_argument("--cover-weight", type=float, default=1.5)
-    args = parser.parse_args(argv)
+    # Propose-only clone arms 4/5: ParticleGAN-faithful anneal and
+    # g_interp_cap. Defaults stay the locked demo (sample-point b_cap,
+    # anneal none); any propose arm is explicit opt-in, never a default flip.
+    parser.add_argument(
+        "--grad-arm",
+        type=str,
+        default="b_cap",
+        choices=("b_cap", "g_interp_cap"),
+        help="penalty geometry (default b_cap = locked sample-point cap; "
+        "g_interp_cap = propose-only interp-path cap)",
+    )
+    parser.add_argument(
+        "--target-anneal",
+        type=str,
+        default="none",
+        choices=("none", "linear", "delayed"),
+        help="penalty-center schedule (default none = locked; "
+        "delayed/linear = propose-only ParticleGAN anneal)",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
 
     blob = collect(
         steps=args.steps,
@@ -368,6 +400,8 @@ def main(argv: list[str] | None = None) -> int:
         fm_weight=args.fm_weight,
         baseline_steps=args.baseline_steps,
         cover_weight=args.cover_weight,
+        grad_arm=args.grad_arm,
+        target_anneal=args.target_anneal,
     )
     out = args.out
     out.mkdir(parents=True, exist_ok=True)
