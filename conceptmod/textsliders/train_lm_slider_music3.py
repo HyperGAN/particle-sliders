@@ -140,6 +140,18 @@ from conceptmod.textsliders.slider_targets import (
     lm_semantic_pole_loss,
     lm_slider_loss,
 )
+from conceptmod.textsliders.music_arm_b_defaults import (
+    MUSIC_ARM_B_ADV_ARCH,
+    MUSIC_ARM_B_B_CAP,
+    MUSIC_ARM_B_COVER_WEIGHT,
+    MUSIC_ARM_B_FM_WEIGHT,
+    MUSIC_ARM_B_GRAD_NORM,
+    MUSIC_ARM_B_KAPPA,
+    MUSIC_ARM_B_PARTS,
+    MUSIC_ARM_B_POLE_WEIGHT,
+    MUSIC_ARM_B_VICREG_WEIGHT,
+    assert_music_arm_b_argv,
+)
 
 DEFAULT_MODEL = Path("/ml2/music/models/MiniMax-Music3")
 LM_RECIPES = (
@@ -1351,6 +1363,19 @@ def _endreg_cache_path(cache_dir: Path, model_dir: str, text: str, frames_cap: i
 
 
 def train(args: argparse.Namespace) -> Path:
+    # Strategy C fail-closed gate: Arm B runs refuse to start (before any
+    # GPU/model spend) unless argv matches music_arm_b_defaults. Non-Arm-B
+    # recipes (default v9, etc.) are unchanged when --music_arm_b is off.
+    if bool(getattr(args, "music_arm_b", False)):
+        assert_music_arm_b_argv(args)
+        print(
+            "music_arm_b: "
+            f"lm_target={args.lm_target} adv_arch={args.adv_arch} "
+            f"b_cap={args.b_cap} adv_reg_kappa={args.adv_reg_kappa} "
+            f"adv_reg_norm={args.adv_reg_norm} fm_weight={args.fm_weight} "
+            f"cover_weight={args.cover_weight} pole_weight={args.pole_weight} "
+            f"parts={args.parts} vicreg_weight={args.vicreg_weight}"
+        )
     device = torch.device(f"cuda:{int(args.device)}")
     # Pin every consumer of global RNG (LoRA init is the only one) so two runs
     # differing only in --seed are step-for-step comparable, as in the
@@ -2632,6 +2657,78 @@ def parse_args(argv=None):
     p.add_argument("--early_cos", type=float, default=0.97, help="min mean c+ and c- in the window")
     p.add_argument("--early_collapse", type=float, default=-0.95, help="max mean collapse (more negative is better)")
     p.add_argument("--early_perc", type=float, default=0.20, help="max mean pperc/nperc in the window")
+    # --- Music Arm B shape (Strategy C single source) ---------------------
+    # Defaults are READ from conceptmod.textsliders.music_arm_b_defaults only;
+    # do not hardcode literals here. Arm B = #94 ParticleGAN-faithful RpGAN +
+    # b_cap, leftover-gated (faithful_guard_e, mlp, FM off, parts 0,
+    # pole/cover 1.0). Pass --music_arm_b to enforce the full shape
+    # fail-closed at train() entry via assert_music_arm_b_argv.
+    p.add_argument(
+        "--music_arm_b",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="opt into Music Arm B: fail closed unless argv matches the "
+        "music_arm_b_defaults locked shape (faithful_guard_e, mlp, b_cap=1, "
+        "kappa=1 l2, FM off, parts=0, pole/cover=1.0)",
+    )
+    p.add_argument(
+        "--adv_arch",
+        default=MUSIC_ARM_B_ADV_ARCH,
+        help="Arm B critic arch (default mlp from music_arm_b_defaults). "
+        "Do NOT combine tx with faithful_guard_e (dual-arm incompatible)",
+    )
+    p.add_argument(
+        "--b_cap",
+        type=float,
+        default=MUSIC_ARM_B_B_CAP,
+        help="Arm B ParticleGAN b_cap coeff (default from music_arm_b_defaults)",
+    )
+    p.add_argument(
+        "--adv_reg_kappa",
+        type=float,
+        default=MUSIC_ARM_B_KAPPA,
+        help="Arm B steepness-cap threshold kappa (default from "
+        "music_arm_b_defaults; analysis cap_penalty hardcodes 1)",
+    )
+    p.add_argument(
+        "--adv_reg_norm",
+        default=MUSIC_ARM_B_GRAD_NORM,
+        help="Arm B gradient norm for b_cap (default from music_arm_b_defaults)",
+    )
+    p.add_argument(
+        "--fm_weight",
+        type=float,
+        default=MUSIC_ARM_B_FM_WEIGHT,
+        help="Arm B feature-matching weight: 0 = off (default from "
+        "music_arm_b_defaults; raw FM is uncapped by b_cap)",
+    )
+    p.add_argument(
+        "--cover_weight",
+        type=float,
+        default=MUSIC_ARM_B_COVER_WEIGHT,
+        help="Arm B mode-pin cover weight (Music 1.0 from music_arm_b_defaults; "
+        "Field3D demo uses 1.5)",
+    )
+    p.add_argument(
+        "--pole_weight",
+        type=float,
+        default=MUSIC_ARM_B_POLE_WEIGHT,
+        help="Arm B pole weight (Music 1.0 from music_arm_b_defaults)",
+    )
+    p.add_argument(
+        "--parts",
+        type=int,
+        default=MUSIC_ARM_B_PARTS,
+        help="Arm B particle count (Music 0 from music_arm_b_defaults; "
+        "toy posture is n<=12)",
+    )
+    p.add_argument(
+        "--vicreg_weight",
+        type=float,
+        default=MUSIC_ARM_B_VICREG_WEIGHT,
+        help="Arm B VICReg weight: 0 when parts=0 (default from "
+        "music_arm_b_defaults)",
+    )
     args = p.parse_args(argv)
     if args.steps < 1:
         p.error("--steps must be >= 1")
