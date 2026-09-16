@@ -206,6 +206,29 @@ PLUS_NEU_ROLES_RECIPES = frozenset({"faithful_plus_neu_roles"})
 PAIR_ODD_RECIPES = frozenset({"pair_odd_sub_e"})
 TARGET_REPLACE = ["Qwen3Attention"]
 
+# Music Arm B (Strategy B): ParticleGAN-faithful RpGAN + b_cap, leftover-gated.
+# The gradient penalty math lives in ParticleGAN's `GradRegularizer` (vendored
+# verbatim at `analysis/slider2d/grad_regularizers.py`); the trainer only
+# carries the knobs and builds the penalty via `make_music_grad_regularizer`.
+# `--adv_preset arm_b` verifies the full row below and refuses to train a
+# drifted recipe (the handoff's "stop and report the diff"). The live default
+# stays `--lm_target v9` with the adv loop inert (`--adv_arch mlp` only
+# declares the critic family the penalty math assumes; no GAN loop consumes
+# these flags yet, so live runs are behavior-identical).
+ADV_ARCHES = ("none", "mlp", "tx")
+ADV_PRESETS = ("none", "arm_b")
+ARM_B = {
+    "lm_target": "faithful_guard_e",
+    "adv_arch": "mlp",
+    "adv_norm": "l2",
+    "fm_weight": 0.0,
+    "parts": 0,
+    "pole_weight": 1.0,
+    "cover_weight": 1.0,
+    "adv_reg_kappa": 1.0,
+    "adv_b_cap": 1.0,
+}
+
 # Row fields this trainer actually consumes (`attributes` is expanded away by
 # _expand_attributes). Anything else in the YAML - `action`, `guidance_scale`,
 # `batch_size`, `unconditional` - is only read by the transformer trainer.
@@ -2379,6 +2402,21 @@ def train(args: argparse.Namespace) -> Path:
         "minus_label": prompts_meta.get("minus_label", ""),
         "recommended_range": prompts_meta.get("recommended_range", [-2.0, 2.0]),
         "prompts_file": args.prompts_file,
+        "adv": {
+            "preset": str(getattr(args, "adv_preset", "none")),
+            "arch": str(getattr(args, "adv_arch", "mlp")),
+            "norm": str(getattr(args, "adv_norm", "l2")),
+            "lm_target": str(args.lm_target),
+            "fm_weight": float(getattr(args, "fm_weight", 0.0)),
+            "parts": int(getattr(args, "parts", 0)),
+            "pole_weight": float(getattr(args, "pole_weight", 1.0)),
+            "cover_weight": float(getattr(args, "cover_weight", 1.0)),
+            "adv_reg_kappa": float(getattr(args, "adv_reg_kappa", 1.0)),
+            "adv_b_cap": float(getattr(args, "adv_b_cap", 1.0)),
+            "penalty": "particlegan GradRegularizer arm=b_cap "
+            "(coeff/2)(E_r[relu(n-kappa)^2]+E_f[relu(n-kappa)^2]), "
+            "n=sqrt(sum g^2+1e-12)",
+        },
         "early_stop": {
             "enabled": bool(args.early_stop),
             "fired": bool(early_fired),
@@ -2393,6 +2431,61 @@ def train(args: argparse.Namespace) -> Path:
     (save_dir / f"{args.name}_last.json").write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary, indent=2))
     return last
+
+
+def make_music_grad_regularizer(args):
+    """Strategy-B gradient penalty for the Music trainer (Arm B).
+
+    Builds ParticleGAN's real ``GradRegularizer`` (arm ``b_cap``) from the
+    trainer flags — ``coeff=args.adv_b_cap``, ``kappa=args.adv_reg_kappa``
+    (explicit, never hardcoded), ``norm=args.adv_norm`` (``l2`` means
+    ``n = sqrt(sum g_i^2 + 1e-12)``) — so the penalty is
+    ``(coeff/2)(E_r[relu(n-kappa)^2] + E_f[relu(n-kappa)^2])`` by
+    construction, not by reimplementation. ``--adv_arch none`` returns the
+    ``f_none`` arm (inert, zero penalty).
+    """
+    from analysis.slider2d.grad_regularizers import GradRegularizer
+
+    if str(getattr(args, "adv_arch", "mlp")) == "none":
+        return GradRegularizer(arm="f_none")
+    return GradRegularizer(
+        arm="b_cap",
+        coeff=float(getattr(args, "adv_b_cap", 1.0)),
+        kappa=float(getattr(args, "adv_reg_kappa", 1.0)),
+        norm=str(getattr(args, "adv_norm", "l2")),
+    )
+
+
+def validate_adv_args(p, args):
+    """Refuse adv combos that would silently train a drifted recipe.
+
+    - ``tx`` + ``faithful_guard_e`` is dual-arm incompatible (Arm B critic
+      is ``mlp``): always an error, preset or not.
+    - ``--adv_preset arm_b`` additionally requires every Arm B row value
+      (teacher, critic, fm, parts, pole/cover, kappa, b_cap); any diff is
+      reported, never silently trained.
+    """
+    if str(args.adv_arch) == "tx" and str(args.lm_target) == "faithful_guard_e":
+        p.error(
+            "--adv_arch tx cannot combine with --lm_target faithful_guard_e "
+            "(dual-arm incompatible; Music Arm B critic is mlp)"
+        )
+    if str(getattr(args, "adv_preset", "none")) == "arm_b":
+        diffs = []
+        for key, want in ARM_B.items():
+            got = getattr(args, key, None)
+            if isinstance(want, float):
+                same = got is not None and abs(float(got) - want) < 1e-12
+            else:
+                same = (got == want)
+            if not same:
+                diffs.append(f"--{key}={got!r} (Arm B wants {want!r})")
+        if diffs:
+            p.error(
+                "--adv_preset arm_b drifted from the winning config: "
+                + "; ".join(diffs)
+            )
+    return args
 
 
 def parse_args(argv=None):
@@ -2632,9 +2725,73 @@ def parse_args(argv=None):
     p.add_argument("--early_cos", type=float, default=0.97, help="min mean c+ and c- in the window")
     p.add_argument("--early_collapse", type=float, default=-0.95, help="max mean collapse (more negative is better)")
     p.add_argument("--early_perc", type=float, default=0.20, help="max mean pperc/nperc in the window")
+    p.add_argument(
+        "--adv_preset",
+        default="none",
+        choices=ADV_PRESETS,
+        help="adversarial recipe gate (default none = supervised live behavior). "
+        "arm_b verifies the Music Arm B winning config before train: "
+        "--lm_target faithful_guard_e, --adv_arch mlp, --fm_weight 0, "
+        "--parts 0, --pole_weight/--cover_weight 1, --adv_reg_kappa/--adv_b_cap 1. "
+        "Any drift is a hard error, never a silent retrain",
+    )
+    p.add_argument(
+        "--adv_arch",
+        default="mlp",
+        choices=ADV_ARCHES,
+        help="adversarial critic family for the b_cap penalty (default mlp = Arm B). "
+        "none disables the adv wiring (f_none arm). "
+        "tx + --lm_target faithful_guard_e is refused (dual-arm incompatible)",
+    )
+    p.add_argument(
+        "--adv_norm",
+        default="l2",
+        choices=("l2", "l1", "linf"),
+        help="which norm of grad_x D the b_cap arm penalizes (default l2 = "
+        "n = sqrt(sum g_i^2 + 1e-12), ParticleGAN convention)",
+    )
+    p.add_argument(
+        "--adv_b_cap",
+        type=float,
+        default=1.0,
+        help="b_cap penalty strength = ParticleGAN GradRegularizer coeff (default 1.0, Arm B)",
+    )
+    p.add_argument(
+        "--adv_reg_kappa",
+        type=float,
+        default=1.0,
+        help="b_cap cap center = ParticleGAN GradRegularizer kappa, explicit "
+        "(default 1.0, Arm B; free below kappa, quadratic above)",
+    )
+    p.add_argument(
+        "--fm_weight",
+        type=float,
+        default=0.0,
+        help="feature-matching weight (default 0 = off; raw FM is uncapped by b_cap, Arm B keeps it off)",
+    )
+    p.add_argument(
+        "--parts",
+        type=int,
+        default=0,
+        help="adversarial particle count, Music scale (default 0 = residual-only, Arm B)",
+    )
+    p.add_argument(
+        "--pole_weight",
+        type=float,
+        default=1.0,
+        help="pole-seeking weight on the adv residual (default 1.0, Arm B Music transfer)",
+    )
+    p.add_argument(
+        "--cover_weight",
+        type=float,
+        default=1.0,
+        help="mode-cover weight on the adv residual (default 1.0, Arm B Music transfer; "
+        "Field3D demo uses 1.5)",
+    )
     args = p.parse_args(argv)
     if args.steps < 1:
         p.error("--steps must be >= 1")
+    validate_adv_args(p, args)
     return args
 
 
