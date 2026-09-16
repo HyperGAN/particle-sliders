@@ -547,3 +547,10 @@ PYTHONPATH=. pytest tests/test_minimax_h3_slider.py -q
 
 `--dummy` never downloads Hub weights. Tests use CPU mocks and a tiny fake
 packed sequence only.
+
+## Related
+
+- [docs/README.md](README.md) — backend map and shared UNI pitfalls
+- [docs/prompts.md](prompts.md) — `prompts-minimax-h3.yaml` / `prompts-minimax-h3-chiaroscuro.yaml`
+- [docs/ltx25-slider.md](ltx25-slider.md) — embed-match UNI (student +1 on neu)
+- Music 3 live defaults stay `--lm_target v9 --pole_mode hidden`.
