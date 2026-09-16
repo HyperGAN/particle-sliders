@@ -299,15 +299,134 @@ class AdvConfig:
     fm_weight: float = 0.0
     fm_normalize: bool = True
     vicreg_weight: float = 0.05
+    vicreg_sim_weight: float = 10.0
+    vicreg_var_weight: float = 10.0
+    vicreg_cov_weight: float = 1.0
+    vicreg_std_target: float = 0.05
+    vicreg_noise: float = 0.01
     particle_l2: float = 0.02
     cover_weight: float = 1.5
     d_steps: int = 1
     ema: float = 0.995
+    ema_scope: str = "residual"
     delay: int = 80
+    delay_frac: float | None = None
     min_lr_ratio: float = 0.05
     critic_hidden: int = 64
     critic_n_rand: int = 16
     seed: int = 0
+    recipe: str = "toy"
+
+
+def effective_delay(cfg: AdvConfig) -> int:
+    """LR-schedule hold length in steps.
+
+    ``delay_frac`` (ParticleGAN convention: 0.6 of the run at full LR, then
+    cosine down) wins when set; otherwise the absolute ``delay`` step count
+    (the locked toy default, 80). Fail-closed on out-of-range fractions so a
+    typo cannot silently train a constant-LR run.
+    """
+    if cfg.delay_frac is not None:
+        frac = float(cfg.delay_frac)
+        if not 0.0 < frac < 1.0:
+            raise ValueError(
+                f"delay_frac must be in (0, 1), got {cfg.delay_frac!r}"
+            )
+        return int(frac * int(cfg.steps))
+    return int(cfg.delay)
+
+
+def vicreg_loss_for_cfg(z: torch.Tensor, cfg: AdvConfig) -> torch.Tensor:
+    """VICReg with the inner weights carried by the config.
+
+    Lets the full-clone recipe drop the sim-invariance extra (``sim_weight=0``,
+    ParticleGAN's var+cov form) while the locked toy keeps sim+var+cov.
+    """
+    return vicreg_loss(
+        z,
+        sim_weight=float(cfg.vicreg_sim_weight),
+        var_weight=float(cfg.vicreg_var_weight),
+        cov_weight=float(cfg.vicreg_cov_weight),
+        std_target=float(cfg.vicreg_std_target),
+        noise=float(cfg.vicreg_noise),
+    )
+
+
+def ema_param_groups(
+    residual_params: list[torch.Tensor],
+    prior_params: list[torch.Tensor],
+    cfg: AdvConfig,
+) -> list[torch.Tensor]:
+    """Which G-side tensors the EMA tracks.
+
+    ``"residual"`` (locked toy): the scored residual only. ``"g_all"``
+    (ParticleGAN: EMA on G+particles): residual plus both priors. Anything
+    else is a fail-closed error, not a silent residual-only run.
+    """
+    scope = str(cfg.ema_scope)
+    if scope == "residual":
+        return list(residual_params)
+    if scope == "g_all":
+        return list(residual_params) + list(prior_params)
+    raise ValueError(
+        f"ema_scope must be 'residual' or 'g_all', got {cfg.ema_scope!r}"
+    )
+
+
+# One coherent closest-clone recipe: every remaining drift vs ParticleGAN
+# closed as far as the CPU toys allow, in a single preset. Propose-only:
+# this never changes ``AdvConfig()`` defaults, the live trainer, or the
+# locked_shared Arm B row — see docs/pg-full-clone.md for the per-knob
+# match/drift table and the KEEP/HOLD/DROP list.
+PG_FULL_CLONE: dict[str, object] = {
+    "beta2": 0.999,
+    "n_particles": 32,
+    "vicreg_weight": 1.0,
+    "vicreg_sim_weight": 0.0,
+    "particle_l2": 0.0,
+    "cover_weight": 1.5,
+    "delay_frac": 0.6,
+    "ema_scope": "g_all",
+    "recipe": "pg_full_clone",
+}
+
+# Per-knob ledger: (knob, ParticleGAN, pg_full_clone, locked toy, status).
+# MATCH = same value/form. PARTIAL = direction closed, magnitude still open
+# (CPU bound). HOLD = Music/toy adaptation kept deliberately, documented.
+PG_FULL_CLONE_LEDGER: tuple[tuple[str, str, str, str, str], ...] = (
+    ("GAN loss", "RpGAN pair logistic", "RpGAN pair logistic", "RpGAN pair logistic", "MATCH"),
+    ("b_cap / kappa / norm", "1 / 1 / L2", "1 / 1 / L2", "1 / 1 / L2", "MATCH"),
+    ("critic", "Fourier-2 MLP", "Fourier-2 MLP (toy width)", "Fourier-2 MLP (toy width)", "HOLD"),
+    ("particles", "20k prior", "32/side (64 total)", "12/side (24 total)", "PARTIAL"),
+    ("VICReg weight/form", "1, var+cov", "1, var+cov (sim 0)", "0.05, sim+var+cov", "MATCH"),
+    ("VICReg inner scale", "4-D particle scale", "2-D fixture scale (var 10/cov 1/std 0.05)", "2-D fixture scale", "HOLD"),
+    ("Adam beta2", "0.999", "0.999", "0.99", "MATCH"),
+    ("LR hold", "60% hold + cosine", "delay_frac 0.6", "absolute delay 80", "MATCH"),
+    ("LR values", "6e-4 G, x1.5 D, x10 prior", "shared 5e-3", "shared 5e-3", "HOLD"),
+    ("EMA", "G+particles, 0.995", "g_all, 0.995", "residual-only, 0.995", "MATCH"),
+    ("kappa anneal", "static cap in b_cap=1 run", "none (static)", "none (static)", "HOLD"),
+    ("feature matching", "off", "off (0.0)", "off (0.0)", "MATCH"),
+    ("particle L2", "none", "0.0", "0.02", "MATCH"),
+    ("teacher", "modes / spans", "faithful_guard_e", "faithful_guard_e", "HOLD"),
+    ("span/end cloud", "lyric-span + last-token", "span 0.40 / end 0.60", "span 0.40 / end 0.60", "HOLD"),
+    ("cover pin", "none", "1.5 (sheet/exam width)", "1.5 (sheet/exam width)", "HOLD"),
+)
+
+
+def pg_full_clone_cfg(**overrides) -> AdvConfig:
+    """Closest ParticleGAN clone toy config (propose-only preset).
+
+    Closes beta2 (0.999), LR hold (60%), EMA scope (G+particles), VICReg
+    weight/form (1, var+cov, no sim), particle L2 (off), and the particle-count
+    direction (32/side) in one recipe. Holds shared-LR values, toy critic
+    width, fixture VICReg scaling, static kappa, and the Music adaptations
+    (leftover-gated teacher, span/end cloud, cover pin). Never mutates the
+    ``AdvConfig()`` defaults — pass overrides explicitly for sweeps.
+    """
+    from dataclasses import replace
+
+    cfg = AdvConfig(**{k: v for k, v in PG_FULL_CLONE.items()})  # type: ignore[arg-type]
+    return replace(cfg, **overrides) if overrides else cfg
 
 
 def sample_real_cloud(

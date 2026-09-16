@@ -29,13 +29,15 @@ from analysis.slider2d.adv import (
     ParticlePrior,
     _l2_norm,
     delayed_cosine,
+    effective_delay,
+    ema_param_groups,
     feature_match_loss,
     input_grad,
     make_grad_regularizer,
     rp_d_loss,
     rp_g_loss,
     sample_real_cloud,
-    vicreg_loss,
+    vicreg_loss_for_cfg,
 )
 from analysis.slider2d.exam import (
     PairField,
@@ -160,7 +162,8 @@ def fit_adv(
     g_params = residual.parameters() + list(prior_p.parameters()) + list(prior_m.parameters())
     opt_g = torch.optim.Adam(g_params, lr=cfg.lr, betas=(cfg.beta1, cfg.beta2))
     opt_d = torch.optim.Adam(critic.parameters(), lr=cfg.lr, betas=(cfg.beta1, cfg.beta2))
-    ema = EMA(residual.parameters(), decay=cfg.ema)
+    prior_params = list(prior_p.parameters()) + list(prior_m.parameters())
+    ema = EMA(ema_param_groups(residual.parameters(), prior_params, cfg), decay=cfg.ema)
 
     poles_p, poles_m, neus = _collect_teachers(
         field, teacher=teacher, leak_dir=leak_dir
@@ -171,7 +174,7 @@ def fit_adv(
 
     def set_lr(step: int) -> None:
         scale = delayed_cosine(
-            step, total=cfg.steps, delay=cfg.delay, min_ratio=cfg.min_lr_ratio
+            step, total=cfg.steps, delay=effective_delay(cfg), min_ratio=cfg.min_lr_ratio
         )
         for opt in (opt_g, opt_d):
             for group in opt.param_groups:
@@ -231,7 +234,7 @@ def fit_adv(
             )
         parts = torch.cat([prior_p.particles, prior_m.particles], dim=0)
         if float(cfg.vicreg_weight) > 0.0:
-            g_extra = g_extra + float(cfg.vicreg_weight) * vicreg_loss(parts)
+            g_extra = g_extra + float(cfg.vicreg_weight) * vicreg_loss_for_cfg(parts, cfg)
         if float(cfg.particle_l2) > 0.0:
             g_extra = g_extra + float(cfg.particle_l2) * parts.pow(2).mean()
         if float(cfg.cover_weight) > 0.0:
@@ -246,7 +249,7 @@ def fit_adv(
         opt_g.zero_grad()
         g_loss.backward()
         opt_g.step()
-        ema.update(residual.parameters())
+        ema.update(ema_param_groups(residual.parameters(), prior_params, cfg))
 
         if step == 0 or (step + 1) % 50 == 0 or step + 1 == cfg.steps:
             probe_r = real.detach().requires_grad_(True)
@@ -259,7 +262,7 @@ def fit_adv(
             logs["grad_real"].append(float(gn_r.detach()))
             logs["grad_fake"].append(float(gn_f.detach()))
 
-    ema.copy_to(residual.parameters())
+    ema.copy_to(ema_param_groups(residual.parameters(), prior_params, cfg))
     snap = residual.snapshot()
     cover = _coverage(snap, poles_p, poles_m, neus)
     stats = {
@@ -272,6 +275,9 @@ def fit_adv(
         "b_cap": float(cfg.b_cap),
         "steps": int(cfg.steps),
         "fm_weight": float(cfg.fm_weight),
+        "recipe": str(cfg.recipe),
+        "ema_scope": str(cfg.ema_scope),
+        "beta2": float(cfg.beta2),
         **cover,
         "log": logs,
     }
@@ -566,13 +572,14 @@ def train_lm_adv(
     g_params = residual.parameters() + list(prior_p.parameters()) + list(prior_m.parameters())
     opt_g = torch.optim.Adam(g_params, lr=cfg.lr, betas=(cfg.beta1, cfg.beta2))
     opt_d = torch.optim.Adam(critic.parameters(), lr=cfg.lr, betas=(cfg.beta1, cfg.beta2))
-    ema = EMA(residual.parameters(), decay=cfg.ema)
+    prior_params = list(prior_p.parameters()) + list(prior_m.parameters())
+    ema = EMA(ema_param_groups(residual.parameters(), prior_params, cfg), decay=cfg.ema)
     half = max(1, int(cfg.batch) // 2)
     reg = make_grad_regularizer(cfg)
 
     def set_lr(step: int) -> None:
         scale = delayed_cosine(
-            step, total=cfg.steps, delay=cfg.delay, min_ratio=cfg.min_lr_ratio
+            step, total=cfg.steps, delay=effective_delay(cfg), min_ratio=cfg.min_lr_ratio
         )
         for opt in (opt_g, opt_d):
             for group in opt.param_groups:
@@ -613,7 +620,7 @@ def train_lm_adv(
         g_loss = rp_g_loss(critic(real.detach()), critic(fake))
         parts = torch.cat([prior_p.particles, prior_m.particles], dim=0)
         if cfg.vicreg_weight:
-            g_loss = g_loss + float(cfg.vicreg_weight) * vicreg_loss(parts)
+            g_loss = g_loss + float(cfg.vicreg_weight) * vicreg_loss_for_cfg(parts, cfg)
         if cfg.particle_l2:
             g_loss = g_loss + float(cfg.particle_l2) * parts.pow(2).mean()
         if cfg.cover_weight:
@@ -625,9 +632,9 @@ def train_lm_adv(
         opt_g.zero_grad()
         g_loss.backward()
         opt_g.step()
-        ema.update(residual.parameters())
+        ema.update(ema_param_groups(residual.parameters(), prior_params, cfg))
 
-    ema.copy_to(residual.parameters())
+    ema.copy_to(ema_param_groups(residual.parameters(), prior_params, cfg))
     return as_train_residual(residual.snapshot())
 
 

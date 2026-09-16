@@ -217,7 +217,7 @@ TARGET_REPLACE = ["Qwen3Attention"]
 # no GAN loop consumes these flags yet, so live runs are behavior-identical).
 # `vicreg_weight` is 0 at `--parts 0` (regularizer absent by construction).
 ADV_ARCHES = ("none", "mlp", "tx")
-ADV_PRESETS = ("none", "arm_b")
+ADV_PRESETS = ("none", "arm_b", "pg_full_clone")
 ARM_B = {
     "lm_target": "faithful_guard_e",
     "adv_arch": "mlp",
@@ -229,6 +229,32 @@ ARM_B = {
     "adv_reg_kappa": 1.0,
     "adv_b_cap": 1.0,
     "vicreg_weight": 0.0,
+}
+
+# Closest-clone arm (CLONE 5/5): the same honesty scaffolding as ARM_B
+# (leftover-gated teacher, mlp critic, L2 b_cap 1/1, FM off, pole/cover 1),
+# but with the particle cloud ON: `--parts 8` + `--vicreg_weight 1.0`
+# (ParticleGAN's weight-1 particle regularizer). PROPOSE-ONLY: this preset
+# declares an unproven Music-GPU transfer (hidden-space particles + VICReg
+# have no rendered-audio win), never satisfies `--require_arm_b`, and never
+# replaces the locked_shared ARM_B row — the two rows differ by construction
+# (parts/vicreg), so one cannot silently become the other. The remaining
+# clone deltas (beta2 0.999, 60% LR hold, EMA on G+particles, 32/side priors)
+# live in the analysis toy (`analysis/slider2d/adv.py::pg_full_clone_cfg`);
+# the trainer has no knobs for them yet, which is itself a documented gap
+# (see docs/pg-full-clone.md).
+PG_FULL_CLONE_PROPOSE_ONLY = True
+PG_FULL_CLONE = {
+    "lm_target": "faithful_guard_e",
+    "adv_arch": "mlp",
+    "adv_norm": "l2",
+    "fm_weight": 0.0,
+    "parts": 8,
+    "pole_weight": 1.0,
+    "cover_weight": 1.0,
+    "adv_reg_kappa": 1.0,
+    "adv_b_cap": 1.0,
+    "vicreg_weight": 1.0,
 }
 
 # Row fields this trainer actually consumes (`attributes` is expanded away by
@@ -2469,13 +2495,46 @@ def validate_adv_args(p, args):
       any diff is reported, never silently trained.
     - ``--require_arm_b`` (Strategy E port) is the same full-row check
       without needing ``--adv_preset arm_b``: parse-time refusal before
-      any GPU spend.
+      any GPU spend. The propose-only ``--adv_preset pg_full_clone`` row
+      (parts 8, vicreg 1.0) can never satisfy it — locked_shared stays Arm B.
+    - ``--adv_preset pg_full_clone`` (CLONE 5/5, propose-only) requires its
+      own exact row (same honesty scaffolding as Arm B, particles +
+      VICReg on) and reports drift the same way. It is not a win claim and
+      never counts as locked_shared.
     """
     if str(args.adv_arch) == "tx" and str(args.lm_target) == "faithful_guard_e":
         p.error(
             "--adv_arch tx cannot combine with --lm_target faithful_guard_e "
             "(dual-arm incompatible; Music Arm B critic is mlp)"
         )
+    if str(getattr(args, "adv_preset", "none")) == "pg_full_clone":
+        if bool(getattr(args, "require_arm_b", False)):
+            p.error(
+                "--adv_preset pg_full_clone is propose-only and never satisfies "
+                "--require_arm_b (locked_shared stays the ARM_B row: parts 0, "
+                "vicreg 0)"
+            )
+        diffs = []
+        for key, want in PG_FULL_CLONE.items():
+            got = getattr(args, key, None)
+            if isinstance(want, float):
+                same = got is not None and abs(float(got) - want) < 1e-12
+            else:
+                same = (got == want)
+            if not same:
+                diffs.append(f"--{key}={got!r} (pg_full_clone wants {want!r})")
+        if diffs:
+            p.error(
+                "--adv_preset pg_full_clone drifted from the proposed row: "
+                + "; ".join(diffs)
+            )
+        print(
+            "note: --adv_preset pg_full_clone is PROPOSE-ONLY (CLONE 5/5): "
+            "particles + VICReg declare an unproven Music-GPU transfer, no "
+            "rendered-audio win is claimed, and this never counts as "
+            "locked_shared"
+        )
+        return args
     gate = (
         str(getattr(args, "adv_preset", "none")) == "arm_b"
         or bool(getattr(args, "require_arm_b", False))
@@ -2748,7 +2807,10 @@ def parse_args(argv=None):
         "--lm_target faithful_guard_e, --adv_arch mlp, --adv_norm l2, "
         "--fm_weight 0, --parts 0, --pole_weight/--cover_weight 1, "
         "--adv_reg_kappa/--adv_b_cap 1, --vicreg_weight 0. "
-        "Any drift is a hard error, never a silent retrain",
+        "Any drift is a hard error, never a silent retrain. "
+        "pg_full_clone is the propose-only closest-clone row (same "
+        "scaffolding, --parts 8, --vicreg_weight 1.0): drift is also a "
+        "hard error, and it never counts as locked_shared",
     )
     p.add_argument(
         "--adv_arch",
