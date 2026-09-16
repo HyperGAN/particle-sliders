@@ -90,9 +90,20 @@ def vicreg_loss(
     std_target: float = 0.05,
     noise: float = 0.01,
 ) -> torch.Tensor:
-    """VICReg on a particle batch. ``std_target`` is 0.05 on 2-D fixtures (poles are O(1))."""
-    if z.ndim != 2 or z.shape[0] < 2:
-        return z.new_zeros(())
+    """VICReg on a particle batch. ``std_target`` is 0.05 on 2-D fixtures (poles are O(1)).
+
+    Fail-closed on fewer than 2 rows: variance and covariance are undefined
+    on one particle, and silently returning 0 would disable the spread
+    pressure (e.g. ``train_gaussians(n_particles=1)`` collapsing modes with
+    no error). Pass at least 2 particles.
+    """
+    if z.ndim != 2:
+        raise ValueError(f"vicreg_loss needs a 2-D particle batch, got ndim={z.ndim}")
+    if z.shape[0] < 2:
+        raise ValueError(
+            f"VICReg needs ≥ 2 particles, got {z.shape[0]}: a single particle "
+            "has no variance/covariance, so the regularizer would silently be 0"
+        )
     z2 = z + float(noise) * torch.randn_like(z)
     inv = F.mse_loss(z, z2)
     std = z.std(dim=0, unbiased=False)
@@ -128,6 +139,11 @@ class ParticlePrior(nn.Module):
 
     def __init__(self, n_particles: int, dim: int, init_std: float = 0.05):
         super().__init__()
+        if int(n_particles) < 1:
+            raise ValueError(
+                f"n_particles must be ≥ 1, got {n_particles!r}: an empty prior "
+                "crashes sampling and a missing prior silently drops VICReg"
+            )
         self.particles = nn.Parameter(float(init_std) * torch.randn(int(n_particles), int(dim)))
 
     def sample(self, n: int, *, jitter: float = 0.01) -> torch.Tensor:

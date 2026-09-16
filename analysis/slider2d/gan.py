@@ -494,7 +494,19 @@ def train_lm_adv(
     data fix). Ungated poles copy even leftover ê the same way
     ``faithful_raw`` does — leak_ratio ~1.3 — so the 2-D polarity cell
     would Goodhart a leaky teacher.
+
+    ``teacher`` is only honored when ``with_attrs`` is False: pinned poles
+    already cancel the attribute the leftover gate would remove, so a
+    leftover-gated teacher on pinned pairs is a contradiction. Passing any
+    other teacher with ``with_attrs=True`` raises instead of silently
+    training on raw poles.
     """
+    if with_attrs and str(teacher).strip().lower() != "faithful":
+        raise ValueError(
+            f"teacher={teacher!r} is silently raw poles when with_attrs=True; "
+            "pass with_attrs=False to use a leftover-gated teacher, or "
+            "teacher='faithful' for pinned poles"
+        )
     cfg = cfg or AdvConfig()
     torch.manual_seed(int(cfg.seed))
     pairs = pairs if pairs is not None else music3_pairs(with_attrs)

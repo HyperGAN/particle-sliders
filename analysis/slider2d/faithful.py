@@ -175,6 +175,12 @@ def score_leak_lm(
 ) -> dict:
     field = Field2D()
     pairs = music3_pairs(with_attrs)
+    if with_attrs and (leak_dir is not None or float(hold_weight) > 0.0):
+        raise ValueError(
+            "with_attrs=True pins the attribute in the captions, so leak_dir / "
+            "hold_weight are silently dropped; pass with_attrs=False to hold ê, "
+            "or drop the hold args for pinned poles"
+        )
     used_e = None if with_attrs else (leak_dir if leak_dir is not None else (E_ATTR if hold_weight > 0.0 else None))
     residual = train_lm(
         field,
