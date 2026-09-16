@@ -1,0 +1,16 @@
+# CLI defaults; explicit command-line arguments take precedence.
+name: breath-yue2-ar
+recipe: uni16
+adv_batch: 4
+model_id: m-a-p/YuE2-3B
+rank: 8
+alpha: 8.0
+lr: 0.0005
+steps: 600
+save_every: 100
+train_tokens: 250
+max_seq_len: 1024
+hold_weight: 0.0
+seed: 7
+device: cuda:0
+allow_hub: false

@@ -1,0 +1,31 @@
+# Describe sound only. No real artist, band, songwriter, producer or album names.
+# Neutral captions are also the inference captions. Positive is teacher-only.
+rows:
+  - neutral: "English, slow acoustic pop, close clear lead vocal, fingerpicked steel strings, soft bass, brushed snare, small dry room."
+    positive: "English, slow acoustic pop, close breathy lead vocal, audible air at phrase endings, fingerpicked steel strings, soft bass, brushed snare, small dry room."
+    attributes:
+      - "Low male register."
+      - "High female register."
+    lyrics: |
+      [Verse]
+      Your coat is hanging by the door
+      The rain comes through the window screen
+      I leave my shoes upon the floor
+      And turn the kettle on again
+      [Chorus]
+      Stay until the water sings
+      Stay until the morning rings
+  - neutral: "English, midtempo soul, close clear lead vocal, warm electric piano, rounded bass, dry kick and rim clicks."
+    positive: "English, midtempo soul, close breathy lead vocal, audible air at phrase endings, warm electric piano, rounded bass, dry kick and rim clicks."
+    attributes:
+      - "Low male register."
+      - "High female register."
+    lyrics: |
+      [Verse]
+      I found your ticket in the drawer
+      Beside a key that doesn't fit
+      We don't go dancing anymore
+      But I remember every bit
+      [Chorus]
+      Move the table, make some space
+      Let the floorboards take our weight

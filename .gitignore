@@ -15,3 +15,4 @@ Anima-Turbo-v1.1-Diffusers/
 *_step*.safetensors
 *_train.jsonl
 STUDIO_STOPPED.txt
+.venv-yue2/
