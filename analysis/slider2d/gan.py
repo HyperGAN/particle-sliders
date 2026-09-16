@@ -35,6 +35,7 @@ from analysis.slider2d.adv import (
     rp_d_loss,
     rp_g_loss,
     sample_real_cloud,
+    toy_lr_triplet,
     vicreg_loss,
 )
 from analysis.slider2d.exam import (
@@ -139,9 +140,17 @@ def fit_adv(
     teacher: str = DEFAULT_TEACHER,
     leak_dir: torch.Tensor | None = None,
     cfg: AdvConfig | None = None,
+    vicreg_fn=None,
 ) -> tuple[AdvResidual, dict]:
-    """Fit one shared residual with RpGAN + b_cap. Returns EMA residual + logs."""
+    """Fit one shared residual with RpGAN + b_cap. Returns EMA residual + logs.
+
+    ``vicreg_fn`` overrides the particle regularizer (default: the locked
+    demo ``vicreg_loss``). Propose-only arms such as ``pg_vicreg_faithful``
+    pass their faithful variant here; ``None`` keeps the locked path
+    byte-identical.
+    """
     cfg = cfg or AdvConfig()
+    vfn = vicreg_fn if vicreg_fn is not None else vicreg_loss
     if leak_dir is None:
         leak_dir = _field_leak_dir(field)
     dim = int(field.dim)
@@ -157,9 +166,19 @@ def fit_adv(
         hidden=cfg.critic_hidden,
         seed=cfg.seed,
     )
-    g_params = residual.parameters() + list(prior_p.parameters()) + list(prior_m.parameters())
-    opt_g = torch.optim.Adam(g_params, lr=cfg.lr, betas=(cfg.beta1, cfg.beta2))
-    opt_d = torch.optim.Adam(critic.parameters(), lr=cfg.lr, betas=(cfg.beta1, cfg.beta2))
+    g_lr, d_lr, prior_lr = toy_lr_triplet(cfg)
+    opt_g = torch.optim.Adam(
+        [
+            {"params": residual.parameters(), "lr": g_lr},
+            {
+                "params": list(prior_p.parameters()) + list(prior_m.parameters()),
+                "lr": prior_lr,
+            },
+        ],
+        lr=g_lr,
+        betas=(cfg.beta1, cfg.beta2),
+    )
+    opt_d = torch.optim.Adam(critic.parameters(), lr=d_lr, betas=(cfg.beta1, cfg.beta2))
     ema = EMA(residual.parameters(), decay=cfg.ema)
 
     poles_p, poles_m, neus = _collect_teachers(
@@ -173,9 +192,10 @@ def fit_adv(
         scale = delayed_cosine(
             step, total=cfg.steps, delay=cfg.delay, min_ratio=cfg.min_lr_ratio
         )
-        for opt in (opt_g, opt_d):
-            for group in opt.param_groups:
-                group["lr"] = float(cfg.lr) * scale
+        opt_g.param_groups[0]["lr"] = g_lr * scale
+        opt_g.param_groups[1]["lr"] = prior_lr * scale
+        for group in opt_d.param_groups:
+            group["lr"] = d_lr * scale
 
     def fake_batch() -> tuple[torch.Tensor, torch.Tensor]:
         idx_p = torch.randint(0, neus.shape[0], (half,))
@@ -231,7 +251,7 @@ def fit_adv(
             )
         parts = torch.cat([prior_p.particles, prior_m.particles], dim=0)
         if float(cfg.vicreg_weight) > 0.0:
-            g_extra = g_extra + float(cfg.vicreg_weight) * vicreg_loss(parts)
+            g_extra = g_extra + float(cfg.vicreg_weight) * vfn(parts)
         if float(cfg.particle_l2) > 0.0:
             g_extra = g_extra + float(cfg.particle_l2) * parts.pow(2).mean()
         if float(cfg.cover_weight) > 0.0:
@@ -511,8 +531,12 @@ def train_lm_adv(
     teacher: str = "faithful",
     cfg: AdvConfig | None = None,
     with_attrs: bool = True,
+    vicreg_fn=None,
 ) -> Residual:
     """Field2D residual via the same game. Used for leak_frac / polarity.
+
+    ``vicreg_fn`` overrides the particle regularizer (default: the locked
+    demo ``vicreg_loss``); see :func:`fit_adv`.
 
     Default real cloud is attribute-pinned poles (the ``faithful_attrs``
     data fix). Ungated poles copy even leftover ê the same way
@@ -570,9 +594,19 @@ def train_lm_adv(
     prior_p = ParticlePrior(cfg.n_particles, dim)
     prior_m = ParticlePrior(cfg.n_particles, dim)
     critic = Fourier2MLP(dim, n_rand=cfg.critic_n_rand, hidden=cfg.critic_hidden, seed=cfg.seed)
-    g_params = residual.parameters() + list(prior_p.parameters()) + list(prior_m.parameters())
-    opt_g = torch.optim.Adam(g_params, lr=cfg.lr, betas=(cfg.beta1, cfg.beta2))
-    opt_d = torch.optim.Adam(critic.parameters(), lr=cfg.lr, betas=(cfg.beta1, cfg.beta2))
+    g_lr, d_lr, prior_lr = toy_lr_triplet(cfg)
+    opt_g = torch.optim.Adam(
+        [
+            {"params": residual.parameters(), "lr": g_lr},
+            {
+                "params": list(prior_p.parameters()) + list(prior_m.parameters()),
+                "lr": prior_lr,
+            },
+        ],
+        lr=g_lr,
+        betas=(cfg.beta1, cfg.beta2),
+    )
+    opt_d = torch.optim.Adam(critic.parameters(), lr=d_lr, betas=(cfg.beta1, cfg.beta2))
     ema = EMA(residual.parameters(), decay=cfg.ema)
     half = max(1, int(cfg.batch) // 2)
     reg = make_grad_regularizer(cfg)
@@ -581,9 +615,10 @@ def train_lm_adv(
         scale = delayed_cosine(
             step, total=cfg.steps, delay=cfg.delay, min_ratio=cfg.min_lr_ratio
         )
-        for opt in (opt_g, opt_d):
-            for group in opt.param_groups:
-                group["lr"] = float(cfg.lr) * scale
+        opt_g.param_groups[0]["lr"] = g_lr * scale
+        opt_g.param_groups[1]["lr"] = prior_lr * scale
+        for group in opt_d.param_groups:
+            group["lr"] = d_lr * scale
 
     def fake_batch() -> tuple[torch.Tensor, torch.Tensor]:
         idx_p = torch.randint(0, neus_t.shape[0], (half,))
@@ -619,8 +654,9 @@ def train_lm_adv(
         fake = torch.cat([fake_p, fake_m], dim=0)
         g_loss = rp_g_loss(critic(real.detach()), critic(fake))
         parts = torch.cat([prior_p.particles, prior_m.particles], dim=0)
+        vfn = vicreg_fn if vicreg_fn is not None else vicreg_loss
         if cfg.vicreg_weight:
-            g_loss = g_loss + float(cfg.vicreg_weight) * vicreg_loss(parts)
+            g_loss = g_loss + float(cfg.vicreg_weight) * vfn(parts)
         if cfg.particle_l2:
             g_loss = g_loss + float(cfg.particle_l2) * parts.pow(2).mean()
         if cfg.cover_weight:

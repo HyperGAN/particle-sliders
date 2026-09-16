@@ -75,6 +75,11 @@ def collect(
     fm_weight: float,
     baseline_steps: int,
     cover_weight: float = 1.5,
+    lr: float = 5.0e-3,
+    d_lr_mult: float = 1.0,
+    prior_lr_mult: float = 1.0,
+    grad_arm: str = "b_cap",
+    target_anneal: str = "none",
 ) -> dict:
     cfg = default_cfg(
         steps=steps,
@@ -83,6 +88,11 @@ def collect(
         kappa=kappa,
         fm_weight=fm_weight,
         cover_weight=cover_weight,
+        lr=lr,
+        d_lr_mult=d_lr_mult,
+        prior_lr_mult=prior_lr_mult,
+        grad_arm=grad_arm,
+        target_anneal=target_anneal,
     )
     exam_cfg = default_cfg(
         steps=exam_steps,
@@ -91,6 +101,11 @@ def collect(
         kappa=kappa,
         fm_weight=fm_weight,
         cover_weight=cover_weight,
+        lr=lr,
+        d_lr_mult=d_lr_mult,
+        prior_lr_mult=prior_lr_mult,
+        grad_arm=grad_arm,
+        target_anneal=target_anneal,
     )
     field2d = score_field2d(
         cfg,
@@ -182,6 +197,11 @@ def collect(
             "kappa": kappa,
             "fm_weight": fm_weight,
             "cover_weight": cover_weight,
+            "lr": lr,
+            "d_lr_mult": d_lr_mult,
+            "prior_lr_mult": prior_lr_mult,
+            "grad_arm": grad_arm,
+            "target_anneal": target_anneal,
         },
         "field2d": field2d,
         "sheet_leftover": leftover,
@@ -239,6 +259,8 @@ def write_findings(blob: dict, path: Path) -> None:
         f"- teacher: `{cfg['teacher']}` (blend-guarded leftover ê; refuses when ê restates the axis)",
         f"  (field2d uses the same teacher; gated teachers run on unpinned pairs per B fail-closed, faithful stays pinned)",
         f"- b_cap coeff: `{cfg['b_cap']}`, κ: `{cfg['kappa']}` (ParticleGAN `GradRegularizer`, one-sided, free below κ)",
+        f"- grad arm / anneal: `{cfg.get('grad_arm', 'b_cap')}` / `{cfg.get('target_anneal', 'none')}` (locked default; propose-only overrides are explicit)",
+        f"- LR: `{cfg.get('lr', 5.0e-3)}` x d `{cfg.get('d_lr_mult', 1.0)}` / prior `{cfg.get('prior_lr_mult', 1.0)}` (locked shared 5e-3; propose-only overrides are explicit)",
         f"- feature matching: `{cfg['fm_weight']}` (0 = off; raw FM is uncapped by b_cap)",
         f"- cover_weight: `{cfg['cover_weight']}` (mode pin on the shared residual; needed on sheet/exam width)",
         f"- GAN steps: field/sheet `{cfg['steps']}`, exam `{cfg['exam_steps']}`, seed `{cfg['seed']}`",
@@ -344,7 +366,13 @@ def write_findings(blob: dict, path: Path) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """Production argv. Defaults are pinned by locked_baseline_defaults.
+
+    Behavior-neutral extraction: same flags, same defaults as before, plus
+    opt-in propose-only overrides (LR mults, grad arm, anneal) that default
+    to the locked recipe. Formulation arms never change these defaults.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--steps", type=int, default=1200)
@@ -356,6 +384,30 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--kappa", type=float, default=1.0)
     parser.add_argument("--fm-weight", type=float, default=0.0)
     parser.add_argument("--cover-weight", type=float, default=1.5)
+    parser.add_argument("--lr", type=float, default=5.0e-3)
+    parser.add_argument("--d-lr-mult", type=float, default=1.0)
+    parser.add_argument("--prior-lr-mult", type=float, default=1.0)
+    parser.add_argument(
+        "--grad-arm",
+        type=str,
+        default="b_cap",
+        choices=("b_cap", "g_interp_cap"),
+        help="penalty geometry (default b_cap = locked sample-point cap; "
+        "g_interp_cap = propose-only interp-path cap)",
+    )
+    parser.add_argument(
+        "--target-anneal",
+        type=str,
+        default="none",
+        choices=("none", "linear", "delayed"),
+        help="penalty-center schedule (default none = locked; "
+        "delayed/linear = propose-only ParticleGAN anneal)",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
     args = parser.parse_args(argv)
 
     blob = collect(
@@ -368,6 +420,11 @@ def main(argv: list[str] | None = None) -> int:
         fm_weight=args.fm_weight,
         baseline_steps=args.baseline_steps,
         cover_weight=args.cover_weight,
+        lr=args.lr,
+        d_lr_mult=args.d_lr_mult,
+        prior_lr_mult=args.prior_lr_mult,
+        grad_arm=args.grad_arm,
+        target_anneal=args.target_anneal,
     )
     out = args.out
     out.mkdir(parents=True, exist_ok=True)
@@ -391,8 +448,25 @@ def main(argv: list[str] | None = None) -> int:
         "claims_music3_audio": False,
     }
     (out / "metrics.json").write_text(json.dumps(slim, indent=2) + "\n", encoding="utf-8")
-    write_findings(blob, _REPO / "analysis" / "slider2d" / "gan_bcap_findings.md")
-    write_findings(blob, out.parent / "lm-2d-adv.md")
+    if (
+        float(args.lr) != 5.0e-3
+        or float(args.d_lr_mult) != 1.0
+        or float(args.prior_lr_mult) != 1.0
+        or str(args.grad_arm) != "b_cap"
+        or str(args.target_anneal) != "none"
+    ):
+        # Propose-only smoke (e.g. pg_2x_lr / anneal / g_interp): report
+        # stdout + metrics.json only. The locked findings pages stay locked;
+        # an arm run must not overwrite them.
+        print(
+            "propose-only run: locked findings pages untouched "
+            f"(lr={args.lr:g} d_mult={args.d_lr_mult:g} "
+            f"prior_mult={args.prior_lr_mult:g} "
+            f"grad_arm={args.grad_arm} anneal={args.target_anneal})"
+        )
+    else:
+        write_findings(blob, _REPO / "analysis" / "slider2d" / "gan_bcap_findings.md")
+        write_findings(blob, out.parent / "lm-2d-adv.md")
     print(
         f"{blob['compiled']:20s} rpgan_bcap exam={_fmt(blob.get('exam_score'), '.3f')} "
         f"left={_pass(blob['cells']['sheet_leftover'])} "
