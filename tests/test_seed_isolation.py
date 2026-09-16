@@ -56,6 +56,30 @@ def test_isolated_seed_decorator_passes_positional_seed_and_restores():
     assert torch.equal(_draw(8, 3), first)
 
 
+def test_isolated_seed_none_config_falls_back_to_default():
+    """A ``None`` intermediate (``cfg=None`` = defaults) uses ``default``.
+
+    Regression: ``_resolve_seed`` raised ``AttributeError`` on
+    ``getattr(None, "seed")`` instead of falling back, so every
+    default-config call to ``fit_adv`` / ``train_lm_adv`` crashed before
+    reaching the body.
+    """
+
+    @isolated_seed("cfg.seed", default=0)
+    def _draw(cfg=None):
+        return torch.randn(4)
+
+    torch.manual_seed(999)
+    before = torch.get_rng_state().clone()
+    first = _draw()
+    assert torch.equal(torch.get_rng_state(), before)
+    torch.manual_seed(111)
+    torch.randn(50)
+    after_draws = torch.get_rng_state().clone()
+    assert torch.equal(_draw(None), first)
+    assert torch.equal(torch.get_rng_state(), after_draws)
+
+
 @pytest.mark.parametrize(
     "make",
     [
