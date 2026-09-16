@@ -125,7 +125,12 @@ def test_b_cap_kappa_is_explicit_not_hardcoded():
     high = torch.ones(4, 2)
     # kappa=0.2 also caps the 0.4 row (norm ~0.566); kappa=2.5 frees even
     # the sqrt(2) row. A hardcoded kappa=1 would fail both.
-    assert float(cap_penalty(low, low, coeff=1.0, kappa=0.2)) > 0.0
+    # Closed form (not just > 0): low rows have ||g|| = sqrt(2*0.4^2 + 1e-12).
+    # A hardcoded-kappa=1.0 reimplementation returns 0.0 here.
+    n_lo = (2.0 * 0.4**2 + 1e-12) ** 0.5
+    assert float(cap_penalty(low, low, coeff=1.0, kappa=0.2)) == pytest.approx(
+        (n_lo - 0.2) ** 2, rel=1e-5
+    )
     assert float(cap_penalty(high, high, coeff=1.0, kappa=2.5)) == pytest.approx(
         0.0
     )
