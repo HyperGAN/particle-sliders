@@ -99,6 +99,9 @@ def cap_penalty(
     ``0.5 * coeff * (mean(relu(‖∇D(x_r)‖−κ)²) + mean(relu(‖∇D(x_f)‖−κ)²))``
     with ``‖g‖ = √(Σgᵢ² + 1e-12)``. Thin shim: the phi is ParticleGAN's
     ``GradRegularizer._phi`` for arm ``b_cap``, not a local reimplementation.
+    Matches ``GradRegularizer(arm="b_cap", coeff, kappa)`` with
+    ``lazy_k=1`` and ``target_anneal="none"``; annealed or lazy configs must
+    go through ``make_grad_regularizer(...).penalty(D, x_real, x_fake)``.
     Prefer ``make_grad_regularizer(...).penalty(D, x_real, x_fake)`` on train
     paths so the autograd norm stays inside the ParticleGAN module too.
     """

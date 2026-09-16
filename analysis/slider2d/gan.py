@@ -27,6 +27,7 @@ from analysis.slider2d.adv import (
     EMA,
     Fourier2MLP,
     ParticlePrior,
+    _l2_norm,
     delayed_cosine,
     feature_match_loss,
     input_grad,
@@ -249,8 +250,8 @@ def fit_adv(
         if step == 0 or (step + 1) % 50 == 0 or step + 1 == cfg.steps:
             probe_r = real.detach().requires_grad_(True)
             probe_f = fake.detach().requires_grad_(True)
-            gn_r = input_grad(critic, probe_r).flatten(1).norm(dim=1).mean()
-            gn_f = input_grad(critic, probe_f).flatten(1).norm(dim=1).mean()
+            gn_r = _l2_norm(input_grad(critic, probe_r)).mean()
+            gn_f = _l2_norm(input_grad(critic, probe_f)).mean()
             logs["d"].append(float(d_loss.detach()))
             logs["g"].append(float(g_loss.detach()))
             logs["cap"].append(float(cap.detach()))

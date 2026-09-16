@@ -158,14 +158,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--steps", type=int, default=1500)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--b-cap", type=float, default=1.0)
+    parser.add_argument("--kappa", type=float, default=1.0)
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
     row = train_gaussians(
-        n_modes=args.modes, steps=args.steps, seed=args.seed, b_cap=args.b_cap
+        n_modes=args.modes,
+        steps=args.steps,
+        seed=args.seed,
+        b_cap=args.b_cap,
+        kappa=args.kappa,
     )
     print(
         f"modes={row['modes']}/{row['n_modes']} cover={row['cover']:.3f} "
-        f"hq={row['hq']:.5f} b_cap={row['b_cap']:g} steps={row['steps']}"
+        f"hq={row['hq']:.5f} b_cap={row['b_cap']:g} kappa={row['kappa']:g} steps={row['steps']}"
     )
     if args.out is not None:
         args.out.parent.mkdir(parents=True, exist_ok=True)

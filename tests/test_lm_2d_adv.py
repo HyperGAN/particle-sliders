@@ -14,12 +14,15 @@ import torch
 from analysis.gan_bcap.gaussian_repro import hq_and_cover, mixture_means, train_gaussians
 from analysis.slider2d.adv import (
     AdvConfig,
+    _l2_norm,
     cap_penalty,
     delayed_cosine,
     feature_match_loss,
+    make_grad_regularizer,
     rp_d_loss,
     rp_g_loss,
 )
+from analysis.slider2d.grad_regularizers import GradRegularizer
 from analysis.slider2d.exam import close_field, divergent_field, unused_e_field
 from analysis.slider2d.gan import (
     default_cfg,
@@ -89,13 +92,109 @@ def test_rpgan_pair_logistic_is_antisymmetric():
 
 def test_b_cap_is_zero_below_one_and_quadratic_above():
     low = torch.ones(4, 2) * 0.4
-    assert float(cap_penalty(low, low, coeff=1.0)) == pytest.approx(0.0)
+    assert float(cap_penalty(low, low, coeff=1.0, kappa=1.0)) == pytest.approx(0.0)
     high = torch.ones(4, 2)
-    # ||∇|| = sqrt(2) ≈ 1.414; relu(0.414)^2 * 0.5 * (1+1) = 0.414^2
-    got = float(cap_penalty(high, high, coeff=1.0))
-    want = (2.0**0.5 - 1.0) ** 2
+    # ParticleGAN L2: ||∇|| = sqrt(2 + 1e-12); (coeff/2)(Er + Ef) with
+    # symmetric sides collapses to relu(n-kappa)^2.
+    got = float(cap_penalty(high, high, coeff=1.0, kappa=1.0))
+    want = ((2.0 + 1e-12) ** 0.5 - 1.0) ** 2
     assert got == pytest.approx(want, rel=1e-5)
-    assert float(cap_penalty(high, high, coeff=2.0)) == pytest.approx(2.0 * want, rel=1e-5)
+    assert float(cap_penalty(high, high, coeff=2.0, kappa=1.0)) == pytest.approx(
+        2.0 * want, rel=1e-5
+    )
+
+
+def test_b_cap_is_one_sided_per_side():
+    # Each side contributes (coeff/2) * mean(phi) independently: mixing one
+    # free side with one capped side must halve the symmetric penalty.
+    # Catches a dropped real/fake side or a double-counted 0.5.
+    low = torch.ones(4, 2) * 0.4
+    high = torch.ones(4, 2)
+    want = ((2.0 + 1e-12) ** 0.5 - 1.0) ** 2
+    both = float(cap_penalty(high, high, coeff=1.0, kappa=1.0))
+    assert both == pytest.approx(want, rel=1e-5)
+    mixed_rf = float(cap_penalty(high, low, coeff=1.0, kappa=1.0))
+    mixed_fr = float(cap_penalty(low, high, coeff=1.0, kappa=1.0))
+    assert mixed_rf == pytest.approx(want / 2.0, rel=1e-5)
+    assert mixed_fr == pytest.approx(want / 2.0, rel=1e-5)
+    assert mixed_rf == pytest.approx(mixed_fr, rel=1e-9)
+
+
+def test_b_cap_kappa_is_explicit_not_hardcoded():
+    low = torch.ones(4, 2) * 0.4
+    high = torch.ones(4, 2)
+    # kappa=0.2 also caps the 0.4 row (norm ~0.566); kappa=2.5 frees even
+    # the sqrt(2) row. A hardcoded kappa=1 would fail both.
+    assert float(cap_penalty(low, low, coeff=1.0, kappa=0.2)) > 0.0
+    assert float(cap_penalty(high, high, coeff=1.0, kappa=2.5)) == pytest.approx(
+        0.0
+    )
+    # Closed form at non-default kappa/coeff:
+    # n = sqrt(2 + 1e-12), phi = (n - 2.5 capped? no) — use kappa=0.5, coeff=1.5.
+    n = (2.0 + 1e-12) ** 0.5
+    want = ((n - 0.5) ** 2) * 1.5  # (1.5/2)(e + e) with symmetric sides
+    got = float(cap_penalty(high, high, coeff=1.5, kappa=0.5))
+    assert got == pytest.approx(want, rel=1e-5)
+
+
+def test_b_cap_l2_uses_epsilon_and_stays_differentiable():
+    # ParticleGAN norm is sqrt(sum g^2 + 1e-12): zero grads sit at n=1e-6
+    # (free below kappa), not at exactly 0, and the sqrt stays
+    # differentiable there (no NaN/Inf grad).
+    zero = torch.zeros(4, 3)
+    norms = _l2_norm(zero)
+    assert float(norms.mean()) == pytest.approx(1e-6, rel=1e-3)
+    assert float(cap_penalty(zero, zero, coeff=1.0, kappa=1.0)) == pytest.approx(
+        0.0, abs=1e-9
+    )
+    g = torch.zeros(4, 3, requires_grad=True)
+    _l2_norm(g).sum().backward()
+    assert torch.isfinite(g.grad).all()
+    g2 = torch.zeros(4, 3, requires_grad=True)
+    cap_penalty(g2, g2.detach(), coeff=1.0, kappa=1.0).backward()
+    assert torch.isfinite(g2.grad).all()
+
+
+def test_b_cap_shim_matches_grad_regularizer_module():
+    # The 2-D cell's shim must agree numerically with ParticleGAN's module
+    # path (autograd norm inside GradRegularizer): same kappa, same L2 with
+    # eps, same (coeff/2)(Er + Ef). Guards against shim drift.
+    import torch.nn as nn
+
+    class _Lin(nn.Module):
+        def __init__(self, w: torch.Tensor):
+            super().__init__()
+            self.w = nn.Parameter(w.clone())
+            self.b = nn.Parameter(torch.zeros(()))
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            return (x.reshape(x.shape[0], -1) @ self.w.reshape(-1)) + self.b
+
+    torch.manual_seed(0)
+    # ||g|| = 5 everywhere (w = (3, 4)): (1/2)(16 + 16) = 16.
+    d = _Lin(torch.tensor([3.0, 4.0]))
+    xr = torch.randn(6, 2)
+    xf = torch.randn(6, 2)
+    assert float(
+        GradRegularizer(arm="b_cap", coeff=1.0, kappa=1.0)(d, xr, xf).detach()
+    ) == (pytest.approx(16.0, rel=1e-5))
+    for coeff, kappa in ((1.0, 1.0), (1.5, 0.7), (2.0, 2.5)):
+        reg = GradRegularizer(arm="b_cap", coeff=coeff, kappa=kappa)
+        want = float(reg(d, xr, xf).detach())
+        with torch.enable_grad():
+            xrd = xr.detach().requires_grad_(True)
+            xfd = xf.detach().requires_grad_(True)
+            gr_r = torch.autograd.grad(d(xrd).sum(), xrd, create_graph=False)[0]
+            gr_f = torch.autograd.grad(d(xfd).sum(), xfd, create_graph=False)[0]
+        got = float(
+            cap_penalty(gr_r.detach(), gr_f.detach(), coeff=coeff, kappa=kappa)
+        )
+        assert got == pytest.approx(want, rel=1e-5)
+    # Factory defaults stay Arm B shaped.
+    reg0 = make_grad_regularizer()
+    assert (reg0.arm, reg0.norm) == ("b_cap", "l2")
+    assert reg0.coeff == pytest.approx(1.0)
+    assert reg0.kappa == pytest.approx(1.0)
 
 
 def test_normalized_feature_match_is_scale_invariant():
