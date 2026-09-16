@@ -180,3 +180,26 @@ def test_hold_grid_covers_the_asked_lambdas():
     assert HOLD_LAMBDAS == (0.0, 1.0, 4.0, 8.0, 16.0, 32.0, 64.0)
     raw = score_leak_lm("probe", target_mode="faithful", hold_weight=0.0, steps=40, seed=0)
     assert raw["name"] == "probe"
+
+
+def test_pinned_pairs_reject_hold_args():
+    """with_attrs used to silently drop leak_dir/hold_weight (BUG HUNT B)."""
+    with pytest.raises(ValueError):
+        score_leak_lm(
+            "bad",
+            target_mode="symmetric",
+            hold_weight=8.0,
+            leak_dir=E_ATTR,
+            with_attrs=True,
+            steps=40,
+            seed=0,
+        )
+    with pytest.raises(ValueError):
+        score_leak_lm(
+            "bad",
+            target_mode="symmetric",
+            hold_weight=8.0,
+            with_attrs=True,
+            steps=40,
+            seed=0,
+        )

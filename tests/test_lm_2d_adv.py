@@ -14,6 +14,7 @@ import torch
 from analysis.gan_bcap.gaussian_repro import hq_and_cover, mixture_means, train_gaussians
 from analysis.slider2d.adv import (
     AdvConfig,
+    ParticlePrior,
     _l2_norm,
     cap_penalty,
     delayed_cosine,
@@ -21,14 +22,17 @@ from analysis.slider2d.adv import (
     make_grad_regularizer,
     rp_d_loss,
     rp_g_loss,
+    vicreg_loss,
 )
 from analysis.slider2d.grad_regularizers import GradRegularizer
 from analysis.slider2d.exam import close_field, divergent_field, unused_e_field
+from analysis.slider2d.field import Field2D
 from analysis.slider2d.gan import (
     default_cfg,
     score_adv_exam,
     score_adv_sheet,
     score_field2d,
+    train_lm_adv,
 )
 from analysis.slider2d.scoreboard import (
     COMPILED_GARBLE_MAX,
@@ -319,3 +323,29 @@ def test_exam_divergent_and_close_both_pass():
         "sheet_gender": gender()["pass"],
     }
     assert compiled_verdict(cells=cells) == WORKS
+
+
+# -- fail-closed contracts (BUG HUNT B) ----------------------------------
+
+
+def test_train_lm_adv_rejects_gated_teacher_on_pinned_pairs():
+    """Non-faithful teacher + with_attrs silently trained raw poles."""
+    field = Field2D()
+    with pytest.raises(ValueError):
+        train_lm_adv(field, teacher="faithful_sub_e_if_unused", with_attrs=True)
+    with pytest.raises(ValueError):
+        train_lm_adv(field, teacher="faithful_guard_e", with_attrs=True)
+
+
+def test_vicreg_is_fail_closed_below_two_particles():
+    """One particle has no variance/covariance; 0 would disable spread pressure."""
+    with pytest.raises(ValueError):
+        vicreg_loss(torch.randn(1, 4))
+    assert float(vicreg_loss(torch.randn(3, 4))) > 0.0
+
+
+def test_particle_prior_rejects_empty_counts():
+    with pytest.raises(ValueError):
+        ParticlePrior(0, 2)
+    with pytest.raises(ValueError):
+        ParticlePrior(-2, 2)

@@ -66,6 +66,11 @@ def isolated_rng(seed: int):
 def _resolve_seed(bound: dict, path: str):
     node = bound
     for part in path.split("."):
+        if node is None:
+            # Intermediate holder defaulted to None (e.g. ``cfg=None``
+            # meaning "use defaults"): fall through to ``default`` in
+            # ``isolated_seed`` instead of raising AttributeError.
+            return None
         node = node[part] if isinstance(node, dict) else getattr(node, part)
     return node
 

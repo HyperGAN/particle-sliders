@@ -1574,8 +1574,28 @@ def exam_reason(row: dict) -> str:
 # -- cells ---------------------------------------------------------------
 
 
+# Recipes that need a declared ê. A cell with no leak pair (the close
+# cell: ``declared_e() is None``) cannot express these, so ``recipes()``
+# omits them there. The set is pinned by
+# ``tests/test_lm_pair_exam.py::test_close_cell_skips_only_e_requiring_recipes`` —
+# do not extend it silently: every name here must raise in
+# ``teacher_points`` with ``leak_dir=None``.
+E_REQUIRED_RECIPES = frozenset(
+    {
+        "hold_e_perp_l8",
+        "pair_odd_sub_e",
+        "faithful_sub_e",
+        "semantic_kl_sub_e",
+    }
+)
+
+
 def recipes(field: PairField) -> list[tuple[str, dict]]:
-    """The live recipes this pair can express, named as the board names them."""
+    """The live recipes this pair can express, named as the board names them.
+
+    Cells without a declared ê (``close``) omit exactly
+    ``E_REQUIRED_RECIPES``; every other cell scores the full set.
+    """
     e = field.declared_e()
     out: list[tuple[str, dict]] = [
         ("pair_odd_midpoint", {"pole_mode": "hidden", "teacher": "pair_odd"}),
