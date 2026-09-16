@@ -140,6 +140,7 @@ from conceptmod.textsliders.slider_targets import (
     lm_semantic_pole_loss,
     lm_slider_loss,
 )
+from conceptmod.textsliders.music_arm_b import check_music_arm_b, format_arm_b_argv
 
 DEFAULT_MODEL = Path("/ml2/music/models/MiniMax-Music3")
 LM_RECIPES = (
@@ -1351,6 +1352,8 @@ def _endreg_cache_path(cache_dir: Path, model_dir: str, text: str, frames_cap: i
 
 
 def train(args: argparse.Namespace) -> Path:
+    if getattr(args, "require_arm_b", False):
+        print(f"[arm_b] confirmed argv: {format_arm_b_argv(args)}", flush=True)
     device = torch.device(f"cuda:{int(args.device)}")
     # Pin every consumer of global RNG (LoRA init is the only one) so two runs
     # differing only in --seed are step-for-step comparable, as in the
@@ -2632,9 +2635,77 @@ def parse_args(argv=None):
     p.add_argument("--early_cos", type=float, default=0.97, help="min mean c+ and c- in the window")
     p.add_argument("--early_collapse", type=float, default=-0.95, help="max mean collapse (more negative is better)")
     p.add_argument("--early_perc", type=float, default=0.20, help="max mean pperc/nperc in the window")
+    # -- Music Arm B adv shape (Strategy E gates; CPU-checked, no train-loop change).
+    # Winning recipe: RpGAN + b_cap, leftover-gated, critic mlp, FM off,
+    # parts 0, pole/cover 1. Only --lm_target stays explicit (default v9);
+    # every adv knob below already defaults to Arm B.
+    p.add_argument(
+        "--adv_arch",
+        default="mlp",
+        choices=("mlp", "tx"),
+        help="adversarial critic arch (Arm B: mlp). tx + faithful_guard_e "
+        "in one argv is dual-arm incompatible and fails the Arm B gate",
+    )
+    p.add_argument(
+        "--fm_weight",
+        type=float,
+        default=0.0,
+        help="feature-matching weight (Arm B: 0 — raw FM under b_cap is the false path)",
+    )
+    p.add_argument(
+        "--b_cap",
+        type=float,
+        default=1.0,
+        help="ParticleGAN one-sided b_cap coeff (Arm B: 1)",
+    )
+    p.add_argument(
+        "--adv_reg_kappa",
+        type=float,
+        default=1.0,
+        help="b_cap knee kappa (Arm B: 1)",
+    )
+    p.add_argument(
+        "--parts",
+        type=int,
+        default=0,
+        help="particle count (Arm B Music transfer: 0)",
+    )
+    p.add_argument(
+        "--pole_weight",
+        type=float,
+        default=1.0,
+        help="pole term weight (Arm B Music transfer: 1)",
+    )
+    p.add_argument(
+        "--cover_weight",
+        type=float,
+        default=1.0,
+        help="cover term weight (Arm B Music transfer: 1; Field3D demo pins 1.5)",
+    )
+    p.add_argument(
+        "--vicreg_weight",
+        type=float,
+        default=0.0,
+        help="VICReg weight (Arm B: 0 when --parts 0)",
+    )
+    p.add_argument(
+        "--require_arm_b",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="fail closed at parse time unless argv is exactly the Music Arm B "
+        "shape (stops a drifted recipe before any GPU spend)",
+    )
     args = p.parse_args(argv)
     if args.steps < 1:
         p.error("--steps must be >= 1")
+    if args.require_arm_b:
+        bad = check_music_arm_b(args)
+        if bad:
+            p.error(
+                "Music Arm B gate failed (drifted recipe — stop before spend): "
+                + "; ".join(bad)
+                + f" | argv: {format_arm_b_argv(args)}"
+            )
     return args
 
 
