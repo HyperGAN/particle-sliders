@@ -45,7 +45,7 @@ def optimizers(network,critic):
     return (torch.optim.AdamW(network.parameters(),lr=.0005,betas=(0.,.999),weight_decay=1e-6),
             torch.optim.Adam(critic.parameters(),lr=.00075,betas=(0.,.999)))
 
-def reference_update(backend,network,critic,g,d,rows,grad_arm='b_cap'):
+def reference_update(backend,network,critic,g,d,rows):
     """Independent equations, full batch backward, explicit calibrated b_cap."""
     def outputs(row,scale):
         with network.scaled(scale):
@@ -62,8 +62,7 @@ def reference_update(backend,network,critic,g,d,rows,grad_arm='b_cap'):
     for x in [real,fake]:
         z=(x/critic.input_scale).detach().clone().requires_grad_(True)
         grad=torch.autograd.grad(critic.net(z).sum(),z,create_graph=True)[0]
-        penalties.append(grad.square().sum(-1).mean() if grad_arm=='a_r1r2' else
-            F.relu(torch.sqrt(grad.square().sum(-1)+1e-12)-1).square().mean())
+        penalties.append(F.relu(torch.sqrt(grad.square().sum(-1)+1e-12)-1).square().mean())
     loss_d=F.softplus(critic(fake)-critic(real)).mean()+.5*sum(penalties)
     loss_d.backward();d.step();d.zero_grad(set_to_none=True);critic.requires_grad_(False)
     g.zero_grad(set_to_none=True);terms=[]
@@ -77,8 +76,7 @@ def reference_update(backend,network,critic,g,d,rows,grad_arm='b_cap'):
     return float(total.detach()),float(loss_d.detach()),grads
 
 @pytest.mark.parametrize('critic_gain',[.1,2.])
-@pytest.mark.parametrize('grad_arm',['b_cap','a_r1r2'])
-def test_complete_update_matches_independent_equations(monkeypatch,critic_gain,grad_arm):
+def test_complete_update_matches_independent_equations(monkeypatch,critic_gain):
     torch.manual_seed(101)
     a=Network();b=deepcopy(a)
     ca=LMDiscriminator(3,hidden_dim=8,in_mode='scaled',input_scale=2.7)
@@ -92,8 +90,8 @@ def test_complete_update_matches_independent_equations(monkeypatch,critic_gain,g
         rows.append(dict(ids=ids,prefix_len=1,neutral=base,
             targets=base+torch.tensor([[.2,.4,-.1]])))
     for step in [1,2]:
-        expected,expected_d,grads=reference_update(Backend(b),b,cb,gb,db,rows,grad_arm)
-        actual=arm.update(Backend(a),a,ca,ga,da,rows,step=step,checkpointing=False,grad_arm=grad_arm)
+        expected,expected_d,grads=reference_update(Backend(b),b,cb,gb,db,rows)
+        actual=arm.update(Backend(a),a,ca,ga,da,rows,step=step,checkpointing=False)
         assert actual['loss']==pytest.approx(expected,rel=2e-6,abs=1e-6)
         assert actual['d_loss']==pytest.approx(expected_d,rel=2e-6,abs=1e-6)
         assert actual['loss']==actual['g_adv']
@@ -165,14 +163,12 @@ def same(a,b):
 
 
 @pytest.mark.parametrize('c9',[False,True])
-@pytest.mark.parametrize('r1r2',[False,True])
-def test_resume_exact_prompt_batches_and_reject_recipe_change(tmp_path,monkeypatch,c9,r1r2):
+def test_resume_exact_prompt_batches_and_reject_recipe_change(tmp_path,monkeypatch,c9):
     def no_sampling(*args,**kwargs):raise AssertionError('Prompt-state GAN must not sample audio')
     monkeypatch.setattr(YuE2Backend,'continuation',no_sampling)
     prompts=tmp_path/'prompts.yaml';prompts.write_text(yaml.safe_dump(dict(rows=rows())))
     common=['--dummy','--prompts_file',str(prompts),'--steps','2']
     if c9:common.append('--propose_only_c9_g4x')
-    if r1r2:common.append('--propose_only_r1r2')
     full=tmp_path/'full';split=tmp_path/'split'
     train(parse_args(common+['--save_dir',str(full)]))
     train(parse_args(common+['--save_dir',str(split),'--until','1']))
@@ -194,9 +190,6 @@ def test_resume_exact_prompt_batches_and_reject_recipe_change(tmp_path,monkeypat
     if c9:
         with pytest.raises(ValueError,match='Resume'):
             train(parse_args([v for v in common if v!='--propose_only_c9_g4x']+['--save_dir',str(split)]))
-    if r1r2:
-        with pytest.raises(ValueError,match='Resume'):
-            train(parse_args([v for v in common if v!='--propose_only_r1r2']+['--save_dir',str(split)]))
 
 
 def test_prompt_loader_rejects_negative_teachers_and_bipolar_metadata(tmp_path):

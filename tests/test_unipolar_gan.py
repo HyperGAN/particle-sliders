@@ -39,7 +39,7 @@ def test_gan_only_passes_uni_with_learned_neutral_origin(cell, seed, monkeypatch
     # The separate bipolar report must not become another UNI acceptance gate.
 
 
-def reference(network, critic, g, d, real, grad_arm='b_cap'):
+def reference(network, critic, g, d, real):
     """Full-batch transcription, manual state-only b_cap; no shared losses."""
     critic.requires_grad_(True)
     d.zero_grad(set_to_none=True)
@@ -51,8 +51,7 @@ def reference(network, critic, g, d, real, grad_arm='b_cap'):
         for raw in (r, f):
             z = (raw / critic.input_scale).detach().requires_grad_(True)
             grad = torch.autograd.grad(critic.calibrated(z, s).sum(), z, create_graph=True)[0]
-            terms.append(grad.square().sum(-1).mean() if grad_arm=='a_r1r2' else
-                F.relu(torch.sqrt(grad.square().sum(-1) + 1e-12) - 1).square().mean())
+            terms.append(F.relu(torch.sqrt(grad.square().sum(-1) + 1e-12) - 1).square().mean())
         dloss = dloss + .5 * (F.softplus(critic(f, s)-critic(r, s)).mean() + .5 * sum(terms))
     dloss.backward(); d.step(); d.zero_grad(set_to_none=True); critic.requires_grad_(False)
     g.zero_grad(set_to_none=True)
@@ -66,8 +65,7 @@ def reference(network, critic, g, d, real, grad_arm='b_cap'):
 
 
 @pytest.mark.parametrize('gain', [.01, .8])
-@pytest.mark.parametrize('grad_arm', ['b_cap', 'a_r1r2'])
-def test_complete_update_matches_independent_equations(gain, grad_arm):
+def test_complete_update_matches_independent_equations(gain):
     torch.manual_seed(10)
     real = torch.tensor([[.2, .4, -.1], [.3, .5, -.2], [.1, .2, .3]])
     a = Student(3); b = deepcopy(a)
@@ -85,8 +83,8 @@ def test_complete_update_matches_independent_equations(gain, grad_arm):
         assert a.scale == s
         return a.delta(s)[None]
     for step in (1, 2):
-        expected_g, expected_d = reference(b, cb, gb, db, real, grad_arm)
-        got = game.update(a, ca, ga, da, real, predict, step=step, total_steps=400, grad_arm=grad_arm)
+        expected_g, expected_d = reference(b, cb, gb, db, real)
+        got = game.update(a, ca, ga, da, real, predict, step=step, total_steps=400)
         assert got['loss'] == pytest.approx(expected_g, rel=2e-6, abs=1e-6)
         assert got['d_loss'] == pytest.approx(expected_d, rel=2e-6, abs=1e-6)
         for x, y in zip(a.parameters(), b.parameters()): torch.testing.assert_close(x, y, atol=1e-7, rtol=1e-5)
@@ -124,8 +122,7 @@ def test_native_checkpointed_gradients_and_exact_zero():
         assert torch.equal(a.hidden(fixed[0]['prefix'])[:, -1].float(), fixed[0]['neutral'])
 
 
-@pytest.mark.parametrize('r1r2', [False, True])
-def test_native_resume_is_exact_and_schedule_horizon_is_pinned(tmp_path, monkeypatch, r1r2):
+def test_native_resume_is_exact_and_schedule_horizon_is_pinned(tmp_path, monkeypatch):
     pytest.importorskip('yue2')
     from conceptmod.textsliders.train_lora_yue2_arm_b import train, parse_args
     from conceptmod.textsliders.yue2_backend import YuE2Backend
@@ -133,7 +130,6 @@ def test_native_resume_is_exact_and_schedule_horizon_is_pinned(tmp_path, monkeyp
     monkeypatch.setattr(YuE2Backend, 'continuation', no_sampling)
     prompts = tmp_path / 'prompts.yaml'; prompts.write_text(yaml.safe_dump(dict(rows=rows())))
     common = ['--dummy', '--recipe', 'gan_plus_neu', '--steps', '3', '--prompts_file', str(prompts)]
-    if r1r2: common.append('--propose_only_r1r2')
     full, split = tmp_path/'full', tmp_path/'split'
     train(parse_args(common + ['--save_dir', str(full)]))
     train(parse_args(common + ['--save_dir', str(split), '--until', '1']))
@@ -148,6 +144,3 @@ def test_native_resume_is_exact_and_schedule_horizon_is_pinned(tmp_path, monkeyp
         assert same(a[key], b[key]), key
     with pytest.raises(ValueError, match='Resume'):
         train(parse_args(common + ['--save_dir', str(split), '--steps', '4']))
-    if r1r2:
-        with pytest.raises(ValueError, match='Resume'):
-            train(parse_args([v for v in common if v != '--propose_only_r1r2'] + ['--save_dir', str(split)]))

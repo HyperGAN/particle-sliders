@@ -44,9 +44,6 @@ def run_recipe(args, selected):
             raise ValueError('c9_g4x applies only to unipolar_gan')
         recipe.update(g_lr=.002, d_lr=.003, ablation='c9_g4x',
                       propose_only=True, merge_to_trainer=False)
-    if args.propose_only_r1r2:
-        recipe.update(grad_arm='a_r1r2', discriminator_penalty='symmetric_r1_r2',
-                      penalty_center=0., propose_only=True, merge_to_trainer=False)
     return recipe
 
 
@@ -161,7 +158,6 @@ def _train_locked(args,rows,meta,game):
                 status('training',next_step=step,rows=indices)
                 current=[dict(fixed[index],ids=fixed[index]['prefix']) for index in indices]
                 extra={'total_steps':args.steps} if args.recipe=='gan_plus_neu' else {}
-                if args.propose_only_r1r2:extra['grad_arm']='a_r1r2'
                 metrics=game.update(backend,network,critic,g,d,current,step=step,
                     checkpointing=not args.no_checkpointing,**extra)
                 completed=step
@@ -182,8 +178,6 @@ def parse_args(argv=None):
     p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
     p.add_argument('--propose_only_c9_g4x',action='store_true',
         help='Explicit LR-only trial: G 0.002 / D 0.003; production defaults unchanged')
-    p.add_argument('--propose_only_r1r2',action='store_true',
-        help='Use ParticleGAN symmetric R1+R2 on D; G remains paired Rp logistic only')
     p.add_argument('--name',default='metal-yue2-arm-b')
     p.add_argument('--prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml')
     p.add_argument('--save_dir',type=Path,required=True)

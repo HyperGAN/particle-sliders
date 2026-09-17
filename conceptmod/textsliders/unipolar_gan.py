@@ -49,7 +49,7 @@ def build_game(network, real_plus, *, lr):
 
 
 def update(network, critic, g, d, real_plus, predict, *, step, total_steps,
-           checkpointing=True, grad_arm='b_cap'):
+           checkpointing=True):
     """One D then one G update; predict(row, scale, checkpointing) returns delta.
 
     Keep the scale context through backward, including native checkpoint
@@ -62,9 +62,7 @@ def update(network, critic, g, d, real_plus, predict, *, step, total_steps,
     for optimizer in (g, d):
         for group in optimizer.param_groups:
             group['lr'] = group['initial_lr'] * factor
-    if grad_arm not in ('b_cap', 'a_r1r2'):
-        raise ValueError('Unsupported unipolar discriminator regularizer')
-    reg = make_grad_regularizer(arm=grad_arm, coeff=1., kappa=1., norm='l2',
+    reg = make_grad_regularizer(arm='b_cap', coeff=1., kappa=1., norm='l2',
                                lazy_k=1, target_anneal='none')
     real = {0.: torch.zeros_like(real_plus), 1.: real_plus}
     fake = {}
@@ -117,5 +115,5 @@ def update(network, critic, g, d, real_plus, predict, *, step, total_steps,
     adv = .5 * (losses[0.] + losses[1.])
     return dict(loss=adv, g_adv=adv, g_pos=losses[1.], g_zero=losses[0.],
         d_loss=float(d_loss.detach()), d_pen=float(cap_total), cos_pos=cos,
-        zero_delta_norm=zero_norm, grad_norm=norm, penalty_center=reg.center(step),
+        zero_delta_norm=zero_norm, grad_norm=norm, penalty_center=1.,
         g_lr=g.param_groups[0]['lr'], d_lr=d.param_groups[0]['lr'])
