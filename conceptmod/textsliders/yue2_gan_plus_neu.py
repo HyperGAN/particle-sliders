@@ -22,7 +22,7 @@ def build_game(backend, network, fixed):
     return shared.build_game(network, real, lr=RECIPE['g_lr'])
 
 
-def update(backend, network, critic, g, d, rows, *, step, total_steps, checkpointing=True):
+def update(backend, network, critic, g, d, rows, *, step, total_steps, checkpointing=True, grad_arm='b_cap'):
     device = next(critic.parameters()).device
     real = torch.cat([r['targets'] - r['neutral'] for r in rows]).to(device)
     def predict(i, scale, checkpointing):
@@ -34,4 +34,4 @@ def update(backend, network, critic, g, d, rows, *, step, total_steps, checkpoin
         pred = backend.hidden(row['ids'], checkpointing=checkpointing)[:, row['prefix_len']-1].float()
         return pred - row['neutral'].to(device)
     return shared.update(network, critic, g, d, real, predict,
-        step=step, total_steps=total_steps, checkpointing=checkpointing)
+        step=step, total_steps=total_steps, checkpointing=checkpointing, grad_arm=grad_arm)

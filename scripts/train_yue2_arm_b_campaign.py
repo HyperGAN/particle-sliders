@@ -21,6 +21,7 @@ def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
     p.add_argument('--propose_only_c9_g4x',action='store_true')
+    p.add_argument('--propose_only_r1r2',action='store_true')
     p.add_argument('--include_canary',action='store_true')
     p.add_argument('--hidden_diagnostics',action='store_true')
     p.add_argument('--seed',type=int,default=7)
@@ -72,7 +73,8 @@ def main(argv=None):
             command([sys.executable,'-u',str(ROOT/'conceptmod/textsliders/train_lora_yue2_arm_b.py'),
                 '--recipe',a.recipe,'--save_dir',str(a.save_dir),'--name',a.name,'--steps',str(a.steps),
                 '--seed',str(a.seed),'--device','cuda:0','--prompts_file',str(a.prompts_file)]
-                +(['--propose_only_c9_g4x'] if a.propose_only_c9_g4x else []),'training')
+                +(['--propose_only_c9_g4x'] if a.propose_only_c9_g4x else [])
+                +(['--propose_only_r1r2'] if a.propose_only_r1r2 else []),'training')
             command([sys.executable,'-u',str(ROOT/'scripts/evaluate_yue2_arm_b.py'),
                 '--recipe',a.recipe,
                 '--weights',str(a.save_dir/f'{a.name}_last.safetensors'),'--prompts_file',str(a.eval_prompts_file),

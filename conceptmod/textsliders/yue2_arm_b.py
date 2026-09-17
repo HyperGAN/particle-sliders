@@ -88,8 +88,10 @@ def build_game(backend,network,fixed):
     return critic,g,d
 
 
-def make_regularizer():
-    return make_grad_regularizer(arm='b_cap',coeff=RECIPE['adv_b_cap'],kappa=RECIPE['adv_reg_kappa'],
+def make_regularizer(grad_arm='b_cap'):
+    if grad_arm not in ('b_cap', 'a_r1r2'):
+        raise ValueError('Unsupported YuE2 discriminator regularizer')
+    return make_grad_regularizer(arm=grad_arm,coeff=RECIPE['adv_b_cap'],kappa=RECIPE['adv_reg_kappa'],
         norm=RECIPE['adv_norm'],lazy_k=1,target_anneal='none')
 
 
@@ -107,10 +109,10 @@ def forward(backend,row,checkpointing):
     return hidden[:,index].float()
 
 
-def update(backend,network,critic,g,d,rows,*,step,checkpointing=True):
+def update(backend,network,critic,g,d,rows,*,step,checkpointing=True,grad_arm='b_cap'):
     if not rows: raise ValueError('Empty training batch')
     device=next(critic.parameters()).device
-    regularizer=make_regularizer()
+    regularizer=make_regularizer(grad_arm)
     critic.requires_grad_(True)
     d.zero_grad(set_to_none=True)
     real=[]; fake=[]
