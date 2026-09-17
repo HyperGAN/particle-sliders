@@ -43,7 +43,7 @@ def main(argv=None):
     env=dict(os.environ,CUDA_VISIBLE_DEVICES=a.gpu,HF_HOME=os.getenv('HF_HOME','/ml2/music/.cache/huggingface'),
         HF_HUB_OFFLINE='1',OMP_NUM_THREADS='4',MKL_NUM_THREADS='4',PYTORCH_CUDA_ALLOC_CONF='expandable_segments:True')
     env.pop('TRANSFORMERS_CACHE',None)
-    rows,_=load_prompts(a.eval_prompts_file);page(a.output_dir,rows,[1709,2903],a.recipe,a.include_canary)
+    rows,meta=load_prompts(a.eval_prompts_file);page(a.output_dir,rows,[1709,2903],a.recipe,a.include_canary,meta.get('plus_label','Metal'))
     train_rows,_=load_prompts(a.prompts_file)
     if {r['lyrics'] for r in train_rows}&{r['lyrics'] for r in rows}:raise ValueError('Held-out lyrics overlap training')
     stop=False

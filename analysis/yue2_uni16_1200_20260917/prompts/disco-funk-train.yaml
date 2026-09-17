@@ -1,0 +1,198 @@
+plus_label: Disco Funk
+zero_label: 'Off'
+recommended_range:
+- 0.0
+- 1.0
+rows:
+- neutral: 'Global Metadata:
+
+    Genre: contemporary song. BPM 96. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A balanced studio mix with a clear lead, defined bass and modest room depth.
+
+    Vocal Details:
+
+    One adult lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo lead
+    stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Piano chords carry the harmony over electric bass and a steady light drum kit.
+
+    Chorus: The piano chords broaden and the rhythm adds a light accent at the section change, leaving
+    space for the lead.'
+  positive: 'Global Metadata:
+
+    Genre: disco funk. BPM 96. Meter: 4/4. The verse is focused and the chorus opens into a fuller sound.
+    A bright warm dance-band mix with lively bass articulation and crisp percussion.
+
+    Vocal Details:
+
+    One adult lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo lead
+    stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: An elastic electric bass line moves under clipped sixteenth-note rhythm guitar, a steady kick,
+    snare and open hats; hand percussion adds syncopation.
+
+    Chorus: Short string swells and brass-like keyboard accents lift the chords while the bass and guitar
+    keep their interlocking dance groove.'
+  lyrics: '[verse]
+
+    The corner shop has changed its hours
+
+    I leave my bicycle outside
+
+    Your folded note is in my pocket
+
+    The traffic clears on either side
+
+    [chorus]
+
+    There is a seat beside the window
+
+    I keep it open for a while'
+- neutral: 'Global Metadata:
+
+    Genre: guitar-led song. BPM 108. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A balanced studio mix with a clear lead, defined bass and modest room depth.
+
+    Vocal Details:
+
+    One adult female lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo
+    lead stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Clean electric guitar chords carry the harmony over electric bass and a close drum kit.
+
+    Chorus: The clean electric guitar chords broaden and the rhythm adds a light accent at the section
+    change, leaving space for the lead.'
+  positive: 'Global Metadata:
+
+    Genre: disco funk. BPM 108. Meter: 4/4. The verse is focused and the chorus opens into a fuller sound.
+    A bright warm dance-band mix with lively bass articulation and crisp percussion.
+
+    Vocal Details:
+
+    One adult female lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo
+    lead stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: An elastic electric bass line moves under clipped sixteenth-note rhythm guitar, a steady kick,
+    snare and open hats; hand percussion adds syncopation.
+
+    Chorus: Short string swells and brass-like keyboard accents lift the chords while the bass and guitar
+    keep their interlocking dance groove.'
+  lyrics: '[verse]
+
+    We carry boxes up the stairway
+
+    A wooden chair has lost a screw
+
+    You draw a map upon the cardboard
+
+    And mark the rooms we never knew
+
+    [chorus]
+
+    The empty walls return our laughter
+
+    A little space for something new'
+- neutral: 'Global Metadata:
+
+    Genre: keyboard-led song. BPM 116. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A balanced studio mix with a clear lead, defined bass and modest room depth.
+
+    Vocal Details:
+
+    One adult male lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo
+    lead stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Soft keyboard chords carry the harmony over rounded synth bass and a simple programmed beat.
+
+    Chorus: The soft keyboard chords broaden and the rhythm adds a light accent at the section change,
+    leaving space for the lead.'
+  positive: 'Global Metadata:
+
+    Genre: disco funk. BPM 116. Meter: 4/4. The verse is focused and the chorus opens into a fuller sound.
+    A bright warm dance-band mix with lively bass articulation and crisp percussion.
+
+    Vocal Details:
+
+    One adult male lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo
+    lead stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: An elastic electric bass line moves under clipped sixteenth-note rhythm guitar, a steady kick,
+    snare and open hats; hand percussion adds syncopation.
+
+    Chorus: Short string swells and brass-like keyboard accents lift the chords while the bass and guitar
+    keep their interlocking dance groove.'
+  lyrics: '[verse]
+
+    The bus pulls in beside the market
+
+    I watch the doors release the crowd
+
+    A folded coat rests on my shoulder
+
+    The crossing signal clicks aloud
+
+    [chorus]
+
+    I take the longer road this evening
+
+    And let the quiet settle down'
+- neutral: 'Global Metadata:
+
+    Genre: acoustic song. BPM 124. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A balanced studio mix with a clear lead, defined bass and modest room depth.
+
+    Vocal Details:
+
+    One adult lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo lead
+    stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Acoustic guitar chords carry the harmony over upright bass and light hand percussion.
+
+    Chorus: The acoustic guitar chords broaden and the rhythm adds a light accent at the section change,
+    leaving space for the lead.'
+  positive: 'Global Metadata:
+
+    Genre: disco funk. BPM 124. Meter: 4/4. The verse is focused and the chorus opens into a fuller sound.
+    A bright warm dance-band mix with lively bass articulation and crisp percussion.
+
+    Vocal Details:
+
+    One adult lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo lead
+    stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: An elastic electric bass line moves under clipped sixteenth-note rhythm guitar, a steady kick,
+    snare and open hats; hand percussion adds syncopation.
+
+    Chorus: Short string swells and brass-like keyboard accents lift the chords while the bass and guitar
+    keep their interlocking dance groove.'
+  lyrics: '[verse]
+
+    You put the cups along the counter
+
+    I turn the handle on the screen
+
+    The table leans against the doorway
+
+    We find a place to fit between
+
+    [chorus]
+
+    A small adjustment in the morning
+
+    Can change the way the room is seen'

@@ -1,0 +1,13 @@
+[Unit]
+Description=Publish YuE2 16-slider queue status
+
+[Service]
+Type=simple
+WorkingDirectory=/ml2/music/.cache/sliders-yue2-uni16-1200-20260917
+ExecStart=/ml2/music/.cache/yue2-test-env/bin/python -u scripts/queue_yue2_particle_catalog.py publish --queue_dir analysis/yue2_uni16_1200_20260917 --watch
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+
+[Install]
+WantedBy=default.target

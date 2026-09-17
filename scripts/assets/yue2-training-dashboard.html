@@ -58,7 +58,7 @@
   const specs = [
     {title:'Generator loss',note:'The entire objective is the unipolar GAN loss.',series:[['g_adv','GAN (+1)','#8bbfff']]},
     {title:'Discriminator loss',note:'Paired logistic loss plus the gradient cap.',series:[['d_loss','D total','#ef9aab']]},
-    {title:'Direction alignment',note:'Cosine to the metal target direction; 1 means aligned.',range:[-1,1],series:[['cos_pos','Metal (+1)','#8bbfff']]},
+    {title:'Direction alignment',note:'Cosine to the positive-caption target direction; 1 means aligned.',range:[-1,1],series:[['cos_pos','Positive (+1)','#8bbfff']]},
     {title:'Gradient-cap penalty',note:'One-sided penalty; zero below the cap is allowed.',series:[['d_pen','Cap penalty','#78dfc0']]},
     {title:'Generator gradient norm',note:'Global L2 norm before per-element clipping at 1.',series:[['grad_norm','G gradient norm','#cba8ff']]}
   ];

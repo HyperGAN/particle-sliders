@@ -1,0 +1,100 @@
+plus_label: Pop Punk
+zero_label: 'Off'
+recommended_range:
+- 0.0
+- 1.0
+rows:
+- neutral: 'Global Metadata:
+
+    Genre: electronic song. BPM 158. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A balanced studio mix with a clear lead, defined bass and modest room depth.
+
+    Vocal Details:
+
+    One adult male lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo
+    lead stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Short synth chords carry the harmony over soft synth bass and a sparse electronic beat.
+
+    Chorus: The short synth chords broaden and the rhythm adds a light accent at the section change, leaving
+    space for the lead.'
+  positive: 'Global Metadata:
+
+    Genre: pop punk. BPM 158. Meter: 4/4. The verse is focused and the chorus opens into a fuller sound.
+    A punchy guitar-band mix with tight low end, bright snare attack and an open chorus.
+
+    Vocal Details:
+
+    One adult male lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo
+    lead stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Palm-muted electric power chords lock to picked bass and a driving live kick and snare pattern.
+
+    Chorus: The guitar mutes open into wide power chords; crash accents, an active bass line and concise
+    fills push the melodic hook forward.'
+  lyrics: '[verse]
+
+    The painted number leaves the mailbox
+
+    A crooked nail holds on the frame
+
+    We take a brush out to the pavement
+
+    And give the little door a name
+
+    [chorus]
+
+    The street is changing by the hour
+
+    But there is room for us to stay'
+- neutral: 'Global Metadata:
+
+    Genre: string-led song. BPM 178. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A balanced studio mix with a clear lead, defined bass and modest room depth.
+
+    Vocal Details:
+
+    One adult lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo lead
+    stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Plucked acoustic strings carry the harmony over acoustic bass and a shaker and soft hand drum.
+
+    Chorus: The plucked acoustic strings broaden and the rhythm adds a light accent at the section change,
+    leaving space for the lead.'
+  positive: 'Global Metadata:
+
+    Genre: pop punk. BPM 178. Meter: 4/4. The verse is focused and the chorus opens into a fuller sound.
+    A punchy guitar-band mix with tight low end, bright snare attack and an open chorus.
+
+    Vocal Details:
+
+    One adult lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo lead
+    stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Palm-muted electric power chords lock to picked bass and a driving live kick and snare pattern.
+
+    Chorus: The guitar mutes open into wide power chords; crash accents, an active bass line and concise
+    fills push the melodic hook forward.'
+  lyrics: '[verse]
+
+    I find your glove beneath the cushion
+
+    The missing button turns up too
+
+    A small receipt falls from the lining
+
+    For something neither of us knew
+
+    [chorus]
+
+    We put the scattered things together
+
+    And leave a little room to move'

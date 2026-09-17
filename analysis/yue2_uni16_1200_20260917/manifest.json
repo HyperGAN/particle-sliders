@@ -1,0 +1,1127 @@
+{
+  "source_root": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917",
+  "training_reference": "2067705",
+  "python": "/ml2/music/.cache/yue2-test-env/bin/python",
+  "steps": 1200,
+  "seed": 7,
+  "recipe": "particle_bridge",
+  "learning_rates": {
+    "generator": 0.0006,
+    "discriminator": 0.0009,
+    "particles": 0.006
+  },
+  "noise_decay_steps": 8000,
+  "merge_to_trainer": false,
+  "registry_sha256": "5a5c99026de2789d8204bc8ff732f0f0b25f25d24112f9a8311264e2a6936aaf",
+  "gpus": [
+    0,
+    1
+  ],
+  "authorization": "User requested all sliders to 1200 on both GPUs; preserve studio queue.",
+  "eval_rows_from_minimax": [
+    2,
+    3
+  ],
+  "eval_seeds": [
+    1709,
+    2903
+  ],
+  "eval_scales": [
+    0,
+    0.5,
+    1
+  ],
+  "negative_canary": -1,
+  "min_free_mib": 10000,
+  "output_root": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917",
+  "gpu_lock_root": "/ml2/music",
+  "wait_for": {
+    "0": [],
+    "1": [
+      {
+        "pid": 375268,
+        "start": "52330157"
+      }
+    ]
+  },
+  "jobs": [
+    {
+      "id": "female",
+      "label": "Female",
+      "gpu": 0,
+      "name": "female-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/female",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/female",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/female/female-fresh3400/female-fresh3400_step1000.safetensors",
+      "minimax_sidecar_sha256": "8c02d28c6b1ccf092bed676699db5907a0c1e510e6bd2283f574b8751630c7c1",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/female-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/female-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/female-train.yaml",
+          "source_sha256": "4d86b19685bf6649c86b24b9cca7527b620b439c6ffe8a9f48e4c22f755b492b",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 213,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/female-eval.yaml",
+          "source_sha256": "0a8dedd5c57939faff95787aec325971be28e3bc7bb00d2bef8ffa52831f589b",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 215,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "0",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "female-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/female",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/female",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/female-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/female-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "metal",
+      "label": "Metal",
+      "gpu": 1,
+      "name": "metal-yue2-particle-bridge-s7-20260917",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/metal-yue2-particle-bridge-s7-20260917",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/metal",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/metal/metal-fresh3400/metal-fresh3400_step2000.safetensors",
+      "minimax_sidecar_sha256": "86d27ca62e95c7d6769f89a0b3928ff5c5c7e54cbff7f0eda439b5c159feebc7",
+      "resume_from": 600,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/metal-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/metal-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml",
+          "source_sha256": "67eed252927a2a55b521b04025360add48e8596ef4f7d13da9c4dcfd3f9647ba",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 180,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml",
+          "source_sha256": "307e49d9f653619c79a66cab0f21a0a4baabe3c04e54b68c8eadfc5957012d77",
+          "source_rows": [
+            0,
+            1
+          ],
+          "rows": 2,
+          "max_tokens": 179,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "1",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "metal-yue2-particle-bridge-s7-20260917",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/metal-yue2-particle-bridge-s7-20260917",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/metal",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/metal-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/metal-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "male",
+      "label": "Male",
+      "gpu": 0,
+      "name": "male-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/male",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/male",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/male/male-fresh3400/male-fresh3400_step3400.safetensors",
+      "minimax_sidecar_sha256": "524b6f6c45923e4ad1dcecfd1cfe32364881fa4d3eb509810a496b7b0ead2d6a",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/male-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/male-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/male-train.yaml",
+          "source_sha256": "c885f26bd59e9e21f29d57e1dd355e4969c9d9492ac845625a6c1f4ecc9a1488",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 213,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/male-eval.yaml",
+          "source_sha256": "f3557c0f309e9eaed624d8c0d36c6c40f514f1af7271abf9dc714e0bead201d7",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 215,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "0",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "male-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/male",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/male",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/male-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/male-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "pop",
+      "label": "Pop",
+      "gpu": 1,
+      "name": "pop-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/pop",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/pop",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/pop/pop-fresh3400/pop-fresh3400_step2000.safetensors",
+      "minimax_sidecar_sha256": "3c166bbc623b58b1640cca43fec217945eea20145610a7c54b1fd25be5b991b0",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/pop-train.yaml",
+          "source_sha256": "22d49e763af1533269d087ee9f8106e5911d7ac067402daad593aaf480dede9a",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 219,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/pop-eval.yaml",
+          "source_sha256": "abc8b0c56874650782f8e0f222f3cd4193807a4be864013af2c1992ade85edce",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 223,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "1",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "pop-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/pop",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/pop",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "hiphop",
+      "label": "Hip-Hop",
+      "gpu": 0,
+      "name": "hiphop-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/hiphop",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/hiphop",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/hiphop/hiphop-fresh3400/hiphop-fresh3400_step3000.safetensors",
+      "minimax_sidecar_sha256": "a5e0fff19057836e3d24a266f167af675b571e2b45f05690699bce356e43775d",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/hiphop-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/hiphop-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/hiphop-train.yaml",
+          "source_sha256": "03b76a9c48e06e39245e07aff471b7c4a7938db688aba194bc366be79d2843df",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 246,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/hiphop-eval.yaml",
+          "source_sha256": "b6b786324f22252defd8977f4fede7864a85ac59461e324cb46d448ac197b178",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 250,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "0",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "hiphop-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/hiphop",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/hiphop",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/hiphop-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/hiphop-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "rnb",
+      "label": "R&B",
+      "gpu": 1,
+      "name": "rnb-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/rnb",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/rnb",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/rnb/rnb-fresh3400/rnb-fresh3400_step3400.safetensors",
+      "minimax_sidecar_sha256": "43e1df03b6203827199278098c4e56fcf06ec31d18a9bedd03c24178ff38f77c",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/rnb-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/rnb-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/rnb-train.yaml",
+          "source_sha256": "a37358e41f48e184ecf24f57182263afca2fbc9453209dfd5015dae7cbca4263",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 228,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/rnb-eval.yaml",
+          "source_sha256": "dbd03078b4afcb87c3efda81b840a889f1a071b8d7481d15e25dbe50da7ed8cc",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 232,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "1",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "rnb-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/rnb",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/rnb",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/rnb-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/rnb-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "indie-rock",
+      "label": "Indie Rock",
+      "gpu": 0,
+      "name": "indie-rock-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/indie-rock",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/indie-rock",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/indie-rock/indie-rock-fresh3400/indie-rock-fresh3400_step1000.safetensors",
+      "minimax_sidecar_sha256": "b29281142e0cbf7e4fc5d6d20488a6ac88418c0f99aa3fe141012cfc8e268010",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/indie-rock-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/indie-rock-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/indie-rock-train.yaml",
+          "source_sha256": "c8094cd5a8ee0824f352cfb550350e7ea59d0f0b9e3084f0fca44a89dd6ae026",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 223,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/indie-rock-eval.yaml",
+          "source_sha256": "34751d9ca01da1bb7f26e2e4133a3456ae4539fed54038854dd6fba6d1cdded4",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 227,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "0",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "indie-rock-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/indie-rock",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/indie-rock",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/indie-rock-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/indie-rock-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "pop-punk",
+      "label": "Pop Punk",
+      "gpu": 1,
+      "name": "pop-punk-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/pop-punk",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/pop-punk",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/pop-punk/pop-punk-fresh3400/pop-punk-fresh3400_step3400.safetensors",
+      "minimax_sidecar_sha256": "d8cf34cceecf48a5ef37f2ca46030bf6fa1c95a3ea4afe90813a76404cc7c79e",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-punk-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-punk-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/pop-punk-train.yaml",
+          "source_sha256": "f78e2e1c1985f93c17d2a8b3c505492fc95124d25960e880aa860f8df6112e43",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 222,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/pop-punk-eval.yaml",
+          "source_sha256": "fbff5613ec57613d415a402d93f8b8ce6929962c6b6d7bf731c2d472d2cd54de",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 226,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "1",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "pop-punk-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/pop-punk",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/pop-punk",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-punk-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-punk-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "country",
+      "label": "Country",
+      "gpu": 0,
+      "name": "country-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/country",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/country",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/country/country-fresh3400/country-fresh3400_step1000.safetensors",
+      "minimax_sidecar_sha256": "435f220de4499f92806a02dc031196546180e254fcb179d9888f04de2041112f",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/country-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/country-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/country-train.yaml",
+          "source_sha256": "284d725915fb224d5757e6937c06ba1bd140cff77d48dc94dbb198f565b9cd0e",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 234,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/country-eval.yaml",
+          "source_sha256": "26160a2891a0f932b517084f22f74097d530c3e8203a600e50837e90de59bbd8",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 238,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "0",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "country-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/country",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/country",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/country-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/country-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "acoustic-folk",
+      "label": "Acoustic Folk",
+      "gpu": 1,
+      "name": "acoustic-folk-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/acoustic-folk",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/acoustic-folk",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/acoustic-folk/acoustic-folk-fresh3400/acoustic-folk-fresh3400_step2000.safetensors",
+      "minimax_sidecar_sha256": "67ae3f41a058cdb1b9f10d2260ee89488bb04b9f1e5da6efe45615d3c43a0f82",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/acoustic-folk-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/acoustic-folk-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/acoustic-folk-train.yaml",
+          "source_sha256": "aeb52b86230cf59bf0c9fcf6a3080c993e97c6601e20c8b892dbe8a753c8ee0a",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 212,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/acoustic-folk-eval.yaml",
+          "source_sha256": "dd97fbf33ed083eac040c9d4160bb997a6b416b43ea766ec536d5c9c9937841b",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 214,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "1",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "acoustic-folk-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/acoustic-folk",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/acoustic-folk",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/acoustic-folk-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/acoustic-folk-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "house",
+      "label": "House",
+      "gpu": 0,
+      "name": "house-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/house",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/house",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/house/house-fresh3400/house-fresh3400_step1000.safetensors",
+      "minimax_sidecar_sha256": "699606ba8700e09db6a48b02c40d16f9dab84f181d6054ebd85111061f12964f",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/house-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/house-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/house-train.yaml",
+          "source_sha256": "8f8eede8d1be12529cbaba0b9273773a6f1cffbed72f84b6b9e5d7ae0459bba0",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 228,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/house-eval.yaml",
+          "source_sha256": "fbfb7aa9a732246d7163f914fe90f840bf9f2851b46d4888a2b8f67670d1deb4",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 232,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "0",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "house-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/house",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/house",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/house-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/house-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "disco-funk",
+      "label": "Disco Funk",
+      "gpu": 1,
+      "name": "disco-funk-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/disco-funk",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/disco-funk",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/disco-funk/disco-funk-fresh3400/disco-funk-fresh3400_step2000.safetensors",
+      "minimax_sidecar_sha256": "054874e6c8315e19ca1613fc716ae765e031a0fbb39d4359c696f3ed6fa92e59",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/disco-funk-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/disco-funk-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/disco-funk-train.yaml",
+          "source_sha256": "18600f062aaa93d79242292e378873654b526e629b9d150a024541a3c81cff66",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 226,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/disco-funk-eval.yaml",
+          "source_sha256": "40c029364d2b235017f70849facf04b927a0ea1ce6d668349c767cf39a7a631f",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 230,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "1",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "disco-funk-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/disco-funk",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/disco-funk",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/disco-funk-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/disco-funk-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "kpop",
+      "label": "K-pop",
+      "gpu": 0,
+      "name": "kpop-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/kpop",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/kpop",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/kpop/kpop-fresh3400/kpop-fresh3400_step2000.safetensors",
+      "minimax_sidecar_sha256": "f6a40db55b79bf874a1c81787dd1a019e4df18e61be108efb0142264916f63b2",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/kpop-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/kpop-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/kpop-train.yaml",
+          "source_sha256": "639218ef957b4c2941b2b91f43275c456446430c901f89c8623bed8495fee2dd",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 224,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/kpop-eval.yaml",
+          "source_sha256": "22ced4b1a3e368f216c58d44231ea3612858316a141ac70f4d15df9ba9d870c6",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 228,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "0",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "kpop-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/kpop",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/kpop",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/kpop-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/kpop-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "reggaeton",
+      "label": "Reggaeton",
+      "gpu": 1,
+      "name": "reggaeton-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/reggaeton",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/reggaeton",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/reggaeton/reggaeton-fresh3400/reggaeton-fresh3400_step1000.safetensors",
+      "minimax_sidecar_sha256": "d970639b830e78f9d39b6b12eff2eb0a509ea7da1c67ad4565bbede527e607ac",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/reggaeton-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/reggaeton-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/reggaeton-train.yaml",
+          "source_sha256": "31024a04092934041b2e44b604899aa00d246db1b5241df6d88911970d2efe32",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 216,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/reggaeton-eval.yaml",
+          "source_sha256": "b86f0bebcff7cd6b81aa47aa801e643684152e189aa9492ad2b81f42399c5d44",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 220,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "1",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "reggaeton-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/reggaeton",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/reggaeton",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/reggaeton-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/reggaeton-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "afrobeats",
+      "label": "Afrobeats",
+      "gpu": 0,
+      "name": "afrobeats-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/afrobeats",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/afrobeats",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/afrobeats/afrobeats-fresh3400/afrobeats-fresh3400_step1000.safetensors",
+      "minimax_sidecar_sha256": "18a9742d053de4002c4d768496794b56e8b8e7a3f4ea52861ac02ce9328774a7",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/afrobeats-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/afrobeats-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/afrobeats-train.yaml",
+          "source_sha256": "c729b223e5c728170b97d384fdbb3cdbebb3a62cb63a8ff34d18390193770389",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 232,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/afrobeats-eval.yaml",
+          "source_sha256": "128f38c0710b2dcb7601fff819aeb9b508cc72272ae7b9a1dc407c3ba232bf55",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 236,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "0",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "afrobeats-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/afrobeats",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/afrobeats",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/afrobeats-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/afrobeats-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    },
+    {
+      "id": "lofi",
+      "label": "Lo-fi",
+      "gpu": 1,
+      "name": "lofi-yue2-particle-1200-s7",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/lofi",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/lofi",
+      "minimax_weights": "/ml2/music/sliders-conceptmod/models/uni16-fresh3400-v1/lofi/lofi-fresh3400/lofi-fresh3400_step3000.safetensors",
+      "minimax_sidecar_sha256": "8eedcb12f377ddfc9e4ee209e1dcf7cd3ef36ded9a01bf965890b727b5949bde",
+      "resume_from": 0,
+      "train_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/lofi-train.yaml",
+      "eval_prompts": "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/lofi-eval.yaml",
+      "prompt_audit": {
+        "train": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/lofi-train.yaml",
+          "source_sha256": "4466cf67558b11bdf334475c5cb26c181fdcde1ad90ec742360a7878b79329d1",
+          "source_rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rows": 4,
+          "max_tokens": 227,
+          "names_checked": true
+        },
+        "eval": {
+          "source": "/ml2/music/sliders-conceptmod/analysis/uni16_fresh3400_20260912/prompts/lofi-eval.yaml",
+          "source_sha256": "5ef1cb1166246b183911a961a88c7638e6c8e8980357ef118e43a052566830de",
+          "source_rows": [
+            2,
+            3
+          ],
+          "rows": 2,
+          "max_tokens": 230,
+          "names_checked": true
+        }
+      },
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "-u",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "particle_bridge",
+        "--gpu",
+        "1",
+        "--seed",
+        "7",
+        "--steps",
+        "1200",
+        "--name",
+        "lofi-yue2-particle-1200-s7",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/yue2-particle-uni16-1200-20260917/lofi",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-particle-uni16-1200-20260917/lofi",
+        "--prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/lofi-train.yaml",
+        "--eval_prompts_file",
+        "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/lofi-eval.yaml",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ]
+    }
+  ],
+  "files": {
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/female-train.yaml": "745a78a835fcd490abd1e69062a8cf3d5cd78655d40f8533554e3cd02ee48e75",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/female-eval.yaml": "0e4fed8fca4c46d198fe9a6b248fabd582790d629b8e3ca34d7da0d1c2d8ac13",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/metal-train.yaml": "6b61e36d0c2aacac34a7789a5bb993b0a728dfe880562747b8829c06c516854f",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/metal-eval.yaml": "7c8a7bf206184eac0f7d4936038f8e7c3c0cc3c3c36072ff07806d115759b141",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/male-train.yaml": "92b327ef39f16dd08928c475f789430182523e097d53a328475594063071c5af",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/male-eval.yaml": "ef6f3ee3cc8832ff1025f3c9dec583b82d3c0c6963a9ca1f297c497108d856c6",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-train.yaml": "64ff8d8ecb3fd4d368dbaa0b8d473c8062bcd2487969863176fb2d1eb32a6675",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-eval.yaml": "39e4068e9cbf28b77620c5580adf2bb94e4c69aa04f41788482a51947ee250f3",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/hiphop-train.yaml": "d843cc12ad9d1435f3e21315e47b92a17d5e71d184044a27742d9ee94bc76453",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/hiphop-eval.yaml": "a7831b6493e11ed71179469930675fe860db3c40dfa107ec11a704602162254b",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/rnb-train.yaml": "3d4cd9e891b11b4e9d2f86858f8654201afb48eab19f625630b6d21c6bc75f30",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/rnb-eval.yaml": "45ea1e141c30cb5f47a2f7475d017c01332f9a7a82616ee2cd204fbc4594b72b",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/indie-rock-train.yaml": "f2f0ec0c7703891fbe58329b2e69fd17b7f12ea79d52f488b4d114608d97d41c",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/indie-rock-eval.yaml": "80b0f599f37cc111e5b8219486732baf92703bbe41695d47ab820976e6b9c3a9",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-punk-train.yaml": "cf625dc1c4f48910166980c8fc66668ddcdd7bcd51fdee557eeafec20107ad36",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/pop-punk-eval.yaml": "cb7c8c5cc63e95551c94394572597f5c078327ad575044c4c860f9911d9b6c15",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/country-train.yaml": "00faf74990d647a5e9f395a442b4067667b39c4f217eb8d2866bf43f9620ea54",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/country-eval.yaml": "f45f9fe6b97f54c32baf93d52ed0ac722f8c4cc8655012f957fdf7620822288a",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/acoustic-folk-train.yaml": "348055bce5a5cb1ef4055734eeca86a57ae1a0abe386ef3f4ede93ed66c9fca1",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/acoustic-folk-eval.yaml": "5b8043995c349f6bef7815a93366e659e5903e0c8de9dbd3472c28fe7be16722",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/house-train.yaml": "6e568ad15702f6d98b59fc7b42c80d9c3c35dbcb0bf3e0e931631780a72a2810",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/house-eval.yaml": "1f8f3b288bf25791303ee9fc159523022ff88c1718e5775c5d377956a99bcb05",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/disco-funk-train.yaml": "a8e775431b7f880706f1c46b788e589713a1bdfe5c44d606a1a6a5d182a6f250",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/disco-funk-eval.yaml": "d94817946c56ea85856e6c954c68a368ab9d84b480aecacb3849a8a1c8b414f5",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/kpop-train.yaml": "2e1bb76efd8d19e94b06c25ddb9075dd37c773cd0fef70df651504509da6d8cf",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/kpop-eval.yaml": "6ea91c817cb4af4a3f2c7ec028030369f84de7566991bdb06af753a219f58b7a",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/reggaeton-train.yaml": "086c082457e0fd9d856f5a9fa777bb1274178fa160338e86ca2f7bf22a47f0b1",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/reggaeton-eval.yaml": "a5da0855f598115405a0a63c775b7c80ce3e08196d763bc99f4ba06bd7856486",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/afrobeats-train.yaml": "78d0830bddaf71bd38e13a107107959c506917769ecda8ebeba8c81fbcdc9a7a",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/afrobeats-eval.yaml": "fc3fed6afe7c4af2561ab2c455fdde571631c1625a8a25676363b0f8fe1bc189",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/lofi-train.yaml": "ae6e4a087930ec11241b3483e88db3db7b60ddc1a79b7fee134aa45b165b3854",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/yue2_uni16_1200_20260917/prompts/lofi-eval.yaml": "f93fed1903ddeafda2b1d249b5c6e27d4846779f14b999886bd1a6b077c927ae",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/train_lora_yue2_arm_b.py": "11a212e2800ae0ff6b408acde5c94cd029bbcf861060c918ec040b834d4768ae",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/yue2_arm_b.py": "23a77228e80cbe7bff4b9fbaa352cebd2c481f8b898d38b2f34e96bdf85c2410",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/train_lora_yue2_fresh.py": "6dab075cd2e0be8458ffe1a58ce73c9e3950d030a49f7f4dd84a7a12b9191fa2",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/yue2_uni.py": "1e53d559804ad6ff6e6ae52bbcae74db8b8110315b050d4ade25700bbd531b2b",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/yue2_backend.py": "b3f9a9ac3756c48cc2a2555d7d844cc79feee50517f3174cf8e29ac4a3211704",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/lora.py": "2bcf1a1267ca0369e0e2d4e2584db6821b2ab518c9cd3c535292d20a5e25d85d",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/lm_adv.py": "8b42a4bad78e2a5314289ef23598908a5d967281aab91c88841ef344a9d33a68",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/slider_targets.py": "5db3a2cdc9635a0f15f6bc59c80f00700ef04d35241650b935b373f610a85412",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/train_lm_slider_music3.py": "63bfae58cd22cd35ace03c3f83227d1c8a55c1ad4fb40205ae087d4f5aab6ead",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/unipolar_gan.py": "70cf554c1a7650735f11b042d3a55dd072980a0110bf5bd94bfe22571fb88f61",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/yue2_gan_plus_neu.py": "6bfa92f5242b43e62317d6b1d518b7e2a0fda45eba39fad2077b039598a1578e",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/particle_bridge_gan.py": "955584ae068012319c852b8df81af4b455f3ae0445f3faa7fb96ed429d4a88f1",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/conceptmod/textsliders/yue2_particle_bridge.py": "81000335c5b3702d4218f011f639e5d9d672ccc8e0acff59e3d4294904c9ea1d",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/slider2d/adv.py": "1a939c65626574028a90f7a96c95b6363d59f4199833d74950ba625b3f9491fb",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/analysis/slider2d/grad_regularizers.py": "c1372f537c8f53b6d3fdedc3dc9521533d3b5f954c8d1e012af02d5c87f864e5",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/queue_yue2_particle_catalog.py": "44ec12f56e6f7ece4367ec3166b9f715c3ca4f1632f8a709af16ca369e1084db",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/train_yue2_arm_b_campaign.py": "13daf81d9301d2a8501b0afa462259cb92a63d713f2c5a0f3765eef40a591e20",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/evaluate_yue2_arm_b.py": "4dc86a20a1cfe941c76c00209b0b192739428b8859d202a9a974fe3356cb1b32",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/yue2_training_dashboard.py": "91cffa8b928642664c90787ca66af5519e03f21e05493870455e902bac8e0557",
+    "/ml2/music/.cache/sliders-yue2-uni16-1200-20260917/scripts/assets/yue2-training-dashboard.html": "af44a08e362d4645be90805758dbbe5fc34b01de03724021af66f1abdd672e5d"
+  }
+}

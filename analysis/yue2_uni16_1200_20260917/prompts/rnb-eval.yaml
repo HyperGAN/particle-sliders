@@ -1,0 +1,104 @@
+plus_label: R&B
+zero_label: 'Off'
+recommended_range:
+- 0.0
+- 1.0
+rows:
+- neutral: 'Global Metadata:
+
+    Genre: electronic song. BPM 100. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A balanced studio mix with a clear lead, defined bass and modest room depth.
+
+    Vocal Details:
+
+    One adult male lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo
+    lead stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Short synth chords carry the harmony over soft synth bass and a sparse electronic beat.
+
+    Chorus: The short synth chords broaden and the rhythm adds a light accent at the section change, leaving
+    space for the lead.'
+  positive: 'Global Metadata:
+
+    Genre: contemporary R&B. BPM 100. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A warm intimate studio mix, smooth low end and short restrained vocal ambience.
+
+    Vocal Details:
+
+    One adult male lead vocalist. Fluid melodic singing with relaxed phrasing behind the beat and brief
+    restrained runs at phrase endings. A clear solo lead stays in front throughout, with natural vocal
+    detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Electric piano chords with extended harmony move around a rounded bass line; a soft kick and
+    rim snare settle behind the beat.
+
+    Chorus: A light pad and clean guitar answers add width while the syncopated bass and relaxed drum
+    pocket remain clear.'
+  lyrics: '[verse]
+
+    The painted number leaves the mailbox
+
+    A crooked nail holds on the frame
+
+    We take a brush out to the pavement
+
+    And give the little door a name
+
+    [chorus]
+
+    The street is changing by the hour
+
+    But there is room for us to stay'
+- neutral: 'Global Metadata:
+
+    Genre: string-led song. BPM 112. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A balanced studio mix with a clear lead, defined bass and modest room depth.
+
+    Vocal Details:
+
+    One adult lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo lead
+    stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Plucked acoustic strings carry the harmony over acoustic bass and a shaker and soft hand drum.
+
+    Chorus: The plucked acoustic strings broaden and the rhythm adds a light accent at the section change,
+    leaving space for the lead.'
+  positive: 'Global Metadata:
+
+    Genre: contemporary R&B. BPM 112. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A warm intimate studio mix, smooth low end and short restrained vocal ambience.
+
+    Vocal Details:
+
+    One adult lead vocalist. Fluid melodic singing with relaxed phrasing behind the beat and brief restrained
+    runs at phrase endings. A clear solo lead stays in front throughout, with natural vocal detail and
+    light room ambience.
+
+    Arrangement:
+
+    Verse: Electric piano chords with extended harmony move around a rounded bass line; a soft kick and
+    rim snare settle behind the beat.
+
+    Chorus: A light pad and clean guitar answers add width while the syncopated bass and relaxed drum
+    pocket remain clear.'
+  lyrics: '[verse]
+
+    I find your glove beneath the cushion
+
+    The missing button turns up too
+
+    A small receipt falls from the lining
+
+    For something neither of us knew
+
+    [chorus]
+
+    We put the scattered things together
+
+    And leave a little room to move'

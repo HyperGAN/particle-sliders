@@ -1,0 +1,98 @@
+plus_label: Metal
+zero_label: 'Off'
+recommended_range:
+- 0.0
+- 1.0
+rows:
+- neutral: English. BPM 112. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord
+    changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 112. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight
+    palm-muted low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A
+    firm electric bass doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal
+    accents. Close, dense studio production with the vocal clearly audible.
+  lyrics: '[verse]
+
+    The workshop door swings toward the courtyard
+
+    A strip of light runs down the floor
+
+    We stack the timber by the window
+
+    And turn the latch beside the door
+
+    [chorus]
+
+    We make a little room to carry
+
+    The things we gathered on the way'
+- neutral: English. BPM 132. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord
+    changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 132. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight
+    palm-muted low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A
+    firm electric bass doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal
+    accents. Close, dense studio production with the vocal clearly audible.
+  lyrics: '[verse]
+
+    A paper marker holds the chapter
+
+    The kettle settles on the grate
+
+    I draw a square around the margin
+
+    And leave the final corner straight
+
+    [chorus]
+
+    We make a little room to carry
+
+    The things we gathered on the way'
+- neutral: English. BPM 100. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord
+    changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 100. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight
+    palm-muted low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A
+    firm electric bass doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal
+    accents. Close, dense studio production with the vocal clearly audible.
+  lyrics: '[verse]
+
+    The shuttle rattles through the station
+
+    Our folded tickets fill a tray
+
+    A blue enamel sign is swaying
+
+    We count the stops along the way
+
+    [chorus]
+
+    We make a little room to carry
+
+    The things we gathered on the way'
+- neutral: English. BPM 148. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord
+    changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 148. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight
+    palm-muted low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A
+    firm electric bass doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal
+    accents. Close, dense studio production with the vocal clearly audible.
+  lyrics: '[verse]
+
+    The stairwell echoes with our footsteps
+
+    We carry canvas through the rain
+
+    A row of empty hooks is waiting
+
+    To hold the coats we bring again
+
+    [chorus]
+
+    We make a little room to carry
+
+    The things we gathered on the way'

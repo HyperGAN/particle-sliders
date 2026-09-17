@@ -56,12 +56,15 @@ def hidden_diagnostics(model,tokenizer,network,rows,include_canary=False):
         limitation='Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored.')
 
 
-def page(output,rows,seeds,recipe='unipolar_gan',include_canary=False):
+def page(output,rows,seeds,recipe='unipolar_gan',include_canary=False,label='Metal'):
+    label=html.escape(label)
     title = 'YuE2 metal · GAN + neutral' if recipe == 'gan_plus_neu' else 'YuE2 metal · Unipolar GAN'
     detail = 'Trained with the +/0 conditional GAN.' if recipe == 'gan_plus_neu' else 'Trained only at +1.'
     if recipe == 'particle_bridge':
         title = 'YuE2 metal · Routed particle bridge'
         detail = 'Paired-error GAN with routed particles and particle VIC; EMA weights. Trained at +1.'
+    title=title.replace('YuE2 metal',f'YuE2 {label}')
+    display={'off':'Off','half':'Half','metal':label,'metal-caption':f'{label} caption','minus-canary':'−1 canary'}
     cards=[]
     for i,row in enumerate(rows):
         for seed in seeds:
@@ -71,16 +74,16 @@ def page(output,rows,seeds,recipe='unipolar_gan',include_canary=False):
                 meta=output/relative/'evaluation.json'
                 if meta.exists():
                     d=json.loads(meta.read_text())
-                    cells.append(f'<div><b>{html.escape(name)}</b> · {d["duration"]:.1f}s'
+                    cells.append(f'<div><b>{display[name]}</b> · {d["duration"]:.1f}s'
                         f'<audio controls preload="none" src="{relative}/audio.flac"></audio></div>')
-                else:cells.append(f'<div><b>{html.escape(name)}</b> · pending</div>')
+                else:cells.append(f'<div><b>{display[name]}</b> · pending</div>')
             cards.append(f'<section><h2>Prompt {i+1}, seed {seed}</h2><p>{html.escape(row["neutral"])}</p>'
                 +''.join(cells)+'</section>')
     document=(f'<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title}</title>'
         '<style>body{max-width:1100px;margin:40px auto;padding:0 20px;background:#16191d;color:#eee;font:16px system-ui}'
         'section{padding:20px;border:1px solid #46505b;margin:20px 0}audio{display:block;width:100%;margin:10px 0}'
         'section>div{display:inline-block;vertical-align:top;width:46%;margin:1%}a{color:#a9d7ff}</style>'
-        f'<h1>{title}</h1><p>0 = Off · 1 = Metal. {detail}</p>'
+        f'<h1>{title}</h1><p>0 = Off · 1 = {label}. {detail}</p>'
         + ('<p>−1 is an untrained, unscored canary.</p>' if include_canary else '') +
         '<p id="status">Matched prompts and seeds. Experimental checkpoints.</p>'
         '<p><a href="metal-yue2.safetensors">Download trained slider</a> · <a href="metal-yue2.json">Training details</a></p>'
@@ -101,7 +104,7 @@ def main(argv=None):
     args=p.parse_args(argv)
     if args.max_tokens<1 or not args.seeds or any(not 0<=s<2**63 for s in args.seeds):p.error('Invalid sampling budget or seeds')
     rows,meta=load_prompts(args.prompts_file)
-    args.output_dir.mkdir(parents=True,exist_ok=True);page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary)
+    args.output_dir.mkdir(parents=True,exist_ok=True);page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary,meta.get('plus_label','Metal'))
     from yue2 import YuE2Pipeline
     from yue2.storage import verify_result
     digest=file_digest(args.weights)
@@ -142,12 +145,12 @@ def main(argv=None):
                         clipped_fraction=float(np.mean(np.abs(audio)>=.999)),truncated=result.truncated,
                         audio_sha256=file_digest(staging/'audio.flac'))
                     write_json(staging/'evaluation.json',stats);staging.rename(dest)
-                    page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary)
+                    page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary,meta.get('plus_label','Metal'))
                     print(json.dumps(dict(row=i,seed=seed,take=name,duration=stats['duration'],rms=stats['rms'])),flush=True)
     import shutil
     shutil.copy2(args.weights,args.output_dir/'metal-yue2.safetensors')
     shutil.copy2(args.weights.with_suffix('.json'),args.output_dir/'metal-yue2.json')
     write_json(args.output_dir/'status.json',dict(stage='Training and matched rendering complete'))
-    page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary)
+    page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary,meta.get('plus_label','Metal'))
 
 if __name__=='__main__':main()

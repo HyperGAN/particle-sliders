@@ -1,0 +1,18 @@
+[Unit]
+Description=YuE2 particle sliders to 1200 on GPU %i
+
+[Service]
+Type=simple
+WorkingDirectory=/ml2/music/.cache/sliders-yue2-uni16-1200-20260917
+Environment=HF_HOME=/ml2/music/.cache/huggingface
+Environment=HF_HUB_OFFLINE=1
+Environment=OMP_NUM_THREADS=4
+Environment=MKL_NUM_THREADS=4
+ExecStart=/ml2/music/.cache/yue2-test-env/bin/python -u scripts/queue_yue2_particle_catalog.py worker --queue_dir analysis/yue2_uni16_1200_20260917 --gpu %i
+Restart=on-failure
+RestartSec=30
+KillMode=mixed
+TimeoutStopSec=120
+
+[Install]
+WantedBy=default.target

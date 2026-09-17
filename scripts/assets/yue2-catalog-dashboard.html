@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YuE2 · 16 sliders to 1200</title>
+<style>
+body{max-width:1250px;margin:36px auto;padding:0 22px;background:#151a20;color:#e3edf8;font:16px/1.5 system-ui}a{color:#9fd6ff}h1{margin-bottom:6px}.muted{color:#a8bacb}.lanes{display:flex;gap:18px;margin:24px 0}.lane{flex:1;background:#202a34;padding:16px;border:1px solid #394957;border-radius:10px}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #394957}th{font-size:13px;color:#a8bacb}progress{width:90px;accent-color:#80baff}.failed{color:#ff9d9d}.complete{color:#8de6b1}.running{color:#91caff}small{font-size:12px}#updated{font-variant-numeric:tabular-nums}@media(max-width:700px){.lanes{display:block}.lane{margin-bottom:12px}table{font-size:13px}td,th{padding:10px 6px}}
+</style>
+<h1>YuE2 · 16 sliders to 1,200</h1>
+<p class="muted">The current MiniMax catalog, trained with the routed-particle bridge. Both GPUs share with the studio.</p>
+<p>Same recipe throughout: paired-error GAN + routed 128×4 particles + particle VIC. G / D / particle rates stay <strong>0.0006 / 0.0009 / 0.006</strong>. Seed 7. Metal continues from 600; the other 15 start fresh.</p>
+<p><a href="commands.json">Exact commands and prompt audit</a> · <a href="report.md">Queue notes</a> · <a href="../yue2-metal-particle-bridge-20260917/">Metal at 600</a> · <a href="../uni16-fresh3400-20260912/">MiniMax comparisons</a></p>
+<div class="lanes"><div class="lane" id="gpu0">GPU 0 · loading…</div><div class="lane" id="gpu1">GPU 1 · loading…</div></div>
+<p id="updated" class="muted" role="status">Connecting…</p>
+<div class="scroll"><table><thead><tr><th>Slider / live page</th><th>GPU</th><th>Status</th><th>Updates</th><th>GAN</th><th>VIC</th><th>G gradient</th><th>Cosine</th></tr></thead><tbody id="jobs"></tbody></table></div>
+<p class="muted">Each slider gets two held-out arrangements × seeds 1709/2903 × Off, Half, On, positive-caption reference, and −1 canary. Minus is untrained and unscored. Listening weights use EMA; charts show live training. Cosine is a diagnostic, not an audio-quality gate.</p>
+<script>
+const fmt=x=>Number.isFinite(x)?x.toLocaleString(undefined,{maximumFractionDigits:4}):'—';
+function cell(row,text){const td=document.createElement('td');td.textContent=text;row.append(td);return td;}
+async function poll(){try{
+ const response=await fetch('queue-state.json',{cache:'no-store'});if(!response.ok)throw Error(response.status);
+ const d=await response.json();document.getElementById('jobs').replaceChildren();
+ for(const j of d.jobs){const tr=document.createElement('tr');const a=document.createElement('a');a.href=j.id+'/';a.textContent=j.label;cell(tr,'').append(a);cell(tr,j.gpu);
+ const phase=j.status==='running'?j.stage:j.status;const state=cell(tr,phase);state.className=j.status;
+ const budget=cell(tr,`${j.completed} / ${j.total} `);const bar=document.createElement('progress');bar.max=j.total;bar.value=j.completed;budget.append(bar);
+ for(const k of ['g_adv','particle_vic','grad_norm','cos_pos'])cell(tr,fmt(j.metrics[k]));document.getElementById('jobs').append(tr);}
+ for(const w of d.workers)document.getElementById('gpu'+w.gpu).textContent=`GPU ${w.gpu} · ${w.status.replaceAll('_',' ')}${w.job?' · '+w.job:''}`;
+ const trained=d.jobs.filter(j=>j.completed===j.total).length,done=d.jobs.filter(j=>j.status==='complete').length;
+ document.getElementById('updated').textContent=`${trained}/16 trained · ${done}/16 with full listening grids · updated ${Math.max(0,Math.round(Date.now()/1000-d.updated))}s ago · refreshes every 2s`;
+}catch(e){document.getElementById('updated').textContent='Waiting for queue status · retrying';}setTimeout(poll,2000);}
+poll();
+</script>
+</html>

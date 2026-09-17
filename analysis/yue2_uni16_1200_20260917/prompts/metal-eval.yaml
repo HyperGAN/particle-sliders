@@ -1,0 +1,52 @@
+plus_label: Metal
+zero_label: 'Off'
+recommended_range:
+- 0.0
+- 1.0
+rows:
+- neutral: English. BPM 120. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord
+    changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 120. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight
+    palm-muted low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A
+    firm electric bass doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal
+    accents. Close, dense studio production with the vocal clearly audible.
+  lyrics: '[verse]
+
+    The fabric hangs across the doorway
+
+    A silver pin is in the seam
+
+    We turn the pattern on the table
+
+    And measure twice across the sleeve
+
+    [chorus]
+
+    We make a little room to carry
+
+    The things we gathered on the way'
+- neutral: English. BPM 92. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord
+    changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 92. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight
+    palm-muted low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A
+    firm electric bass doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal
+    accents. Close, dense studio production with the vocal clearly audible.
+  lyrics: '[verse]
+
+    The ceiling fan turns in the kitchen
+
+    Two empty crates are on the floor
+
+    We set the peaches by the window
+
+    And write the count beside the door
+
+    [chorus]
+
+    We make a little room to carry
+
+    The things we gathered on the way'

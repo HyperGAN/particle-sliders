@@ -1,0 +1,104 @@
+plus_label: Hip-Hop
+zero_label: 'Off'
+recommended_range:
+- 0.0
+- 1.0
+rows:
+- neutral: 'Global Metadata:
+
+    Genre: electronic song. BPM 134. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A balanced studio mix with a clear lead, defined bass and modest room depth.
+
+    Vocal Details:
+
+    One adult male lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo
+    lead stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Short synth chords carry the harmony over soft synth bass and a sparse electronic beat.
+
+    Chorus: The short synth chords broaden and the rhythm adds a light accent at the section change, leaving
+    space for the lead.'
+  positive: 'Global Metadata:
+
+    Genre: hip-hop with trap drums. BPM 134. Meter: 4/4. The verse is focused and the chorus opens into
+    a fuller sound. A spacious drum-led mix with deep controlled sub bass and close vocal detail.
+
+    Vocal Details:
+
+    One adult male lead vocalist. Rhythmic rapped verses with clear consonants and short breaths; a compact
+    melodic hook in the chorus. A clear solo lead stays in front throughout, with natural vocal detail
+    and light room ambience.
+
+    Arrangement:
+
+    Verse: A sparse minor piano figure sits above deep sub bass, a dry snare and syncopated closed hats
+    with brief rolls. The beat allows a half-time feel at faster tempos.
+
+    Chorus: The bass phrase becomes more insistent and a short keyboard response marks the hook while
+    the drum pattern stays spacious.'
+  lyrics: '[verse]
+
+    The painted number leaves the mailbox
+
+    A crooked nail holds on the frame
+
+    We take a brush out to the pavement
+
+    And give the little door a name
+
+    [chorus]
+
+    The street is changing by the hour
+
+    But there is room for us to stay'
+- neutral: 'Global Metadata:
+
+    Genre: string-led song. BPM 146. Meter: 4/4. The verse is focused and the chorus opens into a fuller
+    sound. A balanced studio mix with a clear lead, defined bass and modest room depth.
+
+    Vocal Details:
+
+    One adult lead vocalist. Melodic singing with clear words and natural phrasing. A clear solo lead
+    stays in front throughout, with natural vocal detail and light room ambience.
+
+    Arrangement:
+
+    Verse: Plucked acoustic strings carry the harmony over acoustic bass and a shaker and soft hand drum.
+
+    Chorus: The plucked acoustic strings broaden and the rhythm adds a light accent at the section change,
+    leaving space for the lead.'
+  positive: 'Global Metadata:
+
+    Genre: hip-hop with trap drums. BPM 146. Meter: 4/4. The verse is focused and the chorus opens into
+    a fuller sound. A spacious drum-led mix with deep controlled sub bass and close vocal detail.
+
+    Vocal Details:
+
+    One adult lead vocalist. Rhythmic rapped verses with clear consonants and short breaths; a compact
+    melodic hook in the chorus. A clear solo lead stays in front throughout, with natural vocal detail
+    and light room ambience.
+
+    Arrangement:
+
+    Verse: A sparse minor piano figure sits above deep sub bass, a dry snare and syncopated closed hats
+    with brief rolls. The beat allows a half-time feel at faster tempos.
+
+    Chorus: The bass phrase becomes more insistent and a short keyboard response marks the hook while
+    the drum pattern stays spacious.'
+  lyrics: '[verse]
+
+    I find your glove beneath the cushion
+
+    The missing button turns up too
+
+    A small receipt falls from the lining
+
+    For something neither of us knew
+
+    [chorus]
+
+    We put the scattered things together
+
+    And leave a little room to move'
