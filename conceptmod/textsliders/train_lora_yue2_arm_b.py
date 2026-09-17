@@ -30,10 +30,34 @@ def source_hashes():
     return {str(p.relative_to(ROOT)):file_digest(p) for p in paths}
 
 
+def run_recipe(args, selected):
+    """Pin an explicit LR-only experiment without mutating either recipe."""
+    recipe = dict(selected.RECIPE)
+    for key in ('end_weight', 'pole_weight', 'cover_weight', 'fm_weight',
+                'lyrichold_weight', 'plan_weight', 'anchor_weight', 'vicreg_weight'):
+        if recipe[key] != 0:
+            raise ValueError(f'GAN-only training requires {key}=0')
+    if recipe['parts'] != 0 or recipe['adv_weight'] != 1:
+        raise ValueError('GAN-only training requires no particles and adv_weight=1')
+    if args.propose_only_c9_g4x:
+        if args.recipe != 'unipolar_gan':
+            raise ValueError('c9_g4x applies only to unipolar_gan')
+        recipe.update(g_lr=.002, d_lr=.003, ablation='c9_g4x',
+                      propose_only=True, merge_to_trainer=False)
+    return recipe
+
+
+def apply_run_lrs(g, d, recipe):
+    for optimizer, key in ((g, 'g_lr'), (d, 'd_lr')):
+        for group in optimizer.param_groups:
+            group['lr'] = recipe[key]
+
+
 def train(args):
     selected = game
     if args.recipe == 'gan_plus_neu':
         from conceptmod.textsliders import yue2_gan_plus_neu as selected
+    run_recipe(args, selected)  # Reject forbidden losses before loading weights.
     rows,meta=selected.load_prompts(args.prompts_file)
     batch=selected.RECIPE['adv_batch']
     if len(rows)<batch or len(rows)%batch:
@@ -49,7 +73,9 @@ def _train_locked(args,rows,meta,game):
     torch.manual_seed(args.seed)
     batch=game.RECIPE['adv_batch']
     run=args.save_dir; path=run/'state.pt'
-    settings=dict(recipe=game.RECIPE,name=args.name,rows=rows,metadata=meta,
+    recipe=run_recipe(args,game)
+    print(json.dumps(dict(recipe=recipe,seed=args.seed,steps=args.steps,device=args.device)),flush=True)
+    settings=dict(recipe=recipe,name=args.name,rows=rows,metadata=meta,
         seed=args.seed,max_seq_len=args.max_seq_len,
         checkpointing=not args.no_checkpointing,rank=8,alpha=8.,dummy=args.dummy,
         model_id=args.model_id,sources=source_hashes())
@@ -66,6 +92,7 @@ def _train_locked(args,rows,meta,game):
     fixed=saved['prepared'] if saved else game.prepare(backend,rows,meta,args.max_seq_len)
     network=YuE2Slider(backend.model,rank=8,alpha=8.)
     critic,g,d=game.build_game(backend,network,fixed)
+    apply_run_lrs(g,d,recipe)
     device=next(backend.model.parameters()).device
     sampler=RowSampler(len(rows),args.seed)
     completed=0; history=[]
@@ -88,7 +115,7 @@ def _train_locked(args,rows,meta,game):
         validation_status='experimental',teacher_rms=float(critic.input_scale))
     write_json(run/'manifest.json',signature)
     write_json(run/'teacher-audit.json',dict(rows=[{k:r[k] for k in ('guard_applied','target_shift')} for r in fixed],
-        teacher_rms=float(critic.input_scale),batch=batch,rank=8,alpha=8.,recipe=game.RECIPE))
+        teacher_rms=float(critic.input_scale),batch=batch,rank=8,alpha=8.,recipe=recipe))
     start=time.monotonic();start_step=completed;stop=False
     def request_stop(*_):
         nonlocal stop
@@ -134,7 +161,8 @@ def _train_locked(args,rows,meta,game):
                 metrics=game.update(backend,network,critic,g,d,current,step=step,
                     checkpointing=not args.no_checkpointing,**extra)
                 completed=step
-                record=dict(metrics,step=step,rows=indices,step_seconds=time.monotonic()-begin)
+                record=dict(metrics,step=step,rows=indices,step_seconds=time.monotonic()-begin,
+                    g_lr=g.param_groups[0]['lr'],d_lr=d.param_groups[0]['lr'])
                 history.append(record);log.write(json.dumps(record,allow_nan=False)+'\n');log.flush()
                 write_json(run/'progress.json',record);print(json.dumps(record),flush=True)
                 if completed%args.save_every==0 and completed!=args.until:save()
@@ -148,6 +176,8 @@ def _train_locked(args,rows,meta,game):
 def parse_args(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
+    p.add_argument('--propose_only_c9_g4x',action='store_true',
+        help='Explicit LR-only trial: G 0.002 / D 0.003; production defaults unchanged')
     p.add_argument('--name',default='metal-yue2-arm-b')
     p.add_argument('--prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml')
     p.add_argument('--save_dir',type=Path,required=True)
@@ -161,6 +191,7 @@ def parse_args(argv=None):
     p.add_argument('--dummy',action='store_true')
     p.add_argument('--no_checkpointing',action='store_true')
     a=p.parse_args(argv);a.until=a.steps if a.until is None else a.until
+    if a.propose_only_c9_g4x and a.recipe!='unipolar_gan':p.error('c9_g4x requires --recipe unipolar_gan')
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*',a.name):p.error('Invalid checkpoint name')
     if not 1<=a.until<=a.steps or min(a.save_every,a.max_seq_len)<1:p.error('Invalid budget')
     if not 0<=a.seed<2**63:p.error('Invalid seed')
