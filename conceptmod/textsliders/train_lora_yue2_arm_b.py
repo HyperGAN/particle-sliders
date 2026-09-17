@@ -24,7 +24,8 @@ from conceptmod.textsliders.yue2_backend import YuE2Backend,YuE2Slider,file_dige
 def source_hashes():
     names=['train_lora_yue2_arm_b.py','yue2_arm_b.py','train_lora_yue2_fresh.py',
            'yue2_uni.py','yue2_backend.py','lora.py','lm_adv.py','slider_targets.py',
-           'train_lm_slider_music3.py','unipolar_gan.py','yue2_gan_plus_neu.py']
+           'train_lm_slider_music3.py','unipolar_gan.py','yue2_gan_plus_neu.py',
+           'particle_bridge_gan.py','yue2_particle_bridge.py']
     paths=[ROOT/'conceptmod/textsliders'/n for n in names]
     paths += [ROOT/'analysis/slider2d'/n for n in ['adv.py','grad_regularizers.py']]
     return {str(p.relative_to(ROOT)):file_digest(p) for p in paths}
@@ -33,12 +34,20 @@ def source_hashes():
 def run_recipe(args, selected):
     """Pin an explicit LR-only experiment without mutating either recipe."""
     recipe = dict(selected.RECIPE)
+    particle = args.recipe == 'particle_bridge'
     for key in ('end_weight', 'pole_weight', 'cover_weight', 'fm_weight',
-                'lyrichold_weight', 'plan_weight', 'anchor_weight', 'vicreg_weight'):
+                'lyrichold_weight', 'plan_weight', 'anchor_weight'):
         if recipe[key] != 0:
             raise ValueError(f'GAN-only training requires {key}=0')
-    if recipe['parts'] != 0 or recipe['adv_weight'] != 1:
-        raise ValueError('GAN-only training requires no particles and adv_weight=1')
+    if recipe['adv_weight'] != 1:
+        raise ValueError('Adversarial weight must be one')
+    if particle:
+        if recipe['parts'] != 128 or recipe['vicreg_weight'] != 1 or recipe['particle_dim'] != 4:
+            raise ValueError('Particle bridge requires exactly 128x4 particles and particle VIC weight 1')
+        if args.propose_only_c9_g4x or args.propose_only_lr_scale is not None:
+            raise ValueError('Particle bridge pins the reference constant learning rates')
+    elif recipe['parts'] != 0 or recipe['vicreg_weight'] != 0:
+        raise ValueError('GAN-only training requires no particles and vicreg_weight=0')
     if args.propose_only_c9_g4x:
         if args.recipe != 'unipolar_gan':
             raise ValueError('c9_g4x applies only to unipolar_gan')
@@ -57,7 +66,7 @@ def run_recipe(args, selected):
 def apply_run_lrs(g, d, recipe):
     for optimizer, key in ((g, 'g_lr'), (d, 'd_lr')):
         for group in optimizer.param_groups:
-            group['lr'] = recipe[key]
+            group['lr'] = recipe['particle_lr'] if group.get('role') == 'particles' else recipe[key]
             # The +/0 schedule reads initial_lr on every update. An override
             # must set its base too, or step one silently undoes the override.
             if 'initial_lr' in group:
@@ -68,10 +77,14 @@ def train(args):
     selected = game
     if args.recipe == 'gan_plus_neu':
         from conceptmod.textsliders import yue2_gan_plus_neu as selected
+    elif args.recipe == 'particle_bridge':
+        from conceptmod.textsliders import yue2_particle_bridge as selected
     run_recipe(args, selected)  # Reject forbidden losses before loading weights.
     rows,meta=selected.load_prompts(args.prompts_file)
     batch=selected.RECIPE['adv_batch']
-    if len(rows)<batch or len(rows)%batch:
+    if args.recipe == 'particle_bridge':
+        if len(rows) < 2: raise ValueError('Particle bridge needs at least two prompt rows')
+    elif len(rows)<batch or len(rows)%batch:
         raise ValueError('Arm B needs a multiple of four rows for distinct balanced batches')
     args.save_dir.mkdir(parents=True,exist_ok=True)
     with (args.save_dir/'train.lock').open('a') as lock:
@@ -101,11 +114,15 @@ def _train_locked(args,rows,meta,game):
     signature=dict(settings=settings,model=backend.identity)
     if saved and saved['signature']!=signature: raise ValueError('Resume base weights differ')
     fixed=saved['prepared'] if saved else game.prepare(backend,rows,meta,args.max_seq_len)
-    network=YuE2Slider(backend.model,rank=8,alpha=8.)
+    particle = args.recipe == 'particle_bridge'
+    if particle:
+        from conceptmod.textsliders import particle_bridge_gan as particle_game
+    network=(game.ParticleSlider if particle else YuE2Slider)(backend.model,rank=8,alpha=8.)
+    if particle: torch.manual_seed(args.seed + 1000)
     critic,g,d=game.build_game(backend,network,fixed)
     apply_run_lrs(g,d,recipe)
     device=next(backend.model.parameters()).device
-    sampler=RowSampler(len(rows),args.seed)
+    sampler=particle_game.BridgeSampler(len(rows),args.seed) if particle else RowSampler(len(rows),args.seed)
     completed=0; history=[]
     if saved:
         network.load_state_dict(saved['network'],strict=True)
@@ -117,7 +134,12 @@ def _train_locked(args,rows,meta,game):
         if device.type=='cuda':torch.cuda.set_rng_state_all(saved['cuda_rng'])
     if [h['step'] for h in history]!=list(range(1,completed+1)):
         raise ValueError('Non-contiguous saved update history')
-    if any(len(h['rows'])!=batch or len(set(h['rows']))!=batch for h in history):
+    if particle:
+        if any(len(h[key]) != batch or any(not 0 <= i < len(rows) for i in h[key])
+               for h in history for key in ('d_rows','g_rows')):
+            raise ValueError('Invalid saved particle-bridge prompt batches')
+        ema = {k:v.to(device) for k,v in saved['ema'].items()} if saved else particle_game.initialize_ema(network)
+    elif any(len(h['rows'])!=batch or len(set(h['rows']))!=batch for h in history):
         raise ValueError('Invalid saved prompt batches')
     metadata=dict(backend='yue2',recipe=game.RECIPE['name'],recipe_settings=signature,
         model_id=args.model_id,model_identity=backend.identity,dummy=args.dummy,
@@ -125,8 +147,14 @@ def _train_locked(args,rows,meta,game):
         polarity='unipolar',trained_scales=game.RECIPE['trained_scales'],zero_behavior='exact_base_by_adapter_scale',
         validation_status='experimental',teacher_rms=float(critic.input_scale))
     write_json(run/'manifest.json',signature)
-    write_json(run/'teacher-audit.json',dict(rows=[{k:r[k] for k in ('guard_applied','target_shift')} for r in fixed],
-        teacher_rms=float(critic.input_scale),batch=batch,rank=8,alpha=8.,recipe=recipe))
+    teacher_audit=dict(rows=[{k:r[k] for k in ('guard_applied','target_shift')} for r in fixed],
+        teacher_rms=float(critic.input_scale),batch=batch,rank=8,alpha=8.,recipe=recipe)
+    if particle:
+        std=critic.target_std.detach().float().cpu()
+        teacher_audit['normalization']=dict(training_rows=len(rows),dimensions=std.numel(),
+            std_min=float(std.min()),std_median=float(std.median()),std_max=float(std.max()),
+            floor_count=int((std<=particle_game.REFERENCE['target_std_floor']).sum()))
+    write_json(run/'teacher-audit.json',teacher_audit)
     start=time.monotonic();start_step=completed;stop=False
     def request_stop(*_):
         nonlocal stop
@@ -143,37 +171,55 @@ def _train_locked(args,rows,meta,game):
             g_optimizer=_cpu(g.state_dict()),d_optimizer=_cpu(d.state_dict()),
             sampler=sampler.state_dict(),rng=torch.get_rng_state(),
             cuda_rng=torch.cuda.get_rng_state_all() if device.type=='cuda' else [])
+        if particle:
+            if any(not torch.isfinite(v).all() for v in ema.values()): raise FloatingPointError('Non-finite EMA')
+            blob['ema'] = _cpu(ema)
         temporary=path.with_suffix('.pt.tmp');torch.save(blob,temporary);temporary.replace(path)
-        record=dict(metadata,step=completed,prompt_draws=completed*batch,
-            row_counts=dict(Counter(i for h in history for i in h['rows'])))
+        counted = [i for h in history for i in (h['d_rows']+h['g_rows'] if particle else h['rows'])]
+        record=dict(metadata,step=completed,prompt_draws=len(counted),
+            row_counts=dict(Counter(counted)))
         # Save the export atomically; preserve all older milestone exports.
         export=run/f'{args.name}_last.safetensors';tmp=run/f'{args.name}_pending.safetensors'
-        network.save(tmp,record);tmp.replace(export);tmp.with_suffix('.json').replace(export.with_suffix('.json'))
+        if particle:
+            network.save(tmp,dict(record,weights_kind='ema'),state=ema)
+        else: network.save(tmp,record)
+        tmp.replace(export);tmp.with_suffix('.json').replace(export.with_suffix('.json'))
+        if particle:
+            live=run/f'{args.name}_live_last.safetensors'
+            network.save(tmp,dict(record,weights_kind='live'))
+            tmp.replace(live);tmp.with_suffix('.json').replace(live.with_suffix('.json'))
         if completed and (completed%args.save_every==0 or completed==args.until):
             pinned=run/f'state-step{completed}.pt'
             if not pinned.exists():
                 os.link(path,pinned)
                 os.link(export,run/f'{args.name}_step{completed}.safetensors')
-                write_json(run/f'{args.name}_step{completed}.json',record)
+                write_json(run/f'{args.name}_step{completed}.json',dict(record,weights_kind='ema') if particle else record)
+                if particle:
+                    os.link(live,run/f'{args.name}_live_step{completed}.safetensors')
+                    write_json(run/f'{args.name}_live_step{completed}.json',dict(record,weights_kind='live'))
         status('paused' if stop else 'complete' if completed>=args.steps else 'checkpoint_ready' if completed>=args.until else 'training',
-               prompt_draws=completed*batch,row_counts=record['row_counts'])
+               prompt_draws=record['prompt_draws'],row_counts=record['row_counts'])
     try:
         if completed>=args.until:
             status('complete' if completed>=args.steps else 'checkpoint_ready');return
         if not saved:save()
         with (run/f'updates-from-{completed}-{time.time_ns()}.jsonl').open('w') as log:
             while completed<args.until and not stop:
-                step=completed+1;indices=[sampler.next() for _ in range(batch)]
+                step=completed+1
+                indices=list(range(len(rows))) if particle else [sampler.next() for _ in range(batch)]
                 begin=time.monotonic()
-                assert len(set(indices))==batch
+                assert particle or len(set(indices))==batch
                 status('training',next_step=step,rows=indices)
                 current=[dict(fixed[index],ids=fixed[index]['prefix']) for index in indices]
                 extra={'total_steps':args.steps} if args.recipe=='gan_plus_neu' else {}
+                if particle: extra['sampler'] = sampler
                 metrics=game.update(backend,network,critic,g,d,current,step=step,
                     checkpointing=not args.no_checkpointing,**extra)
+                if particle: particle_game.update_ema(ema,network)
                 completed=step
                 record=dict(metrics,step=step,rows=indices,step_seconds=time.monotonic()-begin,
                     g_lr=g.param_groups[0]['lr'],d_lr=d.param_groups[0]['lr'])
+                if particle: record['particle_lr'] = g.param_groups[1]['lr']
                 history.append(record);log.write(json.dumps(record,allow_nan=False)+'\n');log.flush()
                 write_json(run/'progress.json',record);print(json.dumps(record),flush=True)
                 if completed%args.save_every==0 and completed!=args.until:save()
@@ -186,7 +232,7 @@ def _train_locked(args,rows,meta,game):
 
 def parse_args(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
+    p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu','particle_bridge'],default='unipolar_gan')
     p.add_argument('--propose_only_c9_g4x',action='store_true',
         help='Explicit LR-only trial: G 0.002 / D 0.003; production defaults unchanged')
     p.add_argument('--propose_only_lr_scale',type=float,
@@ -204,6 +250,8 @@ def parse_args(argv=None):
     p.add_argument('--dummy',action='store_true')
     p.add_argument('--no_checkpointing',action='store_true')
     a=p.parse_args(argv);a.until=a.steps if a.until is None else a.until
+    if a.recipe=='particle_bridge' and (a.propose_only_c9_g4x or a.propose_only_lr_scale is not None):
+        p.error('Particle bridge pins the reference constant learning rates')
     if a.propose_only_c9_g4x and a.recipe!='unipolar_gan':p.error('c9_g4x requires --recipe unipolar_gan')
     if a.propose_only_lr_scale is not None and (not 0<a.propose_only_lr_scale<=1 or a.propose_only_c9_g4x):
         p.error('Native LR scale must be in (0, 1] and cannot combine with c9_g4x')

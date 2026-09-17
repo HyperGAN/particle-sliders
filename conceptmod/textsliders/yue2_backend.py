@@ -122,6 +122,9 @@ class YuE2Slider(nn.Module):
     def load(cls, model, path):
         with safe_open(str(path), framework="pt", device="cpu") as handle:
             record = json.loads((handle.metadata() or {}).get("conceptmod", "{}"))
+        if record.get("format") == 'conceptmod-yue2-routed-particle-ar-v1':
+            from conceptmod.textsliders.yue2_particle_bridge import ParticleSlider
+            return ParticleSlider.load(model, path)
         if record.get("format") != FORMAT:
             raise ValueError("Not a native YuE2 composition-slider checkpoint")
         sound_only(json.dumps(record, ensure_ascii=False))

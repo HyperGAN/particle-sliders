@@ -20,6 +20,26 @@ def dashboard_html(recipe='unipolar_gan'):
             'The GAN judges +1 and 0 separately using a scale-conditioned discriminator, averaging across both endpoints and four shuffled prompt rows. The exact-zero endpoint contributes a constant log(2) and no adapter gradient.')
         document = document.replace('GAN (+1)', 'GAN (+/0)').replace('Global L2 norm before per-element clipping at 1.',
             'Global L2 norm before the optimizer update; no gradient clipping.')
+    elif recipe == 'particle_bridge':
+        document = document.replace('The generator trains +1 only, using the adversarial loss averaged across four shuffled prompt rows.',
+            'The generator trains +1 with the paired-error GAN and particle VIC. D and G use separate batches of 64 prompt/noise pairs. All branches use routed particles. Listening weights use EMA 0.995; curves show live training.')
+        document = document.replace('Global L2 norm before per-element clipping at 1.',
+            'Global L2 norm before the optimizer update; no gradient clipping.')
+        document = document.replace('mean softplus(D(real) − D(fake))</code>',
+            'mean softplus(D(real) − D(fake)) + particle VIC</code>')
+        document = document.replace('Real samples are raw metal-caption deltas.',
+            'Real = noise; fake = the same noise + normalized student − normalized positive target.')
+        document = document.replace('in teacher-RMS coordinates, with coefficient 1.',
+            'in normalized error coordinates, every fourth update with ×4 weighting. Noise decreases from 1 to 0.03 over 8,000 updates; all three learning rates stay constant.')
+        document = document.replace('No ending, pole-MSE, feature-matching, lyric-hold or other auxiliary losses.',
+            'VIC acts only on the particle cloud. No ending, pole-MSE, feature-matching or lyric-hold loss.')
+        document = document.replace("note:'The entire objective is the unipolar GAN loss.',series:[['g_adv','GAN (+1)','#8bbfff']]",
+            "note:'Live G total = paired-error GAN + particle VIC. EMA is used only for exported listening weights.',series:[['loss','G total','#eeeeee'],['g_adv','GAN','#8bbfff'],['particle_vic','Particle VIC','#78dfc0']]")
+        document = document.replace("  let points = [], data = null", """  specs.push(
+    {title:'Particle gradients',note:'GAN-only cloud gradient is measured before adding VIC; total includes VIC.',series:[['particle_gan_grad_norm','GAN only','#8bbfff'],['particle_grad_norm','With VIC','#cba8ff']]},
+    {title:'Critic noise',note:'Geometric noise schedule; this is not learning-rate decay.',series:[['noise_std','Noise standard deviation','#78dfc0']]}
+  );
+  let points = [], data = null""")
     return document
 
 
@@ -41,6 +61,11 @@ def publish_metrics(run: Path, output: Path):
                 if not math.isfinite(value):
                     raise ValueError(f'Non-finite {key} at update {point["step"]}')
                 point[key] = value
+            for key in ('particle_vic','particle_grad_norm','particle_gan_grad_norm','noise_std','g_lr','d_lr','particle_lr'):
+                if key in record:
+                    value=float(record[key])
+                    if not math.isfinite(value):raise ValueError(f'Non-finite {key}')
+                    point[key]=value
             points[point['step']] = point
         updated = path.stat().st_mtime
     status = run / 'status.json'

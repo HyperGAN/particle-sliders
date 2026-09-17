@@ -33,12 +33,18 @@ passes the unipolar toy gates at 400 steps on seeds 0, 1, and 7. See the
 [recipe, proof, and metal trial command](unipolar-gan-plus-neu.md).
 Toy acceptance does not establish native audio quality.
 
-For the native stability trial, add `--propose_only_lr_scale .2` to either
-GAN recipe: both rates become 20% of their original values, preserving their
+For the native stability trial, add `--propose_only_lr_scale .2` to
+`unipolar_gan` or `gan_plus_neu`: both rates become 20% of their original values, preserving their
 ratio and schedule. Both fresh seed-7 runs completed 600 updates without the
 earlier collapse. This is an opt-in native transfer setting; defaults and
 the GAN objective are unchanged. See the [stability audit](yue2-gan-stability.md)
 for full curves, held-out results, rejected alternatives, and CPU tradeoffs.
+
+The separate opt-in `--recipe particle_bridge` adds the user-requested routed
+128×4 particle cloud and particle VIC, paired-error/noise critic, and EMA
+exports. It pins the model-glue reference rates and rejects the LR overrides
+above. The actual update passes both UNI toy cells at 3400/8000 on seeds 0/1/7,
+with live and EMA weights. See the [architecture and transfer audit](yue2-particle-bridge.md).
 
 ## Earlier plus-only unipolar RpGAN
 

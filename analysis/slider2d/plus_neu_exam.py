@@ -287,14 +287,14 @@ def score_plus_neu_residual(
 ) -> dict:
     """Score an already fitted student with the unchanged continuation gates.
 
-    ``residual`` supplies ``delta(scale)``. Keeping fitting separate lets
+    ``residual`` supplies ``delta(scale)`` or ``delta_for_row(scale, row)``.
+    The latter scores conditional adapters with the identical continuation gates.
+    Keeping fitting separate lets
     production update loops face exactly the same exam as the toy fits.
     """
     bags = plus_bags(field)
     neu_bag = neu_bags(field)
-    d_plus = residual.delta(1.0)
-    d_minus = residual.delta(-1.0)
-    d_zero = residual.delta(0.0)
+    delta = getattr(residual, 'delta_for_row', lambda scale, row: residual.delta(scale))
     overlap_rows: list[float] = []
     off_rows: list[float] = []
     blend_rows: list[float] = []
@@ -311,6 +311,7 @@ def score_plus_neu_residual(
     head = field.readout()
     for row in range(int(field.rows)):
         pos, neg, neu = field.poles(row)
+        d_plus, d_minus, d_zero = (delta(scale, row) for scale in (1., -1., 0.))
         mid = 0.5 * (pos + neg)
         student_plus = neu + d_plus
         student_minus = neu + d_minus
@@ -380,7 +381,7 @@ def score_plus_neu_residual(
         },
         "pole_cos": float(
             F.cosine_similarity(
-                d_plus.flatten().unsqueeze(0),
+                delta(1., 0).flatten().unsqueeze(0),
                 (field.poles(0)[0] - field.poles(0)[2]).flatten().unsqueeze(0),
             ).squeeze()
         ),

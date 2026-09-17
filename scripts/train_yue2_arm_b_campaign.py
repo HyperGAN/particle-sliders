@@ -19,7 +19,7 @@ from scripts.yue2_training_dashboard import publish_metrics
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
+    p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu','particle_bridge'],default='unipolar_gan')
     p.add_argument('--propose_only_c9_g4x',action='store_true')
     p.add_argument('--propose_only_lr_scale',type=float)
     p.add_argument('--include_canary',action='store_true')
@@ -33,6 +33,8 @@ def main(argv=None):
     p.add_argument('--prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml')
     p.add_argument('--eval_prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml')
     a=p.parse_args(argv)
+    if a.recipe=='particle_bridge' and (a.propose_only_c9_g4x or a.propose_only_lr_scale is not None):
+        p.error('Particle bridge pins the reference constant learning rates')
     if a.propose_only_c9_g4x and a.recipe!='unipolar_gan':p.error('c9_g4x requires --recipe unipolar_gan')
     if a.propose_only_lr_scale is not None and (not 0<a.propose_only_lr_scale<=1 or a.propose_only_c9_g4x):
         p.error('Native LR scale must be in (0, 1] and cannot combine with c9_g4x')

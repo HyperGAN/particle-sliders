@@ -59,6 +59,9 @@ def hidden_diagnostics(model,tokenizer,network,rows,include_canary=False):
 def page(output,rows,seeds,recipe='unipolar_gan',include_canary=False):
     title = 'YuE2 metal · GAN + neutral' if recipe == 'gan_plus_neu' else 'YuE2 metal · Unipolar GAN'
     detail = 'Trained with the +/0 conditional GAN.' if recipe == 'gan_plus_neu' else 'Trained only at +1.'
+    if recipe == 'particle_bridge':
+        title = 'YuE2 metal · Routed particle bridge'
+        detail = 'Paired-error GAN with routed particles and particle VIC; EMA weights. Trained at +1.'
     cards=[]
     for i,row in enumerate(rows):
         for seed in seeds:
@@ -87,7 +90,7 @@ def page(output,rows,seeds,recipe='unipolar_gan',include_canary=False):
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
+    p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu','particle_bridge'],default='unipolar_gan')
     p.add_argument('--include_canary',action='store_true',help='Render -1 as an unscored diagnostic')
     p.add_argument('--hidden_diagnostics',action='store_true',help='Record unscored held-out caption geometry')
     p.add_argument('--weights',type=Path,required=True)
@@ -106,6 +109,8 @@ def main(argv=None):
             device='cuda:0',backend='torch-eager',memory_budget_gib=18,quantization='none',offload_ar=False) as pipe:
         network,record=YuE2Slider.load(pipe._load_model(),args.weights)
         expected = PLUS_NEU_RECIPE if args.recipe == 'gan_plus_neu' else RECIPE
+        if args.recipe == 'particle_bridge':
+            from conceptmod.textsliders.yue2_particle_bridge import RECIPE as expected
         if record.get('recipe')!=expected['name'] or record.get('trained_scales')!=expected['trained_scales']:
             raise ValueError('Expected a unipolar GAN checkpoint; bipolar checkpoints are not accepted')
         if record['model_identity']!=pipe.weights['mot']:raise ValueError('Base model differs from training')

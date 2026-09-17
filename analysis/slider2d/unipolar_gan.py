@@ -72,18 +72,19 @@ def score_bipolar(field, residual):
     )
     from analysis.slider2d.field import cosine
     head = field.readout()
+    delta = getattr(residual, 'delta_for_row', lambda scale, row: residual.delta(scale))
     positive, negative, corpus = teacher_rollouts(field, head)
     def report(plus, minus):
         return rollout_report(field, plus, minus, readout=head,
             teacher_plus=positive, teacher_minus=negative, corpus=corpus)
-    row = report([field.poles(i)[2] + residual.delta(1.) for i in range(field.rows)],
-                 [field.poles(i)[2] + residual.delta(-1.) for i in range(field.rows)])
+    row = report([field.poles(i)[2] + delta(1., i) for i in range(field.rows)],
+                 [field.poles(i)[2] + delta(-1., i) for i in range(field.rows)])
     ceiling = report([field.poles(i)[0] for i in range(field.rows)],
                      [field.poles(i)[1] for i in range(field.rows)])
     row.update(name=NAME, teacher='faithful_plus_neu; trained +/0 only',
         roll_swing_kept=row['roll_swing'] / (abs(ceiling['roll_swing']) + 1e-8),
         roll_match_kept=row['roll_match'] / (teacher_self_match(positive, negative) + 1e-8),
-        collapse=cosine(residual.delta(1.), residual.delta(-1.)))
+        collapse=cosine(delta(1., 0), delta(-1., 0)))
     row['axis'] = exam_verdicts(row)
     row['pass'] = all(value == 'right' for value in row['axis'].values())
     row['reason'] = 'Same unipolar weights; negative endpoint was not trained'
