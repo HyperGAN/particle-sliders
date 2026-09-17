@@ -33,6 +33,13 @@ passes the unipolar toy gates at 400 steps on seeds 0, 1, and 7. See the
 [recipe, proof, and metal trial command](unipolar-gan-plus-neu.md).
 Toy acceptance does not establish native audio quality.
 
+For the native stability trial, add `--propose_only_lr_scale .2` to either
+GAN recipe: both rates become 20% of their original values, preserving their
+ratio and schedule. Both fresh seed-7 runs completed 600 updates without the
+earlier collapse. This is an opt-in native transfer setting; defaults and
+the GAN objective are unchanged. See the [stability audit](yue2-gan-stability.md)
+for full curves, held-out results, rejected alternatives, and CPU tradeoffs.
+
 ## Earlier plus-only unipolar RpGAN
 
 **Validation status (September 16): the 600-step GAN-only transfer is not

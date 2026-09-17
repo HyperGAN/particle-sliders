@@ -74,3 +74,16 @@ def test_current_600_step_production_update_is_rejected():
     assert all(r['checkpoints'][0]['cover'] < .85 for r in results)
     assert not accepted(results, steps=[600], seeds=[0])
     assert all(h['loss'] == h['g_adv'] for r in results for h in r['history'])
+
+
+def test_native_rate_audit_changes_actual_updates_without_mutating_defaults():
+    from conceptmod.textsliders import yue2_arm_b as game
+    before = deepcopy(game.RECIPE)
+    result = run_cell('divergent', steps=(2,), seed=7, lr_scale=.2)
+    assert result['recipe']['propose_only'] is True
+    assert result['recipe']['merge_to_trainer'] is False
+    for row in result['history']:
+        assert row['g_lr'] == pytest.approx(1e-4)
+        assert row['d_lr'] == pytest.approx(1.5e-4)
+        assert row['loss'] == row['g_adv']
+    assert game.RECIPE == before

@@ -1,0 +1,2932 @@
+{
+  "reference": "255BITS/ParticleGAN 100-Gaussians",
+  "reference_commit": "af1843a8a7a5e4387dad8b57430b6c222042cb8b",
+  "native_source": "e0bca28a105734c0d5ff5ddbfc97645a09725b0f",
+  "status": "two_native_600_step_campaigns_verified",
+  "component_rms": 0.2316150814294815,
+  "hidden_width": 2048,
+  "rejected_candidates": [
+    {
+      "name": "vector_rms",
+      "source": "c1b3115",
+      "status": "rejected_and_reverted",
+      "completed": 285,
+      "peak": {
+        "g_adv": 12.185333013534546,
+        "cos_pos": 0.09961861558258533,
+        "loss": 12.185333013534546,
+        "d_loss": 1.1661348342895508,
+        "d_pen": 0.011956984177231789,
+        "grad_norm": 4.163496090500115,
+        "penalty_center": 1.0,
+        "step": 255,
+        "rows": [
+          2,
+          3,
+          1,
+          0
+        ],
+        "step_seconds": 1.0957974630291574,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075
+      },
+      "min_cos_after10": {
+        "g_adv": 0.38776426017284393,
+        "cos_pos": -0.0344074871391058,
+        "loss": 0.38776426017284393,
+        "d_loss": 10.47070026397705,
+        "d_pen": 10.469928741455078,
+        "grad_norm": 0.13143784675106335,
+        "penalty_center": 1.0,
+        "step": 256,
+        "rows": [
+          2,
+          1,
+          3,
+          0
+        ],
+        "step_seconds": 1.0505559870507568,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075
+      },
+      "update_wall_hours": 0.10702109132091411
+    },
+    {
+      "name": "r1r2",
+      "source": "a01344e",
+      "status": "rejected_and_reverted",
+      "completed": 140,
+      "peak": {
+        "g_adv": 51.504079818725586,
+        "cos_pos": 0.5235850811004639,
+        "loss": 51.504079818725586,
+        "d_loss": 5.4701080322265625,
+        "d_pen": 0.6739864349365234,
+        "grad_norm": 57.166953643944254,
+        "penalty_center": 0.0,
+        "step": 93,
+        "rows": [
+          2,
+          0,
+          1,
+          3
+        ],
+        "step_seconds": 1.4320485399803147,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075
+      },
+      "min_cos_after10": {
+        "g_adv": 11.248147249221802,
+        "cos_pos": 0.37886713445186615,
+        "loss": 11.248147249221802,
+        "d_loss": 13.191104888916016,
+        "d_pen": 0.6811298727989197,
+        "grad_norm": 16.50636356391713,
+        "penalty_center": 0.0,
+        "step": 91,
+        "rows": [
+          3,
+          2,
+          1,
+          0
+        ],
+        "step_seconds": 1.5709237600094639,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075
+      },
+      "update_wall_hours": 0.04802966746449885
+    }
+  ],
+  "instrumented_replays": {
+    "control": {
+      "start": 301,
+      "end": 390,
+      "peak": {
+        "step": 371,
+        "g_adv": 666.9890899658203,
+        "cos_pos": 0.4323672875761986,
+        "loss": 666.9890899658203,
+        "d_loss": 50.14691925048828,
+        "d_pen": 1.1073837280273438,
+        "grad_norm": 364.71298381691486,
+        "penalty_center": 1.0,
+        "real_norm": 45.221832275390625,
+        "fake_norm": 201.52517700195312,
+        "error": 186.46128845214844,
+        "eager_checkpoint_max": 0.0,
+        "real_score": 56.162879943847656,
+        "real_slope": 1.9507458209991455,
+        "fake_score": 105.2024154663086,
+        "fake_slope": 2.1838748455047607,
+        "mid_score": 81.01597595214844,
+        "mid_slope": 2.154932975769043
+      },
+      "first_active_cap": {
+        "step": 370,
+        "g_adv": 151.54778289794922,
+        "cos_pos": 0.08767766691744328,
+        "loss": 151.54778289794922,
+        "d_loss": 22.71042251586914,
+        "d_pen": 0.027228649705648422,
+        "grad_norm": 262.98065300389874,
+        "penalty_center": 1.0,
+        "real_norm": 45.221832275390625,
+        "fake_norm": 57.432029724121094,
+        "error": 69.94143676757812,
+        "eager_checkpoint_max": 0.0,
+        "real_score": -20.084991455078125,
+        "real_slope": 1.260124683380127,
+        "fake_score": 2.5982017517089844,
+        "fake_slope": 1.0019882917404175,
+        "mid_score": -8.283581733703613,
+        "mid_slope": 1.2069669961929321
+      },
+      "eager_checkpoint_max": 0.0
+    },
+    "plus_neu": {
+      "start": 201,
+      "end": 245,
+      "peak": {
+        "step": 240,
+        "loss": 0.694190613925457,
+        "g_adv": 0.694190613925457,
+        "g_pos": 0.6952340453863144,
+        "g_zero": 0.6931471824645996,
+        "d_loss": 0.6935675144195557,
+        "d_pen": 0.0,
+        "cos_pos": 0.9918882101774216,
+        "zero_delta_norm": 0.0,
+        "grad_norm": 0.024545991330516066,
+        "penalty_center": 1.0,
+        "g_lr": 0.0003985937762656826,
+        "d_lr": 0.0003985937762656826,
+        "real_norm": 45.221832275390625,
+        "fake_norm": 46.46255874633789,
+        "error": 6.079035758972168,
+        "eager_checkpoint_max": 0.0,
+        "real_score": 0.09229353070259094,
+        "real_slope": 0.007447061128914356,
+        "fake_score": 0.0939738005399704,
+        "fake_slope": 0.007447061128914356,
+        "mid_score": 0.0931413322687149,
+        "mid_slope": 0.007447061128914356
+      },
+      "eager_checkpoint_max": 0.0
+    }
+  },
+  "matched_rate_replays": [
+    {
+      "name": "control",
+      "g_lr": 0.0005,
+      "d_lr": 0.00075,
+      "steps": 71,
+      "last": {
+        "step": 371,
+        "g_adv": 26.85690689086914,
+        "cos_pos": 0.8805121183395386,
+        "loss": 26.85690689086914,
+        "d_loss": 1.4094468355178833,
+        "d_pen": 0.0,
+        "grad_norm": 48.8710630677241,
+        "penalty_center": 1.0
+      },
+      "min_cos": 0.8805121183395386,
+      "max_loss": 26.85690689086914
+    },
+    {
+      "name": "g_5x_slower",
+      "g_lr": 0.0001,
+      "d_lr": 0.00075,
+      "steps": 200,
+      "last": {
+        "step": 500,
+        "g_adv": 0.7269434928894043,
+        "cos_pos": 0.9925172924995422,
+        "loss": 0.7269434928894043,
+        "d_loss": 0.6985881328582764,
+        "d_pen": 0.0,
+        "grad_norm": 1.0095092707765108,
+        "penalty_center": 1.0
+      },
+      "min_cos": 0.9902660995721817,
+      "max_loss": 0.8751533031463623
+    },
+    {
+      "name": "both_5x_slower",
+      "g_lr": 0.0001,
+      "d_lr": 0.00015,
+      "steps": 200,
+      "last": {
+        "step": 500,
+        "g_adv": 0.6998871713876724,
+        "cos_pos": 0.9905774593353271,
+        "loss": 0.6998871713876724,
+        "d_loss": 0.6905297040939331,
+        "d_pen": 0.0,
+        "grad_norm": 0.26498425160864963,
+        "penalty_center": 1.0
+      },
+      "min_cos": 0.989064946770668,
+      "max_loss": 0.7009682804346085
+    },
+    {
+      "name": "g_10x_slower",
+      "g_lr": 5e-05,
+      "d_lr": 0.00075,
+      "steps": 12,
+      "last": {
+        "step": 312,
+        "g_adv": 13.542858600616455,
+        "cos_pos": 0.9773447662591934,
+        "loss": 13.542858600616455,
+        "d_loss": 6.308643817901611,
+        "d_pen": 0.007697807624936104,
+        "grad_norm": 55.18678904988215,
+        "penalty_center": 1.0
+      },
+      "min_cos": 0.9773447662591934,
+      "max_loss": 13.542858600616455
+    }
+  ],
+  "rate_replay_runtime": {
+    "gpu_wall_hours": 0.15661522428194682
+  },
+  "toy_audits": {
+    "vector_rms": [
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 600,
+        "cover": 0.4778797526401839,
+        "off_caption": 0.0625,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 1200,
+        "cover": 0.6490792834156789,
+        "off_caption": 0.020833333333333332,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 3400,
+        "cover": 0.9302994725516412,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 400,
+        "cover": 0.9298752094474029,
+        "off_caption": 0.0,
+        "neu_hold": 0.9953359102274484,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "close",
+        "step": 600,
+        "cover": 0.5646239195685344,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "close",
+        "step": 1200,
+        "cover": 0.9235738119639437,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "close",
+        "step": 3400,
+        "cover": 0.9328578963337387,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 0,
+        "cell": "close",
+        "step": 400,
+        "cover": 0.9177517672678942,
+        "off_caption": 0.0,
+        "neu_hold": 0.9510908080449944,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 600,
+        "cover": 0.4798965138144025,
+        "off_caption": 0.041666666666666664,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 1200,
+        "cover": 0.6483532974782228,
+        "off_caption": 0.010416666666666666,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 3400,
+        "cover": 0.9305263494640985,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 400,
+        "cover": 0.9293614579270985,
+        "off_caption": 0.0,
+        "neu_hold": 0.9753885408806776,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "close",
+        "step": 600,
+        "cover": 0.564705512346342,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "close",
+        "step": 1200,
+        "cover": 0.9251895651570351,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "close",
+        "step": 3400,
+        "cover": 0.9329578231704851,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 1,
+        "cell": "close",
+        "step": 400,
+        "cover": 0.9227959943858958,
+        "off_caption": 0.0,
+        "neu_hold": 0.9800672852409714,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 600,
+        "cover": 0.47951162552575494,
+        "off_caption": 0.08333333333333333,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 1200,
+        "cover": 0.6496639446359227,
+        "off_caption": 0.010416666666666666,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 3400,
+        "cover": 0.930860738363901,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 400,
+        "cover": 0.9265640397738663,
+        "off_caption": 0.0,
+        "neu_hold": 0.9934266529081749,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "close",
+        "step": 600,
+        "cover": 0.5646548788541428,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "close",
+        "step": 1200,
+        "cover": 0.9239860729241022,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "close",
+        "step": 3400,
+        "cover": 0.9336045587613078,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 7,
+        "cell": "close",
+        "step": 400,
+        "cover": 0.9242207879970464,
+        "off_caption": 0.0,
+        "neu_hold": 0.955361874527608,
+        "hit": true
+      }
+    ],
+    "r1r2": [
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 600,
+        "cover": 0.4727035783002694,
+        "off_caption": 0.0625,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 1200,
+        "cover": 0.6093797451180096,
+        "off_caption": 0.020833333333333332,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 3400,
+        "cover": 0.9227705506155411,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 400,
+        "bipolar_hit": false,
+        "cover": 0.8970902162379746,
+        "off_caption": 0.0,
+        "neu_hold": 0.8507443606029682,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "close",
+        "step": 600,
+        "cover": 0.5306108609639786,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "close",
+        "step": 1200,
+        "cover": 0.8362590820385432,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "close",
+        "step": 3400,
+        "cover": 0.9345295501317361,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 0,
+        "cell": "close",
+        "step": 400,
+        "bipolar_hit": false,
+        "cover": 0.9302071108209028,
+        "off_caption": 0.0,
+        "neu_hold": 0.9714353379007038,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 600,
+        "cover": 0.47217904975590463,
+        "off_caption": 0.041666666666666664,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 1200,
+        "cover": 0.607695605211728,
+        "off_caption": 0.010416666666666666,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 3400,
+        "cover": 0.9226175011288738,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 400,
+        "bipolar_hit": false,
+        "cover": 0.8998620689785262,
+        "off_caption": 0.0,
+        "neu_hold": 0.8583420719270928,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "close",
+        "step": 600,
+        "cover": 0.5295988548346475,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "close",
+        "step": 1200,
+        "cover": 0.835510758956893,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "close",
+        "step": 3400,
+        "cover": 0.9344693873865065,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 1,
+        "cell": "close",
+        "step": 400,
+        "bipolar_hit": false,
+        "cover": 0.9304358651637594,
+        "off_caption": 0.0,
+        "neu_hold": 0.9732720155217693,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 600,
+        "cover": 0.47365877794723193,
+        "off_caption": 0.10416666666666667,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 1200,
+        "cover": 0.6105036905583338,
+        "off_caption": 0.020833333333333332,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 3400,
+        "cover": 0.9228946092626549,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 400,
+        "bipolar_hit": false,
+        "cover": 0.8964554735133489,
+        "off_caption": 0.0,
+        "neu_hold": 0.851994913087405,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "close",
+        "step": 600,
+        "cover": 0.5302030051686536,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "close",
+        "step": 1200,
+        "cover": 0.8361150871908024,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "close",
+        "step": 3400,
+        "cover": 0.9345261656565457,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 7,
+        "cell": "close",
+        "step": 400,
+        "bipolar_hit": false,
+        "cover": 0.930109511091214,
+        "off_caption": 0.0,
+        "neu_hold": 0.9710296931498522,
+        "hit": true
+      }
+    ],
+    "balanced_lr_scale_0.2": [
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 600,
+        "cover": 0.42013586193931135,
+        "off_caption": 0.2916666666666667,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 3400,
+        "cover": 0.503834014234189,
+        "off_caption": 0.07291666666666667,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 17000,
+        "cover": 0.9318206555702284,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 0,
+        "cell": "divergent",
+        "step": 2400,
+        "bipolar_hit": false,
+        "cover": 0.9313918109318969,
+        "off_caption": 0.0,
+        "neu_hold": 0.997917750949633,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "close",
+        "step": 600,
+        "cover": 0.40768787210260227,
+        "off_caption": 0.010416666666666666,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "close",
+        "step": 3400,
+        "cover": 0.660592356668846,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 0,
+        "cell": "close",
+        "step": 17000,
+        "cover": 0.9345809908638874,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 0,
+        "cell": "close",
+        "step": 2400,
+        "bipolar_hit": false,
+        "cover": 0.9345608419916448,
+        "off_caption": 0.0,
+        "neu_hold": 0.9994169161015023,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 600,
+        "cover": 0.4210697933828235,
+        "off_caption": 0.2708333333333333,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 3400,
+        "cover": 0.5048051727089794,
+        "off_caption": 0.010416666666666666,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 17000,
+        "cover": 0.9319216461791721,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 1,
+        "cell": "divergent",
+        "step": 2400,
+        "bipolar_hit": false,
+        "cover": 0.9318976217673556,
+        "off_caption": 0.0,
+        "neu_hold": 0.9993734676650255,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "close",
+        "step": 600,
+        "cover": 0.4080494777583216,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "close",
+        "step": 3400,
+        "cover": 0.6581099700575699,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 1,
+        "cell": "close",
+        "step": 17000,
+        "cover": 0.9345483019325873,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 1,
+        "cell": "close",
+        "step": 2400,
+        "bipolar_hit": false,
+        "cover": 0.934427067007413,
+        "off_caption": 0.0,
+        "neu_hold": 0.9987961905532331,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 600,
+        "cover": 0.41544426128611445,
+        "off_caption": 0.5,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 3400,
+        "cover": 0.5043835417041446,
+        "off_caption": 0.0625,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 17000,
+        "cover": 0.9317164855328858,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 7,
+        "cell": "divergent",
+        "step": 2400,
+        "bipolar_hit": false,
+        "cover": 0.9319257036912454,
+        "off_caption": 0.0,
+        "neu_hold": 0.9999094776957351,
+        "hit": true
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "close",
+        "step": 600,
+        "cover": 0.40749029020091204,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "close",
+        "step": 3400,
+        "cover": 0.6594030357747397,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": false
+      },
+      {
+        "recipe": "unipolar_gan",
+        "seed": 7,
+        "cell": "close",
+        "step": 17000,
+        "cover": 0.9346126248302834,
+        "off_caption": 0.0,
+        "neu_hold": 1.0,
+        "hit": true
+      },
+      {
+        "recipe": "gan_plus_neu",
+        "seed": 7,
+        "cell": "close",
+        "step": 2400,
+        "bipolar_hit": false,
+        "cover": 0.9345743366420113,
+        "off_caption": 0.0,
+        "neu_hold": 0.9998698115587387,
+        "hit": true
+      }
+    ]
+  },
+  "regression_tests_passed": 120,
+  "lr_scale": 0.2,
+  "merge_to_trainer": false,
+  "propose_only": true,
+  "canonical_board_split": {
+    "uni": {
+      "polarity": "uni",
+      "gates": {
+        "cover_min": 0.85,
+        "off_caption_max": 0.05,
+        "neu_hold_min": 0.85
+      },
+      "cells": {
+        "divergent": [
+          {
+            "name": "faithful_plus_neu",
+            "cell": "divergent",
+            "polarity": "uni",
+            "train": "plus+neu",
+            "objective": "supervised",
+            "propose_only": false,
+            "cover": 0.931980895716657,
+            "off_caption": 0.0,
+            "neu_hold": 0.9999999736430404,
+            "overlap_pos": 1.0,
+            "overlap_neu": 1.0,
+            "hit": true,
+            "eval_scales": [
+              0.0,
+              0.5,
+              1.0
+            ],
+            "half_scale": {
+              "scored": false,
+              "scale": 0.5,
+              "half_cover": 0.5021483965343742
+            },
+            "canary": {
+              "scored": false,
+              "minus_landed": "neu",
+              "minus_overlap_neg": 0.2916666666666667,
+              "minus_off_caption": 0.7083333333333334,
+              "dangerous": true
+            },
+            "antipodal_consulted": false
+          },
+          {
+            "name": "rpgan_bcap_plus_neu",
+            "cell": "divergent",
+            "polarity": "uni",
+            "train": "GAN +/0",
+            "objective": "rpgan_only",
+            "propose_only": true,
+            "cover": 0.9287899128410902,
+            "off_caption": 0.0,
+            "neu_hold": 0.9932126348737776,
+            "overlap_pos": 1.0,
+            "overlap_neu": 1.0,
+            "hit": true,
+            "eval_scales": [
+              0.0,
+              0.5,
+              1.0
+            ],
+            "half_scale": {
+              "scored": false,
+              "scale": 0.5,
+              "half_cover": 0.5020227315402751
+            },
+            "canary": {
+              "scored": false,
+              "minus_landed": "neu",
+              "minus_overlap_neg": 0.375,
+              "minus_off_caption": 0.625,
+              "dangerous": true
+            },
+            "antipodal_consulted": false
+          }
+        ],
+        "close": [
+          {
+            "name": "faithful_plus_neu",
+            "cell": "close",
+            "polarity": "uni",
+            "train": "plus+neu",
+            "objective": "supervised",
+            "propose_only": false,
+            "cover": 0.9347082616268442,
+            "off_caption": 0.0,
+            "neu_hold": 0.9999998695040779,
+            "overlap_pos": 1.0,
+            "overlap_neu": 1.0,
+            "hit": true,
+            "eval_scales": [
+              0.0,
+              0.5,
+              1.0
+            ],
+            "half_scale": {
+              "scored": false,
+              "scale": 0.5,
+              "half_cover": 0.5022409254723063
+            },
+            "canary": {
+              "scored": false,
+              "minus_landed": "neu",
+              "minus_overlap_neg": 1.0,
+              "minus_off_caption": 0.0,
+              "dangerous": false
+            },
+            "antipodal_consulted": false
+          },
+          {
+            "name": "rpgan_bcap_plus_neu",
+            "cell": "close",
+            "polarity": "uni",
+            "train": "GAN +/0",
+            "objective": "rpgan_only",
+            "propose_only": true,
+            "cover": 0.9265151624308139,
+            "off_caption": 0.0,
+            "neu_hold": 0.982017809790373,
+            "overlap_pos": 1.0,
+            "overlap_neu": 1.0,
+            "hit": true,
+            "eval_scales": [
+              0.0,
+              0.5,
+              1.0
+            ],
+            "half_scale": {
+              "scored": false,
+              "scale": 0.5,
+              "half_cover": 0.5035992691378186
+            },
+            "canary": {
+              "scored": false,
+              "minus_landed": "neu",
+              "minus_overlap_neg": 1.0,
+              "minus_off_caption": 0.0,
+              "dangerous": false
+            },
+            "antipodal_consulted": false
+          }
+        ],
+        "unused_e": [
+          {
+            "name": "faithful_plus_neu",
+            "cell": "unused_e",
+            "polarity": "uni",
+            "train": "plus+neu",
+            "objective": "supervised",
+            "propose_only": false,
+            "cover": 0.9319808880032175,
+            "off_caption": 0.0,
+            "neu_hold": 0.9999999823018669,
+            "overlap_pos": 1.0,
+            "overlap_neu": 1.0,
+            "hit": true,
+            "eval_scales": [
+              0.0,
+              0.5,
+              1.0
+            ],
+            "half_scale": {
+              "scored": false,
+              "scale": 0.5,
+              "half_cover": 0.5021483913113792
+            },
+            "canary": {
+              "scored": false,
+              "minus_landed": "neu",
+              "minus_overlap_neg": 0.375,
+              "minus_off_caption": 0.625,
+              "dangerous": true
+            },
+            "antipodal_consulted": false
+          },
+          {
+            "name": "rpgan_bcap_plus_neu",
+            "cell": "unused_e",
+            "polarity": "uni",
+            "train": "GAN +/0",
+            "objective": "rpgan_only",
+            "propose_only": true,
+            "cover": 0.928481893219551,
+            "off_caption": 0.0,
+            "neu_hold": 0.9862177712820527,
+            "overlap_pos": 1.0,
+            "overlap_neu": 1.0,
+            "hit": true,
+            "eval_scales": [
+              0.0,
+              0.5,
+              1.0
+            ],
+            "half_scale": {
+              "scored": false,
+              "scale": 0.5,
+              "half_cover": 0.502417949323815
+            },
+            "canary": {
+              "scored": false,
+              "minus_landed": "neu",
+              "minus_overlap_neg": 0.3333333333333333,
+              "minus_off_caption": 0.6666666666666666,
+              "dangerous": true
+            },
+            "antipodal_consulted": false
+          }
+        ]
+      }
+    },
+    "bi": {
+      "polarity": "bi",
+      "gates": {
+        "exam_continuation": "pass on the cell"
+      },
+      "cells": {
+        "divergent": [
+          {
+            "name": "rpgan_bcap_plus_neu",
+            "cell": "divergent",
+            "polarity": "bi",
+            "teacher": "faithful_plus_neu; trained +/0 only",
+            "pass": false,
+            "hit": false,
+            "roll_overlap": 0.6822916666666666,
+            "roll_swing_kept": 0.5677083276562501,
+            "roll_off_corpus": 0.19791666666666666,
+            "roll_coherence": 0.9464285714285715,
+            "leak_tok": null,
+            "sings_both_poles": "punk punk punk punk punk punk punk punk | punk hush hush hush hush hush hush hush | punk punk slam punk punk slam slam slam | female female hush punk hush punk female female | punk punk punk punk punk punk punk punk | male male male male male male male male",
+            "antipodal_collapse": -0.7285120487213135,
+            "antipodal_consulted": false,
+            "pair_odd_cos_logged": null,
+            "reason": "Same unipolar weights; negative endpoint was not trained"
+          }
+        ],
+        "close": [
+          {
+            "name": "rpgan_bcap_plus_neu",
+            "cell": "close",
+            "polarity": "bi",
+            "teacher": "faithful_plus_neu; trained +/0 only",
+            "pass": false,
+            "hit": false,
+            "roll_overlap": 0.8333333333333334,
+            "roll_swing_kept": 0.39306357945270476,
+            "roll_off_corpus": 0.0,
+            "roll_coherence": 0.9583333333333335,
+            "leak_tok": null,
+            "sings_both_poles": "slam slam slam slam slam slam slam slam | punk hush hush hush hush hush hush hush | punk punk slam slam slam slam slam slam | female female punk punk punk punk punk punk | slam slam slam slam slam slam slam slam | male male male male male male male male",
+            "antipodal_collapse": 0.4544154107570648,
+            "antipodal_consulted": false,
+            "pair_odd_cos_logged": null,
+            "reason": "Same unipolar weights; negative endpoint was not trained"
+          }
+        ],
+        "unused_e": [
+          {
+            "name": "rpgan_bcap_plus_neu",
+            "cell": "unused_e",
+            "polarity": "bi",
+            "teacher": "faithful_plus_neu; trained +/0 only",
+            "pass": false,
+            "hit": false,
+            "roll_overlap": 0.6145833333333334,
+            "roll_swing_kept": 0.3978494582587583,
+            "roll_off_corpus": 0.15625,
+            "roll_coherence": 0.9642857142857144,
+            "leak_tok": null,
+            "sings_both_poles": "slam slam slam slam slam slam slam slam | punk hush hush hush hush hush hush hush | male slam slam slam slam slam slam slam | female female punk punk punk punk punk punk | slam slam slam slam slam slam slam slam | male male male male male male male male",
+            "antipodal_collapse": 0.5694121718406677,
+            "antipodal_consulted": false,
+            "pair_odd_cos_logged": null,
+            "reason": "Same unipolar weights; negative endpoint was not trained"
+          }
+        ]
+      }
+    }
+  },
+  "native_verification": {
+    "verified": true,
+    "runs": [
+      {
+        "run": "uni",
+        "source": "e0bca28a105734c0d5ff5ddbfc97645a09725b0f",
+        "completed": 600,
+        "weights_sha256": "0114b2f7fcabfb6f1b0d4630261768f6c5830f82360dc3a72dd63b48dbea298d",
+        "final": {
+          "g_adv": 0.746795654296875,
+          "cos_pos": 0.9886128008365631,
+          "loss": 0.746795654296875,
+          "d_loss": 0.6883605122566223,
+          "d_pen": 0.0,
+          "grad_norm": 1.5073539278353039,
+          "penalty_center": 1.0,
+          "step": 600,
+          "rows": [
+            3,
+            1,
+            0,
+            2
+          ],
+          "step_seconds": 1.5306654459564015,
+          "g_lr": 0.0001,
+          "d_lr": 0.00015000000000000001
+        },
+        "peak": {
+          "g_adv": 3.9029213786125183,
+          "cos_pos": 0.5547191649675369,
+          "loss": 3.9029213786125183,
+          "d_loss": 0.0370476096868515,
+          "d_pen": 0.0003351307532284409,
+          "grad_norm": 7.507518509581723,
+          "penalty_center": 1.0,
+          "step": 5,
+          "rows": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "step_seconds": 1.4795158249908127,
+          "g_lr": 0.0001,
+          "d_lr": 0.00015000000000000001
+        },
+        "min_cos_after10": {
+          "g_adv": 3.2145283818244934,
+          "cos_pos": 0.8863243013620377,
+          "loss": 3.2145283818244934,
+          "d_loss": 0.20663215219974518,
+          "d_pen": 0.0,
+          "grad_norm": 14.523094449447203,
+          "penalty_center": 1.0,
+          "step": 11,
+          "rows": [
+            3,
+            2,
+            1,
+            0
+          ],
+          "step_seconds": 1.4909457560279407,
+          "g_lr": 0.0001,
+          "d_lr": 0.00015000000000000001
+        },
+        "max_cap": 0.026158984750509262,
+        "update_wall_hours": 0.19877133906257868,
+        "hidden": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.48325297236442566,
+              "orthogonal_ratio": 0.12268523871898651,
+              "target_relative_error": 0.5311112403869629,
+              "neutral_delta_norm": 5.2671403884887695,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9902743697166443,
+              "orthogonal_ratio": 0.19589075446128845,
+              "target_relative_error": 0.19613203406333923,
+              "neutral_delta_norm": 10.664193153381348,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": -1.0,
+              "canary": true,
+              "caption_projection": -0.729289174079895,
+              "orthogonal_ratio": 0.3561725616455078,
+              "target_relative_error": 1.7655876874923706,
+              "neutral_delta_norm": 8.574094772338867,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.44373834133148193,
+              "orthogonal_ratio": 0.13038118183612823,
+              "target_relative_error": 0.5713372826576233,
+              "neutral_delta_norm": 5.058114051818848,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9244531393051147,
+              "orthogonal_ratio": 0.16748015582561493,
+              "target_relative_error": 0.1837305873632431,
+              "neutral_delta_norm": 10.274903297424316,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": -1.0,
+              "canary": true,
+              "caption_projection": -0.6559662222862244,
+              "orthogonal_ratio": 0.3300081789493561,
+              "target_relative_error": 1.6885287761688232,
+              "neutral_delta_norm": 8.030710220336914,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored.",
+          "weights_sha256": "0114b2f7fcabfb6f1b0d4630261768f6c5830f82360dc3a72dd63b48dbea298d"
+        },
+        "audio": [
+          {
+            "path": "row-0-seed-1709/half",
+            "duration": 19.998666666666665,
+            "rms": 0.0677987443967239,
+            "sha256": "e6c4ff354cf90337ae26f2ab8419f636c395cbae7cc0d6933e6b564d33920868"
+          },
+          {
+            "path": "row-0-seed-1709/metal",
+            "duration": 19.998666666666665,
+            "rms": 0.10140594823293635,
+            "sha256": "998269b2c922de97865751c41a4789a346f187ce22d8d76c2189fe6f4dbb85f4"
+          },
+          {
+            "path": "row-0-seed-1709/metal-caption",
+            "duration": 19.998666666666665,
+            "rms": 0.15284028741409075,
+            "sha256": "2b478fa60853f1b02052bcf148ddf2f39b9fdedd5258a61a8e35ebb65e27f670"
+          },
+          {
+            "path": "row-0-seed-1709/minus-canary",
+            "duration": 19.998666666666665,
+            "rms": 0.1398722390299904,
+            "sha256": "6b23170ef0263da96badc9fdf6ddc2790dbd7ec28ce7cd837678a742612c0aa9"
+          },
+          {
+            "path": "row-0-seed-1709/off",
+            "duration": 19.998666666666665,
+            "rms": 0.13901581344889638,
+            "sha256": "c672f0623d9d902c2f9d23a985e2b5cf8ba2bd63f6952d6744048608a6cd78f7"
+          },
+          {
+            "path": "row-0-seed-2903/half",
+            "duration": 19.998666666666665,
+            "rms": 0.10982903134827769,
+            "sha256": "5988ad34dd31983cf2d6a86e6091a6332f15adf4f6aab2be7b51215eb2c94d6f"
+          },
+          {
+            "path": "row-0-seed-2903/metal",
+            "duration": 19.998666666666665,
+            "rms": 0.12739940189738957,
+            "sha256": "2c01d7a38871cf2971f00e6843730a8bea7594edabf7403057bdda556341a138"
+          },
+          {
+            "path": "row-0-seed-2903/metal-caption",
+            "duration": 19.998666666666665,
+            "rms": 0.07955767369332946,
+            "sha256": "7d0d6cb8c109bdcea64e266365472f407a7337258755169ef2f93f0e3e37da63"
+          },
+          {
+            "path": "row-0-seed-2903/minus-canary",
+            "duration": 19.998666666666665,
+            "rms": 0.1497201793425743,
+            "sha256": "4e91baf92eedcc5fb1a5f6654ea9ada0902303582e801b6431316e9dafbaade6"
+          },
+          {
+            "path": "row-0-seed-2903/off",
+            "duration": 19.998666666666665,
+            "rms": 0.1464564129136237,
+            "sha256": "ad86c44d8585068a0b51a6dcde2ce8a41de21ebadf3ee17be6af4fb970e6d7d9"
+          },
+          {
+            "path": "row-1-seed-1709/half",
+            "duration": 19.998666666666665,
+            "rms": 0.15251116757146152,
+            "sha256": "7419564c62cfdf53026c555d439a7189ee94c750e97350d5e61fd00094baf821"
+          },
+          {
+            "path": "row-1-seed-1709/metal",
+            "duration": 19.998666666666665,
+            "rms": 0.12895691641690898,
+            "sha256": "750ab9f8105d1b760ae57cbec0734a89467fc2c12022ead7dca2a86b6991b1f5"
+          },
+          {
+            "path": "row-1-seed-1709/metal-caption",
+            "duration": 19.998666666666665,
+            "rms": 0.11683070902759371,
+            "sha256": "6b338af11383b0465ed0f24cc0ea8319181df31bab346a4a44f5f0fb323972c1"
+          },
+          {
+            "path": "row-1-seed-1709/minus-canary",
+            "duration": 19.998666666666665,
+            "rms": 0.14394968784326737,
+            "sha256": "ef3dd181f31816a77d724002199698fa766462f6dbc9d416817785178661ae49"
+          },
+          {
+            "path": "row-1-seed-1709/off",
+            "duration": 19.998666666666665,
+            "rms": 0.14663531779807398,
+            "sha256": "1be43462a19ba51625c9921741cc3f1cccf389b87dfa644fb748ddf94a85e631"
+          },
+          {
+            "path": "row-1-seed-2903/half",
+            "duration": 19.998666666666665,
+            "rms": 0.14169411506451005,
+            "sha256": "ab5700176e604868355df61c32198b5eb87a5c9200f584405f4a70cd588ffde9"
+          },
+          {
+            "path": "row-1-seed-2903/metal",
+            "duration": 19.998666666666665,
+            "rms": 0.11703344506688301,
+            "sha256": "7bcd4f769e2d8273d0310226ff85a7f31b663618e7a300db94e9725808bf95b5"
+          },
+          {
+            "path": "row-1-seed-2903/metal-caption",
+            "duration": 19.998666666666665,
+            "rms": 0.09501542912980808,
+            "sha256": "2285acccda8ac05f783d8caea1d6e02ebf7e9e77848e1998641c3950be6f93dc"
+          },
+          {
+            "path": "row-1-seed-2903/minus-canary",
+            "duration": 19.998666666666665,
+            "rms": 0.13678036963134704,
+            "sha256": "ad1a6c4f10a93798f092ec794795d9ad51bd22a348e2bf6fb3ec032211989016"
+          },
+          {
+            "path": "row-1-seed-2903/off",
+            "duration": 19.998666666666665,
+            "rms": 0.11932480423120145,
+            "sha256": "6a4ac6c01657014136e6d266864fd0e2fb6a49e084dd6bca800a0011d7806d62"
+          }
+        ],
+        "old_reference_audio_identical": true
+      },
+      {
+        "run": "plus-neu",
+        "source": "e0bca28a105734c0d5ff5ddbfc97645a09725b0f",
+        "completed": 600,
+        "weights_sha256": "f28aa2f9bdac6f61f4624dfb0ab235309fdcba86a59a6794f43b0d413dd263f8",
+        "final": {
+          "loss": 0.6991809085011482,
+          "g_adv": 0.6991809085011482,
+          "g_pos": 0.7052146345376968,
+          "g_zero": 0.6931471824645996,
+          "d_loss": 0.6875316500663757,
+          "d_pen": 0.0,
+          "cos_pos": 0.9901780039072037,
+          "zero_delta_norm": 0.0,
+          "grad_norm": 0.11160302069149669,
+          "penalty_center": 1.0,
+          "g_lr": 5.000866872749815e-06,
+          "d_lr": 5.000866872749815e-06,
+          "step": 600,
+          "rows": [
+            3,
+            1,
+            0,
+            2
+          ],
+          "step_seconds": 1.4798040270106867
+        },
+        "peak": {
+          "loss": 1.0747309476137161,
+          "g_adv": 1.0747309476137161,
+          "g_pos": 1.4563147127628326,
+          "g_zero": 0.6931471824645996,
+          "d_loss": 0.5101445317268372,
+          "d_pen": 0.0,
+          "cos_pos": 0.7946823686361313,
+          "zero_delta_norm": 0.0,
+          "grad_norm": 0.6530046408220556,
+          "penalty_center": 1.0,
+          "g_lr": 0.0001,
+          "d_lr": 0.0001,
+          "step": 6,
+          "rows": [
+            2,
+            1,
+            0,
+            3
+          ],
+          "step_seconds": 1.6178272999823093
+        },
+        "min_cos_after10": {
+          "loss": 0.8849863857030869,
+          "g_adv": 0.8849863857030869,
+          "g_pos": 1.076825588941574,
+          "g_zero": 0.6931471824645996,
+          "d_loss": 0.598779559135437,
+          "d_pen": 0.0,
+          "cos_pos": 0.9058591574430466,
+          "zero_delta_norm": 0.0,
+          "grad_norm": 1.04824422170619,
+          "penalty_center": 1.0,
+          "g_lr": 0.0001,
+          "d_lr": 0.0001,
+          "step": 11,
+          "rows": [
+            3,
+            2,
+            1,
+            0
+          ],
+          "step_seconds": 1.5137538299895823
+        },
+        "max_cap": 0.0,
+        "update_wall_hours": 0.20257347291004002,
+        "hidden": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.491172194480896,
+              "orthogonal_ratio": 0.11707369238138199,
+              "target_relative_error": 0.5221225619316101,
+              "neutral_delta_norm": 5.334211826324463,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 1.00786292552948,
+              "orthogonal_ratio": 0.16623887419700623,
+              "target_relative_error": 0.1664247363805771,
+              "neutral_delta_norm": 10.791144371032715,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": -1.0,
+              "canary": true,
+              "caption_projection": -0.7167577743530273,
+              "orthogonal_ratio": 0.3569841980934143,
+              "target_relative_error": 1.7534807920455933,
+              "neutral_delta_norm": 8.459157943725586,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.43293213844299316,
+              "orthogonal_ratio": 0.12339435517787933,
+              "target_relative_error": 0.5803380012512207,
+              "neutral_delta_norm": 4.923346042633057,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9372154474258423,
+              "orthogonal_ratio": 0.15904180705547333,
+              "target_relative_error": 0.17098598182201385,
+              "neutral_delta_norm": 10.396434783935547,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": -1.0,
+              "canary": true,
+              "caption_projection": -0.6572791934013367,
+              "orthogonal_ratio": 0.32426196336746216,
+              "target_relative_error": 1.6887036561965942,
+              "neutral_delta_norm": 8.01554012298584,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored.",
+          "weights_sha256": "f28aa2f9bdac6f61f4624dfb0ab235309fdcba86a59a6794f43b0d413dd263f8"
+        },
+        "audio": [
+          {
+            "path": "row-0-seed-1709/half",
+            "duration": 19.998666666666665,
+            "rms": 0.08498945988279968,
+            "sha256": "b159f2008f1c837b1debe0659b4250de60e7635968fd4c50161ce7ff7d2afc35"
+          },
+          {
+            "path": "row-0-seed-1709/metal",
+            "duration": 19.998666666666665,
+            "rms": 0.10413000392200344,
+            "sha256": "131320fa4761839fe8ed2b9674e3a2a1a08ee160e9e9f62de1feeab391a8b7b0"
+          },
+          {
+            "path": "row-0-seed-1709/metal-caption",
+            "duration": 19.998666666666665,
+            "rms": 0.15284028741409075,
+            "sha256": "2b478fa60853f1b02052bcf148ddf2f39b9fdedd5258a61a8e35ebb65e27f670"
+          },
+          {
+            "path": "row-0-seed-1709/minus-canary",
+            "duration": 19.998666666666665,
+            "rms": 0.13343379297111924,
+            "sha256": "d6799c3255e6f871bb63651b739e6a5734e6b0026dc4e24c7e318cc16c4b6f6f"
+          },
+          {
+            "path": "row-0-seed-1709/off",
+            "duration": 19.998666666666665,
+            "rms": 0.13901581344889638,
+            "sha256": "c672f0623d9d902c2f9d23a985e2b5cf8ba2bd63f6952d6744048608a6cd78f7"
+          },
+          {
+            "path": "row-0-seed-2903/half",
+            "duration": 19.998666666666665,
+            "rms": 0.13009418073316162,
+            "sha256": "73ac2eb3c87568126b9fb346bada774a005ae751f19a72337b66ba5cb149fac8"
+          },
+          {
+            "path": "row-0-seed-2903/metal",
+            "duration": 19.998666666666665,
+            "rms": 0.16132090334272356,
+            "sha256": "3ffa67fbbbf74bbbf7ddcc86d0ec5c6b26a4dfd05f3c155559a7d5239e8bc503"
+          },
+          {
+            "path": "row-0-seed-2903/metal-caption",
+            "duration": 19.998666666666665,
+            "rms": 0.07955767369332946,
+            "sha256": "7d0d6cb8c109bdcea64e266365472f407a7337258755169ef2f93f0e3e37da63"
+          },
+          {
+            "path": "row-0-seed-2903/minus-canary",
+            "duration": 19.998666666666665,
+            "rms": 0.1521254338673117,
+            "sha256": "1869799fd57914b1168b292996461f5332c027b1ab85da9419a1c217aba07c26"
+          },
+          {
+            "path": "row-0-seed-2903/off",
+            "duration": 19.998666666666665,
+            "rms": 0.1464564129136237,
+            "sha256": "ad86c44d8585068a0b51a6dcde2ce8a41de21ebadf3ee17be6af4fb970e6d7d9"
+          },
+          {
+            "path": "row-1-seed-1709/half",
+            "duration": 19.998666666666665,
+            "rms": 0.09976415197372028,
+            "sha256": "ddb59c3b60ae2cf8d78027b624c9eb224f8810ba43d231855c7d549f1972b969"
+          },
+          {
+            "path": "row-1-seed-1709/metal",
+            "duration": 19.998666666666665,
+            "rms": 0.09931891209173285,
+            "sha256": "8254bf27590ad7b3bee790ad1a1da9408a2a5421cb01a31e621adb6a84610994"
+          },
+          {
+            "path": "row-1-seed-1709/metal-caption",
+            "duration": 19.998666666666665,
+            "rms": 0.11683070902759371,
+            "sha256": "6b338af11383b0465ed0f24cc0ea8319181df31bab346a4a44f5f0fb323972c1"
+          },
+          {
+            "path": "row-1-seed-1709/minus-canary",
+            "duration": 19.998666666666665,
+            "rms": 0.1443618469950055,
+            "sha256": "c00de2d11368c81da3bc191031feceb58039ee25657ef88ed3b71f2c598194aa"
+          },
+          {
+            "path": "row-1-seed-1709/off",
+            "duration": 19.998666666666665,
+            "rms": 0.14663531779807398,
+            "sha256": "1be43462a19ba51625c9921741cc3f1cccf389b87dfa644fb748ddf94a85e631"
+          },
+          {
+            "path": "row-1-seed-2903/half",
+            "duration": 19.998666666666665,
+            "rms": 0.0977995769502165,
+            "sha256": "0e01b02cd0f10acea5e6f8acae47a50132df66cae76e3081ea703ceb492d268e"
+          },
+          {
+            "path": "row-1-seed-2903/metal",
+            "duration": 19.998666666666665,
+            "rms": 0.09835155004461055,
+            "sha256": "e8b58a3f58128d3b177a91db7d226addfa4895de3b82a27f06b3dd2982b75b87"
+          },
+          {
+            "path": "row-1-seed-2903/metal-caption",
+            "duration": 19.998666666666665,
+            "rms": 0.09501542912980808,
+            "sha256": "2285acccda8ac05f783d8caea1d6e02ebf7e9e77848e1998641c3950be6f93dc"
+          },
+          {
+            "path": "row-1-seed-2903/minus-canary",
+            "duration": 19.998666666666665,
+            "rms": 0.14294590110794475,
+            "sha256": "e7da250778e6a03bc322b5e2fe69dd92d05f4e0f0b4d6ee4712dfe5992de6dc6"
+          },
+          {
+            "path": "row-1-seed-2903/off",
+            "duration": 19.998666666666665,
+            "rms": 0.11932480423120145,
+            "sha256": "6a4ac6c01657014136e6d266864fd0e2fb6a49e084dd6bca800a0011d7806d62"
+          }
+        ],
+        "old_reference_audio_identical": true
+      }
+    ]
+  },
+  "native_runtime": [
+    {
+      "label": "uni",
+      "returncode": 0,
+      "start": 1789615646.8505356,
+      "end": 1789617202.7034729,
+      "gpu_wall_hours": 0.4321813714504242
+    },
+    {
+      "label": "plus-neu",
+      "returncode": 0,
+      "start": 1789617202.7134821,
+      "end": 1789618738.3906739,
+      "gpu_wall_hours": 0.4265769977039761
+    }
+  ],
+  "native_comparison": [
+    {
+      "recipe": "uni",
+      "setting": "original",
+      "peak_g": 549.7572174072266,
+      "min_cos_after100": -0.10707254894077778,
+      "final_cos": 0.8786382377147675,
+      "target_relative_errors": [
+        0.539394199848175,
+        0.5083252787590027
+      ]
+    },
+    {
+      "recipe": "uni",
+      "setting": "20% LR",
+      "peak_g": 3.9029213786125183,
+      "min_cos_after100": 0.973908394575119,
+      "final_cos": 0.9886128008365631,
+      "target_relative_errors": [
+        0.19613203406333923,
+        0.1837305873632431
+      ]
+    },
+    {
+      "recipe": "plus-neu",
+      "setting": "original",
+      "peak_g": 10.809309959411621,
+      "min_cos_after100": 0.2611379027366638,
+      "final_cos": 0.9915658980607986,
+      "target_relative_errors": [
+        0.13616608083248138,
+        0.1756138652563095
+      ]
+    },
+    {
+      "recipe": "plus-neu",
+      "setting": "20% LR",
+      "peak_g": 1.0747309476137161,
+      "min_cos_after100": 0.9758293926715851,
+      "final_cos": 0.9901780039072037,
+      "target_relative_errors": [
+        0.1664247363805771,
+        0.17098598182201385
+      ]
+    }
+  ],
+  "argv": [
+    {
+      "label": "uni",
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "/ml2/music/.cache/sliders-yue2-native-lr-20260916/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "unipolar_gan",
+        "--propose_only_lr_scale",
+        ".2",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/metal-yue2-uni-native-lr-600-s7-20260916",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-metal-stability-20260916/native-lr-uni",
+        "--name",
+        "metal-yue2-uni-native-lr-600-s7-20260916",
+        "--steps",
+        "600",
+        "--seed",
+        "7",
+        "--gpu",
+        "1",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ],
+      "save_dir": "/ml2/music/sliders-conceptmod/models/metal-yue2-uni-native-lr-600-s7-20260916",
+      "g_lr": 0.0001,
+      "d_lr": 0.00015,
+      "source": "e0bca28a105734c0d5ff5ddbfc97645a09725b0f",
+      "seed": 7,
+      "steps": 600,
+      "lr_scale": 0.2,
+      "grad_arm": "b_cap",
+      "propose_only": true
+    },
+    {
+      "label": "plus-neu",
+      "argv": [
+        "/ml2/music/.cache/yue2-test-env/bin/python",
+        "/ml2/music/.cache/sliders-yue2-native-lr-20260916/scripts/train_yue2_arm_b_campaign.py",
+        "--recipe",
+        "gan_plus_neu",
+        "--propose_only_lr_scale",
+        ".2",
+        "--save_dir",
+        "/ml2/music/sliders-conceptmod/models/metal-yue2-plus-neu-native-lr-600-s7-20260916",
+        "--output_dir",
+        "/ml2/music/sliders-conceptmod/eval/listen/yue2-metal-stability-20260916/native-lr-plus-neu",
+        "--name",
+        "metal-yue2-plus-neu-native-lr-600-s7-20260916",
+        "--steps",
+        "600",
+        "--seed",
+        "7",
+        "--gpu",
+        "1",
+        "--include_canary",
+        "--hidden_diagnostics"
+      ],
+      "save_dir": "/ml2/music/sliders-conceptmod/models/metal-yue2-plus-neu-native-lr-600-s7-20260916",
+      "g_lr": 0.0001,
+      "d_lr": 0.0001,
+      "source": "e0bca28a105734c0d5ff5ddbfc97645a09725b0f",
+      "seed": 7,
+      "steps": 600,
+      "lr_scale": 0.2,
+      "grad_arm": "b_cap",
+      "propose_only": true
+    }
+  ],
+  "checkpoint_progress": {
+    "complete": true,
+    "source": "/ml2/music/.cache/sliders-yue2-native-lr-20260916",
+    "device": "CUDA_VISIBLE_DEVICES=1; cuda:0",
+    "seed": 7,
+    "start": 1789618787.410073,
+    "end": 1789618817.7621057,
+    "gpu_wall_hours": 0.008431120183732774,
+    "results": [
+      {
+        "label": "uni",
+        "step": 100,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-uni-native-lr-600-s7-20260916/metal-yue2-uni-native-lr-600-s7-20260916_step100.safetensors",
+        "sha256": "b72764a3a886724eb55c67c40b60ea5960e4b6c194059244493017c3a5069ab7",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.4990793764591217,
+              "orthogonal_ratio": 0.13929682970046997,
+              "target_relative_error": 0.5199279189109802,
+              "neutral_delta_norm": 5.4738945960998535,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9960328936576843,
+              "orthogonal_ratio": 0.2535003423690796,
+              "target_relative_error": 0.25353139638900757,
+              "neutral_delta_norm": 10.857754707336426,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.45929309725761414,
+              "orthogonal_ratio": 0.1430249959230423,
+              "target_relative_error": 0.5593031644821167,
+              "neutral_delta_norm": 5.2609944343566895,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9426085948944092,
+              "orthogonal_ratio": 0.230068176984787,
+              "target_relative_error": 0.23711839318275452,
+              "neutral_delta_norm": 10.611507415771484,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      },
+      {
+        "label": "uni",
+        "step": 200,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-uni-native-lr-600-s7-20260916/metal-yue2-uni-native-lr-600-s7-20260916_step200.safetensors",
+        "sha256": "eed070f4a3d80aa3bfe65b2b3c40edc8c3e1947355e8e83665f5aeffe51b9680",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.5031601190567017,
+              "orthogonal_ratio": 0.12631914019584656,
+              "target_relative_error": 0.5126463770866394,
+              "neutral_delta_norm": 5.480443477630615,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 1.0077661275863647,
+              "orthogonal_ratio": 0.20550280809402466,
+              "target_relative_error": 0.2056495100259781,
+              "neutral_delta_norm": 10.865357398986816,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.4642336070537567,
+              "orthogonal_ratio": 0.11966253072023392,
+              "target_relative_error": 0.5489669442176819,
+              "neutral_delta_norm": 5.243067264556885,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9441491365432739,
+              "orthogonal_ratio": 0.18607710301876068,
+              "target_relative_error": 0.19427818059921265,
+              "neutral_delta_norm": 10.524357795715332,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      },
+      {
+        "label": "uni",
+        "step": 300,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-uni-native-lr-600-s7-20260916/metal-yue2-uni-native-lr-600-s7-20260916_step300.safetensors",
+        "sha256": "78e7adf93d88a71b83a7e5f67c6b28be2c2ae62a1fa87f1f93f8e6b6107f8b92",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.48299404978752136,
+              "orthogonal_ratio": 0.12615475058555603,
+              "target_relative_error": 0.5321749448776245,
+              "neutral_delta_norm": 5.273632526397705,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9829502701759338,
+              "orthogonal_ratio": 0.1789323389530182,
+              "target_relative_error": 0.17974278330802917,
+              "neutral_delta_norm": 10.55474853515625,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.4463159143924713,
+              "orthogonal_ratio": 0.12430565059185028,
+              "target_relative_error": 0.5674663186073303,
+              "neutral_delta_norm": 5.066936016082764,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9182106852531433,
+              "orthogonal_ratio": 0.1999705582857132,
+              "target_relative_error": 0.21605026721954346,
+              "neutral_delta_norm": 10.277440071105957,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      },
+      {
+        "label": "uni",
+        "step": 400,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-uni-native-lr-600-s7-20260916/metal-yue2-uni-native-lr-600-s7-20260916_step400.safetensors",
+        "sha256": "02f7dbe9f59d85d0f24b093b4869bc3dc928ce9a3c14fdb3688868bd4b6a75fd",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.49030551314353943,
+              "orthogonal_ratio": 0.1250217854976654,
+              "target_relative_error": 0.524803638458252,
+              "neutral_delta_norm": 5.345430850982666,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 1.0092828273773193,
+              "orthogonal_ratio": 0.17208196222782135,
+              "target_relative_error": 0.17233215272426605,
+              "neutral_delta_norm": 10.816150665283203,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.4559403359889984,
+              "orthogonal_ratio": 0.12298841029405594,
+              "target_relative_error": 0.5577876567840576,
+              "neutral_delta_norm": 5.164641380310059,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9435135126113892,
+              "orthogonal_ratio": 0.172885462641716,
+              "target_relative_error": 0.18187937140464783,
+              "neutral_delta_norm": 10.490578651428223,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      },
+      {
+        "label": "uni",
+        "step": 500,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-uni-native-lr-600-s7-20260916/metal-yue2-uni-native-lr-600-s7-20260916_step500.safetensors",
+        "sha256": "775b58b5a2060f966871dc5669802b165b72f829f8cc7e0ea9d2ba50912bf2b8",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.4802415072917938,
+              "orthogonal_ratio": 0.12688837945461273,
+              "target_relative_error": 0.5350229144096375,
+              "neutral_delta_norm": 5.2474775314331055,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.991654098033905,
+              "orthogonal_ratio": 0.17166957259178162,
+              "target_relative_error": 0.1718723475933075,
+              "neutral_delta_norm": 10.631866455078125,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.4427310526371002,
+              "orthogonal_ratio": 0.11348766088485718,
+              "target_relative_error": 0.5687074661254883,
+              "neutral_delta_norm": 4.998495578765869,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9375600814819336,
+              "orthogonal_ratio": 0.15920472145080566,
+              "target_relative_error": 0.17101134359836578,
+              "neutral_delta_norm": 10.400449752807617,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      },
+      {
+        "label": "uni",
+        "step": 600,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-uni-native-lr-600-s7-20260916/metal-yue2-uni-native-lr-600-s7-20260916_step600.safetensors",
+        "sha256": "0114b2f7fcabfb6f1b0d4630261768f6c5830f82360dc3a72dd63b48dbea298d",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.48325297236442566,
+              "orthogonal_ratio": 0.12268523871898651,
+              "target_relative_error": 0.5311112403869629,
+              "neutral_delta_norm": 5.2671403884887695,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9902743697166443,
+              "orthogonal_ratio": 0.19589075446128845,
+              "target_relative_error": 0.19613203406333923,
+              "neutral_delta_norm": 10.664193153381348,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.44373834133148193,
+              "orthogonal_ratio": 0.13038118183612823,
+              "target_relative_error": 0.5713372826576233,
+              "neutral_delta_norm": 5.058114051818848,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9244531393051147,
+              "orthogonal_ratio": 0.16748015582561493,
+              "target_relative_error": 0.1837305873632431,
+              "neutral_delta_norm": 10.274903297424316,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      },
+      {
+        "label": "plus-neu",
+        "step": 100,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-plus-neu-native-lr-600-s7-20260916/metal-yue2-plus-neu-native-lr-600-s7-20260916_step100.safetensors",
+        "sha256": "f80116135e27a44ef74c822237e52a230a2c7efcf8a9ccddc5416d0127fa9e2e",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.49628564715385437,
+              "orthogonal_ratio": 0.13883666694164276,
+              "target_relative_error": 0.5224975347518921,
+              "neutral_delta_norm": 5.444161891937256,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9740345478057861,
+              "orthogonal_ratio": 0.247886523604393,
+              "target_relative_error": 0.24924270808696747,
+              "neutral_delta_norm": 10.617911338806152,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.45920321345329285,
+              "orthogonal_ratio": 0.13765183091163635,
+              "target_relative_error": 0.5580404996871948,
+              "neutral_delta_norm": 5.242880821228027,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9221773743629456,
+              "orthogonal_ratio": 0.22917801141738892,
+              "target_relative_error": 0.24203084409236908,
+              "neutral_delta_norm": 10.392215728759766,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      },
+      {
+        "label": "plus-neu",
+        "step": 200,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-plus-neu-native-lr-600-s7-20260916/metal-yue2-plus-neu-native-lr-600-s7-20260916_step200.safetensors",
+        "sha256": "71ddfd7fe84f0a874eeda2e789eeec3f8e4614fe39dc71d8385dff1029a672a3",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.48844391107559204,
+              "orthogonal_ratio": 0.13066700100898743,
+              "target_relative_error": 0.5279805660247803,
+              "neutral_delta_norm": 5.341476917266846,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9937833547592163,
+              "orthogonal_ratio": 0.18533162772655487,
+              "target_relative_error": 0.18543586134910583,
+              "neutral_delta_norm": 10.679547309875488,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.4596478044986725,
+              "orthogonal_ratio": 0.10917728394269943,
+              "target_relative_error": 0.5512714385986328,
+              "neutral_delta_norm": 5.166818618774414,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9383478164672852,
+              "orthogonal_ratio": 0.1737751066684723,
+              "target_relative_error": 0.18438757956027985,
+              "neutral_delta_norm": 10.43678092956543,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      },
+      {
+        "label": "plus-neu",
+        "step": 300,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-plus-neu-native-lr-600-s7-20260916/metal-yue2-plus-neu-native-lr-600-s7-20260916_step300.safetensors",
+        "sha256": "a091c4d8ec61441ea86336a29b6fd1cbdebbf8b2eee880664a9a974935402598",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.48788177967071533,
+              "orthogonal_ratio": 0.1072930097579956,
+              "target_relative_error": 0.523236870765686,
+              "neutral_delta_norm": 5.277251720428467,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9883962869644165,
+              "orthogonal_ratio": 0.1780042052268982,
+              "target_relative_error": 0.178382009267807,
+              "neutral_delta_norm": 10.609613418579102,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.4467342793941498,
+              "orthogonal_ratio": 0.11048822849988937,
+              "target_relative_error": 0.5641902685165405,
+              "neutral_delta_norm": 5.032940864562988,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9378588199615479,
+              "orthogonal_ratio": 0.16191065311431885,
+              "target_relative_error": 0.17342603206634521,
+              "neutral_delta_norm": 10.408663749694824,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      },
+      {
+        "label": "plus-neu",
+        "step": 400,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-plus-neu-native-lr-600-s7-20260916/metal-yue2-plus-neu-native-lr-600-s7-20260916_step400.safetensors",
+        "sha256": "88f21cada7a8a7c58ce3e5c9b24313d662f95f62502896ec4aa73ca8de3774c6",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.49405020475387573,
+              "orthogonal_ratio": 0.10902948677539825,
+              "target_relative_error": 0.517564058303833,
+              "neutral_delta_norm": 5.344837188720703,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9967324733734131,
+              "orthogonal_ratio": 0.1555979996919632,
+              "target_relative_error": 0.15563230216503143,
+              "neutral_delta_norm": 10.657230377197266,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.4526750445365906,
+              "orthogonal_ratio": 0.11092308908700943,
+              "target_relative_error": 0.5584519505500793,
+              "neutral_delta_norm": 5.097165584564209,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9230718016624451,
+              "orthogonal_ratio": 0.16518642008304596,
+              "target_relative_error": 0.18222102522850037,
+              "neutral_delta_norm": 10.255589485168457,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      },
+      {
+        "label": "plus-neu",
+        "step": 500,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-plus-neu-native-lr-600-s7-20260916/metal-yue2-plus-neu-native-lr-600-s7-20260916_step500.safetensors",
+        "sha256": "ee1f7662c435af2e64116980e7bb06b8ee92c60cc882538d76289a5b2054f785",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.49410492181777954,
+              "orthogonal_ratio": 0.11966072022914886,
+              "target_relative_error": 0.5198543071746826,
+              "neutral_delta_norm": 5.370721817016602,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9925709366798401,
+              "orthogonal_ratio": 0.16247519850730896,
+              "target_relative_error": 0.16264495253562927,
+              "neutral_delta_norm": 10.625288009643555,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.44854429364204407,
+              "orthogonal_ratio": 0.11172687262296677,
+              "target_relative_error": 0.5626600384712219,
+              "neutral_delta_norm": 5.055416584014893,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9339708089828491,
+              "orthogonal_ratio": 0.1688351184129715,
+              "target_relative_error": 0.1812874674797058,
+              "neutral_delta_norm": 10.379969596862793,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      },
+      {
+        "label": "plus-neu",
+        "step": 600,
+        "weights": "/ml2/music/sliders-conceptmod/models/metal-yue2-plus-neu-native-lr-600-s7-20260916/metal-yue2-plus-neu-native-lr-600-s7-20260916_step600.safetensors",
+        "sha256": "f28aa2f9bdac6f61f4624dfb0ab235309fdcba86a59a6794f43b0d413dd263f8",
+        "diagnostics": {
+          "kind": "unscored_hidden_geometry",
+          "records": [
+            {
+              "row": 0,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 0,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.491172194480896,
+              "orthogonal_ratio": 0.11707369238138199,
+              "target_relative_error": 0.5221225619316101,
+              "neutral_delta_norm": 5.334211826324463,
+              "zero_exact": null
+            },
+            {
+              "row": 0,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 1.00786292552948,
+              "orthogonal_ratio": 0.16623887419700623,
+              "target_relative_error": 0.1664247363805771,
+              "neutral_delta_norm": 10.791144371032715,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 0.0,
+              "canary": false,
+              "caption_projection": 0.0,
+              "orthogonal_ratio": 0.0,
+              "target_relative_error": 1.0,
+              "neutral_delta_norm": 0.0,
+              "zero_exact": true
+            },
+            {
+              "row": 1,
+              "scale": 0.5,
+              "canary": false,
+              "caption_projection": 0.43293213844299316,
+              "orthogonal_ratio": 0.12339435517787933,
+              "target_relative_error": 0.5803380012512207,
+              "neutral_delta_norm": 4.923346042633057,
+              "zero_exact": null
+            },
+            {
+              "row": 1,
+              "scale": 1.0,
+              "canary": false,
+              "caption_projection": 0.9372154474258423,
+              "orthogonal_ratio": 0.15904180705547333,
+              "target_relative_error": 0.17098598182201385,
+              "neutral_delta_norm": 10.396434783935547,
+              "zero_exact": null
+            }
+          ],
+          "definitions": {
+            "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+            "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+            "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+            "zero_exact": "bitwise equality with the base prompt state at scale zero"
+          },
+          "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored."
+        }
+      }
+    ],
+    "interpretation": "Production has its lowest mean held-out error among these checkpoints at step 500 (0.1715), then worsens at 600 (0.1899), despite increasing training cosine. The +/0 mean is almost unchanged from 400 (0.1689) to 600 (0.1687). Later updates therefore do not establish continued useful learning. Step 500 is a production candidate by this diagnostic, not an audio-quality winner or a new automatic selection gate."
+  }
+}

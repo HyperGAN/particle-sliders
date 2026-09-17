@@ -69,7 +69,7 @@ class ToyBackend:
 
 
 @isolated_seed('seed')
-def run_cell(cell, *, steps=(600, 1200, 3400), seed=0):
+def run_cell(cell, *, steps=(600, 1200, 3400), seed=0, lr_scale=None):
     if not steps or min(steps) < 1:
         raise ValueError('Positive step budgets required')
     field = PLUS_NEU_CELLS[cell](seed=seed)
@@ -80,13 +80,20 @@ def run_cell(cell, *, steps=(600, 1200, 3400), seed=0):
         positive, _, neutral = field.poles(i)
         rows.append(dict(ids=[i], prefix_len=1, neutral=neutral[None], targets=positive[None]))
     critic, g, d = game.build_game(backend, network, rows)
+    recipe = dict(game.RECIPE)
+    if lr_scale is not None:
+        from conceptmod.textsliders.train_lora_yue2_arm_b import parse_args, run_recipe, apply_run_lrs
+        args = parse_args(['--save_dir', 'unused', '--propose_only_lr_scale', str(lr_scale)])
+        recipe = run_recipe(args, game)
+        apply_run_lrs(g, d, recipe)
     checkpoints = []
     history = []
     for step in range(1, max(steps) + 1):
         order = torch.randperm(len(rows)).tolist()
         metrics = game.update(backend, network, critic, g, d,
                               [rows[i] for i in order], step=step, checkpointing=False)
-        history.append(dict(step=step, **metrics))
+        history.append(dict(step=step, g_lr=g.param_groups[0]['lr'],
+                            d_lr=d.param_groups[0]['lr'], **metrics))
         if step in steps:
             score = score_plus_neu_residual(
                 game.RECIPE['name'], field, network.snapshot(),
@@ -95,7 +102,7 @@ def run_cell(cell, *, steps=(600, 1200, 3400), seed=0):
             checkpoints.append(dict(step=step, **score))
     control = score_plus_neu_exam('main_supervised_control', field,
         teacher='faithful_plus_neu', plus_neu=True, steps=400, seed=seed)
-    return dict(cell=cell, seed=seed, batch=len(rows), recipe=dict(game.RECIPE),
+    return dict(cell=cell, seed=seed, batch=len(rows), recipe=recipe,
                 checkpoints=checkpoints, control=control, history=history)
 
 
@@ -124,13 +131,14 @@ def main(argv=None):
     parser.add_argument('--seeds', type=int, nargs='+', default=list(AUDIT_SEEDS))
     parser.add_argument('--cells', nargs='+', choices=tuple(PLUS_NEU_CELLS), default=['divergent', 'close'])
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--propose_only_lr_scale', type=float)
     args = parser.parse_args(argv)
     torch.set_num_threads(1)
     results = []
     args.out.parent.mkdir(parents=True, exist_ok=True)
     for seed in args.seeds:
         for cell in args.cells:
-            result = run_cell(cell, steps=tuple(args.steps), seed=seed)
+            result = run_cell(cell, steps=tuple(args.steps), seed=seed, lr_scale=args.propose_only_lr_scale)
             results.append(result)
             args.out.write_text(json.dumps(dict(results=results), indent=2, allow_nan=False) + '\n')
             for row in result['checkpoints']:

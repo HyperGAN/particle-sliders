@@ -117,6 +117,11 @@ All 16 held-out comparisons completed as valid, non-silent stereo 48 kHz
 clips (about 20 seconds each). Off/half/full outputs differ for every matched
 prompt/seed. All four off clips are byte-identical to the previous run's
 base-model renders, and the downloadable weights match the final checkpoint.
-Listening page: `eval/listen/yue2-metal-gan-plus-neu-600-20260916/` (the earlier
-`yue2-metal-arm-b-600-20260916/` URL also points to it). The earlier experiment
+Listening page: `eval/listen/yue2-metal-gan-plus-neu-600-20260916/`. The earlier experiment
 is preserved at `eval/listen/yue2-metal-unipolar-gan-600-20260916/`.
+
+The later [stability audit](yue2-gan-stability.md) tests the explicit
+`--propose_only_lr_scale .2` setting, including correct scheduler-base handling.
+The fresh seed-7 trial completed 600 updates without the earlier collapse;
+other seeds and longer runs remain unverified. The original recipe is unchanged.
+The `yue2-metal-arm-b-600-20260916/` bookmark now opens that comparison.
