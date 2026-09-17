@@ -44,26 +44,7 @@ def run_recipe(args, selected):
             raise ValueError('c9_g4x applies only to unipolar_gan')
         recipe.update(g_lr=.002, d_lr=.003, ablation='c9_g4x',
                       propose_only=True, merge_to_trainer=False)
-    if args.propose_only_vector_rms:
-        recipe.update(cap_coordinates='fixed_teacher_vector_rms',
-                      critic_coordinates='fixed_teacher_vector_rms',
-                      propose_only=True, merge_to_trainer=False)
     return recipe
-
-
-def apply_run_coordinates(critic, fixed, recipe):
-    """Use one fixed vector scale for both critic scores and its L2 cap.
-
-    Component RMS gives a typical teacher length sqrt(hidden_size). Vector
-    RMS gives length one, independent of width, without normalizing each
-    example or removing magnitude information. Keep the historical default.
-    """
-    if recipe.get('critic_coordinates') == 'fixed_teacher_vector_rms':
-        real = torch.cat([r['targets'] - r['neutral'] for r in fixed]).float()
-        scale = real.square().sum(-1).mean().sqrt()
-        if not torch.isfinite(scale) or scale <= 0:
-            raise ValueError('Teacher must have finite, nonzero vector RMS')
-        critic.input_scale.copy_(scale.to(critic.input_scale))
 
 
 def apply_run_lrs(g, d, recipe):
@@ -111,7 +92,6 @@ def _train_locked(args,rows,meta,game):
     fixed=saved['prepared'] if saved else game.prepare(backend,rows,meta,args.max_seq_len)
     network=YuE2Slider(backend.model,rank=8,alpha=8.)
     critic,g,d=game.build_game(backend,network,fixed)
-    apply_run_coordinates(critic,fixed,recipe)
     apply_run_lrs(g,d,recipe)
     device=next(backend.model.parameters()).device
     sampler=RowSampler(len(rows),args.seed)
@@ -198,8 +178,6 @@ def parse_args(argv=None):
     p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
     p.add_argument('--propose_only_c9_g4x',action='store_true',
         help='Explicit LR-only trial: G 0.002 / D 0.003; production defaults unchanged')
-    p.add_argument('--propose_only_vector_rms',action='store_true',
-        help='Explicit critic-coordinate trial: fixed teacher vector RMS for scores and L2 cap')
     p.add_argument('--name',default='metal-yue2-arm-b')
     p.add_argument('--prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml')
     p.add_argument('--save_dir',type=Path,required=True)
