@@ -44,6 +44,13 @@ def run_recipe(args, selected):
             raise ValueError('c9_g4x applies only to unipolar_gan')
         recipe.update(g_lr=.002, d_lr=.003, ablation='c9_g4x',
                       propose_only=True, merge_to_trainer=False)
+    if args.propose_only_lr_scale is not None:
+        scale = args.propose_only_lr_scale
+        if not 0 < scale <= 1 or args.propose_only_c9_g4x:
+            raise ValueError('Native LR scale must be in (0, 1] and cannot combine with c9_g4x')
+        recipe.update(g_lr=recipe['g_lr'] * scale, d_lr=recipe['d_lr'] * scale,
+                      ablation='native_lr_scale', lr_scale=scale,
+                      propose_only=True, merge_to_trainer=False)
     return recipe
 
 
@@ -51,6 +58,10 @@ def apply_run_lrs(g, d, recipe):
     for optimizer, key in ((g, 'g_lr'), (d, 'd_lr')):
         for group in optimizer.param_groups:
             group['lr'] = recipe[key]
+            # The +/0 schedule reads initial_lr on every update. An override
+            # must set its base too, or step one silently undoes the override.
+            if 'initial_lr' in group:
+                group['initial_lr'] = recipe[key]
 
 
 def train(args):
@@ -178,6 +189,8 @@ def parse_args(argv=None):
     p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
     p.add_argument('--propose_only_c9_g4x',action='store_true',
         help='Explicit LR-only trial: G 0.002 / D 0.003; production defaults unchanged')
+    p.add_argument('--propose_only_lr_scale',type=float,
+        help='Explicit native transfer: scale both learning rates, retaining the recipe ratio and schedule')
     p.add_argument('--name',default='metal-yue2-arm-b')
     p.add_argument('--prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml')
     p.add_argument('--save_dir',type=Path,required=True)
@@ -192,6 +205,8 @@ def parse_args(argv=None):
     p.add_argument('--no_checkpointing',action='store_true')
     a=p.parse_args(argv);a.until=a.steps if a.until is None else a.until
     if a.propose_only_c9_g4x and a.recipe!='unipolar_gan':p.error('c9_g4x requires --recipe unipolar_gan')
+    if a.propose_only_lr_scale is not None and (not 0<a.propose_only_lr_scale<=1 or a.propose_only_c9_g4x):
+        p.error('Native LR scale must be in (0, 1] and cannot combine with c9_g4x')
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*',a.name):p.error('Invalid checkpoint name')
     if not 1<=a.until<=a.steps or min(a.save_every,a.max_seq_len)<1:p.error('Invalid budget')
     if not 0<=a.seed<2**63:p.error('Invalid seed')

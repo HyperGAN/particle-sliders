@@ -162,21 +162,23 @@ def same(a,b):
     return a==b
 
 
-@pytest.mark.parametrize('c9',[False,True])
-def test_resume_exact_prompt_batches_and_reject_recipe_change(tmp_path,monkeypatch,c9):
+@pytest.mark.parametrize('trial',['default','c9','native_lr'])
+def test_resume_exact_prompt_batches_and_reject_recipe_change(tmp_path,monkeypatch,trial):
     def no_sampling(*args,**kwargs):raise AssertionError('Prompt-state GAN must not sample audio')
     monkeypatch.setattr(YuE2Backend,'continuation',no_sampling)
     prompts=tmp_path/'prompts.yaml';prompts.write_text(yaml.safe_dump(dict(rows=rows())))
     common=['--dummy','--prompts_file',str(prompts),'--steps','2']
-    if c9:common.append('--propose_only_c9_g4x')
+    if trial=='c9':common.append('--propose_only_c9_g4x')
+    if trial=='native_lr':common.extend(['--propose_only_lr_scale','.2'])
     full=tmp_path/'full';split=tmp_path/'split'
     train(parse_args(common+['--save_dir',str(full)]))
     train(parse_args(common+['--save_dir',str(split),'--until','1']))
     train(parse_args(common+['--save_dir',str(split)]))
     a=torch.load(full/'state.pt',weights_only=True);b=torch.load(split/'state.pt',weights_only=True)
     for key in ['network','critic','g_optimizer','d_optimizer','sampler','rng']:assert same(a[key],b[key]),key
-    assert a['g_optimizer']['param_groups'][0]['lr']==(.002 if c9 else .0005)
-    assert a['d_optimizer']['param_groups'][0]['lr']==(.003 if c9 else .00075)
+    expected_g,expected_d={'default':(.0005,.00075),'c9':(.002,.003),'native_lr':(.0001,.00015)}[trial]
+    assert a['g_optimizer']['param_groups'][0]['lr']==pytest.approx(expected_g)
+    assert a['d_optimizer']['param_groups'][0]['lr']==pytest.approx(expected_d)
     assert all(sorted(h['rows'])==[0,1,2,3] for h in b['history'])
     assert a['history'][0]['rows']!=a['history'][1]['rows']
     assert all(h['loss']==h['g_adv'] for h in b['history'])
@@ -187,9 +189,12 @@ def test_resume_exact_prompt_batches_and_reject_recipe_change(tmp_path,monkeypat
     assert (split/'state-step2.pt').stat().st_mtime_ns==before
     with pytest.raises(ValueError,match='Resume'):
         train(parse_args(common+['--save_dir',str(split),'--seed','8']))
-    if c9:
+    if trial=='c9':
         with pytest.raises(ValueError,match='Resume'):
             train(parse_args([v for v in common if v!='--propose_only_c9_g4x']+['--save_dir',str(split)]))
+    if trial=='native_lr':
+        with pytest.raises(ValueError,match='Resume'):
+            train(parse_args([v for v in common if v not in {'--propose_only_lr_scale','.2'}]+['--save_dir',str(split)]))
 
 
 def test_prompt_loader_rejects_negative_teachers_and_bipolar_metadata(tmp_path):

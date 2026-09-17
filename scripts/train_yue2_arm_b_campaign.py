@@ -21,6 +21,7 @@ def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--recipe',choices=['unipolar_gan','gan_plus_neu'],default='unipolar_gan')
     p.add_argument('--propose_only_c9_g4x',action='store_true')
+    p.add_argument('--propose_only_lr_scale',type=float)
     p.add_argument('--include_canary',action='store_true')
     p.add_argument('--hidden_diagnostics',action='store_true')
     p.add_argument('--seed',type=int,default=7)
@@ -33,6 +34,8 @@ def main(argv=None):
     p.add_argument('--eval_prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml')
     a=p.parse_args(argv)
     if a.propose_only_c9_g4x and a.recipe!='unipolar_gan':p.error('c9_g4x requires --recipe unipolar_gan')
+    if a.propose_only_lr_scale is not None and (not 0<a.propose_only_lr_scale<=1 or a.propose_only_c9_g4x):
+        p.error('Native LR scale must be in (0, 1] and cannot combine with c9_g4x')
     a.save_dir=a.save_dir.resolve();a.output_dir=a.output_dir.resolve()
     a.save_dir.mkdir(parents=True,exist_ok=True);a.output_dir.mkdir(parents=True,exist_ok=True)
     env=dict(os.environ,CUDA_VISIBLE_DEVICES=a.gpu,HF_HOME=os.getenv('HF_HOME','/ml2/music/.cache/huggingface'),
@@ -72,7 +75,8 @@ def main(argv=None):
             command([sys.executable,'-u',str(ROOT/'conceptmod/textsliders/train_lora_yue2_arm_b.py'),
                 '--recipe',a.recipe,'--save_dir',str(a.save_dir),'--name',a.name,'--steps',str(a.steps),
                 '--seed',str(a.seed),'--device','cuda:0','--prompts_file',str(a.prompts_file)]
-                +(['--propose_only_c9_g4x'] if a.propose_only_c9_g4x else []),'training')
+                +(['--propose_only_c9_g4x'] if a.propose_only_c9_g4x else [])
+                +(['--propose_only_lr_scale',str(a.propose_only_lr_scale)] if a.propose_only_lr_scale is not None else []),'training')
             command([sys.executable,'-u',str(ROOT/'scripts/evaluate_yue2_arm_b.py'),
                 '--recipe',a.recipe,
                 '--weights',str(a.save_dir/f'{a.name}_last.safetensors'),'--prompts_file',str(a.eval_prompts_file),

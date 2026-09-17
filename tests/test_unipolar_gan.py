@@ -122,7 +122,8 @@ def test_native_checkpointed_gradients_and_exact_zero():
         assert torch.equal(a.hidden(fixed[0]['prefix'])[:, -1].float(), fixed[0]['neutral'])
 
 
-def test_native_resume_is_exact_and_schedule_horizon_is_pinned(tmp_path, monkeypatch):
+@pytest.mark.parametrize('native_lr', [False, True])
+def test_native_resume_is_exact_and_schedule_horizon_is_pinned(tmp_path, monkeypatch, native_lr):
     pytest.importorskip('yue2')
     from conceptmod.textsliders.train_lora_yue2_arm_b import train, parse_args
     from conceptmod.textsliders.yue2_backend import YuE2Backend
@@ -130,6 +131,7 @@ def test_native_resume_is_exact_and_schedule_horizon_is_pinned(tmp_path, monkeyp
     monkeypatch.setattr(YuE2Backend, 'continuation', no_sampling)
     prompts = tmp_path / 'prompts.yaml'; prompts.write_text(yaml.safe_dump(dict(rows=rows())))
     common = ['--dummy', '--recipe', 'gan_plus_neu', '--steps', '3', '--prompts_file', str(prompts)]
+    if native_lr: common.extend(['--propose_only_lr_scale', '.2'])
     full, split = tmp_path/'full', tmp_path/'split'
     train(parse_args(common + ['--save_dir', str(full)]))
     train(parse_args(common + ['--save_dir', str(split), '--until', '1']))
@@ -144,3 +146,6 @@ def test_native_resume_is_exact_and_schedule_horizon_is_pinned(tmp_path, monkeyp
         assert same(a[key], b[key]), key
     with pytest.raises(ValueError, match='Resume'):
         train(parse_args(common + ['--save_dir', str(split), '--steps', '4']))
+    if native_lr:
+        with pytest.raises(ValueError, match='Resume'):
+            train(parse_args([v for v in common if v not in {'--propose_only_lr_scale', '.2'}] + ['--save_dir', str(split)]))
