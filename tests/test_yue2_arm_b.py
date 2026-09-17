@@ -163,12 +163,14 @@ def same(a,b):
 
 
 @pytest.mark.parametrize('c9',[False,True])
-def test_resume_exact_prompt_batches_and_reject_recipe_change(tmp_path,monkeypatch,c9):
+@pytest.mark.parametrize('vector_rms',[False,True])
+def test_resume_exact_prompt_batches_and_reject_recipe_change(tmp_path,monkeypatch,c9,vector_rms):
     def no_sampling(*args,**kwargs):raise AssertionError('Prompt-state GAN must not sample audio')
     monkeypatch.setattr(YuE2Backend,'continuation',no_sampling)
     prompts=tmp_path/'prompts.yaml';prompts.write_text(yaml.safe_dump(dict(rows=rows())))
     common=['--dummy','--prompts_file',str(prompts),'--steps','2']
     if c9:common.append('--propose_only_c9_g4x')
+    if vector_rms:common.append('--propose_only_vector_rms')
     full=tmp_path/'full';split=tmp_path/'split'
     train(parse_args(common+['--save_dir',str(full)]))
     train(parse_args(common+['--save_dir',str(split),'--until','1']))
@@ -190,6 +192,9 @@ def test_resume_exact_prompt_batches_and_reject_recipe_change(tmp_path,monkeypat
     if c9:
         with pytest.raises(ValueError,match='Resume'):
             train(parse_args([v for v in common if v!='--propose_only_c9_g4x']+['--save_dir',str(split)]))
+    if vector_rms:
+        with pytest.raises(ValueError,match='Resume'):
+            train(parse_args([v for v in common if v!='--propose_only_vector_rms']+['--save_dir',str(split)]))
 
 
 def test_prompt_loader_rejects_negative_teachers_and_bipolar_metadata(tmp_path):
