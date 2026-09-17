@@ -1,0 +1,349 @@
+{
+  "completed": 20,
+  "source": "2067705",
+  "sources_match": true,
+  "exports_match_live_and_ema": true,
+  "peak_g_adv": 4.214633762836456,
+  "final_cos_pos": 0.9507812475785613,
+  "lowest_cos_after_step2": 0.8322603171691298,
+  "gpu_compute_hours": 0.028261352321973795,
+  "teacher_normalization": {
+    "training_rows": 4,
+    "dimensions": 2048,
+    "std_min": 0.004536901134997606,
+    "std_median": 0.052480582147836685,
+    "std_max": 0.3119787275791168,
+    "floor_count": 0
+  },
+  "last": {
+    "loss": 3.823627509176731,
+    "g_adv": 3.7654380202293396,
+    "particle_vic": 0.05818948894739151,
+    "d_loss": 0.0441107302904129,
+    "d_adv": 0.0441107302904129,
+    "d_pen": 0.0,
+    "grad_norm": 13.089495725064372,
+    "particle_grad_norm": 0.06467178850751108,
+    "particle_gan_grad_norm": 0.006171893713189378,
+    "noise_std": 0.9912719180583112,
+    "penalty_center": 1.0,
+    "cos_pos": 0.9507812475785613,
+    "step": 20,
+    "rows": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "step_seconds": 3.1920958200353198,
+    "g_lr": 0.0006,
+    "d_lr": 0.0009,
+    "particle_lr": 0.006
+  },
+  "held_out": {
+    "kind": "unscored_hidden_geometry",
+    "records": [
+      {
+        "row": 0,
+        "scale": 0.0,
+        "canary": false,
+        "caption_projection": 0.0,
+        "orthogonal_ratio": 0.0,
+        "target_relative_error": 1.0,
+        "neutral_delta_norm": 0.0,
+        "zero_exact": true
+      },
+      {
+        "row": 0,
+        "scale": 0.5,
+        "canary": false,
+        "caption_projection": 0.028946775943040848,
+        "orthogonal_ratio": 0.06548461318016052,
+        "target_relative_error": 0.9732586741447449,
+        "neutral_delta_norm": 0.7563677430152893,
+        "zero_exact": null
+      },
+      {
+        "row": 0,
+        "scale": 1.0,
+        "canary": false,
+        "caption_projection": 0.055331751704216,
+        "orthogonal_ratio": 0.058208633214235306,
+        "target_relative_error": 0.9464598298072815,
+        "neutral_delta_norm": 0.8484222888946533,
+        "zero_exact": null
+      },
+      {
+        "row": 0,
+        "scale": -1.0,
+        "canary": true,
+        "caption_projection": -0.04512430354952812,
+        "orthogonal_ratio": 0.054498862475156784,
+        "target_relative_error": 1.0465441942214966,
+        "neutral_delta_norm": 0.7474755644798279,
+        "zero_exact": null
+      },
+      {
+        "row": 1,
+        "scale": 0.0,
+        "canary": false,
+        "caption_projection": 0.0,
+        "orthogonal_ratio": 0.0,
+        "target_relative_error": 1.0,
+        "neutral_delta_norm": 0.0,
+        "zero_exact": true
+      },
+      {
+        "row": 1,
+        "scale": 0.5,
+        "canary": false,
+        "caption_projection": 0.013539327308535576,
+        "orthogonal_ratio": 0.05746423080563545,
+        "target_relative_error": 0.9881329536437988,
+        "neutral_delta_norm": 0.6456686854362488,
+        "zero_exact": null
+      },
+      {
+        "row": 1,
+        "scale": 1.0,
+        "canary": false,
+        "caption_projection": 0.052460622042417526,
+        "orthogonal_ratio": 0.0401068776845932,
+        "target_relative_error": 0.9483877420425415,
+        "neutral_delta_norm": 0.7221996784210205,
+        "zero_exact": null
+      },
+      {
+        "row": 1,
+        "scale": -1.0,
+        "canary": true,
+        "caption_projection": -0.03801355138421059,
+        "orthogonal_ratio": 0.05544624850153923,
+        "target_relative_error": 1.0394933223724365,
+        "neutral_delta_norm": 0.7352187633514404,
+        "zero_exact": null
+      }
+    ],
+    "definitions": {
+      "caption_projection": "dot(student-neutral, positive-neutral) / ||positive-neutral||^2",
+      "orthogonal_ratio": "norm of residual orthogonal to caption delta / norm of caption delta",
+      "target_relative_error": "norm(student-positive) / norm(positive-neutral)",
+      "zero_exact": "bitwise equality with the base prompt state at scale zero"
+    },
+    "limitation": "Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored.",
+    "weights_sha256": "1d61736577a9cea7a09013ef506fb3698595090c499c0ba55e7123bb05df914f"
+  },
+  "generation_checks": [
+    {
+      "path": "preflight-20/row-0-seed-1709/half/evaluation.json",
+      "request": {
+        "weights_sha256": "1d61736577a9cea7a09013ef506fb3698595090c499c0ba55e7123bb05df914f",
+        "scale": 0.5,
+        "style": "English. BPM 120. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing, no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.",
+        "lyrics": "[verse]\nThe fabric hangs across the doorway\nA silver pin is in the seam\nWe turn the pattern on the table\nAnd measure twice across the sleeve\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way",
+        "seed": 1709,
+        "max_tokens": 32,
+        "backend": "torch-eager",
+        "cot": "off"
+      },
+      "duration": 1.2786666666666666,
+      "rms": 0.08561239301930755,
+      "clipped_fraction": 0.0,
+      "truncated": {
+        "abc": false,
+        "semantic": true
+      },
+      "audio_sha256": "482b7275ec8a9161bdcae953f309355d36665d1cfbc7ab0a46b9706cf1cdd28c"
+    },
+    {
+      "path": "preflight-20/row-0-seed-1709/metal/evaluation.json",
+      "request": {
+        "weights_sha256": "1d61736577a9cea7a09013ef506fb3698595090c499c0ba55e7123bb05df914f",
+        "scale": 1.0,
+        "style": "English. BPM 120. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing, no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.",
+        "lyrics": "[verse]\nThe fabric hangs across the doorway\nA silver pin is in the seam\nWe turn the pattern on the table\nAnd measure twice across the sleeve\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way",
+        "seed": 1709,
+        "max_tokens": 32,
+        "backend": "torch-eager",
+        "cot": "off"
+      },
+      "duration": 1.2786666666666666,
+      "rms": 0.09109070630648629,
+      "clipped_fraction": 0.0,
+      "truncated": {
+        "abc": false,
+        "semantic": true
+      },
+      "audio_sha256": "71eeb731c911cc26c441d962cc63f3b394d80844f8e0459560905f0935cb9a10"
+    },
+    {
+      "path": "preflight-20/row-0-seed-1709/metal-caption/evaluation.json",
+      "request": {
+        "weights_sha256": "1d61736577a9cea7a09013ef506fb3698595090c499c0ba55e7123bb05df914f",
+        "scale": 0.0,
+        "style": "English. BPM 120. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing, no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense studio production with the vocal clearly audible.",
+        "lyrics": "[verse]\nThe fabric hangs across the doorway\nA silver pin is in the seam\nWe turn the pattern on the table\nAnd measure twice across the sleeve\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way",
+        "seed": 1709,
+        "max_tokens": 32,
+        "backend": "torch-eager",
+        "cot": "off"
+      },
+      "duration": 1.2786666666666666,
+      "rms": 0.0908898302455771,
+      "clipped_fraction": 0.0,
+      "truncated": {
+        "abc": false,
+        "semantic": true
+      },
+      "audio_sha256": "6af547affe75da2b9df4f8355d367de47d79c709636a104c34e8425d0360356f"
+    },
+    {
+      "path": "preflight-20/row-0-seed-1709/minus-canary/evaluation.json",
+      "request": {
+        "weights_sha256": "1d61736577a9cea7a09013ef506fb3698595090c499c0ba55e7123bb05df914f",
+        "scale": -1.0,
+        "style": "English. BPM 120. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing, no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.",
+        "lyrics": "[verse]\nThe fabric hangs across the doorway\nA silver pin is in the seam\nWe turn the pattern on the table\nAnd measure twice across the sleeve\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way",
+        "seed": 1709,
+        "max_tokens": 32,
+        "backend": "torch-eager",
+        "cot": "off"
+      },
+      "duration": 1.2786666666666666,
+      "rms": 0.07579171432620754,
+      "clipped_fraction": 0.0,
+      "truncated": {
+        "abc": false,
+        "semantic": true
+      },
+      "audio_sha256": "284fba4154134773b1757d5bd7efaa374f4854fba2935c1e03588b3c6844082a"
+    },
+    {
+      "path": "preflight-20/row-0-seed-1709/off/evaluation.json",
+      "request": {
+        "weights_sha256": "1d61736577a9cea7a09013ef506fb3698595090c499c0ba55e7123bb05df914f",
+        "scale": 0.0,
+        "style": "English. BPM 120. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing, no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.",
+        "lyrics": "[verse]\nThe fabric hangs across the doorway\nA silver pin is in the seam\nWe turn the pattern on the table\nAnd measure twice across the sleeve\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way",
+        "seed": 1709,
+        "max_tokens": 32,
+        "backend": "torch-eager",
+        "cot": "off"
+      },
+      "duration": 1.2786666666666666,
+      "rms": 0.0700112422695663,
+      "clipped_fraction": 0.0,
+      "truncated": {
+        "abc": false,
+        "semantic": true
+      },
+      "audio_sha256": "9d95cf00f713bc4eeff2c13b7657dd5ca2f466d6dd4046aed1e1bc84c5d3b605"
+    },
+    {
+      "path": "preflight-20/row-1-seed-1709/half/evaluation.json",
+      "request": {
+        "weights_sha256": "1d61736577a9cea7a09013ef506fb3698595090c499c0ba55e7123bb05df914f",
+        "scale": 0.5,
+        "style": "English. BPM 92. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing, no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.",
+        "lyrics": "[verse]\nThe ceiling fan turns in the kitchen\nTwo empty crates are on the floor\nWe set the peaches by the window\nAnd write the count beside the door\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way",
+        "seed": 1709,
+        "max_tokens": 32,
+        "backend": "torch-eager",
+        "cot": "off"
+      },
+      "duration": 1.2786666666666666,
+      "rms": 0.06913265649505743,
+      "clipped_fraction": 0.0,
+      "truncated": {
+        "abc": false,
+        "semantic": true
+      },
+      "audio_sha256": "539bf675118ddf8f855e1b9e6c302a16ecedece2618035663808d589747d448c"
+    },
+    {
+      "path": "preflight-20/row-1-seed-1709/metal/evaluation.json",
+      "request": {
+        "weights_sha256": "1d61736577a9cea7a09013ef506fb3698595090c499c0ba55e7123bb05df914f",
+        "scale": 1.0,
+        "style": "English. BPM 92. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing, no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.",
+        "lyrics": "[verse]\nThe ceiling fan turns in the kitchen\nTwo empty crates are on the floor\nWe set the peaches by the window\nAnd write the count beside the door\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way",
+        "seed": 1709,
+        "max_tokens": 32,
+        "backend": "torch-eager",
+        "cot": "off"
+      },
+      "duration": 1.2786666666666666,
+      "rms": 0.06913265649505743,
+      "clipped_fraction": 0.0,
+      "truncated": {
+        "abc": false,
+        "semantic": true
+      },
+      "audio_sha256": "539bf675118ddf8f855e1b9e6c302a16ecedece2618035663808d589747d448c"
+    },
+    {
+      "path": "preflight-20/row-1-seed-1709/metal-caption/evaluation.json",
+      "request": {
+        "weights_sha256": "1d61736577a9cea7a09013ef506fb3698595090c499c0ba55e7123bb05df914f",
+        "scale": 0.0,
+        "style": "English. BPM 92. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing, no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense studio production with the vocal clearly audible.",
+        "lyrics": "[verse]\nThe ceiling fan turns in the kitchen\nTwo empty crates are on the floor\nWe set the peaches by the window\nAnd write the count beside the door\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way",
+        "seed": 1709,
+        "max_tokens": 32,
+        "backend": "torch-eager",
+        "cot": "off"
+      },
+      "duration": 1.2786666666666666,
+      "rms": 0.09932393120795781,
+      "clipped_fraction": 0.0,
+      "truncated": {
+        "abc": false,
+        "semantic": true
+      },
+      "audio_sha256": "69bf4a83affe456b7e329886c0f424551d836417b314297eeb38954a44a5db07"
+    },
+    {
+      "path": "preflight-20/row-1-seed-1709/minus-canary/evaluation.json",
+      "request": {
+        "weights_sha256": "1d61736577a9cea7a09013ef506fb3698595090c499c0ba55e7123bb05df914f",
+        "scale": -1.0,
+        "style": "English. BPM 92. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing, no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.",
+        "lyrics": "[verse]\nThe ceiling fan turns in the kitchen\nTwo empty crates are on the floor\nWe set the peaches by the window\nAnd write the count beside the door\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way",
+        "seed": 1709,
+        "max_tokens": 32,
+        "backend": "torch-eager",
+        "cot": "off"
+      },
+      "duration": 1.2786666666666666,
+      "rms": 0.06913265649505743,
+      "clipped_fraction": 0.0,
+      "truncated": {
+        "abc": false,
+        "semantic": true
+      },
+      "audio_sha256": "539bf675118ddf8f855e1b9e6c302a16ecedece2618035663808d589747d448c"
+    },
+    {
+      "path": "preflight-20/row-1-seed-1709/off/evaluation.json",
+      "request": {
+        "weights_sha256": "1d61736577a9cea7a09013ef506fb3698595090c499c0ba55e7123bb05df914f",
+        "scale": 0.0,
+        "style": "English. BPM 92. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing, no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.",
+        "lyrics": "[verse]\nThe ceiling fan turns in the kitchen\nTwo empty crates are on the floor\nWe set the peaches by the window\nAnd write the count beside the door\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way",
+        "seed": 1709,
+        "max_tokens": 32,
+        "backend": "torch-eager",
+        "cot": "off"
+      },
+      "duration": 1.2786666666666666,
+      "rms": 0.06913265649505743,
+      "clipped_fraction": 0.0,
+      "truncated": {
+        "abc": false,
+        "semantic": true
+      },
+      "audio_sha256": "539bf675118ddf8f855e1b9e6c302a16ecedece2618035663808d589747d448c"
+    }
+  ],
+  "native_stability": "Not established by this 20-update preflight; 600-update campaign in progress."
+}

@@ -205,3 +205,25 @@ def test_particle_dashboard_distinguishes_vic_and_live_gan():
     assert 'raw metal-caption deltas' not in page
     assert 'teacher-RMS coordinates' not in page
     assert 'or other auxiliary losses' not in page
+
+
+@pytest.mark.parametrize('damage', ['shape', 'nonfinite', 'metadata'])
+def test_invalid_particle_checkpoint_rejects_before_attaching(tmp_path, damage):
+    pytest.importorskip('yue2')
+    from safetensors import safe_open
+    from safetensors.torch import load_file, save_file
+    from conceptmod.textsliders.yue2_backend import YuE2Backend, YuE2Slider, attention_targets, _Adapter
+    source=YuE2Backend(dummy=True); network=native.ParticleSlider(source.model)
+    path=tmp_path/'invalid.safetensors'; network.save(path,dict(dummy=False))
+    with safe_open(str(path),framework='pt',device='cpu') as handle: metadata=handle.metadata()
+    state=load_file(str(path))
+    if damage=='shape': state['particles']=state['particles'][:127]
+    elif damage=='nonfinite': state['particles'][0,0]=float('nan')
+    else:
+        record=json.loads(metadata['conceptmod']);record['particle_dim']=8
+        metadata['conceptmod']=json.dumps(record)
+    save_file(state,str(path),metadata=metadata)
+    target=YuE2Backend(dummy=True)
+    with pytest.raises(ValueError): YuE2Slider.load(target.model,path)
+    assert all(not isinstance(getattr(m.forward,'__self__',None),_Adapter)
+               for m in attention_targets(target.model).values())

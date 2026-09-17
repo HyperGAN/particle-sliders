@@ -156,4 +156,43 @@ The listening grid uses two held-out prompts, seeds 1709/2903, scales
 projection, orthogonal residual, and exact-zero checks are unscored Music
 diagnostics, not substitutes for calibrated audio cover/leak/lyric gates.
 Live charts distinguish GAN, particle VIC, total loss, particle GAN gradients,
-and noise. Native results will be recorded after the smoke run.
+and noise.
+
+### Native preflight result (source `2067705`)
+
+The 20-update native preflight completed. GAN gradients reach the cloud from
+update 2 onward. All weights are finite; live and EMA exports exactly match
+their respective saved states, and source hashes match the frozen checkout.
+Training normalization has no floored coordinates: standard deviations span
+0.00454–0.312 across 2,048 dimensions (median 0.0525).
+
+Final G GAN loss is 3.7654, particle VIC 0.05819, total 3.8236, and training
+direction cosine 0.9508. Peak GAN loss is 4.2146 at update 11, when cosine
+dips to 0.8323. The cap remains zero in this short window. **Native stability
+is not established**; this is an observed oscillation, not a smooth-training
+claim. Twenty updates are also too early for EMA convergence.
+
+The exported EMA adapter produced 10 finite native audio clips: both held-out
+prompts at 0/0.5/1, positive-caption reference, and -1 canary, seed 1709. These
+32-token clips (~1.28 seconds) verify deployment, not musical quality. Scale
+zero is bitwise base on both held-out prompt states. EMA caption projection
+at +1 is 0.0525–0.0553, consistent with its early averaging lag, and does not
+constitute a cover pass.
+
+Training updates consumed 0.0283 GPU-hours of wall time on one shared GPU,
+excluding model loading and render time. The 600-update campaign resumes the
+same checkpoint and recipe, then automatically renders the 20-clip full grid.
+Its results are pending. The studio remains running with its queue preserved.
+
+Evidence: [native preflight audit](yue2-particle-bridge-native.json),
+[live campaign](http://100.90.104.57:8888/yue2-metal-particle-bridge-20260917/),
+[exact argv/environment/rates](http://100.90.104.57:8888/yue2-metal-particle-bridge-20260917/commands.json).
+The existing listening-page bookmark links to this campaign while retaining
+the earlier rate comparisons.
+
+Validation: 124 selected regression checks passed (YuE2 loading, both existing
+games, native rate flags, canary evaluation, the shared GAN, canonical UNI/BI
+scorers, and `AdvConfig` lock). Three additional malformed particle-checkpoint
+cases passed in the final 12-test particle suite; each rejects before attaching
+an adapter. Served chart data includes every new metric, and the generated
+dashboard JavaScript passes `node --check`.
