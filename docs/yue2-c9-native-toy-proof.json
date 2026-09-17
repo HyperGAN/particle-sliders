@@ -1215,6 +1215,98 @@
     "analysis/slider2d/gan.py": "730a841a5b653761bbf548632b38d345a5c29fcd13a063deff932526736f0153",
     "analysis/slider2d/locked_baseline_defaults.py": "246c61d2b22024a8b59635e23db28391ce8de70ea280b30bfaa3112687514a8c"
   },
-  "native_status": "not_started",
-  "native_gpu_hours": 0.0
+  "native_status": "complete",
+  "runtime": {
+    "python": "3.11.15",
+    "torch": "2.11.0+cu128",
+    "cpu_threads": 1,
+    "cuda_visible_devices": ""
+  },
+  "trajectory_summaries": [
+    {
+      "arm": "c0_production",
+      "cell": "divergent",
+      "seed": 0,
+      "peak_g": 3.2631903489430742,
+      "all_losses_finite": true
+    },
+    {
+      "arm": "c0_production",
+      "cell": "close",
+      "seed": 0,
+      "peak_g": 3.1320752302805586,
+      "all_losses_finite": true
+    },
+    {
+      "arm": "c0_production",
+      "cell": "divergent",
+      "seed": 1,
+      "peak_g": 3.2860809167226153,
+      "all_losses_finite": true
+    },
+    {
+      "arm": "c0_production",
+      "cell": "close",
+      "seed": 1,
+      "peak_g": 3.238105694452922,
+      "all_losses_finite": true
+    },
+    {
+      "arm": "c0_production",
+      "cell": "divergent",
+      "seed": 7,
+      "peak_g": 3.2564142545064287,
+      "all_losses_finite": true
+    },
+    {
+      "arm": "c0_production",
+      "cell": "close",
+      "seed": 7,
+      "peak_g": 3.2109104792277017,
+      "all_losses_finite": true
+    },
+    {
+      "arm": "c9_g4x",
+      "cell": "divergent",
+      "seed": 0,
+      "peak_g": 3.3223977088928223,
+      "all_losses_finite": true
+    },
+    {
+      "arm": "c9_g4x",
+      "cell": "close",
+      "seed": 0,
+      "peak_g": 3.31181780497233,
+      "all_losses_finite": true
+    },
+    {
+      "arm": "c9_g4x",
+      "cell": "divergent",
+      "seed": 1,
+      "peak_g": 3.369725783665975,
+      "all_losses_finite": true
+    },
+    {
+      "arm": "c9_g4x",
+      "cell": "close",
+      "seed": 1,
+      "peak_g": 3.3311607837677,
+      "all_losses_finite": true
+    },
+    {
+      "arm": "c9_g4x",
+      "cell": "divergent",
+      "seed": 7,
+      "peak_g": 3.398454984029134,
+      "all_losses_finite": true
+    },
+    {
+      "arm": "c9_g4x",
+      "cell": "close",
+      "seed": 7,
+      "peak_g": 3.5913704236348467,
+      "all_losses_finite": true
+    }
+  ],
+  "native_results": "yue2-c9-native-results.json"
 }

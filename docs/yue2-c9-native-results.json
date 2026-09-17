@@ -1,0 +1,343 @@
+{
+  "source_commit": "a8a323f2b9b9f5e33b88a4a292a9bf4a0fadaed8",
+  "baseline_commit": "3b74de0",
+  "train_seed": 7,
+  "eval_seeds": [
+    1709,
+    2903
+  ],
+  "eval_scales": [
+    0,
+    0.5,
+    1,
+    -1
+  ],
+  "negative_scale_unscored": true,
+  "positive_caption_reference": true,
+  "cpu_tests_passed": 106,
+  "all_exports_and_manifests_verified": true,
+  "base_and_reference_audio_identical": true,
+  "gan_only": true,
+  "defaults_unchanged": true,
+  "gpu": "physical 1, shared with studio; studio not stopped",
+  "gpu1_total_wall_hours": 1.230276994175381,
+  "runs": [
+    {
+      "run": "control",
+      "recipe": "unipolar_gan",
+      "steps": 600,
+      "seed": 7,
+      "g_lr": 0.0005,
+      "d_lr": 0.00075,
+      "weights_sha256": "003fb6f02ff948f25a650c4371042b7094e5ba350537a558afe9f81149b3ea5e",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/metal-yue2-uni-control-600-s7-20260916",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-metal-c9-20260916/control",
+      "final": {
+        "g_adv": 4.302892029285431,
+        "cos_pos": 0.8786382377147675,
+        "loss": 4.302892029285431,
+        "d_loss": 0.05803418532013893,
+        "d_pen": 0.010548227466642857,
+        "grad_norm": 30.843974443256876,
+        "penalty_center": 1.0,
+        "step": 600,
+        "rows": [
+          3,
+          1,
+          0,
+          2
+        ],
+        "step_seconds": 1.0210735659929924,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075
+      },
+      "peak": {
+        "g_adv": 549.7572174072266,
+        "cos_pos": -0.10707254894077778,
+        "loss": 549.7572174072266,
+        "d_loss": 22.879289627075195,
+        "d_pen": 0.5640861988067627,
+        "grad_norm": 688.9934522604177,
+        "penalty_center": 1.0,
+        "step": 373,
+        "rows": [
+          0,
+          3,
+          2,
+          1
+        ],
+        "step_seconds": 1.1467725599650294,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075
+      },
+      "min_cos_after10": {
+        "g_adv": 549.7572174072266,
+        "cos_pos": -0.10707254894077778,
+        "loss": 549.7572174072266,
+        "d_loss": 22.879289627075195,
+        "d_pen": 0.5640861988067627,
+        "grad_norm": 688.9934522604177,
+        "penalty_center": 1.0,
+        "step": 373,
+        "rows": [
+          0,
+          3,
+          2,
+          1
+        ],
+        "step_seconds": 1.1467725599650294,
+        "g_lr": 0.0005,
+        "d_lr": 0.00075
+      },
+      "max_cap": 15.683159828186035,
+      "peak_grad": 688.9934522604177,
+      "update_wall_hours": 0.19286140663073942,
+      "gpu1_run_wall_hours": 0.40900856951872505,
+      "heldout_plus": [
+        {
+          "row": 0,
+          "scale": 1.0,
+          "canary": false,
+          "caption_projection": 1.0355323553085327,
+          "orthogonal_ratio": 0.5382225513458252,
+          "target_relative_error": 0.539394199848175,
+          "neutral_delta_norm": 12.32899284362793,
+          "zero_exact": null
+        },
+        {
+          "row": 1,
+          "scale": 1.0,
+          "canary": false,
+          "caption_projection": 1.0131758451461792,
+          "orthogonal_ratio": 0.5081545114517212,
+          "target_relative_error": 0.5083252787590027,
+          "neutral_delta_norm": 12.396210670471191,
+          "zero_exact": null
+        }
+      ],
+      "zero_exact": true,
+      "audio_full_to_off_rms_ratios": [
+        0.3375458179400198,
+        0.10648466824082757,
+        0.36165522554360646,
+        0.21651665017507063
+      ],
+      "audio_clips": 20
+    },
+    {
+      "run": "c9-g4x",
+      "recipe": "unipolar_gan",
+      "steps": 600,
+      "seed": 7,
+      "g_lr": 0.002,
+      "d_lr": 0.003,
+      "weights_sha256": "d2264d6fd092aa8941f507cc23b019232934e186983485502753b95a9c48297e",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/metal-yue2-uni-c9-g4x-600-s7-20260916",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-metal-c9-20260916/c9-g4x",
+      "final": {
+        "g_adv": 5.03134548664093,
+        "cos_pos": 0.9256648272275925,
+        "loss": 5.03134548664093,
+        "d_loss": 0.02314356155693531,
+        "d_pen": 0.0036126766353845596,
+        "grad_norm": 17.01973685738462,
+        "penalty_center": 1.0,
+        "step": 600,
+        "rows": [
+          3,
+          1,
+          0,
+          2
+        ],
+        "step_seconds": 1.426128339022398,
+        "g_lr": 0.002,
+        "d_lr": 0.003
+      },
+      "peak": {
+        "g_adv": 1784.1660461425781,
+        "cos_pos": 0.05462203547358513,
+        "loss": 1784.1660461425781,
+        "d_loss": 11.946635246276855,
+        "d_pen": 0.018204372376203537,
+        "grad_norm": 3415.8707166918434,
+        "penalty_center": 1.0,
+        "step": 70,
+        "rows": [
+          2,
+          3,
+          0,
+          1
+        ],
+        "step_seconds": 1.065578737994656,
+        "g_lr": 0.002,
+        "d_lr": 0.003
+      },
+      "min_cos_after10": {
+        "g_adv": 4.5054390689135684e-21,
+        "cos_pos": 0.00466591608710587,
+        "loss": 4.5054390689135684e-21,
+        "d_loss": 58.73118591308594,
+        "d_pen": 58.73118591308594,
+        "grad_norm": 4.382659161536189e-19,
+        "penalty_center": 1.0,
+        "step": 71,
+        "rows": [
+          0,
+          1,
+          3,
+          2
+        ],
+        "step_seconds": 0.9411757739726454,
+        "g_lr": 0.002,
+        "d_lr": 0.003
+      },
+      "max_cap": 70.36763763427734,
+      "peak_grad": 3415.8707166918434,
+      "update_wall_hours": 0.20027213528889762,
+      "gpu1_run_wall_hours": 0.4065545334418615,
+      "heldout_plus": [
+        {
+          "row": 0,
+          "scale": 1.0,
+          "canary": false,
+          "caption_projection": 1.0343092679977417,
+          "orthogonal_ratio": 0.5066355466842651,
+          "target_relative_error": 0.5077959299087524,
+          "neutral_delta_norm": 12.167095184326172,
+          "zero_exact": null
+        },
+        {
+          "row": 1,
+          "scale": 1.0,
+          "canary": false,
+          "caption_projection": 1.0054330825805664,
+          "orthogonal_ratio": 0.46039074659347534,
+          "target_relative_error": 0.4604227840900421,
+          "neutral_delta_norm": 12.093938827514648,
+          "zero_exact": null
+        }
+      ],
+      "zero_exact": true,
+      "audio_full_to_off_rms_ratios": [
+        0.1866203750391901,
+        0.2845820050473465,
+        0.18233712932474377,
+        0.33677812929915996
+      ],
+      "audio_clips": 20
+    },
+    {
+      "run": "plus-neu",
+      "recipe": "gan_plus_neu",
+      "steps": 600,
+      "seed": 7,
+      "g_lr": 0.0005,
+      "d_lr": 0.0005,
+      "weights_sha256": "4ac471b0ea65b7ac3198607625d3e43a263bff5cf32c86ec6bb28cfc03e3585e",
+      "save_dir": "/ml2/music/sliders-conceptmod/models/metal-yue2-plus-neu-600-s7-20260916-r2",
+      "output_dir": "/ml2/music/sliders-conceptmod/eval/listen/yue2-metal-c9-20260916/plus-neu",
+      "final": {
+        "loss": 0.7190508171916008,
+        "g_adv": 0.7190508171916008,
+        "g_pos": 0.744954451918602,
+        "g_zero": 0.6931471824645996,
+        "d_loss": 0.6703490018844604,
+        "d_pen": 0.0,
+        "cos_pos": 0.9915658980607986,
+        "zero_delta_norm": 0.0,
+        "grad_norm": 1.3961036179531499,
+        "penalty_center": 1.0,
+        "g_lr": 2.5004334363749073e-05,
+        "d_lr": 2.5004334363749073e-05,
+        "step": 600,
+        "rows": [
+          3,
+          1,
+          0,
+          2
+        ],
+        "step_seconds": 1.1040520100505091
+      },
+      "peak": {
+        "loss": 10.809309959411621,
+        "g_adv": 10.809309959411621,
+        "g_pos": 20.925472736358643,
+        "g_zero": 0.6931471824645996,
+        "d_loss": 3.713697671890259,
+        "d_pen": 0.0,
+        "cos_pos": 0.585806131362915,
+        "zero_delta_norm": 0.0,
+        "grad_norm": 9.53625232367234,
+        "penalty_center": 1.0,
+        "g_lr": 0.00041344552386418654,
+        "d_lr": 0.00041344552386418654,
+        "step": 227,
+        "rows": [
+          1,
+          3,
+          2,
+          0
+        ],
+        "step_seconds": 1.037334230961278
+      },
+      "min_cos_after10": {
+        "loss": 6.640665292739868,
+        "g_adv": 6.640665292739868,
+        "g_pos": 12.588183403015137,
+        "g_zero": 0.6931471824645996,
+        "d_loss": 0.6573455333709717,
+        "d_pen": 0.0,
+        "cos_pos": 0.2611379027366638,
+        "zero_delta_norm": 0.0,
+        "grad_norm": 3.9868394577486495,
+        "penalty_center": 1.0,
+        "g_lr": 0.00041565002552484053,
+        "d_lr": 0.00041565002552484053,
+        "step": 225,
+        "rows": [
+          1,
+          3,
+          0,
+          2
+        ],
+        "step_seconds": 1.1670567200053483
+      },
+      "max_cap": 0.0,
+      "peak_grad": 9.53625232367234,
+      "update_wall_hours": 0.19046157332593186,
+      "gpu1_run_wall_hours": 0.4147138912147946,
+      "heldout_plus": [
+        {
+          "row": 0,
+          "scale": 1.0,
+          "canary": false,
+          "caption_projection": 1.0071115493774414,
+          "orthogonal_ratio": 0.1359802484512329,
+          "target_relative_error": 0.13616608083248138,
+          "neutral_delta_norm": 10.735888481140137,
+          "zero_exact": null
+        },
+        {
+          "row": 1,
+          "scale": 1.0,
+          "canary": false,
+          "caption_projection": 0.9592229723930359,
+          "orthogonal_ratio": 0.17081411182880402,
+          "target_relative_error": 0.1756138652563095,
+          "neutral_delta_norm": 10.655621528625488,
+          "zero_exact": null
+        }
+      ],
+      "zero_exact": true,
+      "audio_full_to_off_rms_ratios": [
+        1.0203879169124779,
+        0.7040536072625873,
+        0.7598914620016198,
+        0.4926821919366031
+      ],
+      "audio_clips": 20
+    }
+  ],
+  "native_audio_gate": "not established; hidden geometry and audio levels are diagnostics",
+  "conclusion": "c9 toy HIT does not transfer to native stability; no clear native c9 win; plus-neu has the closest held-out endpoint fit but also has an excursion. No default promotion."
+}
