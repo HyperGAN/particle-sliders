@@ -8,22 +8,15 @@ gated (manual approval), and ``HuggingFaceTB/SmolLM2-135M`` is smaller
 still (134M) but a November-2024 release, so both fail the pick criteria.
 See ``docs/tiny-llm-slider.md`` for the full comparison.
 
-Shape of the stack (mirrors ``minimax_h3_backend.py`` + ``yue2_backend.py``):
-
-- Live path loads ``transformers.AutoModelForCausalLM`` and trains a rank-8
-  LoRA on attention ``q_proj`` / ``k_proj`` / ``v_proj`` / ``o_proj`` only
-  (the live ``Qwen3Attention`` names). MLP, embeddings, norms and ``lm_head``
-  stay frozen and are never wrapped.
-- Dummy path is a tiny randomly-initialized causal LM with the same
-  contract (``model.layers[i].self_attn.{q,k,v,o}_proj``, ``embed_tokens``,
-  ``norm``, ``lm_head`` unused by the slider). No ``transformers`` import,
-  no Hub, no GPU. This is the CI / CPU path.
-- UNI polarity (no minus teacher): student scale +1 fits the + caption
-  hidden states, student scale 0 fits the neutral caption hidden states
-  (``faithful_plus_neu`` analog on full-sequence last-hidden MSE).
-- Like MiniMax-H3 UNI, LoRA-up defaults to ``N(0, 0.02)``: zero-init is the
-  UNI identity (scale-1 vs scale-0 gap is 0, gradients vanish, loss sits at
-  0). Pass ``lora_up_init_std=0`` to restore zeros for ablations.
+Working game (transferred from YuE2, not invented here): the routed
+particle bridge ``anneal-routed-particle-error`` — Rp paired-error GAN on
+``e = T(student) - T(positive)`` plus particle VIC, implemented in
+``conceptmod/textsliders/tiny_llm_particle.py`` on top of the shared
+``particle_bridge_gan`` module. This backend only hosts the frozen model:
+live ``transformers.AutoModelForCausalLM`` or a tiny randomly-initialized
+dummy of the same config shape (no ``transformers`` import, no Hub, no
+GPU — the CI / CPU path). The particle slider attaches its own
+attention ``q/k/v/o`` branches itself, like ``ParticleSlider`` does.
 
 This module never touches Music 3, YuE2, Music Arm B, ``locked_shared`` or
 any live ``--lm_target`` default.
@@ -31,7 +24,6 @@ any live ``--lm_target`` default.
 
 from __future__ import annotations
 
-from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any
 
@@ -48,14 +40,9 @@ MODEL_RELEASE = "2025-04 (Qwen3)"
 MODEL_LICENSE = "Apache-2.0"
 MODEL_CONTEXT = 40960
 # Live Qwen3 attention class + projection names; dummy mirrors the names.
+# The particle slider (tiny_llm_particle.py) wraps exactly these Linears.
 ATTN_CLASS_NAMES = ("TinyAttention", "Qwen3Attention")
 LORA_LINEAR_NAMES = ("q_proj", "k_proj", "v_proj", "o_proj")
-# Same UNI lesson as MiniMax-H3: noisy LoRA-up breaks the zero-adapter
-# identity so a +1/0 UNI loss has a gradient at step 0.
-DEFAULT_LORA_UP_INIT_STD = 0.02
-FORMAT = "conceptmod-tiny-llm-uni-v1"
-DEFAULT_RANK = 8
-DEFAULT_ALPHA = 8.0
 
 
 class ArchitectureMismatch(RuntimeError):
@@ -116,7 +103,7 @@ class TinyAttention(nn.Module):
 
 
 class TinyMLP(nn.Module):
-    """SwiGLU-ish MLP. Named so the LoRA walk never wraps it."""
+    """SwiGLU-ish MLP. Named so the particle walk never wraps it."""
 
     def __init__(self, hidden_size: int, intermediate_size: int) -> None:
         super().__init__()
@@ -149,8 +136,8 @@ class DummyTinyCausalLM(nn.Module):
     16 query / 8 kv heads, head_dim 128, intermediate 3072, vocab 151936
     tied, context 40960, RoPE theta 1e6. Dummy shrinks every axis but keeps
     the module nesting (``model.layers[i].self_attn.{q,k,v,o}_proj``,
-    ``model.embed_tokens``, ``model.norm``) so the LoRA walk, save format
-    and trainer run unchanged against the real checkpoint.
+    ``model.embed_tokens``, ``model.norm``) so the particle walk, save
+    format and trainer run unchanged against the real checkpoint.
     """
 
     def __init__(
@@ -202,150 +189,28 @@ class DummyTinyCausalLM(nn.Module):
         return self.model.norm(x)
 
 
-class _AttnLoRA(nn.Module):
-    """LoRA on one attention Linear. Zero multiplier == exact base."""
-
-    def __init__(
-        self,
-        name: str,
-        module: nn.Linear,
-        rank: int,
-        alpha: float,
-        up_init_std: float = DEFAULT_LORA_UP_INIT_STD,
-    ) -> None:
-        super().__init__()
-        self.lora_name = name
-        self.rank = int(rank)
-        self.scale = float(alpha) / float(rank)
-        self.multiplier = 0.0
-        host_kwargs: dict[str, Any] = {}
-        if hasattr(module, "weight"):
-            host_kwargs["device"] = module.weight.device
-            host_kwargs["dtype"] = module.weight.dtype
-        self.lora_down = nn.Linear(module.in_features, rank, bias=False, **host_kwargs)
-        self.lora_up = nn.Linear(rank, module.out_features, bias=False, **host_kwargs)
-        nn.init.kaiming_uniform_(self.lora_down.weight, a=5 ** 0.5)
-        if float(up_init_std) > 0:
-            nn.init.normal_(self.lora_up.weight, mean=0.0, std=float(up_init_std))
-        else:
-            nn.init.zeros_(self.lora_up.weight)
-        self.org_forward = module.forward
-        module.forward = self.forward
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.multiplier == 0:
-            return self.org_forward(x)
-        weight = self.lora_down.weight
-        x_lora = x.to(device=weight.device, dtype=weight.dtype)
-        delta = self.lora_up(self.lora_down(x_lora)).to(device=x.device, dtype=x.dtype)
-        return self.org_forward(x) + delta * (self.multiplier * self.scale)
-
-
-class TinySlider(nn.Module):
-    """Wrap attention ``q/k/v/o`` Linears only. Skip MLP, norms, embeds."""
-
-    def __init__(
-        self,
-        model: nn.Module,
-        rank: int = DEFAULT_RANK,
-        alpha: float = DEFAULT_ALPHA,
-        up_init_std: float = DEFAULT_LORA_UP_INIT_STD,
-    ) -> None:
-        super().__init__()
-        if int(rank) < 1 or not float(alpha) > 0:
-            raise ValueError("rank and alpha must be positive")
-        self.rank = int(rank)
-        self.alpha = float(alpha)
-        self.up_init_std = float(up_init_std)
-        self.adapters = nn.ModuleDict()
-        seen: set[int] = set()
-        for name, module in model.named_modules():
-            if module.__class__.__name__ not in ATTN_CLASS_NAMES:
-                continue
-            for child_name, child in module.named_modules():
-                if not isinstance(child, nn.Linear):
-                    continue
-                if child_name not in LORA_LINEAR_NAMES:
-                    continue
-                if id(child) in seen:
-                    continue
-                seen.add(id(child))
-                key = f"lora_tiny-{name}-{child_name}".replace(".", "-")
-                adapter = _AttnLoRA(
-                    key, child, self.rank, self.alpha, up_init_std=self.up_init_std
-                )
-                self.adapters[key] = adapter
-        if len(self.adapters) == 0:
-            raise ArchitectureMismatch(
-                "no attention q/k/v/o Linears found; expected Qwen3-shaped "
-                f"{ATTN_CLASS_NAMES} hosts"
-            )
-
-    @contextmanager
-    def scaled(self, scale: float):
-        previous = [a.multiplier for a in self.adapters.values()]
-        for adapter in self.adapters.values():
-            adapter.multiplier = float(scale)
-        try:
-            yield
-        finally:
-            for adapter, value in zip(self.adapters.values(), previous):
-                adapter.multiplier = value
-
-    def save_weights(self, file: str, dtype=None) -> None:
-        from safetensors.torch import save_file
-
-        state = {k: v.detach().cpu() for k, v in self.state_dict().items()}
-        if dtype is not None:
-            state = {k: v.to(dtype) for k, v in state.items()}
-        save_file(state, file)
-
-    def load_weights(self, file: str) -> None:
-        from safetensors.torch import load_file
-
-        state = load_file(file)
-        tiny_keys = [k for k in state if "lora_tiny-" in str(k)]
-        if not tiny_keys:
-            raise ValueError(
-                f"{file} has no lora_tiny-* keys; tiny-llm sliders save a "
-                "custom TinySlider, not PEFT adapter_model.safetensors"
-            )
-        missing, unexpected = self.load_state_dict(state, strict=False)
-        missing_lora = [k for k in missing if "lora_tiny-" in str(k)]
-        if missing_lora:
-            raise ValueError(f"{file} is missing LoRA keys: {missing_lora[:8]}")
-        _ = unexpected
-
-
 @dataclass
 class EncodedText:
     ids: list[int]
 
 
 class TinyLLMBackend:
-    """Opt-in tiny-LM slider host. Dummy is the CI / CPU path."""
+    """Frozen tiny-LM host. The particle slider attaches its own branches."""
 
     def __init__(
         self,
         *,
         device: str = "cpu",
         model_id: str = DEFAULT_MODEL,
-        rank: int = DEFAULT_RANK,
-        alpha: float = DEFAULT_ALPHA,
-        lora_up_init_std: float = DEFAULT_LORA_UP_INIT_STD,
         allow_hub: bool = False,
         dummy: bool = False,
     ) -> None:
         self.device = torch.device(device if not dummy else "cpu")
         self.model_id = model_id
-        self.lora_rank = int(rank)
-        self.lora_alpha = float(alpha)
-        self.lora_up_init_std = float(lora_up_init_std)
         self.allow_hub = bool(allow_hub)
         self.dummy = bool(dummy)
         self.tokenizer: Any
         self.model: nn.Module
-        self.slider: TinySlider
         if self.dummy:
             self._init_dummy()
         else:
@@ -357,13 +222,6 @@ class TinyLLMBackend:
         self.model.eval()
         self.model.requires_grad_(False)
         self.model.to(self.device)
-        self.slider = TinySlider(
-            self.model,
-            rank=self.lora_rank,
-            alpha=self.lora_alpha,
-            up_init_std=self.lora_up_init_std,
-        )
-        self.slider.to(self.device)
 
     def _init_live(self) -> None:
         self.tokenizer, model = _load_live_model(
@@ -374,29 +232,10 @@ class TinyLLMBackend:
         model.to(self.device)
         _assert_qwen3_shape(model, self.model_id)
         self.model = model
-        self.slider = TinySlider(
-            self.model,
-            rank=self.lora_rank,
-            alpha=self.lora_alpha,
-            up_init_std=self.lora_up_init_std,
-        )
-        self.slider.to(self.device)
-        host_dtype = _module_param_dtype(self.model)
-        if host_dtype is not None:
-            self.slider.to(dtype=host_dtype)
-
-    def lora_module_names(self) -> list[str]:
-        return list(self.slider.adapters.keys())
-
-    def trainable_parameters(self) -> list[nn.Parameter]:
-        return [p for p in self.slider.parameters() if p.requires_grad]
 
     def encode(self, text: str) -> EncodedText:
-        if self.dummy:
-            ids = self.tokenizer.encode(text, add_special_tokens=False)
-        else:
-            ids = self.tokenizer.encode(text, add_special_tokens=False)
-        ids = [int(x) for x in ids] or [0]
+        ids = [int(x) for x in self.tokenizer.encode(text, add_special_tokens=False)]
+        ids = ids or [0]
         limit = int(getattr(self.model.config, "max_position_embeddings", MODEL_CONTEXT))
         if len(ids) > limit:
             raise ValueError(f"prompt exceeds context ({len(ids)} > {limit})")
@@ -404,44 +243,22 @@ class TinyLLMBackend:
 
     @torch.no_grad()
     def teacher_hidden(self, ids: list[int]) -> torch.Tensor:
-        """Frozen base hidden states (LoRA scale 0)."""
-        return self.hidden(ids, scale=0.0)
+        """Frozen base hidden states (no adapter attached at rest)."""
+        return self.hidden(ids)
 
-    def hidden(self, ids: list[int], *, scale: float) -> torch.Tensor:
+    def hidden(self, ids: list[int]) -> torch.Tensor:
+        """Full-sequence last-hidden states; particle scale comes from the
+        network's ``scaled()`` context, never from this backend."""
         tokens = torch.tensor([ids], dtype=torch.long, device=self.device)
-        with self.slider.scaled(float(scale)):
-            if self.dummy:
-                return self.model.forward_hidden(tokens)
-            return self._live_hidden(tokens)
+        if self.dummy:
+            return self.model.forward_hidden(tokens)
+        return self._live_hidden(tokens)
 
     def _live_hidden(self, tokens: torch.Tensor) -> torch.Tensor:
         out = self.model.model(
             input_ids=tokens, use_cache=False, return_dict=True
         )
         return out.last_hidden_state
-
-    def save_trained(self, path: str) -> None:
-        self.slider.save_weights(path + ".safetensors", dtype=torch.float32)
-
-    def load_trained(self, path: str) -> str:
-        resolved = resolve_tiny_lora_path(path)
-        state_dict = _read_safetensors(str(resolved))
-        _validate_tiny_state(self.model, self.slider, state_dict, str(resolved))
-        self.slider.load_weights(str(resolved))
-        self.slider.to(self.device)
-        return str(resolved)
-
-
-def tiny_uni_loss(
-    student_plus: torch.Tensor,
-    teacher_plus: torch.Tensor,
-    student_zero: torch.Tensor,
-    teacher_zero: torch.Tensor,
-) -> torch.Tensor:
-    """UNI hidden MSE: +1 fits raw ``h+``, 0 fits ``h0``. No minus teacher."""
-    return F.mse_loss(student_plus, teacher_plus) + F.mse_loss(
-        student_zero, teacher_zero
-    )
 
 
 def hidden_delta_metrics(
@@ -450,11 +267,12 @@ def hidden_delta_metrics(
     teacher_plus: torch.Tensor,
     teacher_zero: torch.Tensor,
 ) -> dict[str, float]:
-    """How far the LoRA delta moved along the teacher concept delta.
+    """Report-only diagnostic: LoRA delta vs teacher concept delta.
 
     Last-token readout (the live Music3 LM convention): plus/neutral
     captions have different lengths, so the delta is ``h_last(+1) -
     h_last(0)`` vs ``h+_last - h0_last``, all ``[H]`` regardless of ``T``.
+    Not part of the game (the game has no output MSE).
     """
     with torch.no_grad():
         s_delta = (student_plus[:, -1] - student_zero[:, -1]).float().reshape(-1)
@@ -507,56 +325,3 @@ def _module_param_dtype(module: nn.Module):
     for param in module.parameters():
         return param.dtype
     return None
-
-
-def resolve_tiny_lora_path(path: str):
-    from pathlib import Path
-
-    p = Path(path)
-    if p.is_file():
-        return p
-    candidates = []
-    if p.suffix == ".safetensors":
-        candidates.append(p)
-    candidates.append(Path(str(p) + ".safetensors"))
-    if p.is_dir():
-        candidates.extend(sorted(p.glob("*_lora.safetensors")))
-        candidates.extend(sorted(p.glob("*.safetensors")))
-    for cand in candidates:
-        if cand.is_file():
-            return cand
-    raise FileNotFoundError(
-        f"no tiny-llm LoRA safetensors under {path} "
-        "(expected {name}_lora.safetensors from save_trained)"
-    )
-
-
-def _read_safetensors(path: str) -> dict[str, torch.Tensor]:
-    from safetensors.torch import load_file
-
-    return load_file(path)
-
-
-def _validate_tiny_state(
-    model: nn.Module, slider: TinySlider, state: dict[str, torch.Tensor], path: str
-) -> None:
-    expected: dict[str, tuple[int, ...]] = {
-        key: tuple(tensor.shape)
-        for key, tensor in slider.state_dict().items()
-        if "lora_tiny-" in str(key)
-    }
-    if not expected:
-        raise ValueError(f"{path}: host slider has no lora_tiny-* parameters")
-    missing = [k for k in expected if k not in state]
-    extra = [k for k in state if "lora_tiny-" in str(k) and k not in expected]
-    bad_shape = [
-        k for k, shape in expected.items()
-        if k in state and tuple(state[k].shape) != shape
-    ]
-    if missing or extra or bad_shape:
-        raise ValueError(
-            f"{path} does not match this tiny-llm host "
-            f"(missing={missing[:4]} extra={extra[:4]} bad_shape={bad_shape[:4]})"
-        )
-    if any(not torch.isfinite(t).all() for t in state.values()):
-        raise ValueError(f"{path} has non-finite LoRA weights")

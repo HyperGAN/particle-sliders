@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
-"""Opt-in tiny-LM concept-slider trainer (UNI on last-hidden states).
+"""Opt-in tiny-LM routed-particle slider trainer (YuE2 working recipe).
 
-Test target for slider ideas (LoRA / hidden-delta / UNI polarity) without
-loading Music 3, YuE2, H3 or a big LM. Default Music 3 trainers are
-unchanged (``--lm_target v9`` / ``--pole_mode hidden``).
+Test target for slider ideas without loading Music 3, YuE2, H3 or a big LM.
+Runs YuE2's CURRENT working game ``anneal-routed-particle-error`` via the
+shared ``particle_bridge_gan`` module — Rp paired-error GAN on
+``e = T(student) - T(positive)`` plus particle VIC — on Qwen3-0.6B-Base
+last-hidden states. Default Music 3 trainers are unchanged
+(``--lm_target v9`` / ``--pole_mode hidden``).
 
 Pinned model: ``Qwen/Qwen3-0.6B-Base`` (596M params, 2025, Apache-2.0).
 ``--dummy`` is the CI / CPU path: tiny random stand-in of the same config
 shape, no Hub, no GPU. Live runs need ``transformers>=4.51`` and pass
 ``--allow_hub`` once to download the weights.
 
-UNI: student scale +1 fits the + caption hidden states, student scale 0
-fits the neutral caption hidden states (full-sequence last-hidden MSE).
-No minus teacher (unconditional row is a canary only, like H3).
-After train (or ``--steps 0 --load_tiny_lora``) writes a hidden-delta
-report under ``save_dir/report/`` at scales 0 / 0.5 / 1.
+Game numbers are read from ``particle_bridge_gan.REFERENCE``, never copied:
+G/D/particle LR 0.0006/0.0009/0.006, Adam betas (0, 0.999), constant,
+128x4 cloud, VIC coeff 1, lazy b_cap every 4th update x4, EMA 0.995, noise
+anneal 0.03 over 8000 (never compressed to the step budget). No output MSE,
+FM, ending, hold, or anchor. Unipolar (+ vs raw positive); the
+``unconditional`` prompt row is an unscored canary. Propose-only: does not
+flip Music ARM_B, live ``--lm_target``, locked AdvConfig, or YuE2 defaults.
 """
 
 from __future__ import annotations
@@ -31,20 +36,23 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+from conceptmod.textsliders import particle_bridge_gan as shared
 from conceptmod.textsliders.tiny_llm_backend import (
-    ATTN_CLASS_NAMES,
-    DEFAULT_ALPHA,
-    DEFAULT_LORA_UP_INIT_STD,
     DEFAULT_MODEL,
-    DEFAULT_RANK,
-    FORMAT,
-    LORA_LINEAR_NAMES,
     MODEL_LICENSE,
     MODEL_PARAMS_TOTAL,
     MODEL_RELEASE,
     TinyLLMBackend,
     hidden_delta_metrics,
-    tiny_uni_loss,
+)
+from conceptmod.textsliders.tiny_llm_particle import (
+    FORMAT,
+    RECIPE,
+    TinyParticleSlider,
+    build_game,
+    prepare_rows,
+    resolve_particle_path,
+    update,
 )
 
 DEFAULT_PROMPTS = Path(__file__).resolve().parent / "data" / "prompts-tiny-llm.yaml"
@@ -53,25 +61,19 @@ DEFAULT_SAMPLE_SCALES = (0.0, 0.5, 1.0)
 
 
 def _make_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Opt-in tiny-LM UNI slider trainer")
-    p.add_argument("--name", type=str, default="tiny-llm-smoke")
+    p = argparse.ArgumentParser(description="Opt-in tiny-LM particle-bridge trainer")
+    p.add_argument(
+        "--recipe",
+        choices=["particle_bridge"],
+        default="particle_bridge",
+        help="Only the YuE2 working game (choices rejects anything else)",
+    )
+    p.add_argument("--name", type=str, default="tiny-llm-particle")
     p.add_argument("--model_id", type=str, default=DEFAULT_MODEL)
     p.add_argument("--prompts_file", type=str, default=str(DEFAULT_PROMPTS))
     p.add_argument("--config_file", type=str, default=None)
-    p.add_argument("--rank", type=int, default=DEFAULT_RANK)
-    p.add_argument("--alpha", type=float, default=DEFAULT_ALPHA)
-    p.add_argument(
-        "--lora_up_init_std",
-        type=float,
-        default=DEFAULT_LORA_UP_INIT_STD,
-        help=(
-            "N(0, std) on LoRA-up (default 0.02). Zero-init is UNI identity: "
-            "scale-1 vs scale-0 gap is 0 and the loss never moves. "
-            "Pass 0 to restore zeros for ablation."
-        ),
-    )
-    p.add_argument("--lr", type=float, default=1e-4)
     p.add_argument("--steps", type=int, default=20)
+    p.add_argument("--save_every", type=int, default=100)
     p.add_argument("--seed", type=int, default=7)
     p.add_argument("--device", type=str, default="cpu")
     p.add_argument(
@@ -84,7 +86,7 @@ def _make_parser() -> argparse.ArgumentParser:
         "--load_tiny_lora",
         type=str,
         default=None,
-        help="Dir or .safetensors with custom lora_tiny-* keys (not PEFT)",
+        help="Dir or .safetensors with tiny particle lora_tiny-* keys",
     )
     p.add_argument(
         "--no_report",
@@ -139,8 +141,10 @@ def load_slider_rows(prompts_file: str) -> list[dict]:
             "unconditional": str(item.get("unconditional") or ""),
             "target": str(item.get("target") or neu),
         })
-    if not rows:
-        raise ValueError(f"no slider rows in {prompts_file}")
+    if len(rows) < 2:
+        raise ValueError(
+            f"particle bridge needs at least two prompt rows ({prompts_file})"
+        )
     return rows
 
 
@@ -153,20 +157,10 @@ def parse_report_scales(text: str) -> list[float]:
 
 def build_backend(args: argparse.Namespace) -> TinyLLMBackend:
     if args.dummy:
-        return TinyLLMBackend(
-            device="cpu",
-            model_id=args.model_id,
-            rank=args.rank,
-            alpha=args.alpha,
-            lora_up_init_std=float(args.lora_up_init_std),
-            dummy=True,
-        )
+        return TinyLLMBackend(device="cpu", model_id=args.model_id, dummy=True)
     return TinyLLMBackend(
         device=args.device,
         model_id=args.model_id,
-        rank=args.rank,
-        alpha=args.alpha,
-        lora_up_init_std=float(args.lora_up_init_std),
         allow_hub=bool(args.allow_hub),
         dummy=False,
     )
@@ -183,11 +177,12 @@ def _shared_prefix_len(a: list[int], b: list[int]) -> int:
 
 def emit_report(
     backend: TinyLLMBackend,
+    network: TinyParticleSlider,
     args: argparse.Namespace,
     save_dir: Path,
     rows: list[dict],
 ) -> list[dict]:
-    """Hidden-delta report at each scale: does +1 move along h+ - h0?"""
+    """Hidden-delta diagnostic at each scale (not part of the game)."""
     scales = parse_report_scales(getattr(args, "report_scales", "0,0.5,1"))
     out_dir = Path(save_dir) / "report"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -198,11 +193,13 @@ def emit_report(
             neu_ids = backend.encode(row["neutral"]).ids
             teacher_plus = backend.teacher_hidden(plus_ids)
             teacher_zero = backend.teacher_hidden(neu_ids)
-            base_zero = backend.hidden(neu_ids, scale=0.0)
+            with network.scaled(0.0):
+                base_zero = backend.hidden(neu_ids)
             assert torch.allclose(base_zero, teacher_zero), "scale 0 must be exact base"
             for scale in scales:
-                student_plus = backend.hidden(plus_ids, scale=float(scale))
-                student_zero = backend.hidden(neu_ids, scale=float(scale))
+                with network.scaled(float(scale)):
+                    student_plus = backend.hidden(plus_ids)
+                    student_zero = backend.hidden(neu_ids)
                 metrics = hidden_delta_metrics(
                     student_plus, student_zero, teacher_plus, teacher_zero
                 )
@@ -220,45 +217,49 @@ def emit_report(
 
 
 def train(args: argparse.Namespace, backend: TinyLLMBackend | None = None) -> dict:
+    if args.recipe != "particle_bridge":
+        raise ValueError("tiny-llm only runs --recipe particle_bridge")
     rows = load_slider_rows(args.prompts_file)
     backend = backend or build_backend(args)
+    torch.manual_seed(int(args.seed))
+    fixed = prepare_rows(backend, rows)
     loaded_lora = None
     if getattr(args, "load_tiny_lora", None):
-        loaded_lora = backend.load_trained(args.load_tiny_lora)
-        print(f"loaded lora_tiny weights from {loaded_lora}")
-    params = backend.trainable_parameters()
-    opt = None
-    if int(args.steps) > 0:
-        opt = torch.optim.Adam(params, lr=float(args.lr))
-    torch.manual_seed(int(args.seed))
+        resolved = resolve_particle_path(args.load_tiny_lora)
+        network, _ = TinyParticleSlider.load(backend.model, resolved)
+        loaded_lora = str(resolved)
+        print(f"loaded tiny particle weights from {loaded_lora}")
+    else:
+        network = TinyParticleSlider(backend.model, rank=8, alpha=8.0)
+    critic, g, d = build_game(backend, network, fixed)
+    sampler = shared.BridgeSampler(len(rows), int(args.seed))
+    ema = shared.initialize_ema(network)
 
     history = []
-    for step in range(int(args.steps)):
-        row = rows[step % len(rows)]
-        plus_ids = backend.encode(row["positive"]).ids
-        neu_ids = backend.encode(row["neutral"]).ids
-        with torch.no_grad():
-            tgt_plus = backend.teacher_hidden(plus_ids)
-            tgt_zero = backend.teacher_hidden(neu_ids)
-        pred_plus = backend.hidden(plus_ids, scale=1.0)
-        pred_zero = backend.hidden(neu_ids, scale=0.0)
-        loss = tiny_uni_loss(pred_plus, tgt_plus, pred_zero, tgt_zero)
-        opt.zero_grad(set_to_none=True)
-        loss.backward()
-        opt.step()
-        rec = {
-            "step": step,
-            "loss": float(loss.detach().item()),
-            "positive": row["positive"],
-            "neutral": row["neutral"],
-        }
+    for update_index in range(int(args.steps)):
+        step = update_index + 1  # noise anneal is 1-indexed like the YuE2 loop
+        metrics = update(
+            backend, network, critic, g, d, fixed,
+            sampler=sampler, step=step,
+        )
+        shared.update_ema(ema, network)
+        rec = dict(metrics, step=step)
         history.append(rec)
-        if step == 0 or (step + 1) % 10 == 0 or step + 1 == int(args.steps):
-            print(f"tiny-llm uni step {step}: loss={rec['loss']:.6f}")
+        if step == 1 or step % 10 == 0 or step == int(args.steps):
+            print(
+                f"tiny-llm particle step {step}: "
+                f"g_adv={rec['g_adv']:.4f} vic={rec['particle_vic']:.4f} "
+                f"d_loss={rec['d_loss']:.4f} cos_pos={rec['cos_pos']:.4f} "
+                f"sigma={rec['noise_std']:.4f}"
+            )
 
+    ref = shared.REFERENCE
     sidecar = {
         "name": args.name,
         "backend": "tiny_llm",
+        "recipe": RECIPE["name"],
+        "source_recipe": RECIPE["source_recipe"],
+        "game_module": "conceptmod.textsliders.particle_bridge_gan",
         "model_id": args.model_id,
         "resolved_model_id": DEFAULT_MODEL,
         "model_params_total": MODEL_PARAMS_TOTAL,
@@ -266,38 +267,47 @@ def train(args: argparse.Namespace, backend: TinyLLMBackend | None = None) -> di
         "model_license": MODEL_LICENSE,
         "format": FORMAT,
         "stack": "causal_lm_hidden",
-        "recipe": "tiny_llm_uni_hidden",
         "plus_neu": True,
         "minus_teacher": False,
+        "unipolar": True,
+        "output_mse": False,
         "lora_only": True,
-        "lora_host": list(ATTN_CLASS_NAMES),
-        "lora_linears": list(LORA_LINEAR_NAMES),
-        "train_mlp": False,
-        "train_norm": False,
-        "train_embed": False,
-        "train_lm_head": False,
-        "rank": args.rank,
-        "alpha": args.alpha,
-        "lora_up_init_std": float(
-            getattr(args, "lora_up_init_std", backend.lora_up_init_std)
-        ),
-        "lr": args.lr,
+        "lora_linears": ["q_proj", "k_proj", "v_proj", "o_proj"],
+        "rank": 8,
+        "alpha": 8.0,
+        "particles": [128, 4],
+        "g_lr": ref["g_lr"],
+        "d_lr": ref["d_lr"],
+        "particle_lr": ref["particle_lr"],
+        "optimizer_betas": list(ref["betas"]),
+        "schedule": "constant",
+        "ema": ref["ema"],
+        "vic_coeff": ref["vic_coeff"],
+        "cap_coeff": ref["cap_coeff"],
+        "cap_kappa": ref["cap_kappa"],
+        "cap_every": ref["cap_every"],
+        "noise_floor": ref["noise_floor"],
+        "noise_decay_steps": ref["noise_decay_steps"],
+        "propose_only": True,
         "steps": args.steps,
         "seed": args.seed,
         "device": args.device if not args.dummy else "cpu",
         "load_tiny_lora": loaded_lora,
         "dummy": bool(args.dummy),
-        "first_loss": history[0]["loss"] if history else None,
-        "last_loss": history[-1]["loss"] if history else None,
         "history": history[-8:],
     }
     save_dir = Path(args.save_dir or f"models/{args.name}")
     save_dir.mkdir(parents=True, exist_ok=True)
     sidecar_path = save_dir / f"{args.name}_last.json"
-    backend.save_trained(str(save_dir / f"{args.name}_lora"))
+    record = dict(sidecar, step=int(args.steps))
+    # `_last` is EMA (final weights, like the YuE2 campaign); `_live_*`
+    # preserves raw weights. Both go through the same format validation.
+    _save_state_as(network, ema, save_dir / f"{args.name}_last.safetensors", record)
+    network.save(save_dir / f"{args.name}_live_last.safetensors",
+                 dict(record, weights_kind="live"))
     report_records: list[dict] = []
     if not getattr(args, "no_report", False):
-        report_records = emit_report(backend, args, save_dir, rows)
+        report_records = emit_report(backend, network, args, save_dir, rows)
         sidecar["report"] = {
             "method": "hidden_delta",
             "scales": parse_report_scales(getattr(args, "report_scales", "0,0.5,1")),
@@ -308,34 +318,58 @@ def train(args: argparse.Namespace, backend: TinyLLMBackend | None = None) -> di
     return sidecar
 
 
+def _save_state_as(network, state, path, record) -> None:
+    """Export EMA weights through the same format/validation as live saves."""
+    from safetensors.torch import save_file
+
+    if set(state) != set(network.state_dict()):
+        raise ValueError("EMA state does not match the particle network")
+    if any(not torch.isfinite(v).all() for v in state.values()):
+        raise ValueError("Non-finite EMA weights")
+    stamped = dict(
+        record, format=FORMAT, rank=network.rank, alpha=network.alpha,
+        targets=network.target_names,
+        particles=128, particle_dim=4, bridge_width=48, router_width=16,
+    )
+    save_file(
+        {k: v.detach().float().cpu().contiguous() for k, v in state.items()},
+        str(path), metadata={"conceptmod": json.dumps(stamped, sort_keys=True)},
+    )
+    Path(str(path)).with_suffix(".json").write_text(json.dumps(stamped, indent=2) + "\n")
+
+
 def main(argv: list[str] | None = None) -> dict:
     args = parse_args(argv)
     return train(args)
 
 
 def _flatten_config(config: dict) -> dict:
-    """Map the YAML card onto CLI names (only fills unset CLI options)."""
+    """Map the YAML card onto CLI names.
+
+    Game numbers (LRs, cloud, VIC, noise, EMA) are pinned in
+    ``particle_bridge_gan.REFERENCE`` and are NOT configurable here; the
+    card only carries identity + budget + prompts.
+    """
     flat: dict = {}
     model = config.get("pretrained_model") or {}
     if isinstance(model, dict) and model.get("name_or_path"):
         flat["model_id"] = model["name_or_path"]
-    network = config.get("network") or {}
-    if isinstance(network, dict):
-        for key in ("rank", "alpha", "lora_up_init_std"):
-            if network.get(key) is not None:
-                flat[key] = network[key]
     train_cfg = config.get("train") or {}
     if isinstance(train_cfg, dict):
-        for key in ("lr", "steps", "seed"):
+        for key in ("steps", "save_every", "seed"):
             if train_cfg.get(key) is not None:
                 flat[key] = train_cfg[key]
         if train_cfg.get("iterations") is not None:
             flat.setdefault("steps", train_cfg["iterations"])
+        if train_cfg.get("recipe") is not None:
+            flat["recipe"] = train_cfg["recipe"]
     save = config.get("save") or {}
     if isinstance(save, dict) and save.get("name"):
         flat["name"] = save["name"]
     if config.get("prompts_file"):
         flat["prompts_file"] = config["prompts_file"]
+    if config.get("device"):
+        flat["device"] = config["device"]
     return flat
 
 
