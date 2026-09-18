@@ -1,0 +1,40 @@
+prompts_file: "conceptmod/textsliders/data/prompts-tiny-llm.yaml"
+pretrained_model:
+  name_or_path: "Qwen/Qwen3-0.6B-Base"
+  model_type: "qwen3"
+  params_total: 596049920
+  release: "2025-04 (Qwen3)"
+  license: "Apache-2.0"
+  context: 40960
+  stack: "causal_lm_hidden"
+network:
+  type: "lierla"
+  rank: 8
+  alpha: 8.0
+  lora_up_init_std: 0.02
+  training_method: "attn"
+  target: "Qwen3Attention"
+  linears:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+  train_mlp: false
+  train_norm: false
+  train_embed: false
+  train_lm_head: false
+train:
+  recipe: "tiny_llm_uni_hidden"
+  precision: "float32"
+  iterations: 20
+  lr: 0.0001
+  optimizer: "Adam"
+  device: "cpu"
+save:
+  name: "tiny-llm-smoke"
+  path: "./models"
+  per_steps: 10
+  precision: "float32"
+logging:
+  use_wandb: false
+  verbose: false
