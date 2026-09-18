@@ -1,0 +1,63 @@
+prompts_file: "conceptmod/textsliders/data/prompts-bonsai-gguf.yaml"
+pretrained_model:
+  repo: "prism-ml/Ternary-Bonsai-2-27B-gguf"
+  file: "Ternary-Bonsai-2-27B-PTQ1_0.gguf"
+  file_bytes: 5946648928
+  base_model: "Qwen/Qwen3.8-27B"
+  arch: "qwen35"
+  hidden: 5120
+  layers: 64
+  context: 262144
+  license: "Apache-2.0"
+  gated: false
+  stack: "gguf_readout"
+  # The F16 pack (53.8 GB) has no code path and is never downloaded.
+  # Neither mmproj vision pack is loaded (text-only).
+  # Stock llama.cpp and transformers cannot load PTQ1_0; the required
+  # runtime is the PrismML-Eng/llama.cpp fork (run source of truth:
+  # PrismML-Eng/Bonsai-demo).
+# Game numbers are pinned in particle_bridge_gan.REFERENCE (the YuE2 working
+# recipe anneal-routed-particle-error) and echoed here for readability only.
+# The trainer reads them from the shared module, never from this card.
+game:
+  source_recipe: "anneal-routed-particle-error-yue2-v1"
+  module: "conceptmod.textsliders.particle_bridge_gan"
+  g_lr: 0.0006
+  d_lr: 0.0009
+  particle_lr: 0.006
+  optimizer_betas: [0.0, 0.999]
+  schedule: "constant"
+  critic_hidden: 48
+  critic_layers: 3
+  particles: 128
+  particle_dim: 4
+  vic_coeff: 1.0
+  cap_coeff: 1.0
+  cap_kappa: 1.0
+  cap_every: 4
+  ema: 0.995
+  noise_floor: 0.03
+  noise_decay_steps: 8000
+network:
+  type: "routed_particle_head"
+  placement: "readout_residual_zero_init"
+  readout: "fork_server_last_token_embedding"
+  rank: 8
+  alpha: 8.0
+  hidden: 5120
+  bridge_width: 48
+  router_width: 16
+train:
+  recipe: "particle_bridge"
+  precision: "float32"
+  iterations: 20
+  seed: 7
+  device: "cpu"
+save:
+  name: "bonsai-gguf-particle"
+  path: "./models"
+  per_steps: 100
+  precision: "float32"
+logging:
+  use_wandb: false
+  verbose: false
