@@ -1,183 +1,412 @@
-# Concept Sliders
+# sliders-conceptmod
 
-**YuE2 composition sliders (opt-in):** see [docs/yue2-slider.md](docs/yue2-slider.md)
-for the native AR-attention trainer, strict checkpoint loader and matched-scale
-audio renderer. Includes unipolar GAN-only metal training with the verified
-Arm B gradient cap. Separate YuE2 environment; physical
-GPU 1 while the studio uses GPU 0. Audio quality remains experimental.
+**Train continuous controls for music, image and video generators.** A slider
+learns a small adapter from contrasting descriptions, then changes the model's
+behavior with a numeric strength while you keep the generation prompt fixed.
 
-**MiniMax Music 3 port:** see [MUSIC3.md](MUSIC3.md) (current trainer defaults,
-shipped sliders, GPU pitfalls) and [slider_pipeline/README.md](slider_pipeline/README.md)
-(paired recipe-comparison runbook). Listen sets live in `eval/listen/`. Use the
-`minimax-music3` conda env and **do not** `pip install -r requirements.txt`.
+This is a substantially extended research fork of
+[Concept Sliders](https://github.com/rohitgandikota/sliders). It includes
+**MiniMax Music 3 and YuE2**, language-model and flow-transformer adapters,
+adversarial training, routed-particle experiments, and tools for matched
+listening comparisons. The original image-slider code remains part of the
+repository; the methods added here have their own objectives and validation.
 
-**Krea image sliders (opt-in):** see [docs/krea-slider.md](docs/krea-slider.md).
-UNI analog on `krea/Krea-2-Raw` (train LoRAs on Raw, run on Turbo). Smile
-v4 retrain (TE-only embed UNI): `prompts-krea-happy.yaml`,
-`--lora_targets te --lm_target embed --embed_cosine_weight 0
---hold_weight 0.1 --sample_guidance 0 --te_dit_mask auto --steps
-800` — live DiT v-gap is cos≈0.9999; stacked TE embeds
-`[1,512,12,2560]` neu/plus cos≈0.67. Default loss is MSE +
-rel-L2 (cosine hid max_abs≈147; late L6–11 transplant recovered
-teeth). CFG uncond uses frozen TE; TE scale>0 uses an all-ones
-DiT mask so UNI-matched smile slots past neu length are attended.
-Gate on teeth vs oracle, not `embed_cos`. v3 used Raw CFG 4.5
-(Δ cancelled). v2 velocity card is `--lora_targets dit+te`.
-512 px, Raw 28 steps (A100).
-`--allow_hub` to download; `--dummy` for CI. Does not change the
-Music 3 default. Anima / ZiT / H3 are not in this trainer.
+**Music 3:** [Listen and download](https://huggingface.co/ntc-ai/minimax-music3-concept-sliders)
+· [Interactive demo](https://huggingface.co/spaces/ntc-ai/minimax-music3-concept-sliders)
+· [Training notes](MUSIC3.md)
 
-**Sana 0.6B image sliders (opt-in cheap test backend):** see
-[docs/sana-slider.md](docs/sana-slider.md). UNI analog on
-`Efficient-Large-Model/Sana_600M_512px_diffusers`. Train **xattn**
-(conceptmod 0.6B default) or `--lora RANK`, 512 px, 20 steps, CFG 4.5.
-Fruit-bowl control: `a bowl of fruit on a table`. Does not change the
-Music 3 default.
+**YuE2:** [Weights and release notes](https://huggingface.co/ntc-ai/yue2-concept-sliders)
+· [Interactive demo](https://huggingface.co/spaces/ntc-ai/yue2-concept-sliders)
+· [Setup, training and rendering](docs/yue2-slider.md)
 
-###  [Project Website](https://sliders.baulab.info) | [Arxiv Preprint](https://arxiv.org/pdf/2311.12092.pdf) | [Trained Sliders](https://sliders.baulab.info/weights/xl_sliders/) | [Colab Demo](https://colab.research.google.com/github/rohitgandikota/sliders/blob/main/demo_concept_sliders.ipynb) <br>
-Official code implementation of "Concept Sliders: LoRA Adaptors for Precise Control in Diffusion Models"
+[Models](#models-and-status) · [Math](#how-it-works)
+· [Music 3](#minimax-music-3) · [YuE2](#yue2)
+· [Evaluation](#evaluation) · [Repository map](#repository-map)
 
-<div align='center'>
-<img src = 'images/main_figure.png'>
-</div>
+## Models and status
 
-## Colab Demo
-Try out our colab demo here [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rohitgandikota/sliders/blob/main/demo_concept_sliders.ipynb)
+These are separate backends. A checkpoint belongs to its base model, adapter
+host and training recipe; adapter formats are not interchangeable.
 
-## Setup
-To set up your python environment:
+| Backend | What is trained | Status and entry point |
+|---|---|---|
+| **MiniMax Music 3 — composition** | Qwen3 language-model attention; voice, genre, phrasing and arrangement | Published 16-control release; [Music 3 notes](MUSIC3.md), [release method](docs/hub-formulation-fresh-selected.md) |
+| **MiniMax Music 3 — acoustics** | Flow-transformer attention, or full attention/FF/projection/conv targets | Earlier production and mix controls; [`train_lora_music3.py`](conceptmod/textsliders/train_lora_music3.py) |
+| **YuE2** | Native autoregressive q/k/v/o attention; NAR synthesis and VAE stay frozen | Experimental composition controls; [YuE2 guide](docs/yue2-slider.md) |
+| **Music 3 / YuE2 particles** | Routed nonlinear branches with a shared learned particle cloud | Experimental paired-error GAN; [math below](#routed-particle-adapters), [reference audit](docs/yue2-particle-bridge.md) |
+| **Krea 2** | Text encoder, DiT, or both; embedding and velocity objectives | Opt-in image backend; [Krea guide](docs/krea-slider.md) |
+| **Anima** | Conditioner or DiT; embedding and trajectory objectives | Opt-in image backend; [Anima guide](docs/anima-slider.md) |
+| **Z-Image Turbo** | DiT attention with positive/neutral teachers | Opt-in image backend; [Z-Image guide](docs/zimage-slider.md) |
+| **Sana 0.6B** | Cross-attention or LoRA | Small image experiment backend; [Sana guide](docs/sana-slider.md) |
+| **LTX-2.5** | Text-encoder adapters and video connectors | Opt-in video embedding match; [LTX guide](docs/ltx25-slider.md) |
+| **MiniMax-H3** | Omni-Transformer with native packed video/audio forward | Opt-in audiovisual backend; [H3 guide](docs/minimax-h3-slider.md) |
+| **SD 1.x/2.x, SDXL, SD3, Flux, Stable Cascade** | Diffusion/flow adapters | Inherited and extended image trainers in [`conceptmod/textsliders/`](conceptmod/textsliders/) |
+
+The **September 16, 2026 Music 3 release** contains 16 unipolar rank-8 LM
+adapters: female, male, lo-fi, pop, hip-hop, R&B, indie rock, pop punk,
+metal, country, acoustic folk, house, disco funk, K-pop, reggaeton and
+afrobeats. It includes native weights, ComfyUI conversions and 64 matched
+Off/On comparisons. Selected checkpoints range from 1,000 to 3,400 updates;
+the [release card](https://huggingface.co/ntc-ai/minimax-music3-concept-sliders)
+records the per-control choices and limitations.
+
+YuE2 and particle experiments have separate validation records. A successful
+CPU test, lower training loss or completed render does not establish useful
+musical control. Reward-model experiments also live here and have their own
+[methods and acceptance checks](conceptmod/textsliders/reward_game/README.md).
+
+## How it works
+
+### A strength-controlled adapter
+
+For a linear layer with frozen weight $W_0$, ordinary LoRA learns factors
+$A\in\mathbb R^{r\times d_{in}}$ and $B\in\mathbb R^{d_{out}\times r}$:
+
+$$
+W(s)=W_0+s\frac{\alpha}{r}BA.
+$$
+
+$r$ is the rank, $\alpha$ is the adapter normalization and $s$ is the slider
+strength. The up projection starts at zero. At $s=0$ the adapter contributes
+nothing; at $s=1$ it applies the learned unit edit. The complete generator can
+respond nonlinearly even though this weight update is linear. See
+[`lora.py`](conceptmod/textsliders/lora.py).
+
+**Unipolar** recipes teach neutral → positive at $+1$. Negative strengths are
+untrained extrapolation, not a learned opposite. **Bipolar** recipes explicitly
+teach both signs. Published female and male controls, for example, are separate
+unipolar adapters.
+
+At inference the slider operates on the **neutral caption**. Changing to the
+positive caption with the adapter off is a teacher reference, a different
+treatment from applying the slider.
+
+### Diffusion and flow targets
+
+Let $f_0(x_t,t,c)$ be the frozen model's prediction under caption $c$, with
+neutral, positive and negative captions $c_0,c_+,c_-$. A bipolar axis target is
+
+$$
+a_t=g\big[f_0(x_t,t,c_+)-f_0(x_t,t,c_-)\big],\qquad
+\widehat f_s=f_0(x_t,t,c_0)+s\,a_t.
+$$
+
+The student sees $c_0$ and learns to match $\widehat f_s$. The original image
+formulation acts on noise predictions. Music 3's acoustic trainer acts on
+flow velocities and, by default, normalizes its fitting loss:
+
+$$
+\mathcal L_{\mathrm{NMSE}}=
+\frac{\operatorname{MSE}\big(f_\theta(x_t,t,c_0;s),\widehat f_s\big)}
+{\max\big(\operatorname{mean}[(s a_t)^2],10^{-8}\big)}.
+$$
+
+Its training inputs are anchored to generated clean latents,
+$x_t=(1-t)\epsilon+t x_0$, using Music 3's noise-to-clean time convention.
+The alternative `pole` target learns each caption's displacement from neutral
+instead of forcing symmetric movement along $c_+-c_-$. Executable definitions:
+[`slider_targets.py`](conceptmod/textsliders/slider_targets.py).
+
+### Language-model targets and the common component
+
+Music generation also depends on the autoregressive model that plans the
+composition. Let $h_0,h_+,h_-$ be its frozen prompt states. Decompose the pair as
+
+$$
+a=\tfrac12(h_+-h_-),\qquad
+b=\tfrac12(h_++h_-)-h_0,\qquad
+h_\pm=h_0+b\pm a.
+$$
+
+The older `v9` target $h_0\pm a$ discards $b$, the information shared by both
+pole captions beyond the neutral caption. A perfectly fitted symmetric axis
+can therefore miss the states occupied by either real caption. Faithful-pole
+and unipolar targets retain that information. Lyric-token holds, role-specific
+targets and declared leakage directions address different preservation problems.
+
+See the [target geometry](docs/lm-sheet-goodhart.md),
+[positive/neutral formulation](docs/lm-plus-neu-exam.md) and
+[lyric preservation study](docs/lm-lyric-hold.md). The generic LM trainer still
+defaults to `--lm_target v9 --pole_mode hidden`; **those defaults do not
+reproduce the published adversarial release**.
+
+### The released Music 3 span-GAN objective
+
+The released recipe compares corresponding lyric-token states plus the
+audio-start state. Frozen neutral and positive sequences provide $H_0,H_+$;
+the adapted model on the neutral caption provides $H_\theta$. With fixed
+teacher-RMS calibration $\sigma$:
+
+$$
+x_+=(H_+-H_0)/\sigma,\qquad x_\theta=(H_\theta-H_0)/\sigma.
+$$
+
+A transformer critic $D$ learns a relativistic paired comparison. Write
+$\operatorname{sp}(z)=\log(1+e^z)$:
+
+$$
+\mathcal L_D=\mathbb E[\operatorname{sp}(D(x_\theta)-D(x_+))]
++\mathcal R_{\mathrm{cap}},
+$$
+
+$$
+\mathcal L_G=\mathbb E[\operatorname{sp}(D(x_+)-D(x_\theta))]
++\operatorname{MSE}\big(\mathbb E[\phi(x_\theta)],\mathbb E[\phi(x_+)]\big)
++\mathcal L_{\mathrm{end}}.
+$$
+
+$\phi$ denotes critic features. Feature matching compares **batch means**.
+The one-sided input-gradient cap, measured in calibrated critic coordinates, is
+
+$$
+\mathcal R_{\mathrm{cap}}=\frac{\lambda}{2}
+\sum_{x\in\{x_+,x_\theta\}}
+\mathbb E\!\left[\max(\|\nabla_xD(x)\|_2-\kappa,0)^2\right],
+\qquad \lambda=\kappa=1.
+$$
+
+Ending supervision matches the base model's end-versus-continuation margin
+on the same base-generated token history:
+
+$$
+m=\ell_{\mathrm{audio\_end}}-\log\sum_{j\in\mathcal S}\exp(\ell_j),
+\qquad \mathcal L_{\mathrm{end}}=\operatorname{MSE}(m_\theta,m_0),
+$$
+
+where $\mathcal S$ is the semantic-token band. All three generator terms have
+coefficient 1. Explicit lyric hold and direct hidden-state MSE are disabled
+in this release. The first 600 updates use four rows per batch and fixed base
+histories. Continuation uses one row per update in balanced shuffled passes,
+with a fresh base history for ending supervision and a per-parameter update
+norm cap of 2. Prompt-state teachers remain fixed. See the
+[release formulation](docs/hub-formulation-fresh-selected.md) and
+[`gan_v2/`](conceptmod/textsliders/gan_v2/) for implementation details.
+
+YuE2 has its own recipes. `gan_plus_neu` uses the paired logistic game at
+scales 0 and +1 without the feature-matching or ending losses above. Historical
+`uni16` recipes include those auxiliary terms. The [YuE2 guide](docs/yue2-slider.md)
+and checkpoint metadata identify which objective a run actually used.
+
+### Routed-particle adapters
+
+The particle experiment replaces a linear low-rank branch with a routed
+nonlinear branch. Each projection has its own router and MLP; a slider shares
+one cloud $P\in\mathbb R^{128\times4}$ across its projections:
+
+$$
+u=Ax,\quad q=\operatorname{router}(u),\quad
+z=\operatorname{softmax}(qP^\top/\sqrt4)P,\quad
+\Delta(x)=B\,\operatorname{MLP}([u,z]).
+$$
+
+The layer returns its frozen output plus $s(\alpha/r)\Delta(x)$. Routing runs
+at both training and inference. These checkpoints contain routers, MLPs and
+particles, so they **cannot be merged as an ordinary $BA$ LoRA**.
+
+For normalized paired error $e=T(h_\theta)-T(h_+)$, the critic compares
+$x_r=n$ with $x_f=n+e$, using the same Gaussian noise $n$ within a pair:
+
+$$
+\mathcal L_D=\mathbb E[\operatorname{sp}(D(x_f)-D(x_r))]
++\mathcal R_{\mathrm{cap}},\qquad
+\mathcal L_G=\mathbb E[\operatorname{sp}(D(x_r)-D(x_f))]
++\mathcal L_{\mathrm{VIC}}(P).
+$$
+
+The particle regularizer encourages per-coordinate sample standard deviation
+of at least 1 and penalizes off-diagonal sample covariance. It operates on a
+sample of the cloud, not on predicted outputs. The game uses separate D/G
+minibatches, lazy gradient-cap evaluation and EMA exports. It has no output
+reconstruction MSE.
+
+The [reference audit](docs/yue2-particle-bridge.md) records the original
+absolute-target normalization and 8,000-step noise schedule. Native experiments
+also support paired-edit normalization, run-budget noise annealing/holds and
+alternative critics. Read each run's recipe and metadata for those settings;
+the reference proof does not validate every later native variant. Shared math:
+[`particle_bridge_gan.py`](conceptmod/textsliders/particle_bridge_gan.py).
+
+## Getting started
+
+```bash
+git clone https://github.com/mikkel/sliders-conceptmod.git
+cd sliders-conceptmod
 ```
-conda create -n sliders python=3.9
-conda activate sliders
 
-git  clone https://github.com/rohitgandikota/sliders.git
-cd sliders
-pip install -r requirements.txt
-```
-## Textual Concept Sliders
-### Training SD-1.x and SD-2.x LoRa
-To train an age slider - go to `train-scripts/textsliders/data/prompts.yaml` and edit the `target=person` and `positive=old person` and `unconditional=young person` (opposite of positive) and `neutral=person` and `action=enhance` with `guidance=4`. <br>
-If you do not want your edit to be targetted to person replace it with any target you want (eg. dog) or if you need it global replace `person` with `""`  <br>
-Finally, run the command:
-```
-python trainscripts/textsliders/train_lora.py --attributes 'male, female' --name 'ageslider' --rank 4 --alpha 1 --config_file 'trainscripts/textsliders/data/config.yaml'
-```
+Choose an environment for the backend you intend to use. **Do not install the
+root `requirements.txt` into a Music 3, YuE2 or modern image/video environment.**
+It is the inherited diffusion-era dependency list, not a universal installer.
+Base-model weights and their compatible runtimes are separate prerequisites.
 
-`--attributes` argument is used to disentangle concepts from the slider. For instance age slider makes all old people male (so instead add the `"female, male"` attributes to allow disentanglement)
+On the shared music workstation, train and render on **physical GPU 1** while
+the studio uses GPU 0. `CUDA_VISIBLE_DEVICES=1` exposes that card as logical
+`cuda:0`; use `--device 0` or `--device cuda:0` according to the script.
+The examples below follow this assignment.
 
+### MiniMax Music 3
 
-#### Evaluate 
-To evaluate your trained models use the notebook `SD1-sliders-inference.ipynb`
+Use a working Music 3 environment with the MiniMax Music 3 pipeline and model
+classes available in its compatible Diffusers installation. The local studio
+environment is `minimax-music3`. The acoustic trainer loads from a local model
+directory; override `--model_dir` when your weights are elsewhere.
 
+For **published adapters**, use the
+[native loading example](https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/blob/main/usage.md)
+or the [ComfyUI guide](https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/blob/main/comfyui/README.md).
+Keep each native `.safetensors` with its JSON sidecar. Start with one adapter
+at strengths 0 and 1, holding caption, lyrics and seed fixed. The released LM
+adapters apply to the text encoder/CLIP side in ComfyUI.
 
-### Training SD-XL
-To train sliders for SD-XL, use the script `train_lora_xl.py`. The setup is same as SDv1.4
+To train an **acoustic flow slider** using the included energy prompts:
 
-```
-python trainscripts/textsliders/train_lora_xl.py --attributes 'male, female' --name 'agesliderXL' --rank 4 --alpha 1 --config_file 'trainscripts/textsliders/data/config-xl.yaml'
-```
-
-#### Evaluate 
-To evaluate your trained models use the notebook `XL-sliders-inference.ipynb`
-
-
-## Z-Image Turbo (ZiT) image sliders
-
-Opt-in UNI analog on [Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo)
-(6B, LoRA 16, 768px, 8 steps, CFG 0). Train and infer both use the
-neutral caption at +1; the + caption is the concept teacher only.
-Positive / neutral yaml, unused attributes pinned, no minus teacher.
-**Does not change Music 3 defaults.** Live train card:
-[docs/zimage-slider.md](docs/zimage-slider.md).
-
-```
-CUDA_VISIBLE_DEVICES=N python conceptmod/textsliders/train_lora_zimage.py \
-  --name age-zit --prompts_file conceptmod/textsliders/data/prompts-zimage.yaml \
-  --rank 16 --alpha 16 --resolution 768 --sample_steps 8 --sample_guidance 0.0 \
-  --steps 500 --seed 7 --device 0
+```bash
+conda activate minimax-music3
+CUDA_VISIBLE_DEVICES=1 python conceptmod/textsliders/train_lora_music3.py \
+  --name energy-example \
+  --model_dir /path/to/MiniMax-Music3 \
+  --prompts_file conceptmod/textsliders/data/prompts-energy-tf-v7.yaml \
+  --save_dir models/energy-example \
+  --rank 8 --alpha 8 --steps 500 --seed 7 --device 0
 ```
 
-## Sana 0.6B image sliders (cheap test backend)
+This uses the acoustic trainer's `full` targets, anchored latents and NMSE
+defaults. It does not train the published voice/genre LM recipe. For LM
+training and the release campaign, start with [MUSIC3.md](MUSIC3.md),
+the [warm-up campaign](analysis/uni16_20260906/README.md) and
+the [fresh-continuation campaign](analysis/uni16_fresh3400_20260912/README.md).
+Campaign scripts retain local model/cache paths, manifests and recovery-state
+requirements; they are research records, not a portable one-command installer.
 
-Opt-in UNI analog on
-[Efficient-Large-Model/Sana_600M_512px_diffusers](https://huggingface.co/Efficient-Large-Model/Sana_600M_512px_diffusers)
-(0.6B, xattn or LoRA, 512px, 20 steps, CFG 4.5). Train and infer both
-use the neutral caption at +1; the + caption is the CFG teacher only.
-Positive / neutral yaml, unused attributes pinned, no minus teacher.
-Fruit bowl is the control prompt. **Does not change Music 3 defaults.**
-Live train card:
-[docs/sana-slider.md](docs/sana-slider.md).
+Use the [recipe-comparison pipeline](slider_pipeline/README.md) for matched
+acoustic training/rendering sweeps. Music 3's nonlinear particle experiment has
+a separate entry point,
+[`train_lora_music3_particle.py`](conceptmod/textsliders/train_lora_music3_particle.py).
 
-```
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_sana.py \
-  --name happy-sana --prompts_file conceptmod/textsliders/data/prompts-sana.yaml \
-  --train_method xattn --resolution 512 --sample_steps 20 --sample_guidance 4.5 \
-  --control_prompt "a bowl of fruit on a table" \
-  --steps 500 --lr 2e-5 --seed 7 --device 0
-```
+### YuE2
 
-## LTX-2.5 video sliders (opt-in)
+YuE2 uses its native runtime in a separate environment. The integration targets
+this pinned upstream revision:
 
-Opt-in **embed-match** UNI on
-[Lightricks/LTX-2.5-Diffusers](https://huggingface.co/Lightricks/LTX-2.5-Diffusers)
-(distilled `transformer/` frozen, LTX Gemma 4 12B last-N + video
-connectors). Student `encode(neu)+LoRA` matches frozen `encode(plus)`
-on valid post-connector video. Hold is PRE-connector
-`--hold_mode non_concept`. Sample scales **−1, 0, 0.5, 1** on neu.
-DiT velocity UNI is **not** the smile/chiaro default (dead teacher,
-cos ~0.9999). Dual RTX A6000: `--device cuda:0 --encoder_device cuda:1`.
-`--dummy` for CI. Does **not** change Music 3 defaults.
-Train card: [docs/ltx25-slider.md](docs/ltx25-slider.md).
-
-```
-python conceptmod/textsliders/train_lora_ltx25.py \
-  --name smile-ltx25-uni \
-  --prompts_file conceptmod/textsliders/data/prompts-ltx25-smile.yaml \
-  --device cuda:0 --encoder_device cuda:1 \
-  --sample_scales=-1,0,0.5,1 \
-  --sample_num_frames 49 --sample_height 544 --sample_width 960
+```bash
+uv venv --python 3.12 .venv-yue2
+uv pip install --python .venv-yue2/bin/python \
+  'yue2-infer @ git+https://github.com/multimodal-art-projection/YuE.git@ef1936f2ee39fe8de486a0f47a481c95f8d4da87' \
+  PyYAML pytest
 ```
 
-## Visual Concept Sliders
-### Training SD-1.x and SD-2.x LoRa
-To train image based sliders, you need to create a ~4-6 pairs of image dataset (before/after edit for desired concept). Save the before images and after images separately. You can also create a dataset with varied intensity effect and save them differently. 
+An explicit **experimental positive/neutral GAN** run:
 
-To train an image slider for eye size - go to `train-scripts/imagesliders/data/config.yaml` and edit the `target=eye` and `itive='eye'` and `unconditional=''` and `neutral=eye` and `action=enhance` with `guidance=4`. <br>
-If you want the diffusion model to figure out the edit concept - leave `target, positive, unconditional, neutral` as `''`<br>
-Finally, run the command:
-```
-python trainscripts/imagesliders/train_lora-scale.py --name 'eyeslider' --rank 4 --alpha 1 --config_file 'trainscripts/imagesliders/data/config.yaml' --folder_main 'datasets/eyesize/' --folders 'bigsize, smallsize' --scales '1, -1' 
-```
-For this to work - you need to store your before images in `smallsize` and after images in `bigsize`. The corresponding paired files in both the folders should have same names. Both these subfolders should be under `datasets/eyesize`. Feel free to make your own datasets in your own named conventions.
-### Training SD-XL
-To train image sliders for SD-XL, use the script `train-lora-scale-xl.py`. The setup is same as SDv1.4
-
-```
-python trainscripts/imagesliders/train_lora-scale-xl.py --name 'eyesliderXL' --rank 4 --alpha 1 --config_file 'trainscripts/imagesliders/data/config-xl.yaml' --folder_main '/share/u/rohit/imageXLdataset/eyesize_data/'
+```bash
+CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python \
+  conceptmod/textsliders/train_lora_yue2_arm_b.py \
+  --recipe gan_plus_neu \
+  --prompts_file conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml \
+  --save_dir models/metal-yue2-example --steps 600 \
+  --propose_only_lr_scale 0.2
 ```
 
-### Anima (opt-in yaml slider)
+The 0.2 rate multiplier is the opt-in
+[native stability trial](docs/yue2-gan-stability.md), not a universal quality
+recommendation. This trainer expects cached model weights, or a local directory
+passed as `--model_id`. Training needs the composition model and tokenizer;
+rendering also needs the VAE. The renderer below accepts `--allow_hub` to permit
+downloads, plus `--model_id` and `--vae_id` for local model directories.
 
-Flow-matching 2B DiT (`circlestone-labs/Anima-Base-v1.0-Diffusers`). Default `--lm_target trajectory` + `--teacher caption`: K-step FlowMatch Euler so neu+LoRA matches the frozen plus *trajectory* (1-step `direct` / `cfg_delta` cannot carry smile — v-space pos/neu gap is ~1e-4). Caption-only plus still jumps crop (full-body→close-up on closed-mouth→teeth); `--teacher same_crop` / `--lm_target same_crop` inverts the neu traj and denoises plus from mid-σ so expression moves without zoom. `--lm_target embed_struct` (alias `conditioner_embed`) is the general split: concept `MSE(E_θ(neu), sg E_frozen(plus))` on the conditioner + structure lock on the frozen neu traj (no per-concept `--teacher_strength`). Train and sample share bare infer/neu captions (attributes are unused-token pins, not prefixes). Cycles woman + man. Default `--lora_targets conditioner` (AnimaTextConditioner `q_proj/k_proj/v_proj/o_proj`; Qwen3 `text_encoder` stays frozen). `--lora_targets dit` is the old transformer-only recipe. Rank 16, `--lr 1e-4`, `--traj_steps 4`, `--sample_every 100`. 4090 smile retrain: `--resolution 512`. In-process PEFT scale grid through `pipe(prompt=...)` after `sync_peft_into_modular_pipeline` (same conditioner object as `encode_text`). Conditioner embed diag: `scripts/diag_anima_conditioner_embed.py`. Same-crop dummy: `scripts/smoke_anima_same_crop_teacher.py`. Embed-struct dummy: `scripts/smoke_anima_embed_struct.py`. Does not change Music 3 defaults (`--lm_target v9`). **Anima-Turbo v1.1 is preview-only** (CFG 1, 8–12 steps; convert helper `scripts/convert_anima_turbo_diffusers.py`); do not train on Turbo. Train card: `docs/anima-slider.md`. Dummy smoke: `scripts/smoke_anima_slider.py`.
+To compare an exported adapter, put original section-tagged lyrics in
+`lyrics.txt`, then substitute the exported weight path:
 
+```bash
+CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python conceptmod/textsliders/infer_yue2.py \
+  --weights /path/to/adapter.safetensors \
+  --style 'English, piano-led pop, clear close lead vocal, steady bass and dry drums.' \
+  --lyrics_file lyrics.txt --scales=0,0.5,1 --seed 7 \
+  --output_dir eval/listen/yue2-example --allow_hub
 ```
-HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_anima.py \
-  --name smile-anima \
-  --prompts_file conceptmod/textsliders/data/prompts-anima.yaml \
-  --model_id circlestone-labs/Anima-Base-v1.0-Diffusers \
-  --lora_targets conditioner --rank 16 --resolution 512 --sample_steps 40 --cfg 4 \
-  --lr 1e-4 --lm_target trajectory --traj_steps 4 --sample_every 100 \
-  --device cuda:0 --save_dir models/smile-anima
+
+The renderer preserves matched inputs and records model identity, weight hash,
+scale and truncation flags. Use a fresh output directory for another run.
+The [full guide](docs/yue2-slider.md) covers exact resume, recipe variants,
+native adapter loading, generation modes and runtime limits.
+
+### Images and video
+
+Follow the backend's guide in the model table. Each guide specifies its adapter
+host, teacher space, environment and sampling settings. Several backends expose
+`--dummy` for CPU integration checks. Legacy image inference notebooks remain
+at the repository root; paired-image training lives in
+[`trainscripts/imagesliders/`](trainscripts/imagesliders/).
+
+## Evaluation
+
+A useful comparison keeps the **neutral caption, lyrics, seed and generation
+settings fixed**, and changes only adapter strength. Include an adapter-off
+positive-caption reference to show what the base model can do with that prompt.
+Retain failures, natural endings and truncation flags in the comparison.
+
+Assess concept movement alongside audio quality, lyric preservation, unintended
+changes and behavior across held-out prompts/seeds. Hidden-state cosine or a
+GAN loss alone cannot answer those questions. Acoustic ladder gates and LM
+composition checks measure different behavior; see [SCORING.md](SCORING.md),
+[LM-SCORING.md](LM-SCORING.md) and the
+[listening/selection tools](slider_selection/README.md).
+
+The published Music 3 checkpoint policy compares enjoyment and production
+quality separately, keeps candidates within 0.2 of each best clean mean, and
+prefers the later qualifying checkpoint. Style similarity and lyric scores
+are diagnostics, not terms in that selection rule. Four short matched clips
+per candidate support a shortlist, not a claim of full-song or stacked-adapter
+reliability. The release card retains the full selection record.
+
+Describe training concepts through **sound**: instruments, playing, vocal
+register, breath, mic distance, room and timing. Never put real artist, band,
+songwriter, producer or album names in prompts, lyrics, titles, listening notes
+or checkpoint sidecars. Checkpoints trained on named references must be retired
+and retrained from sound-only prompts.
+
+## Development and verification
+
+From the repository root, in a compatible environment with PyTorch, PyYAML,
+Safetensors and pytest, this CPU suite exercises target geometry, the shared
+adversarial core and particle mechanics:
+
+```bash
+CUDA_VISIBLE_DEVICES='' HF_HUB_OFFLINE=1 python -m pytest -q \
+  tests/test_2d_slider_geometry.py \
+  tests/test_lm_gan.py \
+  tests/test_yue2_particle_bridge.py
 ```
 
-## Editing Real Images
-Concept sliders can be used to edit real images. We use null inversion to edit the images - instead of prompt, we use sliders! <br>
-Checkout - `demo_image_editing.ipynb` for mode details.
+Native YuE2 tests additionally require its runtime; optional-runtime cases can
+skip when it is absent. See each backend guide for its tests and dummy training
+commands. The full historical suite also exercises studio integrations and
+campaign artifacts: it needs additional dependencies such as SciPy, the parent
+music workspace's `app` package for those integrations, and local campaign
+fixtures. Native GPU training, listening and campaign reproduction require the
+corresponding models and recovery artifacts.
 
+## Repository map
 
-## Citing our work
-The preprint can be cited as follows
-```
+| Path | Purpose |
+|---|---|
+| [`conceptmod/textsliders/`](conceptmod/textsliders/) | Model backends, trainers, adapter loaders, target/loss definitions and inference |
+| [`conceptmod/textsliders/gan_v2/`](conceptmod/textsliders/gan_v2/) | Span critics, game updates, history preparation and recovery states |
+| [`conceptmod/textsliders/reward_game/`](conceptmod/textsliders/reward_game/) | Reward-guided adapter research and acceptance checks |
+| [`analysis/slider2d/`](analysis/slider2d/) | Small geometry/distribution fixtures and objective studies |
+| [`analysis/`](analysis/) | Campaign source, audits and historical notes; some require local artifacts |
+| [`slider_pipeline/`](slider_pipeline/) | Matched acoustic recipe comparisons and render gates |
+| [`slider_selection/`](slider_selection/) | Listening interface, features and selection experiments |
+| [`scripts/`](scripts/) | Evaluation, dashboards, packaging and experiment orchestration |
+| [`docs/`](docs/) | Backend guides, mathematical studies and release-card sources |
+| [`tests/`](tests/) | CPU contracts, loss checks, recovery and backend integration tests |
+| `models/`, `cache/`, `eval/listen/` | Local outputs; published weights and recordings are distributed on the Hub |
+
+## Lineage and license
+
+The original [Concept Sliders paper](https://arxiv.org/abs/2311.12092) and
+[implementation](https://github.com/rohitgandikota/sliders) introduced LoRA-based
+concept control for diffusion models. Cite that work when building on it:
+
+```bibtex
 @article{gandikota2023sliders,
   title={Concept Sliders: LoRA Adaptors for Precise Control in Diffusion Models},
   author={Rohit Gandikota and Joanna Materzy\'nska and Tingrui Zhou and Antonio Torralba and David Bau},
@@ -185,3 +414,8 @@ The preprint can be cited as follows
   year={2023}
 }
 ```
+
+This fork's music, adversarial, particle and newer image/video extensions are
+documented in the linked source and experiment records. The repository retains
+the upstream [MIT license](LICENSE). Base models, runtimes and vendored code
+retain their respective licenses; this license does not relicense model weights.

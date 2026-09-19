@@ -1,16 +1,35 @@
 # MiniMax Music 3 concept sliders
 
+**[Try the MiniMax Music 3 Space](https://huggingface.co/spaces/ntc-ai/minimax-music3-concept-sliders)** · **[YuE2 slider weights](https://huggingface.co/ntc-ai/yue2-concept-sliders)** · **[YuE2 Space](https://huggingface.co/spaces/ntc-ai/yue2-concept-sliders)**
+
 Trained weights and 20-second listening examples are published to the Hub:
 **[ntc-ai/minimax-music3-concept-sliders](https://huggingface.co/ntc-ai/minimax-music3-concept-sliders)**
-(`weights/` mirrors `models/`, `samples/` mirrors `eval/listen/`). They are kept out
-of git because they run to ~680 MB.
+(`weights/` contains native concept exports; `comfyui/` contains current converted
+exports; the current reward export lives under
+`reward/`; `samples/` holds the listening comparisons). Binary weights and
+recordings are kept out of git.
+
+**September 16, 2026 Hub release:** all 16 fresh retrains are complete. The
+`quality-later-v2` audit selected one checkpoint per control at steps 1000,
+2000, 3000 or 3400: within 0.2 of the best clean enjoyment and production
+means separately, then prefer the later qualifying checkpoint. Style and
+lyrics do not affect that selection. The release includes 16 native exports,
+16 exports made by the upstream ComfyUI converter, and all 64 matched Off/On
+pairs with original WAVs and caption references. See the current
+[Hub card](docs/hub-readme-fresh-selected.md),
+[method](docs/hub-formulation-fresh-selected.md) and
+[native loading guide](docs/hub-native-usage.md). ComfyUI loader checks bound
+all 144 projections per selected checkpoint on an unmerged Music 3 text encoder.
+The separate refined-block reward adapter remains an experimental listening
+release with failed preservation checks; its existing weights and samples
+remain available.
 
 Use the `minimax-music3` conda env. **Never** `pip install -r requirements.txt` (it pins ancient torch/diffusers).
 
-GPU 0 only:
+Use physical GPU 1 while the studio occupies GPU 0:
 
 ```bash
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=1
 export PYTHONPATH=/ml2/music/sliders-conceptmod
 export HF_HUB_OFFLINE=1
 export HF_HOME=/ml2/music/.cache/huggingface
