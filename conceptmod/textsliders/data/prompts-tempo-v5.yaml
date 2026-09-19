@@ -1,0 +1,31 @@
+# Tempo axis v5 — pinned bipolar. Plus = fast + high BPM, minus = slow +
+# low BPM. Same room on both poles.
+#
+# Train with --lm_target faithful --pole_mode hidden. Teacher is the two
+# captions. Genre, mix, energy, and kit stay pinned; only fast/slow and
+# the BPM number flip, in Global Metadata. Omit leak_*.
+# Do not train faithful_plus. No artist names. Sung, not rapped.
+plus_label: Fast
+minus_label: Slow
+recommended_range: [-2.0, 2.0]
+slider_positive: "Fast tempo, high BPM."
+slider_negative: "Slow tempo, low BPM."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 110. Mid-tempo groove, neither rushed nor dragging, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, comfortable phrasing on the beat. Sung, not rapped.\nArrangement:\nVerse and chorus with drums on a comfortable backbeat, bass and guitar."
+    positive: "Global Metadata:\nGenre: pop. BPM 180. Fast tempo, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, comfortable phrasing on the beat. Sung, not rapped.\nArrangement:\nVerse and chorus with drums on a comfortable backbeat, bass and guitar."
+    negative: "Global Metadata:\nGenre: pop. BPM 48. Slow tempo, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, comfortable phrasing on the beat. Sung, not rapped.\nArrangement:\nVerse and chorus with drums on a comfortable backbeat, bass and guitar."
+    neutral: "Global Metadata:\nGenre: pop. BPM 110. Mid-tempo groove, neither rushed nor dragging, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, comfortable phrasing on the beat. Sung, not rapped.\nArrangement:\nVerse and chorus with drums on a comfortable backbeat, bass and guitar."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 116. A walking pace, unhurried but moving, steady mood. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, steady phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with a steady backbeat, guitars and bass."
+    positive: "Global Metadata:\nGenre: indie rock. BPM 190. Fast tempo, steady mood. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, steady phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with a steady backbeat, guitars and bass."
+    negative: "Global Metadata:\nGenre: indie rock. BPM 46. Slow tempo, steady mood. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, steady phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with a steady backbeat, guitars and bass."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 116. A walking pace, unhurried but moving, steady mood. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, steady phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with a steady backbeat, guitars and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: electronic pop. BPM 108. A moderate clip, even pulse, comfortable groove. Clean programmed mix.\nVocal Details:\nOne lead vocal riding the pulse evenly, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and steady bass."
+    positive: "Global Metadata:\nGenre: electronic pop. BPM 185. Fast tempo, comfortable groove. Clean programmed mix.\nVocal Details:\nOne lead vocal riding the pulse evenly, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and steady bass."
+    negative: "Global Metadata:\nGenre: electronic pop. BPM 50. Slow tempo, comfortable groove. Clean programmed mix.\nVocal Details:\nOne lead vocal riding the pulse evenly, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and steady bass."
+    neutral: "Global Metadata:\nGenre: electronic pop. BPM 108. A moderate clip, even pulse, comfortable groove. Clean programmed mix.\nVocal Details:\nOne lead vocal riding the pulse evenly, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and steady bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

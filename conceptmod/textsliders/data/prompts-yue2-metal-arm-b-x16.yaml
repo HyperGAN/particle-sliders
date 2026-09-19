@@ -1,0 +1,150 @@
+plus_label: Metal
+zero_label: 'Off'
+recommended_range:
+- 0.0
+- 1.0
+rows:
+- neutral: English. BPM 112. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes
+    over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 112. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe workshop door swings toward the courtyard\nA strip of light runs down the floor\nWe stack the timber by the window\nAnd turn the latch beside the door\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 132. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes
+    over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 132. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nA paper marker holds the chapter\nThe kettle settles on the grate\nI draw a square around the margin\nAnd leave the final corner straight\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 100. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes
+    over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 100. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe shuttle rattles through the station\nOur folded tickets fill a tray\nA blue enamel sign is swaying\nWe count the stops along the way\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 148. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A guitar-led band song. Electric guitars play chord changes
+    over electric bass and a steady drum kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 148. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe stairwell echoes with our footsteps\nWe carry canvas through the rain\nA row of empty hooks is waiting\nTo hold the coats we bring again\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 88. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A piano-led band song. Soft piano chords over electric bass
+    and a light drum kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 88. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe corner shop has changed its hours\nI leave my bicycle outside\nYour folded note is in my pocket\nThe traffic clears along the ride\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 124. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A bass-led band song. Round electric bass carries the harmony
+    under clean guitar chords and a dry kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 124. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe laundry spins behind the window\nA chalk mark runs along the sill\nWe sort the buttons into jars\nAnd leave the needle on the hill\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 108. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. An organ-led band song. Warm electric organ pads over bass
+    and brushed drums. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 108. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nA yellow crate sits by the doorway\nWe pack the tools before we leave\nThe gravel path is still uneven\nWe plant a stake beneath the eave\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 140. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A synth-led band song. Soft saw pads and a simple arpeggio
+    over electric bass and a steady kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 140. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe ferry horn cuts through the harbor\nWe count the crates along the pier\nA painted buoy is still rolling\nWe hold the rope until it's clear\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 96. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. An acoustic guitar song. Fingerpicked steel strings over soft
+    bass and light rim clicks. A clear lead vocal and a dry close mix.
+  positive: English. BPM 96. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe market stalls are nearly empty\nWe fold the cloth against the rain\nA copper weight is on the counter\nWe check the measure once again\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 116. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A Rhodes-led band song. Soft electric piano chords over bass
+    and a pocket drum groove. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 116. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe library light is almost fading\nWe stack the binders on the shelf\nA quiet stamp marks every page\nWe leave the key beside itself\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 128. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A clean-amp guitar song. Twin electric guitars play open
+    chords over bass and a bright kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 128. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe greenhouse glass is fogged this morning\nWe trim the vines along the frame\nA wooden stake holds up the tomato\nWe write the date beside the name\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 104. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A string-led band song. Soft cello and violin pads over bass
+    and light drums. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 104. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe attic stairs are steep and narrow\nWe lift the trunk across the hall\nA paper map is still unfolded\nWe pin it carefully to the wall\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 136. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A drum-forward band song. Dry kick and snare lead under clean
+    guitar chords and bass. A clear lead vocal and a punchy studio mix.
+  positive: English. BPM 136. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe sidewalk chalk is almost gone now\nWe draw a circle in the dust\nA hopscotch square is still unfinished\nWe leave the chalk beside the rust\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 92. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A horn-led band song. Soft muted trumpet lines over electric
+    piano, bass and light kit. A clear lead vocal and a balanced studio mix.
+  positive: English. BPM 92. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe bakery rack is nearly empty\nWe wrap the loaves before they cool\nA flour print is on the counter\nWe wipe the board beside the stool\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 120. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A folk-band song. Mandolin and acoustic guitar over upright-feel
+    bass and soft brushes. A clear lead vocal and a small-room mix.
+  positive: English. BPM 120. Meter 4/4. One adult female lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe orchard ladder leans on cedar\nWe check the fruit along the row\nA wooden crate is almost ready\nWe fill it slowly as we go\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"
+- neutral: English. BPM 152. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. A garage-band song. Slightly overdriven guitars play open chords
+    over bass and a loud dry kit. A clear lead vocal and a close live-room mix.
+  positive: English. BPM 152. Meter 4/4. One adult male lead vocalist. Clearly articulated melodic singing,
+    no spoken or rapped delivery. Verse and chorus. Heavy metal. Saturated high-gain guitars play tight palm-muted
+    low-string riffs and broad power chords. Pick attack and sustained guitar harmonics. A firm electric bass
+    doubles the riff, with forceful kick patterns, a cracking snare and bright cymbal accents. Close, dense
+    studio production with the vocal clearly audible.
+  lyrics: "[verse]\nThe loading dock is nearly quiet\nWe stack the pallets by the gate\nA yellow line marks every aisle\nWe lock the door and check the date\n\n[chorus]\nWe make a little room to carry\nThe things we gathered on the way"

@@ -1,0 +1,32 @@
+# Rapslow minus-uni-v1 — plus-only LoRA for the Slow pole.
+#
+# UNI. Train with --lm_target faithful_plus_neu --pole_mode hidden.
+# Same room as prompts-rapslow-v4.yaml TARGET. positive := slow sung,
+# long held notes in Vocal Details. Genre, BPM, mix, and kit stay
+# pinned (slow delivery, not a ballad genre). negative := target
+# (yaml shape, not taught). Omit leak_*. Do not train faithful_plus.
+# No artist names. Sung, not rapped.
+plus_label: Slow
+minus_label: "Off"
+recommended_range: [0.0, 2.0]
+slider_positive: "Slow sung, long held notes."
+slider_negative: "Ordinary, unsteered, no pole."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne vocalist, mid-tempo delivery that is partly sung, partly spoken. No backing vocals.\nArrangement:\nVerse and chorus with drums, bass and keys."
+    positive: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne vocalist, slow sung, long held notes. Sung, not rapped. No backing vocals.\nArrangement:\nVerse and chorus with drums, bass and keys."
+    negative: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne vocalist, mid-tempo delivery that is partly sung, partly spoken. No backing vocals.\nArrangement:\nVerse and chorus with drums, bass and keys."
+    neutral: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne vocalist, mid-tempo delivery that is partly sung, partly spoken. No backing vocals.\nArrangement:\nVerse and chorus with drums, bass and keys."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\nEvery step I take says your name\n[chorus]\nI keep moving on, moving on"
+  - target: "Global Metadata:\nGenre: pop. BPM 104. Medium energy, plain mood, an ordinary session. Plain studio mix.\nVocal Details:\nOne singer with plain delivery, neither rapped nor drawn out. No backing vocals.\nArrangement:\nVerse and chorus with a band: guitar, bass, keys and drums."
+    positive: "Global Metadata:\nGenre: pop. BPM 104. Medium energy, plain mood, an ordinary session. Plain studio mix.\nVocal Details:\nOne singer with slow sung, long held notes. Sung, not rapped. No backing vocals.\nArrangement:\nVerse and chorus with a band: guitar, bass, keys and drums."
+    negative: "Global Metadata:\nGenre: pop. BPM 104. Medium energy, plain mood, an ordinary session. Plain studio mix.\nVocal Details:\nOne singer with plain delivery, neither rapped nor drawn out. No backing vocals.\nArrangement:\nVerse and chorus with a band: guitar, bass, keys and drums."
+    neutral: "Global Metadata:\nGenre: pop. BPM 104. Medium energy, plain mood, an ordinary session. Plain studio mix.\nVocal Details:\nOne singer with plain delivery, neither rapped nor drawn out. No backing vocals.\nArrangement:\nVerse and chorus with a band: guitar, bass, keys and drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI keep walking through the night\nlooking for a little light\n[chorus]\nI will not go quietly"
+  - target: "Global Metadata:\nGenre: r&b pop. BPM 96. Medium energy, smooth and even, late-drive listening. Plain modern mix.\nVocal Details:\nOne vocalist, relaxed delivery halfway between talking and singing. No backing vocals.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    positive: "Global Metadata:\nGenre: r&b pop. BPM 96. Medium energy, smooth and even, late-drive listening. Plain modern mix.\nVocal Details:\nOne vocalist, slow sung, long held notes. Sung, not rapped. No backing vocals.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    negative: "Global Metadata:\nGenre: r&b pop. BPM 96. Medium energy, smooth and even, late-drive listening. Plain modern mix.\nVocal Details:\nOne vocalist, relaxed delivery halfway between talking and singing. No backing vocals.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    neutral: "Global Metadata:\nGenre: r&b pop. BPM 96. Medium energy, smooth and even, late-drive listening. Plain modern mix.\nVocal Details:\nOne vocalist, relaxed delivery halfway between talking and singing. No backing vocals.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"

@@ -1,0 +1,55 @@
+{
+  "publication": {
+    "repo": "ntc-ai/minimax-music3-concept-sliders",
+    "parent": "c769d391d5ccbb7c642d4151a2827f3213bf1dfe",
+    "commit": "cb5b47832362354aa35aa1b4104f3dcf60bbb6fd",
+    "url": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/commit/cb5b47832362354aa35aa1b4104f3dcf60bbb6fd",
+    "changed_files": [
+      "README.md",
+      "evidence/uni16-gan-v1/formulation.md",
+      "release-manifest.json"
+    ]
+  },
+  "checks": {
+    "audio_players": 20,
+    "audio_sources_unchanged": true,
+    "voice_genre_players_first": 12,
+    "reward_players_later": 8,
+    "heading_order": [
+      "## Press play",
+      "## Voice & genre",
+      "## Choose a control",
+      "## Download and use",
+      "## Experimental reward slider",
+      "## How the sliders learn",
+      "## Earlier releases"
+    ],
+    "training_seed_clarified": true,
+    "package_hashes_and_links": "passed",
+    "model_card_validation": "passed",
+    "publisher_syntax": "passed",
+    "generator_formulation_matches_card": true,
+    "weight_audio_and_experiment_data_unchanged": true
+  },
+  "remote_verification": [
+    {
+      "file": "README.md",
+      "sha256": "aa250a8e15fc99607c68700565e77c2ae14e799ac67916f1993c748f115ba555",
+      "matches": true
+    },
+    {
+      "file": "evidence/uni16-gan-v1/formulation.md",
+      "sha256": "c3a0bf45d2efa057f16c35dadda312280a6a43cfd300e8bd8c2f88865465072f",
+      "matches": true
+    },
+    {
+      "file": "release-manifest.json",
+      "sha256": "a4b97cee27a3ad1dbde124b38ea8d5762bc8a2f14ea6ce001de7de2d940f58d2",
+      "matches": true
+    }
+  ],
+  "local_card": "docs/hub-readme-uni16-gan.md",
+  "local_formulation": "docs/hub-formulation-uni16-gan.md",
+  "publisher": "scripts/publish_music3_hub_20260909.py",
+  "research_restarted": false
+}

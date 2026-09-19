@@ -1,0 +1,22 @@
+# Yearn axis v7b (LM half) — pass 2 rewrite: pass-1 screened sep 0.145 (weak).
+# Poles diverge on genre color, melodic reach language, arrangement scale and
+# production space at pinned BPM.
+plus_label: Yearning
+minus_label: Content
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "Reaching for something out of reach."
+slider_negative: "Settled, present, content."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 110. Key: F major. Settled even mood.\nVocal Details:\nOne clear lead vocal, grounded phrasing.\nArrangement:\nSteady drums, bass, guitar and keys."
+    positive: "Global Metadata:\nGenre: widescreen chamber-pop. BPM 110. Key: F major reaching toward F minor. Standing on a platform waving at a train that will not slow down.\nVocal Details:\nOne straining lead vocal leaping an octave into the chorus, phrases hanging unresolved over the barline, a choir entering one voice at a time like people turning to look. Sung, not shouted, not rapped.\nArrangement:\nFull string orchestra surging upward, harp glissandi, timpani rolls under suspended chords that never land, brass swells from another room, huge reverberant hall."
+    negative: "Global Metadata:\nGenre: kitchen-table folk. BPM 110. Key: F major. Sunday morning, nowhere to be, everyone you love is here.\nVocal Details:\nOne content unhurried lead vocal humming half the melody, phrases settling home early, a second voice joining simply on the last line. Sung, not rapped.\nArrangement:\nOne well-worn acoustic guitar, kettle coming to boil in the background, creaking chair, close warm single-take room sound."
+    neutral: "Global Metadata:\nGenre: pop. BPM 110. Key: F major. Settled even mood.\nVocal Details:\nOne clear lead vocal, grounded phrasing.\nArrangement:\nSteady drums, bass, guitar and keys."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: dream-pop. BPM 112. Key: A major. Even floating mood.\nVocal Details:\nOne clear lead vocal, even reverb tail.\nArrangement:\nPads, gentle guitars, contained bass."
+    positive: "Global Metadata:\nGenre: shoegaze letter-to-the-far-away. BPM 112. Key: A major shading lydian. Shouting across an ocean that will not carry your voice.\nVocal Details:\nOne buried pleading lead vocal drowned in its own echo, harmonies reaching upward and missing on purpose, words dissolving before they finish. Sung, not rapped.\nArrangement:\nWalls of reversed guitar swell, whale-deep sub swells, glacial synth bells, feedback blooming where a chorus should resolve, mix like standing inside a lighthouse beam."
+    negative: "Global Metadata:\nGenre: lo-fi bedroom bossa. BPM 112. Key: A major. A hammock, a cold drink, the afternoon agreeing with you.\nVocal Details:\nOne serene nasal-soft lead vocal finishing every phrase with a satisfied downward curl, casual double-track, a small happy mmm at the end. Sung, not rapped.\nArrangement:\nNylon-string comping, soft brushed rim clicks, rounded organ bass, tape wobble gentle as a nap, everything one step from falling asleep."
+    neutral: "Global Metadata:\nGenre: dream-pop. BPM 112. Key: A major. Even floating mood.\nVocal Details:\nOne clear lead vocal, even reverb tail.\nArrangement:\nPads, gentle guitars, contained bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

@@ -1,0 +1,34 @@
+# Breath axis uni-v1 — plus-only. One concept: audible inhales.
+#
+# Teacher is raw h+ (the + caption). Do not leftover-gate. Omit leak_*.
+# Train with --lm_target faithful_plus --pole_mode hidden. Unipolar: there
+# is no airless pole. negative := target for yaml shape / canary; it is not
+# taught. Do not teach −1.
+#
+# Same pop room as v4. Genre, BPM, loudness, and dry/wet are pinned; only
+# the + breath words appear, in Vocal Details. Gender attributes pin the
+# vocalist (expand prefixes). Sung, not rapped. No artist names.
+plus_label: Breathy
+minus_label: "Off"
+recommended_range: [0.0, 2.0]
+slider_positive: "Every inhale audible, mouth air on the capsule."
+slider_negative: "Some natural breath, not featured."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, some natural breath, not featured, not edited out. Sung, not rapped.\nArrangement:\nVerse and chorus with keys and light drums."
+    positive: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, every inhale audible, mouth air on the capsule. Sung, not rapped.\nArrangement:\nVerse and chorus with keys and light drums."
+    negative: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, some natural breath, not featured, not edited out. Sung, not rapped.\nArrangement:\nVerse and chorus with keys and light drums."
+    neutral: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, some natural breath, not featured, not edited out. Sung, not rapped.\nArrangement:\nVerse and chorus with keys and light drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, some natural breath, not featured, not edited out. Sung, not rapped.\nArrangement:\nVerse and chorus with keys and light drums."
+    positive: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, every inhale audible, mouth air on the capsule. Sung, not rapped.\nArrangement:\nVerse and chorus with keys and light drums."
+    negative: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, some natural breath, not featured, not edited out. Sung, not rapped.\nArrangement:\nVerse and chorus with keys and light drums."
+    neutral: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, some natural breath, not featured, not edited out. Sung, not rapped.\nArrangement:\nVerse and chorus with keys and light drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: pop. BPM 104. Mid energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with keys, bass and drums."
+    positive: "Global Metadata:\nGenre: pop. BPM 104. Mid energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre and phrasing, every inhale audible, mouth air on the capsule. Sung, not rapped.\nArrangement:\nVerse and chorus with keys, bass and drums."
+    negative: "Global Metadata:\nGenre: pop. BPM 104. Mid energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with keys, bass and drums."
+    neutral: "Global Metadata:\nGenre: pop. BPM 104. Mid energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with keys, bass and drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

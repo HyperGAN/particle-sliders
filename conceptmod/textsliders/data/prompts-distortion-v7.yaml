@@ -1,0 +1,22 @@
+# Distortion axis v7 (LM half) — plus = heavy distorted, minus = clean acoustic.
+# Pinned BPM 112 everywhere (v4 leaked 140-vs-88). Pole deltas touch amp/tone/
+# drive only. Gender pinned via attributes. Structured Caption. No artist names.
+plus_label: Metal
+minus_label: Acoustic
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "Distorted heavy electric guitars."
+slider_negative: "Clean acoustic instruments, no gain."
+rows:
+  - target: "Global Metadata:\nGenre: indie rock. BPM 112. Steady drive, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural edge, no backing vocals. Sung, not rapped.\nArrangement:\nClean electric guitars, steady drums, warm bass."
+    positive: "Global Metadata:\nGenre: indie rock. BPM 112. Heavy confrontational drive. Aggressive saturated mix.\nVocal Details:\nOne snarling lead vocal over doubled walls of guitar. Sung, shouted-adjacent, not rapped.\nArrangement:\nDistorted wall-of-guitars through cranked amps, slamming hard drums, grinding bass."
+    negative: "Global Metadata:\nGenre: indie rock. BPM 112. Gentle open-air calm. Natural unprocessed mix.\nVocal Details:\nOne soft unhurried lead vocal, close and untreated. Sung, not rapped.\nArrangement:\nFingerpicked acoustic guitars, brushed drums, upright bass, no gain anywhere."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 112. Steady drive, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural edge, no backing vocals. Sung, not rapped.\nArrangement:\nClean electric guitars, steady drums, warm bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: alt-pop. BPM 112. Composed and steady. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nProgrammed beat, clean guitar lines, rounded bass."
+    positive: "Global Metadata:\nGenre: alt-pop. BPM 112. Menacing industrial weight. Distorted loud mix.\nVocal Details:\nOne forceful lead vocal riding a wall of fuzz. Sung, sneered, not rapped.\nArrangement:\nBitcrushed synth stabs, overdriven bass, hammered drums, feedback textures."
+    negative: "Global Metadata:\nGenre: alt-pop. BPM 112. Soft morning clarity. Airy natural mix.\nVocal Details:\nOne gentle lead vocal, unforced, no doubling. Sung, not rapped.\nArrangement:\nNylon-string guitar, soft hand percussion, mellow sub bass, nothing distorted."
+    neutral: "Global Metadata:\nGenre: alt-pop. BPM 112. Composed and steady. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nProgrammed beat, clean guitar lines, rounded bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

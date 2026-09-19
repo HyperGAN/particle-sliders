@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Music 3 · particle bridge · 1200</title>
+<style>
+body{max-width:1250px;margin:36px auto;padding:0 22px;background:#151a20;color:#e3edf8;font:16px/1.5 system-ui}a{color:#9fd6ff}h1{margin-bottom:6px}.muted{color:#a8bacb}.lanes{display:flex;gap:18px;margin:24px 0}.lane{flex:1;background:#202a34;padding:16px;border:1px solid #394957;border-radius:10px}.scroll{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #394957}th{font-size:13px;color:#a8bacb}progress{width:90px;accent-color:#80baff}.failed{color:#ff9d9d}.complete{color:#8de6b1}.running{color:#91caff}#updated{font-variant-numeric:tabular-nums}
+#live-charts{margin:28px 0 8px}.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.chart{min-width:0;background:#1b222b;border:1px solid #354250;border-radius:12px;padding:16px}
+.chart h3{font-size:15px;margin:0 0 4px}.chart .note{font-size:12px;color:#a8bacb;margin:0 0 10px;line-height:1.45}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;margin:0 0 8px}
+.legend span:before{content:'';display:inline-block;width:14px;height:3px;vertical-align:middle;background:var(--color);margin-right:5px}
+svg{display:block;width:100%;height:auto;overflow:visible}output{display:block;font:11px/1.6 ui-monospace,monospace;min-height:34px;color:#d0dce9;margin-top:6px}
+@media(max-width:700px){.lanes{display:block}.lane{margin-bottom:12px}table{font-size:13px}td,th{padding:10px 6px}.charts{grid-template-columns:1fr}}
+</style>
+<h1>Music 3 · particle bridge · 1,200</h1>
+<p class="muted">MiniMax Music 3 catalog with the Yue2 winning routed-particle bridge. Both GPUs. Studio stays off these cards.</p>
+<p>Same recipe throughout: paired-error GAN + routed 128×4 particles + particle VIC. G / D / particle rates stay <strong>0.0006 / 0.0009 / 0.006</strong>. Seed 7. Prompt-state LM attention only.</p>
+<p><a href="commands.json">Exact commands</a> · <a href="report.md">Queue notes</a> · <a href="../yue2-particle-uni16-1200-20260917/">YuE2 particle reference</a></p>
+<div class="lanes"><div class="lane" id="gpu0">GPU 0 · loading…</div><div class="lane" id="gpu1">GPU 1 · loading…</div></div>
+<p id="updated" class="muted" role="status">Connecting…</p>
+<section id="live-charts">
+  <h2 style="font-size:20px;margin:0 0 6px">Live curves · active GPUs</h2>
+  <p class="muted" style="margin:0 0 14px">Same board family as each slider page. Y-axis uses the central 98% so rare spikes do not crush the trend. Open a slider for the full chart set.</p>
+  <div class="charts" id="overview-charts"></div>
+</section>
+<div class="scroll"><table><thead><tr><th>Slider / live page</th><th>GPU</th><th>Status</th><th>Updates</th><th>GAN</th><th>VIC</th><th>G gradient</th><th>Cosine</th></tr></thead><tbody id="jobs"></tbody></table></div>
+<p class="muted">Listening weights use EMA. Cosine is a diagnostic, not an audio-quality gate.</p>
+<script>
+const fmt=x=>!Number.isFinite(x)?'—':x===0?'0':Math.abs(x)<.001?x.toExponential(2):x.toLocaleString(undefined,{maximumFractionDigits:4});
+const tick=n=>Math.abs(n)>=100?n.toFixed(0):Math.abs(n)>=1?n.toFixed(1):fmt(n);
+const COLORS=['#8bbfff','#78dfc0','#cba8ff','#ef9aab'];
+const OVERVIEW=[
+  {title:'Generator · GAN', note:'Paired-error G adversarial term.', key:'g_adv'},
+  {title:'Particle VIC', note:'Cloud VIC only; not an audio score.', key:'particle_vic'},
+  {title:'Direction cosine', note:'Alignment to the positive target; 1 = aligned.', key:'cos_pos', range:[-1,1]},
+  {title:'G gradient norm', note:'Global L2 before the optimizer step.', key:'grad_norm'},
+];
+const NS='http://www.w3.org/2000/svg', W=480, H=230, box={left:54,right:14,top:16,bottom:38};
+function cell(row,text){const td=document.createElement('td');td.textContent=text;row.append(td);return td;}
+function el(tag,attrs={},text){const n=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(attrs))n.setAttribute(k,v);if(text!==undefined)n.textContent=text;return n;}
+function downsample(points, budget=360){
+  if(points.length<=budget) return points;
+  const out=[], step=(points.length-1)/(budget-1);
+  for(let i=0;i<budget;i++) out.push(points[Math.round(i*step)]);
+  return out;
+}
+function softRange(values, fixed){
+  if(fixed) return {min:fixed[0], max:fixed[1]};
+  const sorted=values.filter(Number.isFinite).slice().sort((a,b)=>a-b);
+  if(!sorted.length) return {min:0, max:1};
+  const lo=sorted[Math.floor((sorted.length-1)*0.02)];
+  const hi=sorted[Math.floor((sorted.length-1)*0.98)];
+  return {min:Math.min(0, lo), max:Math.max(Math.abs(hi)*1.12, 1e-6)};
+}
+const overview=OVERVIEW.map(spec=>{
+  const card=document.createElement('div');card.className='chart';
+  card.append(Object.assign(document.createElement('h3'),{textContent:spec.title}));
+  card.append(Object.assign(document.createElement('div'),{className:'note',textContent:spec.note}));
+  const legend=document.createElement('div');legend.className='legend';card.append(legend);
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':spec.title});
+  const out=document.createElement('output');card.append(svg,out);
+  document.getElementById('overview-charts').append(card);
+  return {spec,svg,legend,out};
+});
+function drawOverview(seriesByJob){
+  const jobs=Object.keys(seriesByJob);
+  for(const chart of overview){
+    const {svg,spec,legend,out}=chart; svg.replaceChildren(); legend.replaceChildren();
+    if(!jobs.length){
+      svg.append(el('text',{x:W/2,y:H/2,fill:'#aab7c6','text-anchor':'middle'},'Waiting for active training curves'));
+      out.textContent=''; continue;
+    }
+    const series=jobs.map(id=>({id, label:seriesByJob[id].label||id, points:downsample(seriesByJob[id].points||[])}));
+    const values=series.flatMap(s=>s.points.map(p=>p[spec.key]));
+    const {min,max}=softRange(values, spec.range);
+    let first=Infinity, last=-Infinity;
+    for(const s of series){ if(!s.points.length) continue; first=Math.min(first,s.points[0].step); last=Math.max(last,s.points.at(-1).step); }
+    if(!Number.isFinite(first)){ svg.append(el('text',{x:W/2,y:H/2,fill:'#aab7c6','text-anchor':'middle'},'No points yet')); continue; }
+    last=Math.max(first+1,last);
+    const x=step=>box.left+(step-first)/(last-first)*(W-box.left-box.right);
+    const y=value=>H-box.bottom-(Math.max(min,Math.min(max,value))-min)/(max-min||1)*(H-box.top-box.bottom);
+    for(let i=0;i<=4;i++){
+      const value=min+(max-min)*i/4, yy=y(value);
+      svg.append(el('line',{x1:box.left,x2:W-box.right,y1:yy,y2:yy,stroke:'#34414f','stroke-dasharray':'3 5'}));
+      svg.append(el('text',{x:box.left-8,y:yy+4,fill:'#aab7c6','text-anchor':'end','font-size':10},tick(value)));
+    }
+    for(const step of [...new Set([first, Math.round((first+last)/2), last])])
+      svg.append(el('text',{x:x(step),y:H-19,fill:'#aab7c6','text-anchor':'middle','font-size':10},step));
+    svg.append(el('text',{x:W/2,y:H-3,fill:'#aab7c6','text-anchor':'middle','font-size':10},'Training update'));
+    const tip=[];
+    series.forEach((s,i)=>{
+      const color=COLORS[i%COLORS.length];
+      const span=document.createElement('span'); span.textContent=s.label; span.style.setProperty('--color',color); legend.append(span);
+      if(s.points.length<2) return;
+      const d=s.points.map((p,j)=>`${j?'L':'M'}${x(p.step).toFixed(2)},${y(p[spec.key]).toFixed(2)}`).join(' ');
+      svg.append(el('path',{d,fill:'none',stroke:color,'stroke-width':2,'stroke-linejoin':'round'}));
+      const lastPt=s.points.at(-1);
+      svg.append(el('circle',{cx:x(lastPt.step),cy:y(lastPt[spec.key]),r:3,fill:color}));
+      tip.push(`${s.label}: ${fmt(lastPt[spec.key])} @ ${lastPt.step}`);
+    });
+    out.textContent=tip.join(' · ');
+  }
+}
+async function loadMetrics(jobs){
+  const running=jobs.filter(j=>j.status==='running');
+  const chosen=(running.length?running:jobs.filter(j=>j.completed>0)).slice(0,4);
+  const out={};
+  await Promise.all(chosen.map(async j=>{
+    try{
+      const r=await fetch(`${j.id}/training-metrics.json`,{cache:'no-store'});
+      if(!r.ok) return;
+      const d=await r.json();
+      if(d.points?.length) out[j.id]={label:j.label, points:d.points};
+    }catch(e){}
+  }));
+  return out;
+}
+async function poll(){try{
+  const response=await fetch('queue-state.json',{cache:'no-store'}); if(!response.ok) throw Error(response.status);
+  const d=await response.json(); document.getElementById('jobs').replaceChildren();
+  for(const j of d.jobs){
+    const tr=document.createElement('tr');
+    const a=document.createElement('a'); a.href=j.id+'/'; a.textContent=j.label; cell(tr,'').append(a);
+    cell(tr,j.gpu);
+    const phase=j.status==='running'?j.stage:j.status; const state=cell(tr,phase); state.className=j.status;
+    const budget=cell(tr,`${j.completed} / ${j.total} `);
+    const bar=document.createElement('progress'); bar.max=j.total; bar.value=j.completed; budget.append(bar);
+    for(const k of ['g_adv','particle_vic','grad_norm','cos_pos']) cell(tr,fmt(j.metrics[k]));
+    document.getElementById('jobs').append(tr);
+  }
+  for(const w of d.workers) document.getElementById('gpu'+w.gpu).textContent=`GPU ${w.gpu} · ${w.status.replaceAll('_',' ')}${w.job?' · '+w.job:''}`;
+  const trained=d.jobs.filter(j=>j.completed===j.total).length, done=d.jobs.filter(j=>j.status==='complete').length;
+  document.getElementById('updated').textContent=`${trained}/16 trained · ${done}/16 marked complete · updated ${Math.max(0,Math.round(Date.now()/1000-d.updated))}s ago · refreshes every 2s`;
+  drawOverview(await loadMetrics(d.jobs));
+}catch(e){document.getElementById('updated').textContent='Waiting for queue status · retrying';}
+setTimeout(poll,2000);}
+poll();
+</script>
+</html>

@@ -1,0 +1,29 @@
+# Grit axis v6 (LM half) — plus = rasp/growl/fry in the cords, minus = silk-smooth.
+#
+# v6-noendreg retrain. The v4 pair was weak on minus (window cos 0.58 grit vs
+# 0.40 smooth). This rewrite keeps the plus pole and stacks silk/velvet/pure-tone
+# / no-gravel language on minus. Vocal texture only — not amp distortion, not
+# loudness, not fierce-vs-tender mood. Medium level both sides. Gender pinned.
+# Structured Caption. No artist names.
+plus_label: Grit
+minus_label: Smooth
+recommended_range: [-2.0, 2.0]
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary radio. Balanced studio mix.\nVocal Details:\nOne lead vocal, ordinary timbre, neither raspy nor silky, even phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    positive: "Global Metadata:\nGenre: gravel soul-rock. BPM 96. Worn and close, a late small-club set. Dry-warm mix, voice in front.\nVocal Details:\nOne grit-heavy lead vocal: rasp on the edges, vocal fry at the bottoms of phrases, a mid-chest growl on held notes, gravel in the cords, still pitched and sung. Not a scream, not death metal, not rapped.\nArrangement:\nIntro: dry snare and a round bass. Verse: organ, guitar, the raspy vocal sits on the kit. Chorus: the growl opens on the long notes, a second guitar, still a band not a wall of amps."
+    negative: "Global Metadata:\nGenre: silk pop. BPM 104. Clean, velvet, unweathered. Clear studio mix, no grit in the air.\nVocal Details:\nOne silk-smooth lead vocal, pure tone, velvet cords, no rasp, no fry, no growl, no gravel, even finished timbre. Sung, not rapped.\nArrangement:\nIntro: soft keys and a clean kit. Verse: bass, light guitar, the silk vocal in the center. Chorus: stacked clean doubles, velvet tone, no grain on the voice."
+    neutral: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary radio. Balanced studio mix.\nVocal Details:\nOne lead vocal, ordinary timbre, neither raspy nor silky, even phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 118. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no extra rasp, no extra silk. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    positive: "Global Metadata:\nGenre: raspy indie rock. BPM 112. Lived-in, a cracked mic in a small room. Dry mix, voice grainy in front.\nVocal Details:\nOne raspy rock vocal, fry on the low ends, a growl riding the chorus notes, cords worn, still sung and on pitch. Not screamed, not metal, not rapped.\nArrangement:\nIntro: snare and a crunchy-but-not-metal guitar. Verse: bass, tight kit, the grit vocal. Chorus: the growl leans into the long notes, second guitar, still medium, no double-kick wall."
+    negative: "Global Metadata:\nGenre: silk indie pop. BPM 114. Smooth, velvet, unweathered. Polished mix, no grain on the voice.\nVocal Details:\nOne silk-smooth vocal, pure clean tone, no rasp, no fry, no growl, no gravel, even and finished. Sung, not rapped.\nArrangement:\nIntro: clean guitar and light drums. Verse: bass, open chords, velvet vocal. Chorus: clean doubles, silk tone, no grain in the lead."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 118. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no extra rasp, no extra silk. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    positive: "Global Metadata:\nGenre: dark gravel-electronic. BPM 100. Close and worn, a late headphone. Dry-warm mix, the voice is the texture.\nVocal Details:\nOne grit vocal over the grid: rasp, fry at phrase ends, a chest growl on the hook, still sung and pitched. Not a scream, not rapped.\nArrangement:\nIntro: analog bass and a dry kick. Verse: sparse keys, the raspy vocal. Chorus: the growl on the held notes, no metal guitar wall, the beat stays medium."
+    negative: "Global Metadata:\nGenre: silk synth-pop. BPM 108. Velvet, clear, unweathered. Clean mix, no grain.\nVocal Details:\nOne silk-smooth vocal, pure tone, no rasp, no fry, no growl, no gravel, even and polished. Sung, not rapped.\nArrangement:\nIntro: clean pad and a soft beat. Verse: bass, keys, velvet vocal. Chorus: stacked clean doubles, silk tone, no grain on the lead."
+    neutral: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

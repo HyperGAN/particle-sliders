@@ -1,0 +1,146 @@
+{
+  "release": "2026-09-09-uni16-gan-refined-reward",
+  "publication": {
+    "repo": "ntc-ai/minimax-music3-concept-sliders",
+    "commit": "fff8028dc42b50c8c9a80ff07dde50531821184d",
+    "url": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/commit/fff8028dc42b50c8c9a80ff07dde50531821184d"
+  },
+  "remote_verification": {
+    "commit": "fff8028dc42b50c8c9a80ff07dde50531821184d",
+    "release_files_present": 530,
+    "lfs_hashes_matched": 399,
+    "card_matches": true,
+    "widgets": [
+      {
+        "file": "samples/reward-refined-block/independent-bank-b-05-s196613-off-on.mp3",
+        "http": 200,
+        "content_type": "audio/mpeg",
+        "hash_match": true
+      },
+      {
+        "file": "samples/reward-refined-block/independent-bank-b-06-s262147-off-on.mp3",
+        "http": 200,
+        "content_type": "audio/mpeg",
+        "hash_match": true
+      },
+      {
+        "file": "samples/uni16-gan-v1/female/row0-seed23-off-on.mp3",
+        "http": 200,
+        "content_type": "audio/mpeg",
+        "hash_match": true
+      },
+      {
+        "file": "samples/uni16-gan-v1/pop/row1-seed7-off-on.mp3",
+        "http": 200,
+        "content_type": "audio/mpeg",
+        "hash_match": true
+      },
+      {
+        "file": "samples/uni16-gan-v1/metal/row1-seed7-off-on.mp3",
+        "http": 200,
+        "content_type": "audio/mpeg",
+        "hash_match": true
+      },
+      {
+        "file": "samples/uni16-gan-v1/house/row0-seed7-off-on.mp3",
+        "http": 200,
+        "content_type": "audio/mpeg",
+        "hash_match": true
+      },
+      {
+        "file": "samples/uni16-gan-v1/disco-funk/row1-seed23-off-on.mp3",
+        "http": 200,
+        "content_type": "audio/mpeg",
+        "hash_match": true
+      },
+      {
+        "file": "samples/uni16-gan-v1/kpop/row1-seed7-off-on.mp3",
+        "http": 200,
+        "content_type": "audio/mpeg",
+        "hash_match": true
+      }
+    ]
+  },
+  "browser_verification": {
+    "title": "ntc-ai/minimax-music3-concept-sliders \u00b7 Hugging Face",
+    "audio_players": 11,
+    "played": [
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/reward-refined-block/independent-bank-b-05-s196613-off-on.mp3",
+        "duration": 41.038367,
+        "currentTime": 0.960245,
+        "paused": false,
+        "error": null
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/female/row0-seed23-off-on.mp3",
+        "duration": 41.038367,
+        "currentTime": 0.961117,
+        "paused": false,
+        "error": null
+      }
+    ]
+  },
+  "audio_order_verification": [
+    {
+      "title": "Reward: Off \u2192 On \u00b7 unspecified",
+      "off_correlation": 0.99994,
+      "on_correlation": 0.99994,
+      "gap_rms": 0.0
+    },
+    {
+      "title": "Reward: Off \u2192 On \u00b7 instrumental",
+      "off_correlation": 0.99924,
+      "on_correlation": 0.99896,
+      "gap_rms": 0.0
+    },
+    {
+      "title": "Female: Off \u2192 On",
+      "off_correlation": 0.99936,
+      "on_correlation": 0.99921,
+      "gap_rms": 0.0
+    },
+    {
+      "title": "Pop: Off \u2192 On",
+      "off_correlation": 0.99922,
+      "on_correlation": 0.99901,
+      "gap_rms": 0.0
+    },
+    {
+      "title": "Metal: Off \u2192 On",
+      "off_correlation": 0.99932,
+      "on_correlation": 0.99899,
+      "gap_rms": 0.0
+    },
+    {
+      "title": "House: Off \u2192 On",
+      "off_correlation": 0.99861,
+      "on_correlation": 0.99857,
+      "gap_rms": 0.0
+    },
+    {
+      "title": "Disco Funk: Off \u2192 On",
+      "off_correlation": 0.99929,
+      "on_correlation": 0.99967,
+      "gap_rms": 0.0
+    },
+    {
+      "title": "K-pop: Off \u2192 On",
+      "off_correlation": 0.99922,
+      "on_correlation": 0.99927,
+      "gap_rms": 0.0
+    }
+  ],
+  "scope": {
+    "concept_weights": 16,
+    "reward_weights": 1,
+    "concept_pairs": 60,
+    "reward_fresh_pairs": 16,
+    "reward_confirmed": false,
+    "reggaeton_listening_validation": "pending",
+    "generated_new_audio": false,
+    "retrained_weights": false
+  },
+  "local_package": "/tmp/hf-music3-release-20260909/package",
+  "publisher": "scripts/publish_music3_hub_20260909.py"
+}

@@ -1,0 +1,14 @@
+# Single-row TF pair for sexy↔plain. Multi-row averaging kills transformer sliders.
+# Mix/tone pole: close dry heat, late pocket, tucked treble vs bright athletic
+# on-grid pop. No artist names.
+plus_label: Sexy
+minus_label: Plain
+recommended_range: [-2.0, 2.0]
+rows:
+  - target: "Genre: pop. BPM: 104. Medium energy. One lead vocal, keys and light drums. Ordinary studio, neither close-mic heat nor a belted radio front."
+    positive: "Genre: quiet-storm slow jam. BPM: 74. A dry close-mic chest vocal a finger from the capsule, behind the beat, mouth air, low register. Late snare, round sub, muted guitar, almost no cymbal, a small dark room. Medium level, sung, not rapped, not a whisper-lullaby."
+    negative: "Genre: daylight radio pop. BPM: 124. A far-mic belted pop vocal on the front of the beat, de-essed, stacked, no mouth air. Punchy dry kit, bright guitar, open hats, everything on the grid. Medium level, sung, not rapped, nothing seductive."
+    neutral: "Genre: pop. BPM: 104. Medium energy. One lead vocal, keys and light drums. Ordinary studio, neither close-mic heat nor a belted radio front."
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+    action: enhance
+    guidance_scale: 4

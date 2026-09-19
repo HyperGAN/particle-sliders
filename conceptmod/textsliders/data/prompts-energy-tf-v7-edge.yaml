@@ -1,0 +1,22 @@
+# Single-direction TF control: negative := target so axis = vel_pos - vel_neu.
+# Train with --target_mode pole --no-bidirectional; runtime scales 0..+2 only.
+
+plus_label: Loud
+minus_label: Quiet
+recommended_range:
+- -2.0
+- 2.0
+rows:
+- target: 'Genre: pop. BPM: 110. Steady mid-level radio song, even mood. Steady drums, electric guitar, bass and keys at a comfortable level, one clear natural vocal, balanced studio mix.'
+  positive: 'Genre: pop. BPM: 110. Hard-driving high-impact radio song. Driving busy drums, layered thick guitars, powerful doubled vocal with stacked hook backing, punchy bass, saturated loud dense mix.'
+  negative: 'Genre: pop. BPM: 110. Steady mid-level radio song, even mood. Steady drums, electric guitar, bass and keys at a comfortable level, one clear natural vocal, balanced studio mix.'
+  neutral: 'Genre: pop. BPM: 110. Steady mid-level radio song, even mood. Steady drums, electric guitar, bass and keys at a comfortable level, one clear natural vocal, balanced studio mix.'
+  lyrics: '[verse]
+
+    I can feel it in the air tonight
+
+    [chorus]
+
+    Louder now or fade away'
+  action: enhance
+  guidance_scale: 3

@@ -1,0 +1,22 @@
+# Breath axis v7b (LM half) — pass 2 rewrite: pass-1 screened sep 0.109 with
+# cos 0.63 (both poles moved the plan the same way — the "room acoustics"
+# pattern). Poles now live in different production worlds entirely.
+plus_label: Breathy
+minus_label: Clean
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "Audible inhales and mouth air on the vocal."
+slider_negative: "Edited dry vocal, no breath."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 108. Key: B minor. Even mood, standard production.\nVocal Details:\nOne clear lead vocal, standard editing.\nArrangement:\nSteady drums, bass, guitar and keys."
+    positive: "Global Metadata:\nGenre: whisper-pop field recording. BPM 108. Key: B minor. Recorded an inch from the mouth in a room you can hear.\nVocal Details:\nOne breath-forward lead vocal where every inhale has a name, lip smacks and mouth air kept in, takes slightly missed and kept anyway, a hummed agreement at the end. Sung, murmured-adjacent, not rapped.\nArrangement:\nFelted piano with pedal creaks, a distant elevator ding in the room tone, page turning before verse two, mix like an ear cupped close, air everywhere."
+    negative: "Global Metadata:\nGenre: clinical electro-pop. BPM 108. Key: B minor. A vacuum-sealed studio product with no humans credited.\nVocal Details:\nOne surgically cleaned lead vocal, every inhale excised, formant-perfect, tuned to the cent, doubled in machine unison. Sung, not rapped.\nArrangement:\nLaser-cut drum programming, digital-glass pads, quantized sub, noise floor zero, stereo image engineered to the millimeter."
+    neutral: "Global Metadata:\nGenre: pop. BPM 108. Key: B minor. Even mood, standard production.\nVocal Details:\nOne clear lead vocal, standard editing.\nArrangement:\nSteady drums, bass, guitar and keys."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: r&b pop. BPM 112. Key: D flat major. Smooth even mood.\nVocal Details:\nOne clean comped lead vocal.\nArrangement:\nProgrammed beat, warm keys, contained bass."
+    positive: "Global Metadata:\nGenre: candlelit voicenote soul. BPM 112. Key: D flat major. Like being sung to down a phone line at midnight.\nVocal Details:\nOne airy intimate lead with audible gasps between phrases, wet-mouth consonants, a voice-crack kept on purpose, receiver hum under the quiet bars. Sung, voiced-adjacent, not rapped.\nArrangement:\nMuted lo-fi beat with dusty hats, deep warm sub, rain against a window faintly in the take, cassette hiss breathing under everything."
+    negative: "Global Metadata:\nGenre: flagship-label pop-r&b. BPM 112. Key: D flat major. Fifty engineers and zero flaws.\nVocal Details:\nOne titanium lead vocal, de-breathed, de-essed, stacked twelve-wide in perfect choruses, no single human identifiable. Sung, not rapped.\nArrangement:\nMega-tracked drums, crystalline synth layers, surgical low end, mastering-loud gloss, not one molecule of room."
+    neutral: "Global Metadata:\nGenre: r&b pop. BPM 112. Key: D flat major. Smooth even mood.\nVocal Details:\nOne clean comped lead vocal.\nArrangement:\nProgrammed beat, warm keys, contained bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

@@ -1,0 +1,19 @@
+plus_label: Space
+minus_label: Dry
+recommended_range:
+- -2.0
+- 2.0
+rows:
+- target: 'Genre: pop. A dry studio mix, normal room, close vocal, ordinary reverb.'
+  positive: Huge cathedral reverb, vast hall, long wet tails, distant in a giant stone
+    space, washed in echo.
+  negative: Bone dry close-mic, no reverb, no delay, intimate booth, dead room, dry
+    as a demo.
+  neutral: 'Genre: pop. A dry studio mix, normal room, close vocal, ordinary reverb.'
+  lyrics: '[verse]
+
+    I can feel it in the air tonight
+
+    [chorus]
+
+    Louder now or fade away'

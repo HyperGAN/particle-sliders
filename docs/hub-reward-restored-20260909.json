@@ -1,0 +1,175 @@
+{
+  "release": "2026-09-09-reward-restored",
+  "publication": {
+    "repo": "ntc-ai/minimax-music3-concept-sliders",
+    "parent": "54be5a8d96ce43e01c02d1f600c66fe836258acb",
+    "commit": "c769d391d5ccbb7c642d4151a2827f3213bf1dfe",
+    "url": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/commit/c769d391d5ccbb7c642d4151a2827f3213bf1dfe",
+    "changed_files": [
+      "README.md",
+      "samples/reward-refined-block/README.md",
+      "release-manifest.json"
+    ]
+  },
+  "remote_verification": [
+    {
+      "file": "README.md",
+      "sha256": "85a2c151eca00e9b562fd316e1ae2e14c0a116e1793ebe62283e8a870dfbb369",
+      "matches": true
+    },
+    {
+      "file": "samples/reward-refined-block/README.md",
+      "sha256": "34dfba51c3210082f2ae878adc115475b89e30cfcee948e99f20f4d78c20f907",
+      "matches": true
+    },
+    {
+      "file": "release-manifest.json",
+      "sha256": "f0f2be3a57828b2fa2fbab55774431bf90b8d5d5d76515fe021123b2fa35537a",
+      "matches": true
+    }
+  ],
+  "browser_verification": {
+    "title": "ntc-ai/minimax-music3-concept-sliders · Hugging Face",
+    "math": 54,
+    "mathErrors": 0,
+    "players": [
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/reward-refined-block/independent-bank-b-05-s196613-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/reward-refined-block/independent-bank-b-05-s196613-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/reward-refined-block/independent-bank-b-06-s262147-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/reward-refined-block/independent-bank-b-06-s262147-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/reward-refined-block/independent-bank-b-02-s262147-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/reward-refined-block/independent-bank-b-02-s262147-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/reward-refined-block/independent-bank-b-00-s196613-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/reward-refined-block/independent-bank-b-00-s196613-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/metal/row1-seed7-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/metal/row1-seed7-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/house/row0-seed7-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/house/row0-seed7-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/disco-funk/row1-seed23-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/disco-funk/row1-seed23-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/pop-punk/row0-seed7-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/pop-punk/row0-seed7-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/lofi/row1-seed23-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/lofi/row1-seed23-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/female/row0-seed23-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/female/row0-seed23-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      }
+    ],
+    "banner": [
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/assets/same-seed.svg",
+        "complete": true,
+        "width": 1120
+      }
+    ],
+    "badAnchors": [],
+    "mobile": {
+      "viewport": 390,
+      "page": 390,
+      "players": [
+        {
+          "width": 161,
+          "cellWidth": 178
+        },
+        {
+          "width": 162,
+          "cellWidth": 178
+        }
+      ]
+    },
+    "playback": [
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/reward-refined-block/independent-bank-b-05-s196613-off.mp3",
+        "duration": 20.37551,
+        "currentTime": 0.563749,
+        "error": null
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/reward-refined-block/independent-bank-b-05-s196613-on.mp3",
+        "duration": 20.37551,
+        "currentTime": 0.560854,
+        "error": null
+      }
+    ]
+  },
+  "change": "Restored four reward Off/On pairs ahead of the six voice and genre pairs; matching prompt, lyrics and seed within each pair."
+}

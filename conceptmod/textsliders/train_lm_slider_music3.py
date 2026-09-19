@@ -67,6 +67,7 @@ the stop-decision axis.
 from __future__ import annotations
 
 import argparse
+import math
 import json
 import os
 import sys
@@ -90,6 +91,9 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+from conceptmod.textsliders import lm_adv as _lm_adv
+from conceptmod.textsliders import lm_particles as _lm_parts
+from conceptmod.textsliders.lm_gan import feature_mean_surrogate, weighted_feature_mean, delayed_cosine_scale
 from conceptmod.textsliders.slider_targets import (
     DUAL_BAND_WEIGHT,
     LEAK_HOLD_WEIGHT,
@@ -213,8 +217,9 @@ TARGET_REPLACE = ["Qwen3Attention"]
 # `--adv_preset arm_b` (or `--require_arm_b`) verifies the full row below and
 # refuses to train a drifted recipe (the handoff's "stop and report the diff").
 # The live default stays `--lm_target v9` with the adv loop inert
-# (`--adv_arch mlp` only declares the critic family the penalty math assumes;
-# no GAN loop consumes these flags yet, so live runs are behavior-identical).
+# by default. The Arm B factory and contract gates are separate from the
+# local optional UNI adversarial loop, which still uses `_lm_adv` penalties;
+# selecting a gate does not switch that loop to the vendored regularizer.
 # `vicreg_weight` is 0 at `--parts 0` (regularizer absent by construction).
 ADV_ARCHES = ("none", "mlp", "tx")
 ADV_PRESETS = ("none", "arm_b")
@@ -1063,7 +1068,12 @@ def _assert_lyric_span(
     *,
     where: str,
 ) -> torch.Tensor:
-    """Locate the yaml lyrics span on neu and pos. Return the neu mask."""
+    """Locate the yaml lyrics span on neu and pos. Return (neu mask, pos mask).
+
+    The two spans hold identical token IDs (checked here, fail closed): the
+    span is the only multi-position signal aligned across captions, which is
+    what the span-transformer D (``--adv_arch tx``) discriminates on.
+    """
     neu_lyric = _lyric_token_mask(
         neu_ids, neu_mask, tokenizer, lyrics, where=f"{where} neu"
     )
@@ -1076,7 +1086,7 @@ def _assert_lyric_span(
         raise RuntimeError(
             f"{where}: yaml lyrics tokens differ between neu and pos prompts"
         )
-    return neu_lyric
+    return neu_lyric, pos_lyric
 
 
 def _assert_last_token_is_audio_start(
@@ -1375,6 +1385,80 @@ def _endreg_cache_path(cache_dir: Path, model_dir: str, text: str, frames_cap: i
     return cache_dir / f"preroll-{digest}.pt"
 
 
+@torch.no_grad()
+def _align_endreg_teachers(lm, data, prompt_embeds, frame_embeds, base_last, base_hidden):
+    """Cache UNI GAN teachers in the student's bf16 forward geometry.
+
+    Causal equivalence is not numerical equality when sequence shape changes.
+    The neutral teacher must yield zero delta at an unmodified LoRA, and the
+    positive teacher uses the same appended frames for the same reason.
+    """
+    data["neu_ref"] = base_last.float()
+    if data["neu_hidden"] is not None:
+        data["neu_hidden"] = base_hidden[:, :prompt_embeds.shape[1]].float()
+    positive_embeds = lm.model.embed_tokens(data["positive_tokens"][0])
+    positive_last, _, positive_hidden = _forward_teacher_forced(lm, positive_embeds, frame_embeds)
+    data["tgt_plus"] = positive_last.float()
+    if data["pos_full"] is not None:
+        data["pos_full"] = positive_hidden[:, :positive_embeds.shape[1]].float()
+
+
+def _gather_span_last(full: torch.Tensor, span_mask: torch.Tensor) -> torch.Tensor:
+    """Span positions plus the last (audio-start) position, [1, S', H].
+
+    The span is the lyric sheet (verified token-identical across captions);
+    the last position is the audio-start continue-from token in every
+    caption (asserted at setup) and carries the attribute shift. Appending
+    it means the span head sees both prefix behavior and the shifted token —
+    the last token gets an explicit readout when --adv_readout mean_last is
+    selected. The lyric portion has no positional embeddings.
+    """
+    idx = torch.where(span_mask[0].bool())[0]
+    last = int(full.shape[1]) - 1
+    if int(idx[-1].item()) != last:
+        idx = torch.cat([idx, idx.new_tensor([last])])
+    return full[:, idx]
+
+
+def _span_delta_batch(
+    pred_fulls: list[torch.Tensor],
+    pos_fulls: list[torch.Tensor],
+    neu_fulls: list[torch.Tensor],
+    neu_spans: list[torch.Tensor],
+    pos_spans: list[torch.Tensor],
+    device,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Pad per-row span deltas to a batch: fake (B,S,H), real, pad mask.
+
+    Deltas, not states — the game is on the neutral-relative shift, same as
+    the last-token head. Within a row both spans hold identical token counts
+    (asserted at setup, +1 shared last position); across rows S differs.
+    """
+    fake_rows: list[torch.Tensor] = []
+    real_rows: list[torch.Tensor] = []
+    for pred, pos, neu, nsp, psp in zip(
+        pred_fulls, pos_fulls, neu_fulls, neu_spans, pos_spans
+    ):
+        neu_span = _gather_span_last(neu, nsp)
+        fake_rows.append((_gather_span_last(pred, nsp) - neu_span)[0])
+        real_rows.append((_gather_span_last(pos, psp) - neu_span)[0])
+        assert fake_rows[-1].shape[0] == real_rows[-1].shape[0], (
+            "span length mismatch within row: "
+            f"{fake_rows[-1].shape[0]} vs {real_rows[-1].shape[0]}"
+        )
+    width = max(t.shape[0] for t in fake_rows)
+    dim = fake_rows[0].shape[1]
+    fake_b = torch.zeros(len(fake_rows), width, dim)
+    real_b = torch.zeros(len(fake_rows), width, dim)
+    pad = torch.zeros(len(fake_rows), width, dtype=torch.bool)
+    for i, (f, r) in enumerate(zip(fake_rows, real_rows)):
+        n = f.shape[0]
+        fake_b[i, :n] = f
+        real_b[i, :n] = r
+        pad[i, :n] = True
+    return fake_b.to(device), real_b.to(device), pad.to(device)
+
+
 def train(args: argparse.Namespace) -> Path:
     device = torch.device(f"cuda:{int(args.device)}")
     # Pin every consumer of global RNG (LoRA init is the only one) so two runs
@@ -1604,10 +1688,12 @@ def train(args: argparse.Namespace) -> Path:
             role_spans = None
             neu_lyric = None
             lyric_mask = None
+            pos_full = None
+            pos_span_mask = None
             if recipe in PLUS_NEU_HOLD_RECIPES:
                 neu_full = _encode_full(lm, *tokens["neutral"])
                 if recipe in PLUS_NEU_LYRIC_RECIPES:
-                    neu_prefix_mask = _assert_lyric_span(
+                    neu_prefix_mask, pos_span_mask = _assert_lyric_span(
                         tokens["neutral"][0],
                         tokens["neutral"][1],
                         tokens["positive"][0],
@@ -1617,6 +1703,14 @@ def train(args: argparse.Namespace) -> Path:
                         where=f"row {index}",
                     )
                     neu_hidden = neu_full
+                    if str(getattr(args, "adv_arch", "mlp")) == "tx" or float(
+                        getattr(args, "txfm_weight", 0.0) or 0.0
+                    ) > 0.0:
+                        # Span-transformer D needs the teacher's full pos
+                        # sequence (real span = pos_full - neu_full on the
+                        # verified-equal span). Cached once; float32 like
+                        # neu_hidden (~5MB/row, training-only).
+                        pos_full = _encode_full(lm, *tokens["positive"])
                 else:
                     _last, neu_hidden, neu_prefix_mask = _split_prefix_last(
                         neu_full, tokens["neutral"][1]
@@ -1676,6 +1770,8 @@ def train(args: argparse.Namespace) -> Path:
                 "role_spans": role_spans,
                 "neu_lyric": neu_lyric,
                 "lyric_mask": lyric_mask,
+                "pos_full": pos_full,
+                "pos_span_mask": pos_span_mask,
                 "target_cos": target_cos,
                 "align": align,
             }
@@ -1979,6 +2075,8 @@ def train(args: argparse.Namespace) -> Path:
         row_data.append(
             {
                 "tokens": tokens["neutral"],
+                "positive_tokens": tokens["positive"],
+                "row_index": index,
                 "text_neutral": texts["neutral"],
                 "tgt_plus": tgt_plus,
                 "tgt_minus": tgt_minus,
@@ -1989,6 +2087,8 @@ def train(args: argparse.Namespace) -> Path:
                 "role_spans": encoded.get("role_spans"),
                 "neu_lyric": encoded.get("neu_lyric"),
                 "lyric_mask": encoded.get("lyric_mask"),
+                "pos_full": encoded.get("pos_full"),
+                "pos_span_mask": encoded.get("pos_span_mask"),
                 "slider_dir": row_slider_dir,
                 "leak_dir": row_leak_dir,
                 "hold_weight": row_hold,
@@ -2032,6 +2132,8 @@ def train(args: argparse.Namespace) -> Path:
             with torch.no_grad():
                 prompt_embeds = lm.model.embed_tokens(data["tokens"][0])
                 _last, base_margins, base_hidden = _forward_teacher_forced(lm, prompt_embeds, frame_embeds)
+            if recipe in PLUS_NEU_RECIPES and (float(args.adv_weight) > 0 or float(args.fm_weight) > 0 or float(args.txfm_weight) > 0):
+                _align_endreg_teachers(lm, data, prompt_embeds, frame_embeds, _last, base_hidden)
             data["prompt_embeds"] = prompt_embeds
             data["frame_embeds"] = frame_embeds
             data["base_margins"] = base_margins
@@ -2066,21 +2168,203 @@ def train(args: argparse.Namespace) -> Path:
     print(f"LM LoRA modules={n_mod} rank={args.rank}")
     for p in network.parameters():
         p.requires_grad_(True)
-    opt = torch.optim.AdamW(network.parameters(), lr=args.lr, weight_decay=1e-6)
+    gan_on = float(args.adv_weight) > 0 or float(args.fm_weight) > 0 or float(args.txfm_weight) > 0
+    opt = torch.optim.AdamW(
+        network.parameters(), lr=args.lr, weight_decay=1e-6,
+        betas=(float(args.gan_beta1) if gan_on else 0.9, 0.999),
+    )
+
+    # Training-only adversarial head (ParticleGAN-style D + b_cap). Default
+    # off (--adv_weight 0): nothing is built and the run is bit-identical to
+    # before. When on, D is stepped and discarded in-loop; only LoRA weights
+    # ship, so inference is unchanged.
+    adv_weight = float(getattr(args, "adv_weight", 0.0) or 0.0)
+    fm_weight_all = float(getattr(args, "fm_weight", 0.0) or 0.0)
+    adv_enabled = adv_weight > 0.0 or fm_weight_all > 0.0 or float(args.txfm_weight) > 0.0
+    parts_n = max(0, int(getattr(args, "parts", 0) or 0))
+    parts_on = parts_n > 0
+    if parts_on and not adv_enabled:
+        raise SystemExit(
+            "--parts mines row queries through D's separation signal: enable "
+            "--adv_weight > 0 or --fm_weight > 0 alongside it."
+        )
+    d_adv = None
+    opt_d = None
+    adv_arch = str(getattr(args, "adv_arch", "mlp"))
+    if adv_enabled and adv_arch not in _lm_adv.ADV_ARCHES:
+        raise SystemExit(f"--adv_arch must be one of {_lm_adv.ADV_ARCHES}")
+    tx_on = adv_enabled and adv_arch == "tx"
+    if adv_arch == "tx" and recipe not in PLUS_NEU_LYRIC_RECIPES:
+        raise SystemExit(
+            "--adv_arch tx needs the lyric span (the only multi-position "
+            "signal aligned across captions): use a lyric recipe "
+            f"({sorted(PLUS_NEU_LYRIC_RECIPES)}), got {recipe}."
+        )
+    # Optional second span critic for MLP runs. Both critics use the same
+    # cap geometry and exact batch feature matching. The span requires
+    # token-aligned lyrics; it is not valid on unrelated caption prefixes.
+    txfm_weight_all = float(getattr(args, "txfm_weight", 0.0) or 0.0)
+    txfm_on = adv_enabled and not tx_on and txfm_weight_all > 0.0
+    if txfm_on and recipe not in PLUS_NEU_LYRIC_RECIPES:
+        raise SystemExit(
+            "--txfm_weight needs the lyric span: use a lyric recipe "
+            f"({sorted(PLUS_NEU_LYRIC_RECIPES)}), got {recipe}."
+        )
+    if adv_enabled:
+        adv_dim = int(row_data[0]["tgt_plus"].shape[-1])
+        if tx_on:
+            d_adv = _lm_adv.SpanTransformerD(
+                adv_dim,
+                width=int(args.adv_width),
+                n_layers=int(args.adv_layers),
+                n_heads=int(args.adv_heads),
+                in_mode=str(args.adv_in),
+                readout=str(args.adv_readout),
+            ).to(device)
+        else:
+            d_adv = _lm_adv.LMDiscriminator(
+                adv_dim, hidden_dim=int(args.adv_hidden), in_mode=str(args.adv_in)
+            ).to(device)
+        if args.adv_condition == "row":
+            feature_dim = int(args.adv_hidden) if not tx_on else int(args.adv_width) * (2 if args.adv_readout == "mean_last" else 1)
+            d_adv = _lm_adv.RowConditionalD(
+                d_adv, len(row_data) * (2 if _minus_pole_used(recipe) else 1), feature_dim
+            ).to(device)
+        adv_lr = float(args.adv_lr) if args.adv_lr else float(args.lr) * _lm_adv.D_LR_MULT
+        opt_d = torch.optim.Adam(
+            d_adv.parameters(), lr=adv_lr, betas=(float(args.adv_beta1), 0.999)
+        )
+        print(
+            f"adv: {adv_arch} RpGAN logistic + b_cap(c={float(args.adv_reg_coeff):g}) "
+            f"weight={adv_weight:g} fm={fm_weight_all:g} d_lr={adv_lr:g} hidden={int(args.adv_hidden)} "
+            f"in={args.adv_in} batch={max(1, int(getattr(args, 'adv_batch', 1) or 1))} "
+            f"pole_w={float(getattr(args, 'pole_weight', 1.0)):g} "
+            "(training-only; LoRA-only checkpoint)"
+        )
+        if tx_on:
+            n_tx = sum(p.numel() for p in d_adv.parameters())
+            print(
+                f"adv-tx: span-set transformer width={int(args.adv_width)} "
+                f"layers={int(args.adv_layers)} heads={int(args.adv_heads)} "
+                f"params={n_tx} (lyric-span deltas, no posemb, masked mean-pool)"
+            )
+
+    # The optional span supervisor has its own optimizer. Only its feature
+    # matching loss reaches G; both critics are discarded after training.
+    d_tx2 = None
+    opt_tx2 = None
+    if txfm_on:
+        assert d_adv is not None and opt_d is not None
+        adv_dim = int(row_data[0]["tgt_plus"].shape[-1])
+        d_tx2 = _lm_adv.SpanTransformerD(
+            adv_dim,
+            width=int(args.adv_width),
+            n_layers=int(args.adv_layers),
+            n_heads=int(args.adv_heads),
+            in_mode=str(args.adv_in),
+            readout=str(args.adv_readout),
+        ).to(device)
+        if args.adv_condition == "row":
+            d_tx2 = _lm_adv.RowConditionalD(
+                d_tx2, len(row_data), int(args.adv_width) * (2 if args.adv_readout == "mean_last" else 1)
+            ).to(device)
+        tx_lr = float(args.adv_lr) if args.adv_lr else float(args.lr) * _lm_adv.D_LR_MULT
+        opt_tx2 = torch.optim.Adam(
+            d_tx2.parameters(), lr=tx_lr, betas=(float(args.adv_beta1), 0.999)
+        )
+        print(
+            f"adv-tx2: span FM supervisor weight={txfm_weight_all:g} "
+            f"width={int(args.adv_width)} layers={int(args.adv_layers)} "
+            f"heads={int(args.adv_heads)} params={sum(p.numel() for p in d_tx2.parameters())} "
+            "(training-only; LoRA-only checkpoint)"
+        )
+
+    if adv_enabled and args.adv_in == "scaled":
+        if tx_on or txfm_on:
+            _, calibration_span, calibration_mask = _span_delta_batch(
+                [d["neu_hidden"] for d in row_data],
+                [d["pos_full"] for d in row_data],
+                [d["neu_hidden"] for d in row_data],
+                [d["neu_prefix_mask"] for d in row_data],
+                [d["pos_span_mask"] for d in row_data], device,
+            )
+        if tx_on:
+            d_adv.calibrate_input_scale(calibration_span, calibration_mask)
+        else:
+            calibration = torch.cat([
+                d[key] - d["neu_ref"] for d in row_data
+                for key in (["tgt_plus", "tgt_minus"] if _minus_pole_used(recipe) else ["tgt_plus"])
+            ])
+            d_adv.calibrate_input_scale(calibration)
+        if txfm_on:
+            d_tx2.calibrate_input_scale(calibration_span, calibration_mask)
+        print(f"adv fixed teacher RMS={float(d_adv.input_scale):.6g}; cap in calibrated coordinates")
+
+    part_mod = None
+    opt_parts = None
+    if parts_on:
+        part_mod = _lm_parts.ParticleBatch(parts_n, len(row_data)).to(device)
+        parts_lr = float(args.parts_lr) if args.parts_lr else float(args.lr) * 10.0
+        opt_parts = torch.optim.Adam(
+            part_mod.parameters(), lr=parts_lr, betas=(0.0, 0.999)
+        )
+        print(
+            f"parts: {parts_n} row-miners over {len(row_data)} rows, "
+            f"lr={parts_lr:g} balance={float(args.parts_vic):g} "
+            f"temp={float(args.parts_temp):g} sample={int(args.parts_sample)} "
+            "(training-only; LoRA-only checkpoint)"
+        )
 
     save_dir = Path(args.save_dir)
     save_dir.mkdir(parents=True, exist_ok=True)
     metrics = save_dir / f"{args.name}_train.jsonl"
-    metrics_handle = metrics.open("w")
-
     history = []
-    early_fired = False
-    pbar = tqdm(range(args.steps), desc="lm-slider")
-    for step in pbar:
-        data = row_data[step % len(row_data)]
-        neu_ids, neu_mask = data["tokens"]
-        tgt_plus, tgt_minus, neu_ref = data["tgt_plus"], data["tgt_minus"], data["neu_ref"]
+    state_signature = None
+    if args.save_training_state or args.resume_state:
+        if not adv_enabled or args.gan_lr_schedule != "constant":
+            raise ValueError("Training-state continuation currently supports constant-LR GAN runs only")
+        from conceptmod.textsliders import lm_gan_state
+        state_signature = lm_gan_state.signature(args, rows, prompts_meta)
+    state_modules = dict(lora=network, critic=d_adv, span_critic=d_tx2, miners=part_mod)
+    state_optimizers = dict(lora=opt, critic=opt_d, span_critic=opt_tx2, miners=opt_parts)
+    if args.resume_state:
+        if metrics.exists():
+            raise ValueError("Resume into a fresh save directory/name to preserve the source run")
+        history = lm_gan_state.restore(args.resume_state, run_signature=state_signature,
+                                       modules=state_modules, optimizers=state_optimizers)
+        if len(history) >= args.steps:
+            raise ValueError("--steps must exceed the resume state's completed update count")
+        print(f"Resumed complete GAN state after {len(history)} updates", flush=True)
+    metrics_handle = metrics.open("w")
+    for previous in history:
+        metrics_handle.write(json.dumps(previous) + "\n")
+    metrics_handle.flush()
 
+    def save_game_state():
+        if args.save_training_state:
+            lm_gan_state.save(save_dir / f"{args.name}_state.pt", run_signature=state_signature,
+                              modules=state_modules, optimizers=state_optimizers, history=history)
+
+    early_fired = False
+    adv_batch = max(1, int(getattr(args, "adv_batch", 1) or 1))
+    pole_weight = float(getattr(args, "pole_weight", 1.0))
+    # All-GAN on a UNI recipe still pins scale 0 to neutral with a plain MSE:
+    # the adversarial game learns the direction, this keeps the fader origin.
+    # (Bipolar all-GAN has no such anchor; UNI-only for now.)
+    need_zero_anchor = recipe in PLUS_NEU_RECIPES and pole_weight == 0.0
+    if pole_weight == 0.0:
+        print(
+            f"pole_weight=0: pole MSE off (all-GAN). zero_anchor={need_zero_anchor} "
+            f"adv_batch={adv_batch} adv_in={args.adv_in}"
+        )
+
+    def forward_row(data):
+        """One row's student forwards (attached graph unless no_grad outside).
+
+        Returns attached pred/end tensors plus detached drift floats. Shared
+        by the D-phase (called under torch.no_grad) and the G-phase.
+        """
+        neu_ids, neu_mask = data["tokens"]
         if endreg:
             # One forward per pole over [prompt; composed frames]: causality
             # keeps the prompt-last hidden identical to a prompt-only forward,
@@ -2088,7 +2372,10 @@ def train(args: argparse.Namespace) -> Path:
             _set_scale(network, 1.0)
             pred_pos, m_pos, hid_pos = _forward_teacher_forced(lm, data["prompt_embeds"], data["frame_embeds"])
             end_pos = F.mse_loss(m_pos, data["base_margins"])
-            plan_pos = F.mse_loss(hid_pos[:, data["prompt_embeds"].shape[1] :].float(), data["base_hidden"])
+            plan_pos = (
+                F.mse_loss(hid_pos[:, data["prompt_embeds"].shape[1] :].float(), data["base_hidden"])
+                if data["base_hidden"].numel() else pred_pos.new_zeros(())
+            )
             edrift_p = float((m_pos - data["base_margins"]).abs().mean().detach())
             pdrift_p = float(plan_pos.detach())
 
@@ -2098,8 +2385,9 @@ def train(args: argparse.Namespace) -> Path:
                     lm, data["prompt_embeds"], data["frame_embeds"]
                 )
                 end_neg = F.mse_loss(m_neg, data["base_margins"])
-                plan_neg = F.mse_loss(
-                    hid_neg[:, data["prompt_embeds"].shape[1] :].float(), data["base_hidden"]
+                plan_neg = (
+                    F.mse_loss(hid_neg[:, data["prompt_embeds"].shape[1] :].float(), data["base_hidden"])
+                    if data["base_hidden"].numel() else pred_neg.new_zeros(())
                 )
                 edrift_n = float((m_neg - data["base_margins"]).abs().mean().detach())
                 pdrift_n = float(plan_neg.detach())
@@ -2216,11 +2504,64 @@ def train(args: argparse.Namespace) -> Path:
             if recipe in PLUS_NEU_RECIPES:
                 _set_scale(network, 0.0)
                 pred_zero = _encode_train(lm, neu_ids, neu_mask)
+        return {
+            "pred_pos": pred_pos,
+            "pred_neg": pred_neg,
+            "pred_zero": pred_zero,
+            "pred_plus_prefix": pred_plus_prefix,
+            "prefix_mask": prefix_mask,
+            "pred_lyric": pred_lyric,
+            "pred_concept": pred_concept,
+            "tgt_neu_lyric": tgt_neu_lyric,
+            "tgt_pos_concept": tgt_pos_concept,
+            "pred_plus_lyric": pred_plus_lyric,
+            "end_pos": end_pos,
+            "end_neg": end_neg,
+            "plan_pos": plan_pos,
+            "plan_neg": plan_neg,
+            "edrift_p": edrift_p,
+            "edrift_n": edrift_n,
+            "pdrift_p": pdrift_p,
+            "pdrift_n": pdrift_n,
+        }
 
+    def condition_for(data, polarity=0):
+        if args.adv_condition == "none":
+            return None
+        stride = 2 if _minus_pole_used(recipe) else 1
+        return torch.tensor([data["row_index"] * stride + polarity], device=device)
+
+    def d_score(discriminator, delta, mask=None, condition=None):
+        if condition is None:
+            return discriminator(delta, mask)
+        return discriminator(delta, mask, row_ids=condition)
+
+    def matching_loss(features, fake_mean, real_mean, data, polarity=0, auxiliary=False):
+        if args.fm_mode == "paired":
+            targets = tx_feature_targets if auxiliary else d_feature_targets
+            stride = 2 if _minus_pole_used(recipe) else 1
+            target = targets[data["row_index"] * stride + polarity]
+            return F.mse_loss(features.float().mean(dim=0), target)
+        return feature_mean_surrogate(features, fake_mean, real_mean)
+
+    def losses_from(out, data):
+        """Pole / adv / FM / endreg / plan / anchor terms + metrics for one row.
+
+        Caller scales by 1/K and backprops (accumulation). D must be frozen;
+        grad flows into the LoRA only. Feature matching uses either the
+        row's detached teacher or the exact batch-mean gradient surrogate,
+        freeing each expensive LM row graph before encoding the next row.
+        """
+        pred_pos = out["pred_pos"]
+        pred_neg = out["pred_neg"]
+        tgt_plus, tgt_minus, neu_ref = data["tgt_plus"], data["tgt_minus"], data["neu_ref"]
         v_pos = pred_pos - neu_ref
         v_pos_t = tgt_plus - neu_ref
         cos_pos = F.cosine_similarity(v_pos, v_pos_t, dim=-1).mean()
         pperc = (torch.norm(pred_pos - tgt_plus) / torch.norm(v_pos_t).clamp_min(1e-6)).item()
+        mag_ratio = (
+            torch.norm(v_pos).detach() / torch.norm(v_pos_t).detach().clamp_min(1e-12)
+        ).item()
         if recipe in PLUS_NEU_RECIPES:
             cos_neg = torch.zeros((), device=pred_pos.device)
             collapse = torch.zeros((), device=pred_pos.device)
@@ -2231,7 +2572,6 @@ def train(args: argparse.Namespace) -> Path:
             cos_neg = F.cosine_similarity(v_neg, v_neg_t, dim=-1).mean()
             collapse = F.cosine_similarity(v_pos, v_neg, dim=-1).mean()
             nperc = (torch.norm(pred_neg - tgt_minus) / torch.norm(v_neg_t).clamp_min(1e-6)).item()
-
         pole = lm_train_loss(
             pred_pos,
             pred_neg,
@@ -2251,56 +2591,473 @@ def train(args: argparse.Namespace) -> Path:
             blind_weight=float(args.blind_weight),
             plus_only=recipe in PLUS_ONLY_RECIPES,
             plus_neu=recipe in PLUS_NEU_RECIPES,
-            pred_zero=pred_zero,
+            pred_zero=out["pred_zero"],
             tgt_zero=neu_ref if recipe in PLUS_NEU_RECIPES else None,
             plus_neu_prefix=recipe in PLUS_NEU_HOLD_RECIPES,
-            pred_plus_prefix=pred_plus_prefix,
+            pred_plus_prefix=out["pred_plus_prefix"],
             tgt_neu_prefix=data.get("neu_hidden"),
-            prefix_mask=prefix_mask if prefix_mask is not None else data.get("neu_prefix_mask"),
+            prefix_mask=out["prefix_mask"] if out["prefix_mask"] is not None else data.get("neu_prefix_mask"),
             plus_neu_roles=recipe in PLUS_NEU_ROLES_RECIPES,
-            pred_lyric=pred_lyric,
-            tgt_neu_lyric=tgt_neu_lyric if tgt_neu_lyric is not None else data.get("neu_lyric"),
-            pred_concept=pred_concept,
-            tgt_pos_concept=tgt_pos_concept,
+            pred_lyric=out.get("pred_lyric"),
+            tgt_neu_lyric=(
+                out.get("tgt_neu_lyric")
+                if out.get("tgt_neu_lyric") is not None
+                else data.get("neu_lyric")
+            ),
+            pred_concept=out.get("pred_concept"),
+            tgt_pos_concept=out.get("tgt_pos_concept"),
             plus_neu_orth=recipe in PLUS_NEU_ORTH_RECIPES,
-            pred_plus_lyric=pred_plus_lyric,
+            pred_plus_lyric=out.get("pred_plus_lyric"),
         )
+        if adv_enabled:
+            assert d_adv is not None
+            if tx_on:
+                # Span-set sub-game, attached single row (no padding): fake
+                # span from the student full hidden, real span detached.
+                # out["pred_plus_prefix"] is the full prompt hidden for hold
+                # recipes (lyric ⊂ hold); the last-element sub-game is the
+                # MLP head's game verbatim (_gather_span_last appends it).
+                assert out["pred_plus_prefix"] is not None
+                assert data["pos_full"] is not None
+                neu_span_full = _gather_span_last(
+                    data["neu_hidden"], data["neu_prefix_mask"]
+                )
+                fake_seq = (
+                    _gather_span_last(out["pred_plus_prefix"], data["neu_prefix_mask"])
+                    - neu_span_full
+                )
+                real_seq = (
+                    _gather_span_last(data["pos_full"], data["pos_span_mask"])
+                    - neu_span_full
+                ).detach()
+                g_adv_row = _lm_adv.rp_g_loss(d_score(d_adv, fake_seq, condition=condition_for(data)), d_score(d_adv, real_seq, condition=condition_for(data)))
+            else:
+                g_terms = [
+                    _lm_adv.rp_g_loss(
+                        d_score(d_adv, (pred_pos - neu_ref).float(), condition=condition_for(data)),
+                        d_score(d_adv, (tgt_plus - neu_ref).detach().float(), condition=condition_for(data)),
+                    )
+                ]
+                if _minus_pole_used(recipe):
+                    g_terms.append(
+                        _lm_adv.rp_g_loss(
+                            d_score(d_adv, (pred_neg - neu_ref).float(), condition=condition_for(data, 1)),
+                            d_score(d_adv, (tgt_minus - neu_ref).detach().float(), condition=condition_for(data, 1)),
+                        )
+                    )
+                g_adv_row = sum(g_terms) / len(g_terms)
+        else:
+            g_adv_row = pred_pos.new_zeros(())
+        fm_weight = float(getattr(args, "fm_weight", 0.0) or 0.0)
+        if adv_enabled and fm_weight > 0.0 and d_feat_mean is not None:
+            if tx_on:
+                fm_row = matching_loss(d_adv.features(fake_seq), d_fake_feat_mean, d_feat_mean, data)
+            else:
+                fm_row = matching_loss(d_adv.features((pred_pos - neu_ref).float()), d_fake_feat_mean, d_feat_mean, data)
+                if _minus_pole_used(recipe) and d_feat_mean_neg is not None:
+                    fm_row = (
+                        fm_row
+                        + matching_loss(d_adv.features((pred_neg - neu_ref).float()), d_fake_feat_mean_neg, d_feat_mean_neg, data, polarity=1)
+                    ) / 2.0
+        else:
+            fm_row = pred_pos.new_zeros(())
+        # Optional span supervisor: selected feature matching, no G ranking.
+        if txfm_on and tx_feat_mean is not None:
+            assert out["pred_plus_prefix"] is not None
+            assert data["pos_full"] is not None
+            neu_span_full = _gather_span_last(
+                data["neu_hidden"], data["neu_prefix_mask"]
+            )
+            txfm_fake = (
+                _gather_span_last(out["pred_plus_prefix"], data["neu_prefix_mask"])
+                - neu_span_full
+            )
+            txfm_row = matching_loss(d_tx2.features(txfm_fake), tx_fake_feat_mean, tx_feat_mean, data, auxiliary=True)
+        else:
+            txfm_row = pred_pos.new_zeros(())
+        if need_zero_anchor:
+            assert out["pred_zero"] is not None
+            anchor = F.mse_loss(out["pred_zero"], neu_ref)
+        else:
+            anchor = pred_pos.new_zeros(())
+        # Lyric-sheet hold for all-GAN UNI: with pole_weight 0 the lyric /
+        # prefix hold inside the pole loss is off too, and nothing pins the
+        # yaml lyric span — v2 shredded lyrics (lm_score recU+ 0.00) while
+        # direction looked perfect. This hold teacher is encode(neu), the
+        # neutral caption itself, never a pole target: the slider AXIS stays
+        # teacher-free. Weight 1.0 matches lm_plus_neu_prefix_loss.
+        hold_only_weight = float(getattr(args, "lyrichold_weight", 1.0) or 0.0)
+        if pole_weight == 0.0 and recipe in PLUS_NEU_HOLD_RECIPES:
+            assert out["pred_plus_prefix"] is not None
+            hold_mask = (
+                out["prefix_mask"]
+                if out["prefix_mask"] is not None
+                else data.get("neu_prefix_mask")
+            )
+            assert hold_mask is not None
+            hold_only = _masked_hidden_mse(
+                out["pred_plus_prefix"], data.get("neu_hidden"), hold_mask
+            )
+        else:
+            hold_only = pred_pos.new_zeros(())
+            hold_only_weight = 0.0
         if recipe in PLUS_NEU_RECIPES:
             # Per-pole endreg strength matches bipolar's +1 term (not 0.5 · end_pos).
-            loss = pole + args.endreg_weight * end_pos + args.planreg_weight * plan_pos
+            end_w = args.endreg_weight * out["end_pos"]
+            plan_w = args.planreg_weight * out["plan_pos"]
         else:
-            loss = (
-                pole
-                + 0.5 * args.endreg_weight * (end_pos + end_neg)
-                + args.planreg_weight * (plan_pos + plan_neg)
+            end_w = 0.5 * args.endreg_weight * (out["end_neg"] + out["end_pos"])
+            plan_w = args.planreg_weight * (out["plan_neg"] + out["plan_pos"])
+        return {
+            "pole": pole,
+            "g_adv": g_adv_row,
+            "fm": fm_row,
+            "txfm": txfm_row,
+            "end": end_w,
+            "plan": plan_w,
+            "anchor": anchor,
+            "hold": hold_only_weight * hold_only,
+            "cos_pos": cos_pos,
+            "cos_neg": cos_neg,
+            "collapse": collapse,
+            "pperc": pperc,
+            "nperc": nperc,
+            "mag_ratio": mag_ratio,
+            "edrift_p": out["edrift_p"],
+            "edrift_n": out["edrift_n"],
+            "pdrift_p": out["pdrift_p"],
+            "pdrift_n": out["pdrift_n"],
+        }
+
+    game_optimizers = [o for o in (opt, opt_d, opt_tx2, opt_parts) if o is not None]
+    game_base_lrs = [[g["lr"] for g in o.param_groups] for o in game_optimizers]
+    pbar = tqdm(range(len(history), args.steps), desc="lm-slider", initial=len(history), total=args.steps)
+    for step in pbar:
+        lr_scale = delayed_cosine_scale(step, args.steps) if adv_enabled and args.gan_lr_schedule == "delayed_cosine" else 1.0
+        for optimizer, base_lrs in zip(game_optimizers, game_base_lrs):
+            for group, base_lr in zip(optimizer.param_groups, base_lrs):
+                group["lr"] = base_lr * lr_scale
+        if parts_on:
+            # Miners choose the weighting; every expanded prompt row runs.
+            batch_idx = list(range(len(row_data)))
+        else:
+            batch_idx = [(step * adv_batch + i) % len(row_data) for i in range(adv_batch)]
+
+        # -- Discriminator phase (training-only). No-grad forwards; D sees
+        # detached deltas from the whole batch, then freezes. Skipped
+        # entirely when adv is off (single attached forward below, as before).
+        d_loss_val = 0.0
+        d_pen_val = 0.0
+        d_feat_mean = None
+        d_feat_mean_neg = None
+        tx_d_loss_val = 0.0
+        tx_pen_val = 0.0
+        tx_feat_mean = None
+        if adv_enabled:
+            assert d_adv is not None and opt_d is not None
+            for p in d_adv.parameters():
+                p.requires_grad_(True)
+            opt_d.zero_grad(set_to_none=True)
+            with torch.no_grad():
+                outs0 = [forward_row(row_data[bi]) for bi in batch_idx]
+            if tx_on:
+                # Span-set game: per-row span+last deltas, padded across rows.
+                # forward_row outputs are detached here (no_grad above).
+                pred_fulls = [o["pred_plus_prefix"] for o in outs0]
+                assert all(p is not None for p in pred_fulls)
+                fake_b, real_b, span_pad = _span_delta_batch(
+                    pred_fulls,
+                    [row_data[bi]["pos_full"] for bi in batch_idx],
+                    [row_data[bi]["neu_hidden"] for bi in batch_idx],
+                    [row_data[bi]["neu_prefix_mask"] for bi in batch_idx],
+                    [row_data[bi]["pos_span_mask"] for bi in batch_idx],
+                    device,
+                )
+                assert all(row_data[bi]["pos_full"] is not None for bi in batch_idx)
+            else:
+                with torch.no_grad():
+                    real_terms: list[torch.Tensor] = []
+                    fake_terms: list[torch.Tensor] = []
+                    real_plus_terms: list[torch.Tensor] = []
+                    real_neg_terms: list[torch.Tensor] = []
+                    for bi, out0 in zip(batch_idx, outs0):
+                        data = row_data[bi]
+                        tgt_plus, tgt_minus, neu_ref = data["tgt_plus"], data["tgt_minus"], data["neu_ref"]
+                        real_plus_terms.append((tgt_plus - neu_ref).detach().float())
+                        real_terms.append((tgt_plus - neu_ref).detach().float())
+                        fake_terms.append((out0["pred_pos"].detach() - neu_ref).detach().float())
+                        if _minus_pole_used(recipe):
+                            real_neg_terms.append((tgt_minus - neu_ref).detach().float())
+                            real_terms.append((tgt_minus - neu_ref).detach().float())
+                            fake_terms.append((out0["pred_neg"].detach() - neu_ref).detach().float())
+                real_b = torch.cat(real_terms, dim=0).to(device)
+                fake_b = torch.cat(fake_terms, dim=0).to(device)
+                span_pad = None
+            stride = 2 if _minus_pole_used(recipe) else 1
+            condition_b = (torch.tensor([bi * stride + pole for bi in batch_idx for pole in range(stride)], device=device)
+                           if args.adv_condition == "row" else None)
+            pen, pen_stat = _lm_adv.cap_penalty(
+                d_adv, real_b, fake_b, coeff=float(args.adv_reg_coeff), kappa=float(args.adv_reg_kappa),
+                mask_real=span_pad, mask_fake=span_pad,
+                condition_real=condition_b, condition_fake=condition_b,
             )
+            real_l = d_score(d_adv, real_b, span_pad, condition_b)
+            fake_l = d_score(d_adv, fake_b, span_pad, condition_b)
+            d_loss = _lm_adv.rp_d_loss(real_l, fake_l) + pen
+            d_loss.backward()
+            opt_d.step()
+            d_loss_val = float(d_loss.detach())
+            d_pen_val = float(pen_stat["pen"])
+            # Per-row detached logits for the particle miners (row order =
+            # batch order; 1 pair per pole).
+            with torch.no_grad():
+                poles_per_row = 1 + (1 if _minus_pole_used(recipe) else 0)
+                d_row_gaps = [
+                    float(
+                        _lm_adv.rp_d_loss(
+                            real_l[i * poles_per_row : (i + 1) * poles_per_row].detach(),
+                            fake_l[i * poles_per_row : (i + 1) * poles_per_row].detach(),
+                        )
+                    )
+                    for i in range(len(batch_idx))
+                ]
+            with torch.no_grad():
+                if tx_on:
+                    # Lyric recipes are plus-neu (no minus pole): one span
+                    # pair per row, FM target is the pooled real-span mean.
+                    assert not _minus_pole_used(recipe)
+                    d_feat_mean = (
+                        d_adv.features(real_b, span_pad).float().mean(dim=0).detach()
+                    )
+                else:
+                    d_feat_mean = (
+                        d_adv.features(torch.cat(real_plus_terms, dim=0).to(device))
+                        .float().mean(dim=0).detach()
+                    )
+                    if real_neg_terms:
+                        d_feat_mean_neg = (
+                            d_adv.features(torch.cat(real_neg_terms, dim=0).to(device))
+                            .float().mean(dim=0).detach()
+                        )
+            for p in d_adv.parameters():
+                p.requires_grad_(False)
+            # -- Dual-head second supervisor (training-only TX span D). Own
+            # optimizer, own b_cap; only its FM mean is consumed by G.
+            if txfm_on:
+                assert d_tx2 is not None and opt_tx2 is not None
+                for p in d_tx2.parameters():
+                    p.requires_grad_(True)
+                opt_tx2.zero_grad(set_to_none=True)
+                pred_fulls = [o["pred_plus_prefix"] for o in outs0]
+                assert all(p is not None for p in pred_fulls)
+                assert all(row_data[bi]["pos_full"] is not None for bi in batch_idx)
+                tx_fake_b, tx_real_b, tx_pad = _span_delta_batch(
+                    pred_fulls,
+                    [row_data[bi]["pos_full"] for bi in batch_idx],
+                    [row_data[bi]["neu_hidden"] for bi in batch_idx],
+                    [row_data[bi]["neu_prefix_mask"] for bi in batch_idx],
+                    [row_data[bi]["pos_span_mask"] for bi in batch_idx],
+                    device,
+                )
+                tx_pen, tx_pen_stat = _lm_adv.cap_penalty(
+                    d_tx2, tx_real_b, tx_fake_b,
+                    coeff=float(args.adv_reg_coeff), kappa=float(args.adv_reg_kappa),
+                    mask_real=tx_pad, mask_fake=tx_pad,
+                    condition_real=condition_b, condition_fake=condition_b,
+                )
+                tx_real_l = d_score(d_tx2, tx_real_b, tx_pad, condition_b)
+                tx_fake_l = d_score(d_tx2, tx_fake_b, tx_pad, condition_b)
+                tx_d_loss = _lm_adv.rp_d_loss(tx_real_l, tx_fake_l) + tx_pen
+                tx_d_loss.backward()
+                opt_tx2.step()
+                tx_d_loss_val = float(tx_d_loss.detach())
+                tx_pen_val = float(tx_pen_stat["pen"])
+                with torch.no_grad():
+                    tx_feat_mean = (
+                        d_tx2.features(tx_real_b, tx_pad).float().mean(dim=0).detach()
+                    )
+                for p in d_tx2.parameters():
+                    p.requires_grad_(False)
+
+        # -- Particle phase (training-only miners). Weights rows by detached
+        # D-gaps (seek student-weak rows) + probability balance.
+        # D and particles both minimize D-loss over different variables; only
+        # G opposes. w is detached for the G-phase: particles learn here only.
+        part_loss_val = 0.0
+        vic_val = 0.0
+        w_entropy_val = 0.0
+        w_max_val = 0.0
+        w_det = None
+        if parts_on:
+            assert part_mod is not None and opt_parts is not None
+            opt_parts.zero_grad(set_to_none=True)
+            p_idx = part_mod.sample_indices(int(args.parts_sample))
+            w = part_mod.weights(p_idx, float(args.parts_temp))
+            gaps_t = torch.tensor(d_row_gaps, device=device, dtype=torch.float32)
+            vic = part_mod.balance_loss(p_idx, float(args.parts_temp))
+            part_loss = (w * gaps_t).sum() + float(args.parts_vic) * vic
+            part_loss.backward()
+            opt_parts.step()
+            part_loss_val = float(part_loss.detach())
+            vic_val = float(vic.detach())
+            diag = part_mod.diagnostics(w.detach())
+            w_entropy_val = diag["w_entropy"]
+            w_max_val = diag["w_max"]
+            w_det = w.detach()
+
+        if adv_enabled:
+            with torch.no_grad():
+                row_weights = (w_det if parts_on else torch.full(
+                    (len(batch_idx),), 1.0 / len(batch_idx), device=device))
+                fake_features = d_adv.features(fake_b, span_pad)
+                real_features = d_adv.features(real_b, span_pad)
+                stride = 2 if _minus_pole_used(recipe) else 1
+                d_feature_targets = {bi * stride + pole: real_features[i * stride + pole].detach()
+                                     for i, bi in enumerate(batch_idx) for pole in range(stride)}
+                if tx_on or not _minus_pole_used(recipe):
+                    d_fake_feat_mean = weighted_feature_mean(fake_features, row_weights)
+                    d_feat_mean = weighted_feature_mean(real_features, row_weights)
+                else:
+                    d_fake_feat_mean = weighted_feature_mean(fake_features[::2], row_weights)
+                    d_feat_mean = weighted_feature_mean(real_features[::2], row_weights)
+                    d_fake_feat_mean_neg = weighted_feature_mean(fake_features[1::2], row_weights)
+                    d_feat_mean_neg = weighted_feature_mean(real_features[1::2], row_weights)
+                if txfm_on:
+                    tx_real_features = d_tx2.features(tx_real_b, tx_pad)
+                    tx_feature_targets = {bi: tx_real_features[i].detach() for i, bi in enumerate(batch_idx)}
+                    tx_fake_feat_mean = weighted_feature_mean(d_tx2.features(tx_fake_b, tx_pad), row_weights)
+                    tx_feat_mean = weighted_feature_mean(tx_real_features, row_weights)
+
+        # -- Generator phase: accumulate row losses (peak = one row graph),
+        # then a single clip + step. Rows are particle-weighted (sums to 1)
+        # when miners are on, else a plain 1/K mean as before.
         opt.zero_grad(set_to_none=True)
-        loss.backward()
+        gpole_norm_val = 0.0
+        gadv_norm_val = 0.0
+        galign_val = 0.0
+        agg = None
+        n_rows = 0
+        for bi in batch_idx:
+            data = row_data[bi]
+            terms = losses_from(forward_row(data), data)
+            if parts_on:
+                assert w_det is not None
+                pos = batch_idx.index(bi)
+                scale_r = float(w_det[pos])
+            else:
+                scale_r = 1.0 / adv_batch
+            row_loss = scale_r * (
+                pole_weight * terms["pole"]
+                + adv_weight * terms["g_adv"]
+                + fm_weight_all * terms["fm"]
+                + txfm_weight_all * terms["txfm"]
+                + terms["end"]
+                + terms["plan"]
+                + terms["anchor"]
+                + terms["hold"]
+            )
+            if bool(getattr(args, "grad_account", False)) and adv_enabled and agg is None:
+                # Diagnostic only, first row of the batch: attribute pole vs
+                # adv on the current row graph before the combined backward.
+                opt.zero_grad(set_to_none=True)
+                (scale_r * pole_weight * terms["pole"]).backward(retain_graph=True)
+                gpole_norm_val = _lm_adv.param_grad_norm(network.parameters())
+                v_pole = _lm_adv.flat_param_grad(network.parameters())
+                opt.zero_grad(set_to_none=True)
+                (scale_r * adv_weight * terms["g_adv"]).backward(retain_graph=True)
+                gadv_norm_val = _lm_adv.param_grad_norm(network.parameters())
+                v_adv = _lm_adv.flat_param_grad(network.parameters())
+                denom = max(v_pole.norm().item() * v_adv.norm().item(), 1e-12)
+                galign_val = float((v_pole @ v_adv / denom).item())
+                opt.zero_grad(set_to_none=True)
+            row_loss.backward()
+            if agg is None:
+                agg = {k: terms[k] for k in (
+                    "cos_pos", "cos_neg", "collapse", "pperc", "nperc",
+                    "mag_ratio", "edrift_p", "edrift_n", "pdrift_p", "pdrift_n",
+                )}
+                for k in ("cos_pos", "cos_neg", "collapse"):
+                    agg[k] = float(agg[k].detach())
+                g_adv_val = float(terms["g_adv"].detach()) if adv_enabled else 0.0
+                fm_val = float(terms["fm"].detach()) if adv_enabled else 0.0
+                txfm_val = float(terms["txfm"].detach()) if txfm_on else 0.0
+                loss_val = float(row_loss.detach())
+            else:
+                for k in ("cos_pos", "cos_neg", "collapse"):
+                    agg[k] += float(terms[k].detach())
+                for k in ("pperc", "nperc", "mag_ratio", "edrift_p", "edrift_n", "pdrift_p", "pdrift_n"):
+                    agg[k] += terms[k]
+                if adv_enabled:
+                    g_adv_val += float(terms["g_adv"].detach())
+                    fm_val += float(terms["fm"].detach())
+                if txfm_on:
+                    txfm_val += float(terms["txfm"].detach())
+                loss_val += float(row_loss.detach())
+            n_rows += 1
+        for k in ("cos_pos", "cos_neg", "collapse", "pperc", "nperc", "mag_ratio", "edrift_p", "edrift_n", "pdrift_p", "pdrift_n"):
+            agg[k] /= n_rows
+        if adv_enabled:
+            g_adv_val /= n_rows
+            fm_val /= n_rows
+        if txfm_on:
+            txfm_val /= n_rows
+        # loss_val is already a scaled sum (particle weights sum to 1, else
+        # 1/K each): no further normalization. Same scale as the old logs.
+        total_grad_norm = _lm_adv.param_grad_norm(network.parameters())
+        if not math.isfinite(total_grad_norm):
+            raise FloatingPointError(f"Non-finite LoRA gradient at step {step + 1}")
         torch.nn.utils.clip_grad_value_(network.parameters(), clip_value=1.0)
         opt.step()
 
         row = {
             # 1-indexed, matching train_lora_music3.py: step N == N completed updates.
             "step": step + 1,
-            "row": step % len(row_data),
-            "loss": float(loss.detach()),
-            "pperc": pperc,
-            "nperc": nperc,
-            "cos_pos": float(cos_pos.detach()),
-            "cos_neg": float(cos_neg.detach()),
-            "collapse": float(collapse.detach()),
+            "row": batch_idx[0] if (adv_batch == 1 and not parts_on) else batch_idx,
+            "loss": loss_val,
+            "pperc": agg["pperc"],
+            "nperc": agg["nperc"],
+            "cos_pos": agg["cos_pos"],
+            "cos_neg": agg["cos_neg"],
+            "collapse": agg["collapse"],
+            # Student/teacher magnitude ratio (the all-GAN tripwire; MSE pins
+            # this implicitly, pure adv does not).
+            "mag_ratio": agg["mag_ratio"],
             # Mean |end-margin drift| in nats along the teacher-forced roll.
-            "edrift_p": edrift_p,
-            "edrift_n": edrift_n,
+            "edrift_p": agg["edrift_p"],
+            "edrift_n": agg["edrift_n"],
             # Mean-squared hidden drift along the composed frames (planreg).
-            "pdrift_p": pdrift_p,
-            "pdrift_n": pdrift_n,
+            "pdrift_p": agg["pdrift_p"],
+            "pdrift_n": agg["pdrift_n"],
+            # Training-only adversarial signal (0.0 when --adv_weight 0).
+            "d_loss": d_loss_val,
+            "g_adv": g_adv_val,
+            "fm": fm_val if adv_enabled else 0.0,
+            "d_pen": d_pen_val,
+            "d_real_grad_mean": pen_stat.get("real_grad_mean", 0.0) if adv_enabled else 0.0,
+            "d_fake_grad_mean": pen_stat.get("fake_grad_mean", 0.0) if adv_enabled else 0.0,
+            "grad_norm": total_grad_norm,
+            "lr_scale": lr_scale,
+            "grad_accounted": bool(args.grad_account),
+            # Dual-head span supervisor (0.0 unless --txfm_weight > 0).
+            "tx_d": tx_d_loss_val,
+            "tx_fm": txfm_val,
+            "tx_pen": tx_pen_val,
+            # Particle miners (0.0 / uniform when --parts 0).
+            "part_loss": part_loss_val,
+            "vic": vic_val,  # legacy log key; now KL balance on row probabilities
+            "row_balance": vic_val,
+            "w_entropy": w_entropy_val,
+            "w_max": w_max_val,
+            # Gradient accounting (0.0 unless --grad_account).
+            "gpole_norm": gpole_norm_val,
+            "gadv_norm": gadv_norm_val,
+            "galign": galign_val,
         }
         history.append(row)
         pbar.set_description(
-            f"loss {row['loss']:.4f} p%{pperc*100:.1f} n%{nperc*100:.1f} "
+            f"loss {row['loss']:.4f} p%{agg['pperc']*100:.1f} n%{agg['nperc']*100:.1f} "
             f"c+ {row['cos_pos']:.2f} c- {row['cos_neg']:.2f} col {row['collapse']:.2f} "
-            f"e± {edrift_p:.2f}/{edrift_n:.2f}"
+            f"e± {agg['edrift_p']:.2f}/{agg['edrift_n']:.2f}"
         )
         metrics_handle.write(json.dumps(row) + "\n")
         metrics_handle.flush()
@@ -2311,6 +3068,7 @@ def train(args: argparse.Namespace) -> Path:
             network.save_weights(
                 save_dir / f"{args.name}_step{step + 1}.safetensors", dtype=torch.float32
             )
+            save_game_state()
 
         if (
             args.early_stop
@@ -2334,6 +3092,7 @@ def train(args: argparse.Namespace) -> Path:
     metrics_handle.close()
     last = save_dir / f"{args.name}_last.safetensors"
     network.save_weights(last, dtype=torch.float32)
+    save_game_state()
     stopped = len(history)
     win = history[-args.early_window :] if len(history) >= args.early_window else history
     early_metrics = {
@@ -2350,6 +3109,8 @@ def train(args: argparse.Namespace) -> Path:
         "alpha": args.alpha,
         "steps": stopped,
         "steps_budget": args.steps,
+        "resume_state": args.resume_state,
+        "training_state": str(save_dir / f"{args.name}_state.pt") if args.save_training_state else None,
         "lr": args.lr,
         "seed": int(args.seed),
         "rows": len(row_data),
@@ -2375,6 +3136,50 @@ def train(args: argparse.Namespace) -> Path:
         "common_beta": beta,
         "target_scale": float(args.target_scale),
         "planreg_weight": float(args.planreg_weight),
+        "pole_weight": float(getattr(args, "pole_weight", 1.0)),
+        "lyrichold_weight": float(args.lyrichold_weight),
+        "parts": {
+            "enabled": bool(parts_on),
+            "num": int(parts_n),
+            "lr": (float(args.parts_lr) if args.parts_lr else None),
+            "balance_weight": float(args.parts_vic),
+            "uniform_mix": 0.1,
+            "temp": float(args.parts_temp),
+            "sample": int(args.parts_sample),
+            "note": "training-only row miners; discarded, checkpoint is LoRA-only",
+        },
+        "adv": {
+            "enabled": bool(adv_enabled),
+            "arch": str(getattr(args, "adv_arch", "mlp")),
+            "weight": float(adv_weight),
+            "fm_weight": float(getattr(args, "fm_weight", 0.0) or 0.0),
+            "lr": (float(args.adv_lr) if args.adv_lr else None),
+            "reg_coeff": float(args.adv_reg_coeff),
+            "hidden": int(args.adv_hidden),
+            "width": int(getattr(args, "adv_width", 128)),
+            "layers": int(getattr(args, "adv_layers", 2)),
+            "heads": int(getattr(args, "adv_heads", 4)),
+            "beta1": float(args.adv_beta1),
+            "in_mode": str(args.adv_in),
+            "input_scale": float(d_adv.input_scale) if adv_enabled else None,
+            "cap_space": "teacher_rms" if args.adv_in == "scaled" else "raw_hidden",
+            "kappa": float(args.adv_reg_kappa),
+            "readout": str(args.adv_readout),
+            "condition": str(args.adv_condition),
+            "g_beta1": float(args.gan_beta1),
+            "lr_schedule": str(args.gan_lr_schedule),
+            "fm_objective": "paired_teacher_features" if args.fm_mode == "paired" else "matched_weight_batch_mean",
+            "batch": int(getattr(args, "adv_batch", 1) or 1),
+            "note": "training-only RpGAN+b_cap head; discarded, checkpoint is LoRA-only",
+        },
+        "txfm": {
+            "enabled": bool(txfm_on),
+            "weight": float(txfm_weight_all),
+            "width": int(getattr(args, "adv_width", 128)),
+            "layers": int(getattr(args, "adv_layers", 2)),
+            "heads": int(getattr(args, "adv_heads", 4)),
+            "note": "training-only TX span FM supervisor (no ranking); discarded, checkpoint is LoRA-only",
+        },
         "blind_weight": float(args.blind_weight) if pole_mode == "dual_band" else None,
         "blind_cut": float(args.blind_cut) if pole_mode == "dual_band" else None,
         "blind_dims": (
@@ -2404,7 +3209,7 @@ def train(args: argparse.Namespace) -> Path:
         "minus_label": prompts_meta.get("minus_label", ""),
         "recommended_range": prompts_meta.get("recommended_range", [-2.0, 2.0]),
         "prompts_file": args.prompts_file,
-        "adv": {
+        "arm_b_contract": {
             "preset": str(getattr(args, "adv_preset", "none")),
             "arch": str(getattr(args, "adv_arch", "mlp")),
             "norm": str(getattr(args, "adv_norm", "l2")),
@@ -2513,6 +3318,10 @@ def parse_args(argv=None):
     p.add_argument("--lr", type=float, default=5e-4)
     p.add_argument("--steps", type=int, default=800)
     p.add_argument("--save_every", type=int, default=200)
+    p.add_argument("--save_training_state", action="store_true",
+                   help="retain the latest full constant-LR GAN state for continuation; separate from inference weights")
+    p.add_argument("--resume_state", default=None,
+                   help="continue a full GAN state into a fresh run; --steps is the total update budget")
     p.add_argument("--device", type=int, default=0)
     p.add_argument(
         "--seed",
@@ -2704,6 +3513,168 @@ def parse_args(argv=None):
         "only, both poles): keeps the sampled arrangement near the base song while the slider "
         "still moves the prompt conditioning. Requires --endreg_weight > 0",
     )
+    p.add_argument(
+        "--adv_weight",
+        type=float,
+        default=0.0,
+        help="training-only adversarial loss signal (RpGAN logistic + b_cap D, "
+        "ParticleGAN-style): all GAN/FM weights at 0 preserve the old recipe. "
+        ">0 adds weight * G_adv on hidden deltas (teacher=real, student=fake). "
+        "D is stepped and discarded in-loop; the checkpoint stays LoRA-only.",
+    )
+    p.add_argument("--gan_lr_schedule", choices=("constant", "delayed_cosine"), default="constant",
+                   help="GAN optimizer schedule; reference decay after 60%% to a 5%% floor")
+    p.add_argument("--gan_beta1", type=float, default=0.0,
+                   help="LoRA Adam beta1 when GAN is enabled; non-GAN stays 0.9")
+    p.add_argument("--adv_condition", choices=("none", "row"), default="none",
+                   help="optional projection conditioning by prompt row and polarity; prevents row-swap equilibria")
+    p.add_argument("--adv_readout", choices=("mean", "mean_last"), default="mean_last",
+                   help="TX readout: give the audio-start token its own channel")
+    p.add_argument("--adv_reg_kappa", type=float, default=1.0,
+                   help="b_cap margin in fixed teacher-RMS coordinates for scaled input")
+    p.add_argument(
+        "--adv_lr",
+        type=float,
+        default=None,
+        help="D learning rate (default 1.5x --lr, the ParticleGAN d_lr_mult).",
+    )
+    p.add_argument(
+        "--adv_reg_coeff",
+        type=float,
+        default=1.0,
+        help="one-sided cap (b_cap) gradient penalty strength on D.",
+    )
+    p.add_argument(
+        "--adv_hidden",
+        type=int,
+        default=256,
+        help="mlp-arch D width (2x Linear + LeakyReLU, ~1.1M params at 4096-d in).",
+    )
+    p.add_argument(
+        "--adv_arch",
+        default="mlp",
+        choices=ADV_ARCHES,
+        help="D architecture (training-only): mlp (last-token delta head) or "
+        "tx (span-set transformer over the lyric-span + last-token deltas; "
+        "lyric recipes only — the span is the aligned multi-position "
+        "signal). Same RpGAN + b_cap game either way. none is allowed "
+        "only with all adversarial and feature-matching weights off.",
+    )
+    p.add_argument(
+        "--adv_width",
+        type=int,
+        default=128,
+        help="tx-arch transformer width (~0.8M params at 128/2 layers, "
+        "capacity-matched to the MLP). Ignored by mlp.",
+    )
+    p.add_argument(
+        "--adv_layers",
+        type=int,
+        default=2,
+        help="tx-arch pre-norm attention layers (no posemb, masked mean-pool).",
+    )
+    p.add_argument(
+        "--adv_heads",
+        type=int,
+        default=4,
+        help="tx-arch attention heads.",
+    )
+    p.add_argument(
+        "--adv_beta1",
+        type=float,
+        default=0.0,
+        help="D Adam beta1 (0 matches the ParticleGAN sparse-gradient finding).",
+    )
+    p.add_argument(
+        "--adv_in",
+        default="scaled",
+        choices=("unit", "unit_lognorm", "scaled"),
+        help="D input mode: scaled (default, fixed teacher RMS, finite at zero), "
+        "unit (legacy direction only; magnitude stays on the pole "
+        "MSE), or legacy unit_lognorm (appends log||delta||; singular near zero).",
+    )
+    p.add_argument("--fm_mode", choices=("batch", "paired"), default="batch",
+                   help="match weighted batch feature means, or features of the same prompt row")
+    p.add_argument(
+        "--fm_weight",
+        type=float,
+        default=0.0,
+        help="feature-matching weight on learned student/teacher D-features, "
+        "per pole. --fm_mode selects matched-weight batch means or the same "
+        "prompt row's teacher; paired constrains conditional correspondence.",
+    )
+    p.add_argument(
+        "--txfm_weight",
+        type=float,
+        default=0.0,
+        help="dual-head span-supervisor FM weight (0 = off, MLP-only as "
+        "before). >0 builds a second training-only TX D over the lyric-span "
+        "deltas whose FM term pins prefix behavior while the MLP head owns "
+        "direction (lyric recipes only). No ranking on the TX head.",
+    )
+    p.add_argument(
+        "--lyrichold_weight",
+        type=float,
+        default=1.0,
+        help="all-GAN UNI only (pole_weight 0): weight on the yaml-lyric / "
+        "prefix hold to encode(neu). The axis stays teacher-free; this pins "
+        "only the lyric sheet the pole loss used to hold.",
+    )
+    p.add_argument(
+        "--parts",
+        type=int,
+        default=0,
+        help="row-mining particles (0 = off, round-robin/K rows as before). "
+        ">0 builds N learnable query particles over prompt rows: per step a "
+        "subset is sampled, their softmax-mean weights the batch toward rows "
+        "where the student looks fakest (KL balance + uniform coverage). Needs D "
+        "(an adversarial or feature-matching weight > 0). Training-only.",
+    )
+    p.add_argument(
+        "--parts_lr",
+        type=float,
+        default=None,
+        help="particle lr (default 10x --lr, the ParticleGAN particle ratio).",
+    )
+    p.add_argument(
+        "--parts_vic",
+        type=float,
+        default=1.0,
+        help="KL balance strength for adaptive row miners (legacy flag name; not latent VICReg).",
+    )
+    p.add_argument(
+        "--parts_temp",
+        type=float,
+        default=1.0,
+        help="softmax temperature for particle row weights.",
+    )
+    p.add_argument(
+        "--parts_sample",
+        type=int,
+        default=8,
+        help="particles sampled per step (only sampled rows get game grads).",
+    )
+    p.add_argument(
+        "--adv_batch",
+        type=int,
+        default=1,
+        help="rows per step (round-robin). >1 gives D a batch distribution "
+        "instead of one pair; G accumulates row losses (peak = one row).",
+    )
+    p.add_argument(
+        "--pole_weight",
+        type=float,
+        default=1.0,
+        help="weight on the pole MSE. 0 = all-GAN (adv + endreg only; UNI "
+        "recipes keep an MSE anchor of scale 0 to neutral).",
+    )
+    p.add_argument(
+        "--grad_account",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="diagnostic only: log per-step pole/adv grad norms and their cosine "
+        "alignment (two extra retain_graph backwards per step; off = zero change).",
+    )
     p.add_argument("--plus_label", default=None, help="override sidecar plus_label")
     p.add_argument("--minus_label", default=None, help="override sidecar minus_label")
     p.add_argument(
@@ -2751,14 +3722,6 @@ def parse_args(argv=None):
         "Any drift is a hard error, never a silent retrain",
     )
     p.add_argument(
-        "--adv_arch",
-        default="mlp",
-        choices=ADV_ARCHES,
-        help="adversarial critic family for the b_cap penalty (default mlp = Arm B). "
-        "none disables the adv wiring (f_none arm). "
-        "tx + --lm_target faithful_guard_e is refused (dual-arm incompatible)",
-    )
-    p.add_argument(
         "--adv_norm",
         default="l2",
         choices=("l2", "l1", "linf"),
@@ -2770,31 +3733,6 @@ def parse_args(argv=None):
         type=float,
         default=1.0,
         help="b_cap penalty strength = ParticleGAN GradRegularizer coeff (default 1.0, Arm B)",
-    )
-    p.add_argument(
-        "--adv_reg_kappa",
-        type=float,
-        default=1.0,
-        help="b_cap cap center = ParticleGAN GradRegularizer kappa, explicit "
-        "(default 1.0, Arm B; free below kappa, quadratic above)",
-    )
-    p.add_argument(
-        "--fm_weight",
-        type=float,
-        default=0.0,
-        help="feature-matching weight (default 0 = off; raw FM is uncapped by b_cap, Arm B keeps it off)",
-    )
-    p.add_argument(
-        "--parts",
-        type=int,
-        default=0,
-        help="adversarial particle count, Music scale (default 0 = residual-only, Arm B)",
-    )
-    p.add_argument(
-        "--pole_weight",
-        type=float,
-        default=1.0,
-        help="pole-seeking weight on the adv residual (default 1.0, Arm B Music transfer)",
     )
     p.add_argument(
         "--cover_weight",
@@ -2822,6 +3760,24 @@ def parse_args(argv=None):
     if args.steps < 1:
         p.error("--steps must be >= 1")
     validate_adv_args(p, args)
+    gan_on = args.adv_weight > 0 or args.fm_weight > 0 or args.txfm_weight > 0
+    if gan_on and args.adv_arch == "none":
+        p.error("--adv_arch none requires all adversarial and feature-matching weights to be 0")
+    for flag in ("adv_weight", "fm_weight", "txfm_weight", "pole_weight", "lyrichold_weight", "adv_reg_coeff", "adv_reg_kappa", "parts_vic"):
+        if not math.isfinite(getattr(args, flag)) or getattr(args, flag) < 0:
+            p.error(f"--{flag} must be finite and nonnegative")
+    if args.adv_batch < 1 or args.parts < 0 or args.parts_sample < 1 or args.parts_temp <= 0:
+        p.error("GAN batch/sample sizes and row-miner temperature must be positive; --parts must be >= 0")
+    if not 0 <= args.gan_beta1 < 1 or not 0 <= args.adv_beta1 < 1:
+        p.error("GAN Adam beta1 values must be in [0, 1)")
+    if args.pole_weight == 0 and not gan_on:
+        p.error("--pole_weight 0 needs --adv_weight, --fm_weight, or --txfm_weight > 0")
+    if args.parts and not gan_on:
+        p.error("--parts requires an enabled adversarial head")
+    if gan_on and args.pole_weight == 0 and args.adv_in == "unit":
+        p.error("--adv_in unit discards magnitude; use scaled for --pole_weight 0")
+    if args.txfm_weight > 0 and args.adv_arch == "tx":
+        p.error("--txfm_weight adds a second head to --adv_arch mlp; tx already scores the span")
     return args
 
 

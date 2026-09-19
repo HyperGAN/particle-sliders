@@ -10,7 +10,9 @@ import yaml
 
 from conceptmod.textsliders import particle_bridge_gan as pg
 from conceptmod.textsliders import yue2_particle_bridge as native
-from conceptmod.textsliders.train_lora_yue2_arm_b import parse_args, train, run_recipe
+from conceptmod.textsliders.train_lora_yue2_arm_b import (
+    critic_config, parse_args, train, run_recipe,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -56,12 +58,141 @@ def test_vic_is_only_sample_variance_hinge_and_off_diagonal_covariance():
 def test_schedule_and_separate_recoverable_streams():
     assert pg.noise_std(0) == 1 and pg.noise_std(8000) == .03 and pg.noise_std(16000) == .03
     assert pg.noise_std(600) == pytest.approx(.768748168503285)
+    assert pg.noise_std(0, start=.2) == pytest.approx(.2)
+    assert pg.noise_std(8000, start=.2) == pytest.approx(.03)
+    assert pg.noise_std(1600, decay_steps=1600) == pytest.approx(.03)
+    assert pg.noise_std(800, start=4., decay_steps=1600) == pytest.approx(4. * (.03 / 4.) ** .5)
+    assert pg.noise_std(0, start=4., decay_steps=1600, hold=1.) == pytest.approx(4.)
+    assert pg.noise_std(100, start=4., decay_steps=1600, hold=1.) == pytest.approx(4. * (.03 / 4.) ** (100 / 1600))
+    assert pg.noise_std(800, start=4., decay_steps=1600, hold=1.) == pytest.approx(1.)
+    assert pg.noise_std(1600, start=4., decay_steps=1600, hold=1.) == pytest.approx(1.)
+    assert pg.noise_std(8000, start=.2, hold=1.) == pytest.approx(.03)
     a = pg.BridgeSampler(4, 7); b = pg.BridgeSampler(4, 9)
     state = a.state_dict(); b.load_state_dict(state)
     ai, an = a.batch(3, 'cpu', .2); bi, bn = b.batch(3, 'cpu', .2)
     assert torch.equal(ai, bi) and torch.equal(an, bn)
     gi, gn = a.batch(3, 'cpu', .2)
     assert not torch.equal(ai, gi) and not torch.equal(an, gn)
+
+
+def test_paired_edit_norm_sets_noise_from_edit_rms():
+    torch.manual_seed(2)
+    neutrals = torch.randn(32, 64)
+    edits = torch.randn(32, 64) * 0.05
+    targets = neutrals + edits
+    critic = pg.ErrorCritic(targets, neutrals=neutrals)
+    assert critic.normalization.startswith('paired_edit')
+    assert float(critic.edit_rms) == pytest.approx(1.0, rel=0.05)
+    assert critic.noise_start == pytest.approx(float(critic.edit_rms) / .28, rel=1e-5)
+    # Absolute whitening buries the same edit.
+    legacy = pg.ErrorCritic(targets)
+    abs_edit_rms = ((targets - neutrals) / legacy.target_std).pow(2).mean().sqrt()
+    assert float(abs_edit_rms) < 0.2
+    assert critic.noise_start > legacy.noise_start
+
+
+def test_sn_mlp_and_gmix_critics_score_and_support_b_cap():
+    torch.manual_seed(3)
+    targets = torch.randn(4, 256)
+    neutrals = torch.randn(4, 256)
+    for critic in (
+        pg.ResidualSNErrorCritic(targets, width=64, layers=1, neutrals=neutrals),
+        pg.GlobalMixErrorCritic(targets, tokens=8, width=32, layers=1, heads=4, neutrals=neutrals),
+    ):
+        x = critic.normalize(torch.randn(5, 256)).requires_grad_(True)
+        scores = critic(x)
+        assert scores.shape == (5,) and torch.isfinite(scores).all()
+        assert scores.abs().max() <= critic.score_bound + 1e-5
+        params = [p for p in critic.parameters() if p.requires_grad]
+        g = torch.autograd.grad(scores.sum(), x, create_graph=True)[0]
+        second = torch.autograd.grad(g.square().sum(), params, allow_unused=True)
+        assert any(v is not None and torch.isfinite(v).all() and v.abs().sum() > 0 for v in second)
+
+
+def test_patch_error_critic_scores_and_supports_b_cap_double_backward():
+    torch.manual_seed(3)
+    targets = torch.randn(4, 256)
+    critic = pg.PatchErrorCritic(targets, patch=32, width=64, layers=2, heads=4)
+    x = critic.normalize(torch.randn(8, 256)).requires_grad_(True)
+    scores = critic(x)
+    assert scores.shape == (8,)
+    assert torch.isfinite(scores).all()
+    d_params = [p for p in critic.parameters() if p.requires_grad]
+    # First-order path reaches D params.
+    first = torch.autograd.grad(scores.sum(), d_params, retain_graph=True)
+    assert any(g is not None and g.abs().sum() > 0 for g in first)
+    # b_cap path: handwritten attn must support create_graph=True.
+    g = torch.autograd.grad(scores.sum(), x, create_graph=True)[0]
+    pen = g.square().sum()
+    second = torch.autograd.grad(pen, d_params, allow_unused=True)
+    assert any(g is not None and torch.isfinite(g).all() and g.abs().sum() > 0 for g in second)
+
+
+def test_build_game_defaults_to_mlp_and_music_can_request_patch():
+    class Net(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.particles = nn.Parameter(torch.randn(128, 4))
+            self.w = nn.Linear(3, 3)
+        def forward(self, x): return self.w(x)
+
+    targets = torch.randn(4, 3)
+    c_mlp, _, _ = pg.build_game(Net(), targets)
+    assert isinstance(c_mlp, pg.ErrorCritic)
+    c_patch, _, _ = pg.build_game(Net(), torch.randn(4, 128), critic='patch')
+    assert isinstance(c_patch, pg.PatchErrorCritic)
+    c_mix, _, _ = pg.build_game(Net(), torch.randn(4, 128), critic='mix')
+    assert isinstance(c_mix, pg.MixErrorCritic)
+    c_query, _, _ = pg.build_game(Net(), torch.randn(4, 128), critic='query')
+    assert isinstance(c_query, pg.QueryErrorCritic)
+    c_bn, _, _ = pg.build_game(Net(), torch.randn(4, 128), critic='bottleneck')
+    assert isinstance(c_bn, pg.BottleneckMixErrorCritic)
+    c_hy, _, _ = pg.build_game(Net(), torch.randn(4, 128), critic='hybrid')
+    assert isinstance(c_hy, pg.HybridErrorCritic)
+    c_lr, _, _ = pg.build_game(Net(), torch.randn(4, 128), critic='lowrank')
+    assert isinstance(c_lr, pg.LowRankMixErrorCritic)
+    c_bq, _, _ = pg.build_game(Net(), torch.randn(4, 128), critic='bquery')
+    assert isinstance(c_bq, pg.BottleneckQueryErrorCritic)
+    c_sn, _, _ = pg.build_game(Net(), torch.randn(4, 128), critic='sn_mlp',
+        critic_config=dict(width=64, layers=1, score_bound=8.))
+    assert isinstance(c_sn, pg.ResidualSNErrorCritic) and c_sn.width == 64
+    c_gmix, _, _ = pg.build_game(Net(), torch.randn(4, 128), critic='gmix',
+        critic_config=dict(tokens=8, width=32, layers=1, heads=4, score_bound=8.))
+    assert isinstance(c_gmix, pg.GlobalMixErrorCritic) and c_gmix.tokens == 8
+    c_transfer, _, _ = pg.build_game(Net(), torch.randn(4, 128), critic='bottleneck',
+        critic_config=dict(tokens=4, width=32, layers=2, heads=4, score_bound=6.))
+    assert c_transfer.tokens == 4 and c_transfer.width == 32
+    assert len(c_transfer.blocks) == 2 and c_transfer.score_bound == 6
+    with pytest.raises(ValueError, match='does not accept'):
+        pg.make_critic(targets, 'mlp', dict(tokens=8))
+
+
+def test_mix_and_query_critics_support_b_cap_double_backward():
+    torch.manual_seed(3)
+    targets = torch.randn(4, 256)
+    for critic in (
+        pg.MixErrorCritic(targets, tokens=8, width=64, layers=2, heads=4),
+        pg.QueryErrorCritic(targets, tokens=8, queries=4, width=64, layers=2, heads=4),
+        pg.BottleneckMixErrorCritic(targets, tokens=8, width=64, layers=1, heads=4),
+        pg.LowRankMixErrorCritic(targets, tokens=8, width=64, layers=1, heads=4, rank=32),
+        pg.HybridErrorCritic(targets, tokens=8, width=64, layers=1, heads=4),
+        pg.BottleneckQueryErrorCritic(targets, tokens=8, queries=4, width=64, layers=1, heads=4),
+        pg.GlobalMixErrorCritic(targets, tokens=8, width=32, layers=1, heads=4),
+        pg.ResidualSNErrorCritic(targets, width=64, layers=1),
+    ):
+        # Several capacity-matched critics intentionally start with a zero
+        # score head. The first D update makes it live; exercise b_cap in that
+        # live state rather than claiming its exact-zero initialization has a
+        # nonzero input-gradient penalty.
+        if hasattr(critic, 'head') and not critic.head.weight.count_nonzero():
+            with torch.no_grad(): critic.head.weight.normal_(std=.01)
+        x = critic.normalize(torch.randn(5, 256)).requires_grad_(True)
+        scores = critic(x)
+        assert scores.shape == (5,) and torch.isfinite(scores).all()
+        params = [p for p in critic.parameters() if p.requires_grad]
+        g = torch.autograd.grad(scores.sum(), x, create_graph=True)[0]
+        second = torch.autograd.grad(g.square().sum(), params, allow_unused=True)
+        assert any(v is not None and torch.isfinite(v).all() and v.abs().sum() > 0 for v in second)
 
 
 def independent_update(net, critic, g, d, targets, x, sampler, step):
@@ -131,6 +262,17 @@ def test_new_recipe_allows_only_the_requested_particle_term():
     finally: native.RECIPE['cover_weight'] = old
 
 
+def test_yue2_transformer_critic_flags_are_explicit_and_resume_safe():
+    args = parse_args(['--recipe','particle_bridge','--save_dir','unused',
+        '--critic','bottleneck','--critic_tokens','8','--critic_width','48',
+        '--critic_layers','2','--critic_heads','4','--critic_score_bound','8'])
+    assert critic_config(args) == dict(tokens=8,width=48,layers=2,heads=4,score_bound=8.)
+    recipe = run_recipe(args, native)
+    assert recipe['critic'] == 'bottleneck' and recipe['critic_config'] == critic_config(args)
+    with pytest.raises(SystemExit):
+        parse_args(['--save_dir','unused','--critic','mix'])
+
+
 def test_native_shared_cloud_checkpointing_and_deployment(tmp_path):
     pytest.importorskip('yue2')
     from conceptmod.textsliders.yue2_backend import YuE2Backend, YuE2Slider
@@ -177,7 +319,8 @@ def test_native_resume_restores_particles_ema_both_optimizers_and_all_streams(tm
     monkeypatch.setattr(YuE2Backend,'continuation',forbidden); monkeypatch.setattr(F,'mse_loss',forbidden)
     prompts=tmp_path/'p.yaml';prompts.write_text(yaml.safe_dump(dict(rows=[
         dict(neutral=f'Guitar band {i}',positive=f'Heavy metal guitar band {i}',lyrics=f'[verse]\nWe carry crate {i}') for i in range(4)])))
-    common=['--recipe','particle_bridge','--dummy','--steps','4','--prompts_file',str(prompts)]
+    common=['--recipe','particle_bridge','--dummy','--steps','4','--prompts_file',str(prompts),
+            '--sample_seeds','1','--history_tokens','0']
     train(parse_args(common+['--save_dir',str(tmp_path/'full')]))
     train(parse_args(common+['--save_dir',str(tmp_path/'split'),'--until','2']))
     train(parse_args(common+['--save_dir',str(tmp_path/'split')]))

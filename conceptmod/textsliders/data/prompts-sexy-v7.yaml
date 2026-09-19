@@ -1,0 +1,22 @@
+# Sexy axis v7b (LM half) — pass 2 rewrite: pass-1 screened sep 0.136 (weak).
+# Poles now diverge on genre color, vocal intimacy configuration, instrument
+# palette and production era at pinned BPM.
+plus_label: Sexy
+minus_label: Plain
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "Close behind-the-beat body-music."
+slider_negative: "Athletic daylight plain delivery."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 110. Key: A minor. Neutral evening mood.\nVocal Details:\nOne clear lead vocal, natural timing.\nArrangement:\nSteady drums, guitar, bass and keys."
+    positive: "Global Metadata:\nGenre: smoke-and-satin soul. BPM 110. Key: A minor. 1am, last booth, one lamp left on.\nVocal Details:\nOne husky close-mic lead practically touching the grille, sighing phrase-ends, an audible smile and exhale, two distant whispers answering once per chorus. Sung, murmured-adjacent, not rapped.\nArrangement:\nThumb-muted upright bass walking slowly, brushed kit with rimshot ticks, dripping tremolo electric piano, a lone muted trumpet, vinyl warmth and room air mixed up front."
+    negative: "Global Metadata:\nGenre: corporate demo-pop. BPM 110. Key: A minor. A product video, no point of view.\nVocal Details:\nOne sanitized session vocal, grid-perfect, zero body, double-tracked for blandness. Sung, not rapped.\nArrangement:\nStock four-to-the-floor kit, generic plucky synth preset, safe octave bass, everything sample-libraries clean and equally boring."
+    neutral: "Global Metadata:\nGenre: pop. BPM 110. Key: A minor. Neutral evening mood.\nVocal Details:\nOne clear lead vocal, natural timing.\nArrangement:\nSteady drums, guitar, bass and keys."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: r&b pop. BPM 112. Key: F minor. Even modern sheen.\nVocal Details:\nOne composed lead vocal, even lines.\nArrangement:\nProgrammed beat, clean keys, contained bass."
+    positive: "Global Metadata:\nGenre: slow-burn quiet-storm r&b. BPM 112. Key: F minor. Candlelight and borrowed warmth.\nVocal Details:\nOne smoky lead vocal half-whispering the verses then opening full-voiced on the hook, breath left in every gap, a low hummed answer under the bridge. Sung, not rapped.\nArrangement:\nDeep rounded sub, rain-soft electric piano, nylon guitar filigree, distant thunder-pad, mix like a hand on the small of the back."
+    negative: "Global Metadata:\nGenre: elevator funk-pop. BPM 112. Key: F minor. A lobby with plastic plants.\nVocal Details:\nOne cheerful impersonal lead reading the lines off a card, no ad-lib, no texture, no heat. Sung, not rapped.\nArrangement:\nStiff congas, flat slap-bass ostinato, thin brass stabs from a sound module, glossy lifeless sheen."
+    neutral: "Global Metadata:\nGenre: r&b pop. BPM 112. Key: F minor. Even modern sheen.\nVocal Details:\nOne composed lead vocal, even lines.\nArrangement:\nProgrammed beat, clean keys, contained bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

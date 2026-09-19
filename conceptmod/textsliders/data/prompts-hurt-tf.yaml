@@ -1,0 +1,12 @@
+# Single-row TF pair for hurt↔numb. Multi-row averaging kills transformer sliders.
+plus_label: Hurt
+minus_label: Numb
+recommended_range: [-2.0, 2.0]
+rows:
+  - target: "Genre: pop. BPM: 108. Medium energy. One lead vocal, keys and light drums. Ordinary studio, neither wounded nor sealed."
+    positive: "Genre: wounded slow pop. BPM: 70. A hurt sung vocal, break in the throat, chest crack on long notes, vowels that fold. Spare piano, low bass, no snare, close dry-warm mix. Medium-quiet, sung, not whispered-only, not snarled."
+    negative: "Genre: even pop. BPM: 108. A numb even vocal, flat affect, no crack, no catch, sealed and unhurt. Clean kit and keys, stacked doubles, no extra air. Medium level, sung, not rapped."
+    neutral: "Genre: pop. BPM: 108. Medium energy. One lead vocal, keys and light drums. Ordinary studio, neither wounded nor sealed."
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+    action: enhance
+    guidance_scale: 4

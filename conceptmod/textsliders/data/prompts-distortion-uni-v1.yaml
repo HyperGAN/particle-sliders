@@ -1,0 +1,35 @@
+# Distortion axis uni-v1 — plus-only. One concept: distorted tone.
+#
+# Teacher is raw h+ (the + caption). Do not leftover-gate. Omit leak_*.
+# Train with --lm_target faithful_plus --pole_mode hidden. Unipolar: there
+# is no clean pole. negative := target for yaml shape / canary; it is not
+# taught. Do not teach −1.
+#
+# Same rock / alternative / pop-rock room as v4. Genre, BPM, loudness,
+# mix, and kit are pinned; only the + tone words appear, in Global Metadata.
+# Gender attributes pin the vocalist (expand prefixes). Sung, not rapped.
+# No artist names.
+plus_label: Distorted
+minus_label: "Off"
+recommended_range: [0.0, 2.0]
+slider_positive: "Distorted guitar tone."
+slider_negative: "Ordinary guitar tone."
+rows:
+  - target: "Global Metadata:\nGenre: rock. BPM 112. Medium energy, ordinary mood, a guitar-driven session. Plain studio mix, ordinary guitar tone.\nVocal Details:\nOne lead vocal, ordinary rock timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with electric guitar, bass and drums."
+    positive: "Global Metadata:\nGenre: rock. BPM 112. Medium energy, ordinary mood, a guitar-driven session. Plain studio mix, distorted guitar tone.\nVocal Details:\nOne lead vocal, ordinary rock timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with electric guitar, bass and drums."
+    negative: "Global Metadata:\nGenre: rock. BPM 112. Medium energy, ordinary mood, a guitar-driven session. Plain studio mix, ordinary guitar tone.\nVocal Details:\nOne lead vocal, ordinary rock timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with electric guitar, bass and drums."
+    neutral: "Global Metadata:\nGenre: rock. BPM 112. Medium energy, ordinary mood, a guitar-driven session. Plain studio mix, ordinary guitar tone.\nVocal Details:\nOne lead vocal, ordinary rock timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with electric guitar, bass and drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: alternative. BPM 124. Medium energy, ordinary mood, a band session. Ordinary studio mix, ordinary guitar tone.\nVocal Details:\nOne lead vocal, ordinary timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, bass and drums."
+    positive: "Global Metadata:\nGenre: alternative. BPM 124. Medium energy, ordinary mood, a band session. Ordinary studio mix, distorted guitar tone.\nVocal Details:\nOne lead vocal, ordinary timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, bass and drums."
+    negative: "Global Metadata:\nGenre: alternative. BPM 124. Medium energy, ordinary mood, a band session. Ordinary studio mix, ordinary guitar tone.\nVocal Details:\nOne lead vocal, ordinary timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, bass and drums."
+    neutral: "Global Metadata:\nGenre: alternative. BPM 124. Medium energy, ordinary mood, a band session. Ordinary studio mix, ordinary guitar tone.\nVocal Details:\nOne lead vocal, ordinary timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, bass and drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: pop rock. BPM 100. Medium energy, ordinary mood, normal production. Plain studio mix, ordinary guitar tone.\nVocal Details:\nOne singer, ordinary timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, keys and a drum kit."
+    positive: "Global Metadata:\nGenre: pop rock. BPM 100. Medium energy, ordinary mood, normal production. Plain studio mix, distorted guitar tone.\nVocal Details:\nOne singer, ordinary timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, keys and a drum kit."
+    negative: "Global Metadata:\nGenre: pop rock. BPM 100. Medium energy, ordinary mood, normal production. Plain studio mix, ordinary guitar tone.\nVocal Details:\nOne singer, ordinary timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, keys and a drum kit."
+    neutral: "Global Metadata:\nGenre: pop rock. BPM 100. Medium energy, ordinary mood, normal production. Plain studio mix, ordinary guitar tone.\nVocal Details:\nOne singer, ordinary timbre, plain phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, keys and a drum kit."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI keep walking through the night\nlooking for a little light\n[chorus]\nI will not go quietly"

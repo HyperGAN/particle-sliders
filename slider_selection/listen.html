@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slider listening study</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101619;color:#edf2ee}
+*{box-sizing:border-box}
+body{max-width:900px;margin:auto;padding:32px 20px 60px}h1{font-size:30px;letter-spacing:-1px;margin-bottom:10px}
+p{line-height:1.6;color:#becbc7}.eyebrow{font-size:12px;letter-spacing:2px;color:#90c6a2;text-transform:uppercase}
+.panel{background:#192326;border:1px solid #354440;border-radius:14px;padding:22px;margin:18px 0}
+.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.player{min-width:0;padding:16px;border-radius:10px;background:#222f32}audio{width:100%;min-width:0;max-width:100%;margin-top:12px}
+label{cursor:pointer}fieldset{border:0;border-bottom:1px solid #354440;padding:15px 0;margin:0}
+legend{font-weight:550;float:left;width:100%;margin-bottom:12px}fieldset:after{content:'';display:block;clear:both}
+.options{display:flex;clear:both;gap:10px;flex-wrap:wrap}.options label{padding:9px 13px;border:1px solid #54685f;border-radius:7px}
+.options label:has(input:checked){background:#365846;border-color:#b2ddbc}input{margin-right:7px}
+button{font:inherit;border:1px solid #809b88;padding:11px 18px;border-radius:8px;background:#b8debb;color:#10271b;cursor:pointer}
+button:disabled{opacity:.4;cursor:default}.secondary{background:transparent;color:#d9e7dd}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}
+.muted,small{color:#a6b8ae}#save-state{font-size:13px}progress{width:100%;height:8px;accent-color:#a9d9b2}
+#error{color:#f4b9a7;white-space:pre-wrap}.done{color:#b8debb}pre{white-space:pre-wrap;font:inherit;line-height:1.6}
+</style>
+<div class="eyebrow">Listening study · Music sliders</div>
+<h1>Does the change work?</h1>
+<p>Listen for a useful change that keeps the words clear and the music enjoyable.
+Use headphones at a comfortable, consistent volume. You can pause this study and return later.</p>
+<div id="intro" class="panel">
+<p>Each trial has an original and one or two adjusted settings. Judge every adjusted setting.
+A louder file alone does not mean the band plays with more energy. Changes in arrangement can be valid;
+unexpected changes outside the requested direction count against preservation.</p>
+<p>Some trials ask you to compare two versions. “Neither” and “Unsure” are useful answers.
+Listen through each clip once before answering. Names and scores are hidden.</p>
+<button id="start">Start listening</button></div>
+<main id="study" hidden><p id="progress-label"></p><progress id="progress" value="0" max="1"></progress>
+<section class="panel"><div id="instructions"></div><details><summary>Requested lyrics</summary><pre id="lyrics"></pre></details>
+<div class="players" id="players"></div></section>
+<form id="ratings"></form><p id="playback-note" class="muted"></p>
+<div class="actions"><button id="next" disabled>Save and continue</button><button id="previous" class="secondary">Previous trial</button><button id="download" class="secondary">Download answers</button></div>
+<p id="save-state"></p><p id="error" role="alert"></p></main>
+<script>
+'use strict';
+let session, answers={}, index=0, current, played=new Set(), storageKey;
+const el=id=>document.getElementById(id);
+const questions=[['direction','Does each adjusted setting clearly make the requested change?'],
+['lyrics','Are the requested words intelligible, without distracting invented words or broken repetition?'],
+['quality','Does the adjusted music sound coherent, natural, and enjoyable?'],
+['preservation','Are changes outside the requested direction acceptable?'],
+['keep','Would you keep this slider result for the requested change?']];
+function field(name,title,options){
+ const f=document.createElement('fieldset'), legend=document.createElement('legend');legend.textContent=title;f.append(legend);
+ const div=document.createElement('div');div.className='options';
+ for(const [value,text] of options){const label=document.createElement('label'),input=document.createElement('input');
+  input.type='radio';input.name=name;input.value=value;input.addEventListener('change',check);label.append(input,document.createTextNode(text));div.append(label);}
+ f.append(div);return f;
+}
+function player(title,url){
+ const box=document.createElement('div');box.className='player';const label=document.createElement('strong');label.textContent=title;
+ const audio=document.createElement('audio');audio.controls=true;audio.preload='metadata';audio.src=url;
+ const status=document.createElement('small');status.textContent='Listen through once';
+ audio.addEventListener('play',()=>document.querySelectorAll('audio').forEach(a=>{if(a!==audio)a.pause()}));
+ audio.addEventListener('ended',()=>{let covered=0;for(let i=0;i<audio.played.length;i++)covered+=audio.played.end(i)-audio.played.start(i);
+  if(covered>=audio.duration*.94){played.add(url);status.textContent='Listened';status.className='done';check();}
+  else status.textContent='Play the skipped section before answering';});
+ box.append(label,audio,status);return box;
+}
+function required(){return current.kind==='preference'?[current.original,current.a,current.b]:[current.original,...current.settings.map(s=>s.url)]}
+function check(){const filled=[...el('ratings').querySelectorAll('fieldset')].every(f=>f.querySelector('input:checked'));
+ const ready=required().every(url=>played.has(url));el('next').disabled=!(filled&&ready);
+ el('playback-note').textContent=ready?'All clips heard. Choose an answer for each question.':'Listen through each clip once to enable saving.';}
+function render(review=false){
+ if(!review)while(index<session.trials.length&&answers[session.trials[index].id])index++;
+ el('progress-label').textContent=`${Object.keys(answers).length} of ${session.trials.length} completed`;
+ el('progress').value=Object.keys(answers).length;el('progress').max=session.trials.length;
+ el('players').replaceChildren();el('ratings').replaceChildren();el('error').textContent='';
+ if(index===session.trials.length){el('instructions').textContent='Thank you. Your listening set is complete.';
+ el('next').hidden=true;el('lyrics').textContent='';el('playback-note').textContent='Your answers are saved in this browser. Keep a downloaded copy as a backup.';return;}
+ current=session.trials[index];played=new Set(answers[current.id]?.played||[]);el('next').hidden=false;el('lyrics').textContent=current.lyrics.replaceAll(' / ','\n');
+ el('players').append(player('Original',current.original));
+ if(current.kind==='preference'){
+  el('instructions').textContent=`Which version would you keep for this change: ${current.description}?`;
+  el('players').append(player('Version A',current.a),player('Version B',current.b));
+  el('ratings').append(field('preference','Which adjusted version is better overall?',
+   [['a','Version A'],['b','Version B'],['tie','Both equally good'],['neither','Neither is usable'],['unsure','Unsure']]));
+ }else{
+  el('instructions').textContent=current.settings.map(s=>`Setting ${s.scale>0?'+':''}${s.scale}: ${s.description}.`).join(' ');
+  for(const s of current.settings)el('players').append(player(`Adjusted ${s.scale>0?'+':''}${s.scale}`,s.url));
+  for(const [key,text] of questions)el('ratings').append(field(key,text,[['yes','Yes'],['no','No'],['unsure','Unsure']]));
+ }
+ const saved=answers[current.id];if(saved){const values=saved.ratings||{preference:saved.preference};
+  for(const input of el('ratings').querySelectorAll('input'))input.checked=values[input.name]===input.value;}
+ check();
+}
+async function post(answer){const response=await fetch('/api/response',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(answer)});
+ if(!response.ok)throw Error((await response.json()).error||'Could not save to server');}
+el('next').onclick=async()=>{
+ if(el('next').disabled)return;el('next').disabled=true;const values=Object.fromEntries(new FormData(el('ratings')));
+ const answer={session_id:session.id,trial_id:current.id,played:[...played],answered_at:new Date().toISOString(),
+  ...(current.kind==='preference'?{preference:values.preference}:{ratings:values})};
+ answers[current.id]=answer;localStorage.setItem(storageKey,JSON.stringify(answers));
+ try{await post(answer);el('save-state').textContent='Saved to server and this browser.'}
+ catch(error){el('save-state').textContent='Saved in this browser. Server unavailable; download your answers before closing.';}
+ index++;render();
+};
+el('download').onclick=()=>{const blob=new Blob([Object.values(answers).map(a=>JSON.stringify(a)).join('\n')+'\n'],{type:'application/x-ndjson'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`slider-listening-${session.id}.jsonl`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+el('previous').onclick=()=>{index=Math.max(0,index-1);render(true)};
+el('start').onclick=()=>{el('intro').hidden=true;el('study').hidden=false;render()};
+(async()=>{try{session=await(await fetch('session.json')).json();storageKey='slider-study-'+session.id;
+ answers=JSON.parse(localStorage.getItem(storageKey)||'{}');
+ try{const remote=await(await fetch('/api/responses')).json();for(const a of remote){
+  if(!answers[a.trial_id]||a.answered_at>=answers[a.trial_id].answered_at)answers[a.trial_id]=a;}
+  for(const a of Object.values(answers))await post(a);
+  localStorage.setItem(storageKey,JSON.stringify(answers));}catch(_){}
+ if(Object.keys(answers).length)el('start').textContent='Continue listening';
+ }catch(error){el('intro').textContent='Could not load the listening study. '+error.message;}})();
+</script>
+</html>

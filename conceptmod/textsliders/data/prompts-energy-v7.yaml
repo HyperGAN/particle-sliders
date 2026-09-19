@@ -1,0 +1,25 @@
+# Energy axis v7 (LM half) — plus = loud/dense, minus = quiet/sparse.
+#
+# Pinned-BPM rewrite: every cell sits at BPM 110 so tempo cannot ride the axis
+# (v4 leaked +100..119 BPM between poles and taught the teacher to move tempo).
+# Pole deltas touch level/density/instrumentation only. Gender pinned via
+# attributes. Structured Caption. No artist names.
+plus_label: Loud
+minus_label: Quiet
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "Extremely high energy, aggressive and loud."
+slider_negative: "Extremely quiet and calm, almost silent."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 110. Steady mid-level radio song, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, electric guitar, bass and keys at a comfortable level."
+    positive: "Global Metadata:\nGenre: pop. BPM 110. Hard-driving radio song, high impact. Saturated loud dense mix.\nVocal Details:\nOne powerful doubled lead vocal, full chest, stacked backing on the hook. Sung, not screamed, not rapped.\nArrangement:\nDriving busy drums, layered thick guitars, punchy bass, everything up front and loud."
+    negative: "Global Metadata:\nGenre: pop. BPM 110. Gentle low-key radio song, hushed mood. Restrained soft sparse mix.\nVocal Details:\nOne breathy solo vocal, intimate and close, no backing vocals. Sung, not rapped, not a whisper.\nArrangement:\nGentle minimal drums, one quiet guitar, light bass, plenty of space between parts."
+    neutral: "Global Metadata:\nGenre: pop. BPM 110. Steady mid-level radio song, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, electric guitar, bass and keys at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: synth-pop. BPM 110. Moderate energy, even pulse, plain mood. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre, no backing vocals. Sung, not rapped.\nArrangement:\nProgrammed beat, warm synths and bass, steady and contained."
+    positive: "Global Metadata:\nGenre: synth-pop. BPM 110. Relentless club energy, maximum drive. Loud compressed bright mix.\nVocal Details:\nOne commanding lead vocal belting over stacked hook layers. Sung, shouted-adjacent, not rapped.\nArrangement:\nFour-on-the-floor kick, buzzing bass, big brash synths, open hats, wall of sound."
+    negative: "Global Metadata:\nGenre: synth-pop. BPM 110. Soft-focus evening pulse, barely there. Quiet airy mix.\nVocal Details:\nOne soft close vocal, half-volume, no backing vocals. Sung, not rapped, not whispered.\nArrangement:\nSoft slow pulse, muted pad, rounded sub bass, sparse hats, lots of air."
+    neutral: "Global Metadata:\nGenre: synth-pop. BPM 110. Moderate energy, even pulse, plain mood. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre, no backing vocals. Sung, not rapped.\nArrangement:\nProgrammed beat, warm synths and bass, steady and contained."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

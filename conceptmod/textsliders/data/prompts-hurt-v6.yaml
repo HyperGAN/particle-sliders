@@ -1,0 +1,29 @@
+# Hurt axis v6 (LM half) — plus = wounded / voice breaking, minus = numb deadpan.
+#
+# v6-noendreg retrain. The v4 pair failed (window cos ~0.14/0.12): "hurt" and
+# "numb" were too close to tender-care. This rewrite stacks crack/sob/crying
+# language vs blank/deadpan/no-feeling, and keeps it off tender (no hush,
+# no held-vowel care) and off yearn (no absence, no come-back). Medium level
+# both sides. Gender pinned. Structured Caption. No artist names.
+plus_label: Hurt
+minus_label: Numb
+recommended_range: [-2.0, 2.0]
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    positive: "Global Metadata:\nGenre: wounded slow pop. BPM 68. The blow already landed, a late indoor quiet. Close dry-warm mix.\nVocal Details:\nOne hurt sung vocal that is crying through the line: a sob in the throat, the voice breaks on the long notes, a crack mid-phrase, can barely finish the sentence. Not a gentle hush, not a snarl, not a whisper-lullaby. Sung, not rapped.\nArrangement:\nIntro: spare piano and room tone. Verse: that piano, a low bass, no snare. Chorus: a second guitar enters quietly, the break in the voice stays, no crash."
+    negative: "Global Metadata:\nGenre: blank pop. BPM 108. Numb, sealed, nothing gets in. Clean studio mix.\nVocal Details:\nOne deadpan even vocal, flat affect, emotionless, no crack, no sob, no catch, blank and unhurt, finished. Sung, not rapped.\nArrangement:\nIntro: clean kit and keys. Verse: bass, guitar, the blank vocal. Chorus: stacked doubles, no break in the lead, no extra air."
+    neutral: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    positive: "Global Metadata:\nGenre: bruised indie. BPM 66. Hurt, a small room after the news. Soft close mix.\nVocal Details:\nOne wounded sung vocal, crying on the held notes, chest crack, a sob shears the phrase, the voice breaks. Not tender-soft, not fierce. Sung, not rapped.\nArrangement:\nIntro: fingerpicked electric. Verse: guitar and a quiet bass, hats out. Chorus: a light tom, the break in the voice stays, no crash."
+    negative: "Global Metadata:\nGenre: blank indie pop. BPM 114. Numb, lights on, unhurt. Dry clean mix.\nVocal Details:\nOne sealed deadpan vocal, no crack, no sob, no feeling in the grain. Sung, not rapped.\nArrangement:\nIntro: clean guitar and kit. Verse: locked drums, blank vocal. Chorus: extra guitar, no break in the lead."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    positive: "Global Metadata:\nGenre: hurt slow electronic. BPM 62. Wounded, headphones after midnight. Soft mix, space around the voice.\nVocal Details:\nOne hurt sung vocal, sobbing through the hook, throat-break, chest crack, the line falls apart. Not a whisper-lullaby. Sung, not rapped.\nArrangement:\nIntro: a pad and a slow pulse, no snare. Verse: keys, sub, the crack in the gap. Chorus: a second pad, the wound stays in the lead."
+    negative: "Global Metadata:\nGenre: blank synth-pop. BPM 110. Numb, sealed, unhurt. Clean mix.\nVocal Details:\nOne flat deadpan vocal, no crack, no sob, no catch, no feeling. Sung, not rapped.\nArrangement:\nIntro: clean pad and beat. Verse: bass, keys, blank vocal. Chorus: stacked clean doubles, no break."
+    neutral: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

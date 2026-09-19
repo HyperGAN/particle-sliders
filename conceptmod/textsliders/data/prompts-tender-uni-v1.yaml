@@ -1,0 +1,36 @@
+# Tender axis uni-v1 — plus-only. One concept: unguarded held vowels, tender.
+#
+# UNI. Train with --lm_target faithful_plus_neu --pole_mode hidden.
+# Teacher is raw h+ (the + caption). Do not leftover-gate. Omit leak_*.
+# Unipolar: there is no fierce pole. negative := target for yaml shape /
+# canary; it is not taught. Do not teach −1.
+#
+# Same pop / indie / electronic room as v4 TARGET. Genre, BPM, loudness,
+# mix, and kit are pinned; only the + tender words appear, in Vocal
+# Details. Not slower BPM, not chamber-folk, not quieter energy. Gender
+# attributes pin the vocalist (expand prefixes). Sung, not rapped. No
+# artist names.
+plus_label: Tender
+minus_label: "Off"
+recommended_range: [0.0, 2.0]
+slider_positive: "Unguarded held vowels, tender, space between words."
+slider_negative: "Ordinary even phrasing."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    positive: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, unguarded held vowels, tender, space between words, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    negative: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    neutral: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    positive: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, unguarded held vowels, tender, space between words, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    negative: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    positive: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre, unguarded held vowels, tender, space between words. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    negative: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    neutral: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

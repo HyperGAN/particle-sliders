@@ -1,0 +1,26 @@
+# Joy axis v7b (LM half) — plus = joyful lift, minus = somber grey.
+#
+# Rewrite pass 2: pass-1 pair screened at sep 0.139 (below the 0.20 floor) —
+# pinning BPM removed the tempo divergence that used to carry mood, and the
+# remaining minimal-pair wording was too shared. This version pushes every
+# NON-tempo channel the LM reads: genre color, key mode, instrumentation,
+# vocal configuration, production era. BPM still pinned per row.
+plus_label: Joy
+minus_label: Somber
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "Lifted joyful chorus."
+slider_negative: "Grey unsmiling somber telling."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 108. Key: G major. Even mood.\nVocal Details:\nOne clear lead vocal, even phrasing.\nArrangement:\nDrums, bass and guitar at a comfortable level."
+    positive: "Global Metadata:\nGenre: gospel-pop celebration. BPM 108. Key: G major. Sunday-morning joy, hands clapping in the room.\nVocal Details:\nOne exultant lead vocal trading lines with a full choir answering every phrase, laughter audible in the backing. Sung, not rapped.\nArrangement:\nHammond organ swells, handclaps on every off-beat, tambourine, walking bass, horn stabs punching the chorus, everyone audible and delighted, warm live-room recording."
+    negative: "Global Metadata:\nGenre: coldwave. BPM 108. Key: G minor. Grey 4am silence, nobody else awake.\nVocal Details:\nOne isolated monotone vocal recorded inches from the mic, no warmth, no answer, reverb into an empty stairwell. Sung, barely, not rapped.\nArrangement:\nA single detuned piano repeating two notes, distant industrial hum, sub-bass like a passing train, tape hiss, everything far away and unsmiling."
+    neutral: "Global Metadata:\nGenre: pop. BPM 108. Key: G major. Even mood.\nVocal Details:\nOne clear lead vocal, even phrasing.\nArrangement:\nDrums, bass and guitar at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie pop. BPM 116. Key: D major. Steady moderate mood.\nVocal Details:\nOne lead vocalist, plain timbre.\nArrangement:\nGuitars, bass and drums, controlled."
+    positive: "Global Metadata:\nGenre: sunshine baroque-pop. BPM 116. Key: D major. Windows-open delight, a parade passing outside.\nVocal Details:\nOne beaming lead vocal joined by three friends on big unison hooks, whistling in the intro, an audible grin. Sung, not rapped.\nArrangement:\nBright acoustic strums, honky-tonk piano fills, tuba and tambourine, glockenspiel sparkles, brass swell on the last chorus, loose joyful garage-band energy."
+    negative: "Global Metadata:\nGenre: funeral folk. BPM 116. Key: D minor. A winter field after the service.\nVocal Details:\nOne hushed cracked vocal singing alone over one bowed saw, breath visible in the recording. Sung, not rapped.\nArrangement:\nSolo cello lines descending, a music box winding down, low male humming far off, no drums anywhere, dust-cold single-take room sound."
+    neutral: "Global Metadata:\nGenre: indie pop. BPM 116. Key: D major. Steady moderate mood.\nVocal Details:\nOne lead vocalist, plain timbre.\nArrangement:\nGuitars, bass and drums, controlled."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"

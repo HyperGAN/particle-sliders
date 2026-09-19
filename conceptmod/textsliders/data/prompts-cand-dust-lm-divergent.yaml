@@ -1,0 +1,25 @@
+# Dust LM divergent candidate — NOT for the TF half.
+#
+# Probe result on structured-but-fixed-genre rewrite (prompts-cand-dust-lm-v2):
+# sep 0.146 / cos 0.134 — still below the ~0.20 usable floor. MUSIC3.md's
+# divergent-poles rule says genre/BPM/instrumentation must move with the axis
+# for LM hosts. This draft does that while keeping the Dusty↔Glossy production
+# story. TF continues on prompts-cand-dust-v1 (fixed pop@110).
+#
+# Probe before any train. Human sign-off required (caption policy).
+plus_label: Dusty
+minus_label: Glossy
+recommended_range: [-2.0, 2.0]
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 110. Mid-tempo radio song, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with clean drums, electric guitar and bass at a comfortable level."
+    positive: "Global Metadata:\nGenre: lo-fi hip hop. BPM 84. Dusty nocturnal beat, warm and murky, tape-saturated. Soft compressed mix with audible hiss.\nVocal Details:\nOne soft hazy lead vocal, close and veiled, breath on every phrase, no backing vocals. Sung, not rapped.\nArrangement:\nIntro: vinyl crackle into a muffled kick. Verse: dusty boom-bap drums, warm dark Rhodes and rounded bass. Chorus: the haze thickens, soft pads under the kit, nothing bright."
+    negative: "Global Metadata:\nGenre: glossy synth-pop. BPM 128. Bright open radio song, polished and airy. Hi-fi studio mix with crisp top end.\nVocal Details:\nOne airy polished lead vocal, clear and forward, light doubles on the hook. Sung, not rapped.\nArrangement:\nIntro: a sparkling arpeggiated synth. Verse: crisp punchy drums, bright guitar stabs and tight bass. Chorus: wide glossy pads, glittering tops, clean silence between hits."
+    neutral: "Global Metadata:\nGenre: pop. BPM 110. Mid-tempo radio song, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with clean drums, electric guitar and bass at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 118. Moderate intensity, steady and controlled. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, controlled phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with steady drums, guitars present but controlled, and bass."
+    positive: "Global Metadata:\nGenre: dusty folk-soul. BPM 78. Warm and close, room tone audible, tape-worn edges. Murky lo-fi mix.\nVocal Details:\nOne soft intimate lead vocal, slightly veiled, mouth air present, no backing vocals. Sung, not rapped.\nArrangement:\nIntro: a soft room-mic'd kick. Verse: muffled brushed drums, warm dark guitar and rounded bass. Chorus: soft organ pads under the dust, nothing sparkling."
+    negative: "Global Metadata:\nGenre: stadium pop-rock. BPM 140. Bright and open, huge polished depth. Glossy hi-fi mix.\nVocal Details:\nOne clear forward lead vocal, airy and polished, stacked doubles on the hook. Sung, not rapped.\nArrangement:\nIntro: a crisp snare fill into bright guitars. Verse: punchy drums, sparkling guitar and tight bass. Chorus: wide glossy stacks, crashing cymbals, clean open space."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 118. Moderate intensity, steady and controlled. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, controlled phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with steady drums, guitars present but controlled, and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"

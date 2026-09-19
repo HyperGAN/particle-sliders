@@ -1,0 +1,35 @@
+# Gender axis uni-v2 — plus-only. One concept: woman.
+#
+# Teacher is raw h+ at LoRA +1. +2 is shred (helium / stacked girls) — do
+# not put that in the teacher. Do not leftover-gate. Omit leak_*. Unipolar:
+# there is no male pole. negative := target. minus_label Off. Do not teach −1.
+#
+# No attributes. Female only in positive Vocal Details. Same metadata,
+# arrangement, and lyrics as uni-v1. Sung, not rapped. Not sexy/breath, not
+# choir, not pitch-shift language. No artist names.
+plus_label: Female
+minus_label: "Off"
+recommended_range: [0.0, 1.0]
+slider_positive: "A woman is singing, feminine mezzo, chest-to-head mix, raised formants."
+slider_negative: "One lead singer, no gender named."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, steady mood, an ordinary radio afternoon. Plain studio mix.\nVocal Details:\nOne lead singer, plain studio timbre, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus carried by piano, bass and light drums."
+    positive: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, steady mood, an ordinary radio afternoon. Plain studio mix.\nVocal Details:\nOne female lead singer. A woman is singing, her voice is feminine. Adult mezzo, chest-to-head mix, raised formants, sibilants and t's sitting high and forward, narrow even vibrato. Plain studio timbre, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus carried by piano, bass and light drums."
+    negative: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, steady mood, an ordinary radio afternoon. Plain studio mix.\nVocal Details:\nOne lead singer, plain studio timbre, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus carried by piano, bass and light drums."
+    neutral: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, steady mood, an ordinary radio afternoon. Plain studio mix.\nVocal Details:\nOne lead singer, plain studio timbre, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus carried by piano, bass and light drums."
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 122. Medium energy, restless but steady, a band in an ordinary session. Plain studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, straightforward phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with electric guitars, bass and live drums."
+    positive: "Global Metadata:\nGenre: indie rock. BPM 122. Medium energy, restless but steady, a band in an ordinary session. Plain studio mix.\nVocal Details:\nOne female lead vocalist. A woman is singing, her voice is feminine. Adult mezzo, chest-to-head mix, raised formants, sibilants and t's sitting high and forward, narrow even vibrato. Ordinary rock timbre, straightforward phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with electric guitars, bass and live drums."
+    negative: "Global Metadata:\nGenre: indie rock. BPM 122. Medium energy, restless but steady, a band in an ordinary session. Plain studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, straightforward phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with electric guitars, bass and live drums."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 122. Medium energy, restless but steady, a band in an ordinary session. Plain studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, straightforward phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with electric guitars, bass and live drums."
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: electronic pop. BPM 102. Medium energy, even mood, late-evening headphone listening. Clean synthetic mix.\nVocal Details:\nOne lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over warm pads, a steady programmed beat and soft bass."
+    positive: "Global Metadata:\nGenre: electronic pop. BPM 102. Medium energy, even mood, late-evening headphone listening. Clean synthetic mix.\nVocal Details:\nOne female lead vocal. A woman is singing, her voice is feminine. Adult mezzo, chest-to-head mix, raised formants, sibilants and t's sitting high and forward, narrow even vibrato. Ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over warm pads, a steady programmed beat and soft bass."
+    negative: "Global Metadata:\nGenre: electronic pop. BPM 102. Medium energy, even mood, late-evening headphone listening. Clean synthetic mix.\nVocal Details:\nOne lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over warm pads, a steady programmed beat and soft bass."
+    neutral: "Global Metadata:\nGenre: electronic pop. BPM 102. Medium energy, even mood, late-evening headphone listening. Clean synthetic mix.\nVocal Details:\nOne lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over warm pads, a steady programmed beat and soft bass."
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"
+  - target: "Global Metadata:\nGenre: acoustic ballad. BPM 72. Low-to-medium energy, quiet and close, one voice in a small room. Soft intimate mix.\nVocal Details:\nA single intimate lead vocal, gentle phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over fingerpicked acoustic guitar, with a touch of soft piano."
+    positive: "Global Metadata:\nGenre: acoustic ballad. BPM 72. Low-to-medium energy, quiet and close, one voice in a small room. Soft intimate mix.\nVocal Details:\nA single intimate female lead vocal. A woman is singing, her voice is feminine. Adult mezzo, chest-to-head mix, raised formants, sibilants and t's sitting high and forward, narrow even vibrato. Gentle phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over fingerpicked acoustic guitar, with a touch of soft piano."
+    negative: "Global Metadata:\nGenre: acoustic ballad. BPM 72. Low-to-medium energy, quiet and close, one voice in a small room. Soft intimate mix.\nVocal Details:\nA single intimate lead vocal, gentle phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over fingerpicked acoustic guitar, with a touch of soft piano."
+    neutral: "Global Metadata:\nGenre: acoustic ballad. BPM 72. Low-to-medium energy, quiet and close, one voice in a small room. Soft intimate mix.\nVocal Details:\nA single intimate lead vocal, gentle phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over fingerpicked acoustic guitar, with a touch of soft piano."
+    lyrics: "[verse]\nI keep walking through the night\nlooking for a little light\n[chorus]\nI will not go quietly"

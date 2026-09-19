@@ -1,0 +1,31 @@
+# Energy axis v5 — pinned bipolar. Plus = loud / slammed / aggressive,
+# minus = quiet / sparse / calm. Same room on both poles.
+#
+# Train with --lm_target faithful --pole_mode hidden. Teacher is the two
+# captions. Shared lyrics / genre / BPM / mix / kit are the even part;
+# only the energy words flip, in Global Metadata. Omit leak_*.
+# Do not train faithful_plus. No artist names. Sung, not rapped.
+plus_label: Loud
+minus_label: Quiet
+recommended_range: [-2.0, 2.0]
+slider_positive: "Loud slammed energy, aggressive."
+slider_negative: "Quiet sparse energy, calm, almost silent."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 110. Medium energy, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    positive: "Global Metadata:\nGenre: pop. BPM 110. Loud slammed energy, aggressive. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    negative: "Global Metadata:\nGenre: pop. BPM 110. Quiet sparse energy, calm, almost silent. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    neutral: "Global Metadata:\nGenre: pop. BPM 110. Medium energy, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 118. Moderate intensity, steady and controlled. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, controlled phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with steady drums, guitars present but controlled, and bass."
+    positive: "Global Metadata:\nGenre: indie rock. BPM 118. Loud slammed intensity, aggressive. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, controlled phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with steady drums, guitars present but controlled, and bass."
+    negative: "Global Metadata:\nGenre: indie rock. BPM 118. Quiet sparse intensity, calm, almost silent. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, controlled phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with steady drums, guitars present but controlled, and bass."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 118. Moderate intensity, steady and controlled. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, controlled phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with steady drums, guitars present but controlled, and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: electronic pop. BPM 104. Moderate energy, even pulse, comfortable listening. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and soft bass."
+    positive: "Global Metadata:\nGenre: electronic pop. BPM 104. Loud slammed energy, aggressive, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and soft bass."
+    negative: "Global Metadata:\nGenre: electronic pop. BPM 104. Quiet sparse energy, calm, almost silent, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and soft bass."
+    neutral: "Global Metadata:\nGenre: electronic pop. BPM 104. Moderate energy, even pulse, comfortable listening. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and soft bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

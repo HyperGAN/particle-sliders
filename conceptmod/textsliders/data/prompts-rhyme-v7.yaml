@@ -1,0 +1,24 @@
+# Rhyme axis v7b (LM half) — pass 2 rewrite: pass-1 screened sep 0.128 (weak).
+# The rhyme axis is ABOUT lyric form, so the pair carries two lyric sheets:
+# row 0 trains the form contrast over a RHYMED lyric sheet, row 1 over a PROSE
+# sheet — both associations, averaged into one direction. Captions diverge
+# hard on form language, delivery and arrangement. BPM pinned.
+plus_label: Rhyme
+minus_label: Prose
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "Dense end-rhyme couplets."
+slider_negative: "Unrhymed prose sentences."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 100. Key: C major. Even conversational mood.\nVocal Details:\nOne clear lead vocal in plain sentences.\nArrangement:\nSteady drums, bass, guitar and keys."
+    positive: "Global Metadata:\nGenre: hooky sing-song pop. BPM 100. Key: C major. A playground chant grown up and radio-glossed.\nVocal Details:\nOne quick-witted lead landing tight AABB couplets dead on the beat, internal rhymes tumbling through the pre-chorus, every stanza snapping shut on its pair, crowd shouting the last rhymed word back. Sung, chanted-adjacent, not rapped.\nArrangement:\nHandclaps on two and four, bouncing bassline, bright strummed guitar, glockenspiel accents punctuating each rhyme like a punctuation mark."
+    negative: "Global Metadata:\nGenre: sparse art-folk. BPM 100. Key: C major. Someone reading their notebook aloud over an instrument.\nVocal Details:\nOne thoughtful lead vocal delivering these same lines as unrhymed conversational speech, cadence following breath and meaning, line-endings falling wherever the thought ends, no pattern acknowledged. Sung, speech-leaning, not rapped.\nArrangement:\nOne mic-ed guitar string-picked slowly, a distant chair shifting, no percussion at all until a single soft tom arrives late, mix dry as paper."
+    neutral: "Global Metadata:\nGenre: pop. BPM 100. Key: C major. Even conversational mood.\nVocal Details:\nOne clear lead vocal in plain sentences.\nArrangement:\nSteady drums, bass, guitar and keys."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nThe night was long, the road was straight\nI walked it anyway to test my fate\n[pre-chorus]\nEvery sign I passed said turn around\nI kept my feet planted on the ground\n[chorus]\nSo hold on tight and see it through\nThe only map I need is you"
+  - target: "Global Metadata:\nGenre: indie pop. BPM 104. Key: G major. Casual even mood.\nVocal Details:\nOne easy lead vocal in loose lines.\nArrangement:\nLight drums, jangly guitar, soft bass."
+    positive: "Global Metadata:\nGenre: music-hall indie stomp. BPM 104. Key: G major. A pub singalong where cleverness gets applauded.\nVocal Details:\nOne mischievous lead rattling off internal-rhyme chains and end-couplets, audience echoing every punchword, a whoop between stanzas. Sung, shouted-warm, not rapped.\nArrangement:\nPiano chords hammered on the beat, stomps and claps, tuba bounce, whistled answer phrases, bar-room sound with glass clinks kept in."
+    negative: "Global Metadata:\nGenre: minimal spoken-chamber folk. BPM 104. Key: G minor. A letter read once, then folded away.\nVocal Details:\nOne quiet level lead speaking-singing full sentences with no regard for meter or echo, endings trailing wherever the sentence completes. Sung, half-spoken, not rapped.\nArrangement:\nSingle sustained harmonium drone, one brushed cymbal swell total, tape hiss as percussion, close dry mono recording."
+    neutral: "Global Metadata:\nGenre: indie pop. BPM 104. Key: G major. Casual even mood.\nVocal Details:\nOne easy lead vocal in loose lines.\nArrangement:\nLight drums, jangly guitar, soft bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI told the evening I would probably be home by ten though I had no real intention of keeping that promise and the moon knew it\n[chorus]\nThe barman, who had seen everything already, looked at me the way people look at weather"

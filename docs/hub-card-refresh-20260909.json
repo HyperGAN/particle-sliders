@@ -1,0 +1,176 @@
+{
+  "release": "2026-09-09-approachable-model-card",
+  "publication": {
+    "repo": "ntc-ai/minimax-music3-concept-sliders",
+    "parent": "db66142dcb4a7c05432d7ee767bec83a8cf80d20",
+    "commit": "ba9ae5b8e19cb631fdfc9065c4caa10a51b33c3f",
+    "url": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/commit/ba9ae5b8e19cb631fdfc9065c4caa10a51b33c3f",
+    "changed_files": [
+      "README.md",
+      "evidence/uni16-gan-v1/formulation.md",
+      "release-manifest.json"
+    ]
+  },
+  "content_publication": {
+    "repo": "ntc-ai/minimax-music3-concept-sliders",
+    "parent": "fff8028dc42b50c8c9a80ff07dde50531821184d",
+    "commit": "db66142dcb4a7c05432d7ee767bec83a8cf80d20",
+    "url": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/commit/db66142dcb4a7c05432d7ee767bec83a8cf80d20",
+    "changed_files": [
+      "README.md",
+      "evidence/uni16-gan-v1/formulation.md",
+      "reward/refined-block-step2/README.md",
+      "samples/reward-refined-block/README.md",
+      "samples/uni16-gan-v1/README.md",
+      "release-manifest.json"
+    ]
+  },
+  "remote_verification": [
+    {
+      "file": "README.md",
+      "bytes": 28988,
+      "sha256": "27011324667eb8049f99bba609cb5417d128f777afdc516b4aebee78fb6ffcf0",
+      "matches": true
+    },
+    {
+      "file": "evidence/uni16-gan-v1/formulation.md",
+      "bytes": 9648,
+      "sha256": "6ee161285cbd5806e0697a6fdb694f5540778f8d995003feb0279a22075a6575",
+      "matches": true
+    },
+    {
+      "file": "reward/refined-block-step2/README.md",
+      "bytes": 2032,
+      "sha256": "2f14d52c1c0b1602c80743bc28bf615f573fed70ae134c2e9682309fa2c05a43",
+      "matches": true
+    },
+    {
+      "file": "samples/reward-refined-block/README.md",
+      "bytes": 20164,
+      "sha256": "4df2fd08cd28dfce74fb0165d0dc452d153c58e79b5f36025ab8634965ce7c5d",
+      "matches": true
+    },
+    {
+      "file": "samples/uni16-gan-v1/README.md",
+      "bytes": 43988,
+      "sha256": "bd9868d544cb7b4413d57ed98b89c35dbc55de2f0bc19bfeea179b7df77ec2b9",
+      "matches": true
+    },
+    {
+      "file": "release-manifest.json",
+      "bytes": 96172,
+      "sha256": "931903c7b1dfa44b5bf32407b1cb2387dc5344678200bffd97f11ca7ba6b2f42",
+      "matches": true
+    }
+  ],
+  "browser_verification": {
+    "title": "ntc-ai/minimax-music3-concept-sliders · Hugging Face",
+    "math": 54,
+    "displayMath": 9,
+    "mathErrors": [],
+    "internalVoiceLabel": false,
+    "rawMath": false,
+    "audioPlayers": 11,
+    "headings": [
+      {
+        "text": "Instructions to use ntc-ai/minimax-music3-concept-sliders with libraries, inference providers, notebooks, and local apps. Follow these links to get started.",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tReading the audio comparisons\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tListen: reward slider\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tAcoustic guitar & dance pulse\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tSynth melody & bell replies\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tFingerpicked guitar & warm harmonium\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tPiano & brushed drums\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tListen: voice and genre\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tFemale\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tPop\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tMetal\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tHouse\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tDisco Funk\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tK-pop\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tChoose a control\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tDownload and use\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tHow the sliders learn\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tOne strength control, two places to attach it\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tVoice and genre: learn the change between two descriptions\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tReward: learn from an audio enjoyment score\n\t\n",
+        "id": ""
+      },
+      {
+        "text": "\n\t\n\t\t\n\t\n\t\n\t\tEarlier releases\n\t\n",
+        "id": ""
+      },
+      {
+        "text": " Space using ntc-ai/minimax-music3-concept-sliders 1",
+        "id": ""
+      }
+    ],
+    "brokenAnchors": []
+  },
+  "checks": {
+    "display_equations": 9,
+    "inline_expressions": 45,
+    "math_errors": 0,
+    "broken_navigation_links": 0,
+    "audio_players": 11,
+    "weight_audio_prompt_and_evidence_data_unchanged": true,
+    "package_hash_and_link_validation": "passed",
+    "hugging_face_model_card_validation": "passed"
+  }
+}

@@ -1,0 +1,30 @@
+# Joy axis v4 (LM half) — plus = joyful, minus = somber.
+#
+# Celebration vs grey, not tender-gentle and not energy-loud. Joy lifts vowels
+# and opens the chorus; somber stays down and unsmiling at medium level.
+# Gender pinned. Structured Caption. No artist names.
+plus_label: Joy
+minus_label: Somber
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "Lifted joyful chorus."
+slider_negative: "Grey unsmiling somber telling."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    positive: "Global Metadata:\nGenre: bright pop. BPM 122. Joyful, a daytime lift, people in the room. Open mix, chorus blooms.\nVocal Details:\nOne joyful sung vocal, lifted vowels, a smile in the grain, stacked happy backing on the hook. Sung, not shouted, not rapped.\nArrangement:\nIntro: bright guitar and a clapping snare. Verse: bouncing bass, open hats. Chorus: extra voices, a lift in the last line, cymbal that opens not crashes angry."
+    negative: "Global Metadata:\nGenre: grey slow pop. BPM 76. Somber, unsmiling, indoor late. Dry-cool mix, no lift.\nVocal Details:\nOne somber sung vocal, downcast vowels, no smile, no lift on the chorus. Sung, not rapped, not a whisper.\nArrangement:\nIntro: a low piano. Verse: muted guitar, no clap. Chorus: the vocal stays down, no extra gang, no bright hat."
+    neutral: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    positive: "Global Metadata:\nGenre: sunlit indie pop. BPM 126. Joyful, windows open. Bright mix.\nVocal Details:\nOne lifted sung vocal, smile in the grain, backing that answers the hook. Sung, not rapped.\nArrangement:\nIntro: ringing guitar. Verse: bouncing drums. Chorus: extra voices, open hats, a lift not a slam."
+    negative: "Global Metadata:\nGenre: grey indie. BPM 78. Somber, unsmiling, indoor. Cool mix.\nVocal Details:\nOne downcast sung vocal, no smile, no lift. Sung, not rapped.\nArrangement:\nIntro: muted guitar. Verse: low drums. Chorus: the vocal stays down, no gang, no bright crash."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    positive: "Global Metadata:\nGenre: bright synth-pop. BPM 124. Joyful, a daytime playlist. Open mix.\nVocal Details:\nOne lifted sung vocal, smile in the vowel, stacked hook backing. Sung, not rapped.\nArrangement:\nIntro: bright arpeggio. Verse: bouncing kick. Chorus: extra voices, the last line lifts."
+    negative: "Global Metadata:\nGenre: grey downtempo. BPM 80. Somber, unsmiling. Cool mix.\nVocal Details:\nOne downcast sung vocal, no smile, no lift. Sung, not rapped.\nArrangement:\nIntro: a low pad. Verse: slow pulse. Chorus: the vocal stays down, no gang, no bright stab."
+    neutral: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

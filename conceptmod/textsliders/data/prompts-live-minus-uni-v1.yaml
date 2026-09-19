@@ -1,0 +1,36 @@
+# Live axis minus-uni-v1 — UNI minus LoRA. One concept: booth / grid.
+#
+# Teacher is raw h+ (the + caption). Do not leftover-gate. Omit leak_*.
+# Train with --lm_target faithful_plus_neu --pole_mode hidden. Unipolar: there
+# is no bleed/crowd pole. negative := target for yaml shape / canary; it is
+# not taught. Do not teach −1.
+#
+# Same pop / indie / soul-pop room as plus uni-v1. BPM and energy are pinned;
+# only the minus studio words appear, in Global Metadata. Same-room, not
+# swapped v4 two-song. Not smaller/drier as more-reverb inverse, not quieter.
+# Gender attributes pin the vocalist (expand prefixes). Sung, not rapped.
+# No artist names.
+plus_label: Studio
+minus_label: "Off"
+recommended_range: [0.0, 2.0]
+slider_positive: "Booth, grid, no bleed, no crowd."
+slider_negative: "Ordinary, unsteered, no pole."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 112. Medium energy, even mood, a session that could be studio or small-room. Ordinary production, no crowd.\nVocal Details:\nOne lead singer, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, guitar and keys."
+    positive: "Global Metadata:\nGenre: pop. BPM 112. Medium energy, even mood, a session that could be studio or small-room. Booth, grid, no bleed, no crowd — not smaller, not drier, not quieter.\nVocal Details:\nOne lead singer, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, guitar and keys."
+    negative: "Global Metadata:\nGenre: pop. BPM 112. Medium energy, even mood, a session that could be studio or small-room. Ordinary production, no crowd.\nVocal Details:\nOne lead singer, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, guitar and keys."
+    neutral: "Global Metadata:\nGenre: pop. BPM 112. Medium energy, even mood, a session that could be studio or small-room. Ordinary production, no crowd.\nVocal Details:\nOne lead singer, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, guitar and keys."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 118. Medium energy, even mood, a band that could be overdubbed or playing together. Ordinary production.\nVocal Details:\nOne lead vocalist, ordinary rock timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, bass and drums."
+    positive: "Global Metadata:\nGenre: indie rock. BPM 118. Medium energy, even mood, a band that could be overdubbed or playing together. Booth, grid, no bleed, no crowd — not smaller, not drier, not quieter.\nVocal Details:\nOne lead vocalist, ordinary rock timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, bass and drums."
+    negative: "Global Metadata:\nGenre: indie rock. BPM 118. Medium energy, even mood, a band that could be overdubbed or playing together. Ordinary production.\nVocal Details:\nOne lead vocalist, ordinary rock timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, bass and drums."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 118. Medium energy, even mood, a band that could be overdubbed or playing together. Ordinary production.\nVocal Details:\nOne lead vocalist, ordinary rock timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, bass and drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: soul pop. BPM 100. Medium energy, even mood, an ordinary session, neither live nor programmed. Plain production.\nVocal Details:\nOne singer with a band, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, keys and horns."
+    positive: "Global Metadata:\nGenre: soul pop. BPM 100. Medium energy, even mood, an ordinary session, neither live nor programmed. Booth, grid, no bleed, no crowd — not smaller, not drier, not quieter.\nVocal Details:\nOne singer with a band, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, keys and horns."
+    negative: "Global Metadata:\nGenre: soul pop. BPM 100. Medium energy, even mood, an ordinary session, neither live nor programmed. Plain production.\nVocal Details:\nOne singer with a band, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, keys and horns."
+    neutral: "Global Metadata:\nGenre: soul pop. BPM 100. Medium energy, even mood, an ordinary session, neither live nor programmed. Plain production.\nVocal Details:\nOne singer with a band, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, keys and horns."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

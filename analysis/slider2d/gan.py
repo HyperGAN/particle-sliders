@@ -58,6 +58,7 @@ from analysis.slider2d.sheet import (
     teacher_swings,
 )
 from analysis.slider2d.train import Residual, infer_dim, music3_pairs, score_residual
+from analysis.slider2d.field3d import Field3D, field3d_teacher_points
 from conceptmod.textsliders.slider_targets import (
     leftover_bipolar,
     lm_faithful_guard_e,
@@ -105,6 +106,11 @@ def _teacher_pair(
             field, row, teacher=teacher, leak_dir=leak_dir
         )
         return t_plus, t_minus, field.poles(row)[2]
+    if isinstance(field, Field3D):
+        t_plus, t_minus = field3d_teacher_points(
+            field, row, teacher=teacher, leak_dir=leak_dir
+        )
+        return t_plus, t_minus, field.poles(row)[2]
     raise TypeError(type(field))
 
 
@@ -113,6 +119,8 @@ def _field_leak_dir(field) -> torch.Tensor | None:
         return field.declared_e()
     if isinstance(field, SheetField):
         return field.leak_e() if float(field.leak) > 1e-8 else None
+    if isinstance(field, Field3D):
+        return field.declared_e()
     return None
 
 

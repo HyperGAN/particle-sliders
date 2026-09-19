@@ -22,8 +22,15 @@ TAKES=[('off',0.,'neutral'),('half',.5,'neutral'),
        ('metal',1.,'neutral'),('metal-caption',0.,'positive')]
 
 
-def takes(include_canary=False):
-    return TAKES + ([('minus-canary',-1.,'neutral')] if include_canary else [])
+def takes(include_canary=False, only=None):
+    items=TAKES + ([('minus-canary',-1.,'neutral')] if include_canary else [])
+    if not only:return items
+    alias={'on':'metal'}
+    names=[alias.get(name,name) for name in only]
+    by_name={item[0]:item for item in items}
+    missing=[name for name in names if name not in by_name]
+    if missing:raise SystemExit(f'Unknown takes: {missing}. Choose from {", ".join(by_name)}')
+    return [by_name[name] for name in names]
 
 
 @torch.no_grad()
@@ -56,7 +63,7 @@ def hidden_diagnostics(model,tokenizer,network,rows,include_canary=False):
         limitation='Not calibrated audio cover/leak or lyric-preservation gates; -1 is unscored.')
 
 
-def page(output,rows,seeds,recipe='unipolar_gan',include_canary=False,label='Metal'):
+def page(output,rows,seeds,recipe='unipolar_gan',include_canary=False,label='Metal',only=None):
     label=html.escape(label)
     title = 'YuE2 metal · GAN + neutral' if recipe == 'gan_plus_neu' else 'YuE2 metal · Unipolar GAN'
     detail = 'Trained with the +/0 conditional GAN.' if recipe == 'gan_plus_neu' else 'Trained only at +1.'
@@ -69,7 +76,7 @@ def page(output,rows,seeds,recipe='unipolar_gan',include_canary=False,label='Met
     for i,row in enumerate(rows):
         for seed in seeds:
             cells=[]
-            for name,scale,field in takes(include_canary):
+            for name,scale,field in takes(include_canary, only):
                 relative=Path(f'row-{i}-seed-{seed}')/name
                 meta=output/relative/'evaluation.json'
                 if meta.exists():
@@ -99,12 +106,13 @@ def main(argv=None):
     p.add_argument('--weights',type=Path,required=True)
     p.add_argument('--prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml')
     p.add_argument('--output_dir',type=Path,required=True)
+    p.add_argument('--takes',nargs='+',default=None,help='Subset to render, e.g. off metal. Default is every take. on is an alias for the scale-1 take.')
     p.add_argument('--seeds',type=int,nargs='+',default=[1709,2903])
     p.add_argument('--max_tokens',type=int,default=500)
     args=p.parse_args(argv)
     if args.max_tokens<1 or not args.seeds or any(not 0<=s<2**63 for s in args.seeds):p.error('Invalid sampling budget or seeds')
     rows,meta=load_prompts(args.prompts_file)
-    args.output_dir.mkdir(parents=True,exist_ok=True);page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary,meta.get('plus_label','Metal'))
+    args.output_dir.mkdir(parents=True,exist_ok=True);page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary,meta.get('plus_label','Metal'),args.takes)
     from yue2 import YuE2Pipeline
     from yue2.storage import verify_result
     digest=file_digest(args.weights)
@@ -123,7 +131,7 @@ def main(argv=None):
             write_json(args.output_dir/'hidden-diagnostics.json',dict(diagnostics,weights_sha256=digest))
         for i,row in enumerate(rows):
             for seed in args.seeds:
-                for name,scale,field in takes(args.include_canary):
+                for name,scale,field in takes(args.include_canary, args.takes):
                     dest=args.output_dir/f'row-{i}-seed-{seed}'/name
                     request=dict(weights_sha256=digest,scale=scale,style=row[field],lyrics=row['lyrics'],seed=seed,
                         max_tokens=args.max_tokens,backend='torch-eager',cot='off')
@@ -145,12 +153,12 @@ def main(argv=None):
                         clipped_fraction=float(np.mean(np.abs(audio)>=.999)),truncated=result.truncated,
                         audio_sha256=file_digest(staging/'audio.flac'))
                     write_json(staging/'evaluation.json',stats);staging.rename(dest)
-                    page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary,meta.get('plus_label','Metal'))
+                    page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary,meta.get('plus_label','Metal'),args.takes)
                     print(json.dumps(dict(row=i,seed=seed,take=name,duration=stats['duration'],rms=stats['rms'])),flush=True)
     import shutil
     shutil.copy2(args.weights,args.output_dir/'metal-yue2.safetensors')
     shutil.copy2(args.weights.with_suffix('.json'),args.output_dir/'metal-yue2.json')
     write_json(args.output_dir/'status.json',dict(stage='Training and matched rendering complete'))
-    page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary,meta.get('plus_label','Metal'))
+    page(args.output_dir,rows,args.seeds,args.recipe,args.include_canary,meta.get('plus_label','Metal'),args.takes)
 
 if __name__=='__main__':main()

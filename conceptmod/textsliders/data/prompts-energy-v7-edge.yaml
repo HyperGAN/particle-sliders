@@ -1,0 +1,117 @@
+# Single-direction LM control: negative := target so tgt(-1)=h_neu.
+# Only the + side moves; train --target_mode faithful --no-symmetric.
+
+plus_label: Loud
+minus_label: Quiet
+recommended_range:
+- -2.0
+- 2.0
+rows:
+- target: 'Global Metadata:
+
+    Genre: pop. BPM 110. Steady mid-level radio song, even mood. Balanced studio mix.
+
+    Vocal Details:
+
+    One clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.
+
+    Arrangement:
+
+    Steady drums, electric guitar, bass and keys at a comfortable level.'
+  positive: 'Global Metadata:
+
+    Genre: pop. BPM 110. Hard-driving radio song, high impact. Saturated loud dense mix.
+
+    Vocal Details:
+
+    One powerful doubled lead vocal, full chest, stacked backing on the hook. Sung, not screamed, not rapped.
+
+    Arrangement:
+
+    Driving busy drums, layered thick guitars, punchy bass, everything up front and loud.'
+  negative: 'Global Metadata:
+
+    Genre: pop. BPM 110. Steady mid-level radio song, even mood. Balanced studio mix.
+
+    Vocal Details:
+
+    One clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.
+
+    Arrangement:
+
+    Steady drums, electric guitar, bass and keys at a comfortable level.'
+  neutral: 'Global Metadata:
+
+    Genre: pop. BPM 110. Steady mid-level radio song, even mood. Balanced studio mix.
+
+    Vocal Details:
+
+    One clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.
+
+    Arrangement:
+
+    Steady drums, electric guitar, bass and keys at a comfortable level.'
+  attributes:
+  - A man is singing.
+  - A woman is singing.
+  lyrics: '[verse]
+
+    I can feel it in the air tonight
+
+    [chorus]
+
+    Louder now or fade away'
+- target: 'Global Metadata:
+
+    Genre: synth-pop. BPM 110. Moderate energy, even pulse, plain mood. Warm balanced mix.
+
+    Vocal Details:
+
+    One even lead vocal, ordinary timbre, no backing vocals. Sung, not rapped.
+
+    Arrangement:
+
+    Programmed beat, warm synths and bass, steady and contained.'
+  positive: 'Global Metadata:
+
+    Genre: synth-pop. BPM 110. Relentless club energy, maximum drive. Loud compressed bright mix.
+
+    Vocal Details:
+
+    One commanding lead vocal belting over stacked hook layers. Sung, shouted-adjacent, not rapped.
+
+    Arrangement:
+
+    Four-on-the-floor kick, buzzing bass, big brash synths, open hats, wall of sound.'
+  negative: 'Global Metadata:
+
+    Genre: synth-pop. BPM 110. Moderate energy, even pulse, plain mood. Warm balanced mix.
+
+    Vocal Details:
+
+    One even lead vocal, ordinary timbre, no backing vocals. Sung, not rapped.
+
+    Arrangement:
+
+    Programmed beat, warm synths and bass, steady and contained.'
+  neutral: 'Global Metadata:
+
+    Genre: synth-pop. BPM 110. Moderate energy, even pulse, plain mood. Warm balanced mix.
+
+    Vocal Details:
+
+    One even lead vocal, ordinary timbre, no backing vocals. Sung, not rapped.
+
+    Arrangement:
+
+    Programmed beat, warm synths and bass, steady and contained.'
+  attributes:
+  - A man is singing.
+  - A woman is singing.
+  lyrics: '[verse]
+
+    Every step I take says your name
+
+    [chorus]
+
+    Hold on, hold on to the light'

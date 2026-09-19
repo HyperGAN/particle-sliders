@@ -1,0 +1,194 @@
+<style>
+  #training-dashboard{--muted:#aab7c6;--line:#354250;margin:28px 0 36px}
+  #training-dashboard *{box-sizing:border-box}
+  #training-dashboard .dash-head{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  #training-dashboard h2{font-size:22px;margin:0}
+  #training-dashboard .live{font-size:13px;color:#8fe0b6;background:#1e352d;padding:7px 11px;border-radius:20px}
+  #training-dashboard .live.stale{color:#f4c27a;background:#3c3021}
+  #training-dashboard .live.error{color:#ffa5a5;background:#47272b}
+  #training-dashboard .subtle{font-size:13px;color:var(--muted);line-height:1.6}
+  #training-dashboard .summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+  #training-dashboard .stat{padding:14px 16px;background:#1e252e;border-radius:10px;border:1px solid var(--line)}
+  #training-dashboard .stat small{display:block;color:var(--muted);font-size:12px;margin-bottom:8px}
+  #training-dashboard .stat strong{font-size:23px;font-variant-numeric:tabular-nums;font-weight:600}
+  #training-dashboard progress{width:100%;height:7px;accent-color:#80baff;display:block;margin:12px 0 8px}
+  #training-dashboard .controls{display:flex;gap:16px;align-items:center;justify-content:space-between;margin:20px 0 14px;flex-wrap:wrap}
+  #training-dashboard select{background:#25303b;color:#eee;border:1px solid #526476;border-radius:6px;padding:6px;font:inherit}
+  #training-dashboard .charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  #training-dashboard .chart{min-width:0;background:#1b222b;border:1px solid var(--line);border-radius:12px;padding:16px}
+  #training-dashboard h3{font-size:15px;margin:0 0 5px}
+  #training-dashboard .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;margin:10px 0 4px}
+  #training-dashboard .legend span:before{content:'';display:inline-block;width:14px;height:3px;vertical-align:middle;background:var(--color);margin-right:5px}
+  #training-dashboard svg{display:block;width:100%;height:auto;overflow:visible;touch-action:pan-y}
+  #training-dashboard svg:focus-visible{outline:2px solid #80baff;outline-offset:2px}
+  #training-dashboard output{display:block;font:11px/1.7 ui-monospace,monospace;min-height:38px;color:#d0dce9}
+  #training-dashboard .formula{padding:18px 20px;border:1px solid var(--line);border-radius:10px;margin-top:16px}
+  #training-dashboard .formula p{margin:6px 0;font-size:14px;line-height:1.65}
+  #training-dashboard code{color:#b7d7ff;white-space:normal}
+  @media(max-width:700px){#training-dashboard .charts{grid-template-columns:1fr}#training-dashboard .summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+<div id="training-dashboard">
+  <div class="dash-head"><h2>Live training</h2><span id="training-live" class="live" role="status">Connecting…</span></div>
+  <p class="subtle">Refreshes every second. A new point appears after each completed update. Hover or tap a chart for exact values.</p>
+  <div class="summary">
+    <div class="stat"><small>Completed updates</small><strong id="training-step">—</strong></div>
+    <div class="stat"><small>Generator loss</small><strong id="training-loss">—</strong></div>
+    <div class="stat"><small>Discriminator loss</small><strong id="training-d-loss">—</strong></div>
+    <div class="stat"><small>Estimated training remaining</small><strong id="training-eta">—</strong></div>
+  </div>
+  <progress id="training-progress" max="1200" value="0" aria-label="Training progress"></progress>
+  <div id="training-timing" class="subtle">Waiting for training metrics.</div>
+  <div class="controls">
+    <label class="subtle">Trend <select id="training-smoothing"><option value="1">Raw updates</option><option value="5">5-update average</option><option value="10" selected>10-update average</option><option value="25">25-update average</option></select></label>
+    <a href="training-metrics.json" class="subtle">Download chart data</a>
+  </div>
+  <div class="charts" id="training-charts"></div>
+  <div class="formula">
+    <h3>The fixed unipolar objective</h3>
+    <p><b>Discriminator:</b> <code>mean softplus(D(fake) − D(real)) + gradient cap</code></p>
+    <p><b>Generator:</b> <code>mean softplus(D(real) − D(fake)) + particle VIC</code></p>
+    <p class="subtle">The generator trains +1 with the paired-error GAN and particle VIC. D and G use separate batches of 64 prompt/noise pairs. All branches use routed particles. Listening weights use EMA 0.995; curves show live training. Real = noise; fake = the same noise + normalized student − normalized positive target. Scale 0 is exactly the base model. The discriminator cap penalizes input-gradient norms above 1 in normalized error coordinates, every fourth update with ×4 weighting. Noise decreases from 1 to 0.03 over 8,000 updates; all three learning rates stay constant.</p>
+    <p class="subtle">VIC acts only on the particle cloud. No ending, pole-MSE, feature-matching or lyric-hold loss. Music 3 prompt-state LM attention only — no audio sampling during this train. Open the catalog for the two-GPU queue.</p>
+    <p class="subtle">D loss is measured before its update; the G objective uses the updated D. Loss values alone do not establish audio quality or each term’s contribution to the gradient.</p>
+  </div>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const specs = [
+    {title:'Generator loss',note:'Live G total = paired-error GAN + particle VIC. EMA is used only for exported listening weights.',series:[['loss','G total','#eeeeee'],['g_adv','GAN','#8bbfff'],['particle_vic','Particle VIC','#78dfc0']]},
+    {title:'Discriminator loss',note:'Paired logistic loss plus the gradient cap.',series:[['d_loss','D total','#ef9aab']]},
+    {title:'Direction alignment',note:'Cosine to the positive-caption target direction; 1 means aligned.',range:[-1,1],series:[['cos_pos','Positive (+1)','#8bbfff']]},
+    {title:'Gradient-cap penalty',note:'One-sided penalty; zero below the cap is allowed.',series:[['d_pen','Cap penalty','#78dfc0']]},
+    {title:'Generator gradient norm',note:'Global L2 norm before the optimizer update; no gradient clipping.',series:[['grad_norm','G gradient norm','#cba8ff']]}
+  ];
+  specs.push(
+    {title:'Particle gradients',note:'GAN-only cloud gradient is measured before adding VIC; total includes VIC.',series:[['particle_gan_grad_norm','GAN only','#8bbfff'],['particle_grad_norm','With VIC','#cba8ff']]},
+    {title:'Critic noise',note:'Geometric noise schedule; this is not learning-rate decay.',series:[['noise_std','Noise standard deviation','#78dfc0']]}
+  );
+  let points = [], data = null, windowSize = 10, signature = '', hoverStep = null;
+  const NS = 'http://www.w3.org/2000/svg', W = 480, H = 230, box = {left:54,right:14,top:16,bottom:38};
+  function element(tag, attrs = {}, text) {
+    const node = document.createElementNS(NS,tag);
+    for (const [k,v] of Object.entries(attrs)) node.setAttribute(k,v);
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  const fmt = n => !Number.isFinite(n) ? '—' : n === 0 ? '0' : Math.abs(n)<.001 ? n.toExponential(2) : n.toLocaleString(undefined,{maximumFractionDigits:4});
+  const tick = n => Math.abs(n)>=100 ? n.toFixed(0) : Math.abs(n)>=1 ? n.toFixed(1) : fmt(n);
+  const charts = specs.map(spec => {
+    const card = document.createElement('div');card.className = 'chart';
+    const title = document.createElement('h3');title.textContent = spec.title;card.append(title);
+    const note = document.createElement('div');note.className = 'subtle';note.textContent = spec.note;card.append(note);
+    const legend = document.createElement('div');legend.className = 'legend';
+    for (const [,label,color] of spec.series) {const s=document.createElement('span');s.textContent=label;s.style.setProperty('--color',color);legend.append(s);}
+    card.append(legend);
+    const svg = element('svg',{viewBox:`0 0 ${W} ${H}`,role:'img',tabindex:'0','aria-label':`${spec.title} by training update. Use arrow keys to inspect.`});
+    const output = document.createElement('output');card.append(svg,output);$('training-charts').append(card);
+    const chart = {spec,svg,output};
+    const pointAt = event => {
+      if (!points.length) return;
+      const r=svg.getBoundingClientRect(), fraction=Math.max(0,Math.min(1,((event.clientX-r.left)*W/r.width-box.left)/(W-box.left-box.right)));
+      const wanted=points[0].step+fraction*(points.at(-1).step-points[0].step);
+      hoverStep=points.reduce((best,p)=>Math.abs(p.step-wanted)<Math.abs(best.step-wanted)?p:best).step;
+      inspect();
+    };
+    svg.addEventListener('pointermove',pointAt);
+    svg.addEventListener('pointerdown',pointAt);
+    svg.addEventListener('pointerleave',()=>{hoverStep=null;inspect();});
+    svg.addEventListener('keydown',event=>{
+      if (!points.length || !['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+      event.preventDefault();
+      const current=Math.max(0,points.findIndex(p=>p.step===(hoverStep??points.at(-1).step)));
+      const index=event.key==='Home'?0:event.key==='End'?points.length-1:Math.max(0,Math.min(points.length-1,current+(event.key==='ArrowLeft'?-1:1)));
+      hoverStep=points[index].step;inspect();
+    });
+    return chart;
+  });
+  function average(key,index) {
+    const start=Math.max(0,index-windowSize+1);
+    return points.slice(start,index+1).reduce((sum,p)=>sum+p[key],0)/(index-start+1);
+  }
+  function draw() {
+    for (const chart of charts) {
+      const {svg,spec}=chart;svg.replaceChildren();
+      if (!points.length) {svg.append(element('text',{x:W/2,y:H/2,fill:'#aab7c6','text-anchor':'middle'},'Waiting for the first update'));continue;}
+      const values=points.flatMap(p=>spec.series.map(([key])=>p[key])).filter(Number.isFinite).sort((a,b)=>a-b);
+      let min=spec.range?.[0], max=spec.range?.[1];
+      if(min===undefined||max===undefined){
+        const lo=values[Math.floor((values.length-1)*0.02)]??0;
+        const hi=values[Math.floor((values.length-1)*0.98)]??1e-6;
+        min=min??Math.min(0,lo);
+        max=max??Math.max(Math.abs(hi)*1.12,1e-6);
+        // Keep rare spikes visible as clipped marks at the top edge.
+      }
+      const first=points[0].step,last=Math.max(first+1,points.at(-1).step);
+      chart.min=min;chart.max=max;
+      chart.x=step=>box.left+(step-first)/(last-first)*(W-box.left-box.right);
+      chart.y=value=>H-box.bottom-(value-min)/(max-min||1)*(H-box.top-box.bottom);
+      for(let i=0;i<=4;i++) {
+        const value=min+(max-min)*i/4,y=chart.y(value);
+        svg.append(element('line',{x1:box.left,x2:W-box.right,y1:y,y2:y,stroke:'#34414f','stroke-dasharray':'3 5'}));
+        svg.append(element('text',{x:box.left-8,y:y+4,fill:'#aab7c6','text-anchor':'end','font-size':10},tick(value)));
+      }
+      const steps=[...new Set([first,Math.round((first+last)/2),last])];
+      for(const step of steps)svg.append(element('text',{x:chart.x(step),y:H-19,fill:'#aab7c6','text-anchor':'middle','font-size':10},step));
+      svg.append(element('text',{x:W/2,y:H-3,fill:'#aab7c6','text-anchor':'middle','font-size':10},'Training update'));
+      for(const [key,,color] of spec.series) {
+        const path=smoothed=>points.map((p,i)=>{const v=smoothed?average(key,i):p[key];const c=Math.max(min,Math.min(max,v));return `${i?'L':'M'}${chart.x(p.step).toFixed(2)},${chart.y(c).toFixed(2)}`;}).join(' ');
+        if(windowSize>1)svg.append(element('path',{d:path(false),fill:'none',stroke:color,'stroke-width':1,opacity:.25}));
+        svg.append(element('path',{d:path(true),fill:'none',stroke:color,'stroke-width':2,'stroke-linejoin':'round'}));
+        const i=points.length-1;
+        svg.append(element('circle',{cx:chart.x(points[i].step),cy:chart.y(Math.max(min,Math.min(max,average(key,i)))),r:3,fill:color}));
+      }
+      chart.cursor=element('g');svg.append(chart.cursor);
+    }
+    inspect();
+  }
+  function inspect() {
+    if(!points.length)return;
+    const index=Math.max(0,points.findIndex(p=>p.step===(hoverStep??points.at(-1).step))),p=points[index];
+    for(const chart of charts) {
+      const {cursor,spec}=chart;if(!cursor)continue;cursor.replaceChildren();
+      if(hoverStep!==null) {
+        cursor.append(element('line',{x1:chart.x(p.step),x2:chart.x(p.step),y1:box.top,y2:H-box.bottom,stroke:'#bdccdd',opacity:.55}));
+        for(const [key,,color] of spec.series){const v=Math.max(chart.min,Math.min(chart.max,average(key,index)));cursor.append(element('circle',{cx:chart.x(p.step),cy:chart.y(v),r:4,fill:color}));}
+      }
+      chart.output.textContent=`Update ${p.step} · `+spec.series.map(([key,label])=>`${label}: ${fmt(p[key])}${windowSize>1?' (avg '+fmt(average(key,index))+')':''}`).join(' · ');
+    }
+  }
+  function summary() {
+    if(!data)return;
+    const state=data.training,last=points.at(-1),step=last?.step??0,total=state.total??600;
+    const mean=points.slice(-10).reduce((sum,p)=>sum+p.step_seconds,0)/Math.min(points.length,10);
+    const remaining=Math.max(0,(total-step)*mean), minutes=Math.ceil(remaining/60);
+    $('training-step').textContent=`${step} / ${total}`;
+    $('training-loss').textContent=fmt(last?.loss);$('training-d-loss').textContent=fmt(last?.d_loss);
+    $('training-progress').max=total;$('training-progress').value=step;
+    const stopped=['complete','paused','failed'].includes(state.status);
+    $('training-eta').textContent=state.status==='complete'?'Complete':stopped?'Stopped':!points.length?'—':minutes>=60?`${Math.floor(minutes/60)}h ${minutes%60}m`:`${minutes}m`;
+    const age=data.updated_at?Math.max(0,Math.floor(Date.now()/1000-data.updated_at)):null;
+    const delayed=!stopped && (Date.now()/1000-data.published_at>10 || (age!==null && age>Math.max(90,mean*3)));
+    $('training-live').textContent=state.status==='failed'?'Training failed':state.status==='paused'?'Training paused':state.status==='complete'?'Training complete':delayed?'Waiting for updates':'● Live · 1s refresh';
+    $('training-live').className='live'+(state.status==='failed'?' error':delayed?' stale':'');
+    $('training-timing').textContent=points.length?`Latest update ${age}s ago · ${mean.toFixed(1)}s/update over the last ${Math.min(10,points.length)} updates · ${windowSize>1?'Faint lines show raw values.':'Raw values shown; y-axis uses the central 98% so rare spikes do not crush the trend.'}`:'Waiting for the first completed update.';
+  }
+  $('training-smoothing').addEventListener('change',event=>{windowSize=Number(event.target.value);draw();summary();});
+  async function poll() {
+    try {
+      const response=await fetch('training-metrics.json',{cache:'no-store'});
+      if(!response.ok)throw new Error(`Metrics HTTP ${response.status}`);
+      const next=await response.json();data=next;points=next.points;
+      const nextSignature=JSON.stringify(points);
+      if(nextSignature!==signature){signature=nextSignature;draw();}
+      summary();
+    } catch(error) {$('training-live').textContent='Metrics unavailable · retrying';$('training-live').className='live stale';}
+    try {
+      const response=await fetch('status.json',{cache:'no-store'});
+      if(response.ok){const state=await response.json();$('status').textContent=state.stage||`${state.status}: ${state.completed}/${state.total} updates`;}
+    } catch(error) {}
+    setTimeout(poll,1000);
+  }
+  draw();poll();
+})();
+</script>

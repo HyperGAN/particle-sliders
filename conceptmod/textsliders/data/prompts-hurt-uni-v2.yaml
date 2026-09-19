@@ -1,0 +1,36 @@
+# Hurt axis uni-v2 — plus-only. One concept: inward wounded delivery.
+#
+# Teacher is raw h+ at LoRA +1 (the + caption). +2 is shred (tear / wail /
+# pitch-yaw) — do not put that in the teacher. Do not leftover-gate. Omit
+# leak_*. Unipolar: there is no numb pole. negative := target. minus_label Off.
+# Do not teach −1.
+#
+# Same pop / indie / electronic room as uni-v1. Genre, BPM, mix, kit, and
+# arrangement are pinned; only the + hurt words appear, in Vocal Details.
+# Not tender-hush, not slower BPM, not louder energy, not grit/snarl, not
+# self-loathing lyrics. Gender attributes pin the vocalist. Sung, not rapped.
+# No artist names.
+plus_label: Hurt
+minus_label: "Off"
+recommended_range: [0.0, 1.0]
+slider_positive: "Sung inward, cords catch then fold on the climb, high vowels held thin so they fray instead of opening."
+slider_negative: "Ordinary unhurt voice, even cords, neither wounded nor numb."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    positive: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, sung inward with a high narrow larynx, cords catch then fold on the climb, high vowels squeezed thin so they fray instead of opening, unused air off the held note, chorus keeps that same folded voice not a belt, not whispered, not snarled, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    negative: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    neutral: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    positive: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, sung inward with a high narrow larynx, cords catch then fold on the climb, high vowels squeezed thin so they fray instead of opening, unused air off the held note, chorus keeps that same folded voice not a belt, not whispered, not snarled, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    negative: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    positive: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre, sung inward with a high narrow larynx, cords catch then fold on the climb, high vowels squeezed thin so they fray instead of opening, unused air off the held note, chorus keeps that same folded voice not a belt, not whispered, not snarled. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    negative: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    neutral: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

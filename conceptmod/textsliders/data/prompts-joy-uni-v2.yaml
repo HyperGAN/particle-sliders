@@ -1,0 +1,37 @@
+# Joy axis uni-v2 — plus-only. One concept: bursting, grinning, can't-help-it
+# happy singing. +1 should make someone go oh wow: wide-open vowels, a real
+# laugh in the cheeks, long sunny held notes, bounce in the phrasing.
+#
+# Teacher is raw h+ at LoRA +1. +2 is shred (chipmunk / choir stack / manic) —
+# do not put that in the teacher. Do not leftover-gate. Omit leak_*. Unipolar:
+# there is no somber pole. negative := target. minus_label Off. Do not teach −1.
+#
+# Same pop / indie / electronic room as uni-v1. Genre, BPM, mix, kit, and
+# arrangement are pinned. Medium energy stays (not the energy slider). Mood
+# and Vocal Details carry the joy; drop "even mood" on the + pole. Not louder,
+# not BPM up, not gospel choir, not extra voices. Gender attributes pin the
+# vocalist. Sung, not rapped. No artist names.
+plus_label: Joy
+minus_label: "Off"
+recommended_range: [0.0, 1.0]
+slider_positive: "Bursting with joy, huge open vowels, a wide grin in the cheeks, laughing-singing, long sunny held notes, bounce in the phrasing."
+slider_negative: "Ordinary even mood, no extra smile."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    positive: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, bright joyful mood, a grin in the room. Balanced studio mix.\nVocal Details:\nOne clear lead vocal bursting with joy, huge wide-open vowels, a wide grin lifting the cheeks so every word is laughing-singing, bright lifted larynx, long sunny held notes that bloom instead of tapering, bounce in the phrasing like the singer cannot stand still, warm delighted chest, not shouted, not whispered, not a choir, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    negative: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    neutral: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nSun is up and I feel so alive\n[chorus]\nWhat a beautiful day, I could sing it all night"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    positive: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, bright joyful mood, a grin in the room. Ordinary studio mix.\nVocal Details:\nOne lead vocalist bursting with joy, huge wide-open vowels, a wide grin lifting the cheeks so every word is laughing-singing, bright lifted larynx, long sunny held notes that bloom instead of tapering, bounce in the phrasing like the singer cannot stand still, warm delighted chest, not shouted, not whispered, not a choir, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    negative: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nWindows down and the light is on my face\n[chorus]\nI am so glad I made it here"
+  - target: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    positive: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, bright joyful mood, a grin in the room. Warm balanced mix.\nVocal Details:\nOne lead vocal bursting with joy, huge wide-open vowels, a wide grin lifting the cheeks so every word is laughing-singing, bright lifted larynx, long sunny held notes that bloom instead of tapering, bounce in the phrasing like the singer cannot stand still, warm delighted chest, not shouted, not whispered, not a choir. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    negative: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    neutral: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take feels like a yes\n[chorus]\nI am smiling with the light"

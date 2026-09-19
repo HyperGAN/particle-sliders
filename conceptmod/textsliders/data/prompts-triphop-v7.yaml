@@ -1,0 +1,22 @@
+# Triphop axis v7 (LM half) — plus = nocturnal dusty trip-hop, minus = glossy
+# radio pop. Pinned BPM per row (v4 leaked −38..−44). Genre/instrumentation/
+# mood ride the axis; tempo does not.
+plus_label: Triphop
+minus_label: Pop
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "Dusty nocturnal trip-hop."
+slider_negative: "Glossy bright radio pop."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 95. Even modern mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, keys, guitar and bass at a comfortable level."
+    positive: "Global Metadata:\nGenre: trip-hop. BPM 95. Nocturnal heavy-lidded, smoke and streetlight. Dark dusty analog mix.\nVocal Details:\nOne smoky unhurried close-mic lead vocal, half-murmured phrases, tape hiss in the takes. Sung, murmured-adjacent, not rapped.\nArrangement:\nLurching downtempo breakbeat on a dusty sampled kit, deep dub bass, vinyl-crackle texture, sparse noir guitar echoes."
+    negative: "Global Metadata:\nGenre: pop. BPM 95. Sunny hi-fi shine, mall-bright. Glossy compressed wide mix.\nVocal Details:\nOne sparkling lead vocal with gleaming doubled hooks and ad-lib lifts. Sung, not rapped.\nArrangement:\nCrisp commercial snare-and-clap drums, glassy synth stabs, jangly clean guitars, polished pumping bass."
+    neutral: "Global Metadata:\nGenre: pop. BPM 95. Even modern mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, keys, guitar and bass at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: synth-pop. BPM 100. Plain evening mood. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nProgrammed beat, warm synths, contained bass."
+    positive: "Global Metadata:\nGenre: trip-hop. BPM 100. Basement noir, single bare bulb. Sub-heavy murky mix.\nVocal Details:\nOne cool detached female-adjacent alto, breathy verses dissolving into echoes. Sung, spoken-adjacent on the bridge, not rapped.\nArrangement:\nSludgy slowed breakbeats, bowed sub-bass drone, scratched samples, haunted music-box melody."
+    negative: "Global Metadata:\nGenre: synth-pop. BPM 100. Daylight festival brightness. Loud gleaming mix.\nVocal Details:\nOne belting joyful lead vocal over stacked gang hooks. Sung, not rapped.\nArrangement:\nFour-on-the-floor kick, supersaw leads, bright brass stabs, huge clapping chorus drums."
+    neutral: "Global Metadata:\nGenre: synth-pop. BPM 100. Plain evening mood. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nProgrammed beat, warm synths, contained bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

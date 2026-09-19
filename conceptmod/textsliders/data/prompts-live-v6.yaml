@@ -1,0 +1,33 @@
+# Live axis v6 (LM half) — plus = room with people / bleed / human time,
+# minus = isolated studio grid.
+#
+# v6-noendreg retrain. The v4 pair was weak on both poles (window cos 0.31/0.22).
+# This rewrite stacks crowd/applause/bleed/count-in/bootleg vs isolation-booth
+# / click-track / overdub / quantized. Tempo and energy stay pinned per row;
+# space owns wetness, so poles talk people, leakage and time-feel, not hall
+# size. Gender pinned. Structured Caption. No artist names.
+plus_label: Live
+minus_label: Studio
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "A room with people, bleed, and human time."
+slider_negative: "Isolated studio grid, no crowd."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 112. Medium energy, even mood, a session that could be studio or small-room. Ordinary production, no crowd.\nVocal Details:\nOne lead singer, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, guitar and keys."
+    positive: "Global Metadata:\nGenre: live club pop. BPM 112. Medium energy, a packed small club, people in the room. Room-mic mix, drum-kit bleed on the vocal mic — not a huge hall, not more reverb.\nVocal Details:\nOne lead singer working a live crowd, talking between lines, imperfect human time, a bootleg-close vocal. Sung, not rapped.\nArrangement:\nIntro: a shouted count-in over crowd chatter. Verse: the band in one room, kit bleed everywhere, bass pushing and dragging. Chorus: the audience cheers on the hits and claps along, applause in the gaps."
+    negative: "Global Metadata:\nGenre: overdubbed studio pop. BPM 112. Medium energy, sealed and precise, nobody else in the building. Grid-perfect isolated mix, no bleed, no crowd.\nVocal Details:\nOne lead singer tracked alone in an isolation booth against a click track, punch-in clean, comped. Sung, not rapped.\nArrangement:\nIntro: programmed quantized drums, no count-in. Verse: isolated overdubs, each part recorded separately, everything on the grid. Chorus: stacked overdubs snap in click-tight, no room, no people."
+    neutral: "Global Metadata:\nGenre: pop. BPM 112. Medium energy, even mood, a session that could be studio or small-room. Ordinary production, no crowd.\nVocal Details:\nOne lead singer, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, guitar and keys."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 118. Medium energy, even mood, a band that could be overdubbed or playing together. Ordinary production.\nVocal Details:\nOne lead vocalist, ordinary rock timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, bass and drums."
+    positive: "Global Metadata:\nGenre: live indie rock. BPM 118. Medium energy, the whole band tracking in one room with people watching. Leakage-heavy mix, guitar-amp spill on the snare — not a bigger reverb.\nVocal Details:\nOne lead vocalist riding live time, throwing lines at the band, a room full of people. Sung, not rapped.\nArrangement:\nIntro: amp buzz, floor tom rattle, a stick count over talking. Verse: guitars, bass and drums bleeding into every mic. Chorus: the small crowd starts clapping with the snare, cheers on the last hit."
+    negative: "Global Metadata:\nGenre: click-track indie rock. BPM 118. Medium energy, a grid session, isolation booths. Clean separated mix, no bleed, no audience.\nVocal Details:\nOne lead vocalist recorded alone against the click, phrasing quantized, punch-ins. Sung, not rapped.\nArrangement:\nIntro: a bare programmed beat. Verse: overdubbed isolated guitars, DI bass, quantized drums, each instrument alone. Chorus: stacked overdubs land on the grid, empty building."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 118. Medium energy, even mood, a band that could be overdubbed or playing together. Ordinary production.\nVocal Details:\nOne lead vocalist, ordinary rock timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with guitars, bass and drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: soul pop. BPM 100. Medium energy, even mood, an ordinary session, neither live nor programmed. Plain production.\nVocal Details:\nOne singer with a band, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, keys and horns."
+    positive: "Global Metadata:\nGenre: live soul revue. BPM 100. Medium energy, a packed club, people shouting back. Bleed-rich room mix, horn spill on every mic — not a bigger hall.\nVocal Details:\nOne singer feeding off a live audience, calling out, the room answers. Sung, not rapped.\nArrangement:\nIntro: a shouted count-in over crowd chatter. Verse: the band in one room, horn-section bleed over the kit. Chorus: audience shouts answer the horn hits, claps landing loose and human, applause."
+    negative: "Global Metadata:\nGenre: programmed soul pop. BPM 100. Medium energy, a grid session, isolation booth, nobody else in the building. Isolated mix, no bleed, no crowd.\nVocal Details:\nOne singer alone in a vocal booth, phrasing tucked on the click, punch-in clean. Sung, not rapped.\nArrangement:\nIntro: tight programmed drums on the grid. Verse: quantized horns, sequenced bass, isolated keys, every part separate. Chorus: the programmed stack snaps in, no room sound, no people."
+    neutral: "Global Metadata:\nGenre: soul pop. BPM 100. Medium energy, even mood, an ordinary session, neither live nor programmed. Plain production.\nVocal Details:\nOne singer with a band, ordinary timbre and phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass, keys and horns."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

@@ -1,0 +1,24 @@
+# Dust LM v2 candidate — structured captions, FIXED genre/BPM/arrangement
+# skeleton so the TF half's production axis stays the contract.
+#
+# Why this exists: flat minimal-pair dust (`prompts-cand-dust-v1.yaml`) probes
+# at sep 0.136 / cos 0.17 — below the ~0.20 usable LM floor. Shipped LM halves
+# (energy/triphop/…) use structured Global Metadata / Vocal Details /
+# Arrangement captions because that is what the studio rewriter emits. This
+# draft keeps pop @ 110 and the same song skeleton on both poles, and only
+# moves tape/sheen/room language — a structured rewrite of the TF pair, not a
+# divergent-genre rewrite. Probe before any train; human sign-off required
+# before replacing the pair (caption policy).
+#
+# Do NOT train on this until probe_lm_axis_signal.py clears sep ≳ 0.20 and
+# ears have signed the poles.
+plus_label: Dusty
+minus_label: Glossy
+recommended_range: [-2.0, 2.0]
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 110. Mid-tempo radio song, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with clean drums, electric guitar and bass at a comfortable level."
+    positive: "Global Metadata:\nGenre: pop. BPM 110. Mid-tempo radio song, warm and murky. Dusty lo-fi tape mix, soft high end, gently compressed.\nVocal Details:\nOne soft hazy lead vocal, close and slightly veiled, breath audible, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with muffled dusty drums, warm dark guitar, rounded bass, tape hiss under the kit."
+    negative: "Global Metadata:\nGenre: pop. BPM 110. Mid-tempo radio song, bright and open. Glossy hi-fi studio mix, crisp top end, polished depth.\nVocal Details:\nOne airy polished lead vocal, clear and forward, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with crisp punchy drums, sparkling bright guitar, tight bass, clean silence between hits."
+    neutral: "Global Metadata:\nGenre: pop. BPM 110. Mid-tempo radio song, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with clean drums, electric guitar and bass at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"

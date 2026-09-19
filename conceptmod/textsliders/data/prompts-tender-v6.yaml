@@ -1,0 +1,29 @@
+# Tender axis v6 (LM half) — plus = unguarded held vowels, minus = clenched fierce.
+#
+# v6-noendreg retrain. The v4 pair was lopsided (window cos 0.75 tender vs
+# 0.40 fierce). This rewrite keeps the plus pole and stacks jaw-tight / clipped
+# / staccato / unblinking language on minus, still medium level, not metal,
+# not screamed. Not hurt-wound and not yearn-absence. Gender pinned.
+# Structured Caption. No artist names.
+plus_label: Tender
+minus_label: Fierce
+recommended_range: [-2.0, 2.0]
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    positive: "Global Metadata:\nGenre: hushed chamber-folk. BPM 72. Aching and careful, a small room. Soft close mix, empty air between notes.\nVocal Details:\nOne tender lead vocal, held vowels, unguarded, a crack at the edges, space between words, no snarl, no belt. Sung, not rapped, not silent.\nArrangement:\nIntro: a single fingerpicked guitar and room tone. Verse: the guitar and a low piano, no snare. Chorus: a second guitar enters quietly, the vocal opens a little, still no crash."
+    negative: "Global Metadata:\nGenre: taut post-punk. BPM 132. Clenched, unblinking, a fluorescent rehearsal, no softness. Dry forward mix.\nVocal Details:\nOne fierce lead vocal, jaw locked tight, snapped consonants, staccato phrasing, short vowels, no held ache, no crack of tenderness, a hard stare in the grain. Sung, not screamed, not rapped, medium level not a roar.\nArrangement:\nIntro: a dry snare on two and four. Verse: taut guitar downstrokes, bass locked, hats tight. Chorus: the snare stays hard, a second guitar stabs, no crash wash, the jaw does not loosen."
+    neutral: "Global Metadata:\nGenre: pop. BPM 108. Medium energy, even mood, ordinary listening. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, ordinary timbre, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and guitar at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    positive: "Global Metadata:\nGenre: slow indie-folk. BPM 70. Bruised and open, late indoor quiet. Soft mix.\nVocal Details:\nOne aching sung vocal, long vowels, unguarded, a break in the voice. Sung, not rapped, not a whisper into silence.\nArrangement:\nIntro: fingerpicked electric, no drums. Verse: that guitar and a soft bass, hats out. Chorus: a light tom, the vocal lifts without hardening, no crash."
+    negative: "Global Metadata:\nGenre: wiry indie rock. BPM 136. Tight, impatient, lights on, clenched. Dry mix, no bloom.\nVocal Details:\nOne clenched rock vocal, jaw tight, short vowels, consonants on the attack, staccato, no tenderness in the grain, unblinking. Sung, not screamed, not rapped.\nArrangement:\nIntro: snare and a dry guitar chop. Verse: locked drums, bass with a pick, hats closed. Chorus: extra guitar stab, snare stays hard, no cymbal bloom, no soften."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 116. Moderate intensity, steady. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, guitars and bass, controlled."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    positive: "Global Metadata:\nGenre: slow ambient-pop. BPM 68. Fragile and kind, headphones in a dark kitchen. Soft washed mix.\nVocal Details:\nOne tender sung vocal, held notes, a catch in the throat, no bite. Sung, not rapped, not gone to whisper.\nArrangement:\nIntro: a pad and a slow pulse, no snare. Verse: soft keys, sub, the vocal in the gap. Chorus: a second pad, light brush, the vocal opens, still no hard backbeat."
+    negative: "Global Metadata:\nGenre: taut electro-rock. BPM 130. Cold and exact, a concrete room, clenched. Dry mix, transients sharp.\nVocal Details:\nOne fierce sung vocal, jaw tight, clipped consonants, no ache, no warmth in the vowel, staccato, unblinking. Sung, not screamed, not rapped.\nArrangement:\nIntro: a hard kick and a dry snare. Verse: locked sequence bass, hats tight, no wash. Chorus: extra stab synth, snare stays sharp, no pad bloom, no soften."
+    neutral: "Global Metadata:\nGenre: electronic pop. BPM 110. Moderate energy, even pulse. Warm balanced mix.\nVocal Details:\nOne even lead vocal, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

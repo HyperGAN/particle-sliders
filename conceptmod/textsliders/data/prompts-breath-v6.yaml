@@ -1,0 +1,31 @@
+# Breath axis v6 (LM half) — plus = audible inhales / mouth air, minus = edited
+# airless vocal.
+#
+# v6-noendreg retrain. The v4 pair was lopsided (window cos 0.43 breathy vs
+# 0.72 clean): the plus pole also dropped BPM into quiet-bedroom, which is
+# energy's axis. This rewrite keeps medium level on both sides, pins BPM
+# closer (92 vs 116), and stacks inhale/mouth-air/capsule language on plus
+# vs airless/de-essed/every-breath-cut on minus. Room stays dry. Gender
+# pinned. Structured Caption. No artist names.
+plus_label: Breathy
+minus_label: Clean
+recommended_range: [-2.0, 2.0]
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 104. Medium energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, some natural breath, not featured, not edited out. Sung, not rapped.\nArrangement:\nVerse and chorus with keys and light drums."
+    positive: "Global Metadata:\nGenre: close-mic pop. BPM 96. Medium level, dry, not a lullaby, not quiet-as-silence. Dry close mix.\nVocal Details:\nOne breathy sung vocal, every inhale audible, mouth air on the capsule, lip noise, you hear the singer breathe between lines, whisper-sung edges. Sung, not rapped, not silent.\nArrangement:\nIntro: an audible inhale, then kick and keys. Verse: the breathing voice in front, felt kick, almost no cymbal. Chorus: the same dry room, the inhales still loud between lines, medium level."
+    negative: "Global Metadata:\nGenre: edited radio pop. BPM 112. Medium level, dry, not louder. Punchy dry radio mix.\nVocal Details:\nOne airless belted pop vocal, every breath cut, de-essed, compressed, stacked doubles, no mouth noise, no human air. Sung, not rapped.\nArrangement:\nIntro: a bright guitar riff and punchy dry kit. Verse: tight drums under the sealed vocal. Chorus: stacked doubles, zero breath anywhere, medium level."
+    neutral: "Global Metadata:\nGenre: pop. BPM 104. Medium energy, even mood, ordinary listening. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, some natural breath, not featured, not edited out. Sung, not rapped.\nArrangement:\nVerse and chorus with keys and light drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie pop. BPM 104. Medium energy, even mood. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, some natural breath. Sung, not rapped.\nArrangement:\nVerse and chorus with keys, bass and light drums."
+    positive: "Global Metadata:\nGenre: close-mic indie. BPM 92. Medium level, dry wooden room, not a lullaby. Dry mix.\nVocal Details:\nOne breathy sung vocal, loud inhales, mouth air, capsule noise, cracked unfinished phrases, the singer breathing into the mic. Sung, not rapped.\nArrangement:\nIntro: a breath, then a felt kick and warm bass. Verse: almost no cymbal under the airy vocal. Chorus: soft keys join, the breaths still carrying, medium level."
+    negative: "Global Metadata:\nGenre: edited indie pop. BPM 114. Medium level, dry, finished. Punchy dry mix.\nVocal Details:\nOne airless belted vocal, no breaths left in, de-essed, stacked doubles, sealed. Sung, not rapped.\nArrangement:\nIntro: clipped guitar and dry kit. Verse: punchy drums under the sealed vocal. Chorus: stacked doubles, no human air, medium level."
+    neutral: "Global Metadata:\nGenre: indie pop. BPM 104. Medium energy, even mood. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre, some natural breath. Sung, not rapped.\nArrangement:\nVerse and chorus with keys, bass and light drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: soul pop. BPM 100. Medium energy, even mood. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre. Sung, not rapped.\nArrangement:\nVerse and chorus with keys, bass and drums."
+    positive: "Global Metadata:\nGenre: close-mic soul. BPM 90. Medium level, dry small room, not a lullaby. Dry mix.\nVocal Details:\nOne close-mic breathy voice, loud inhales, mouth noise, air on a large-diaphragm capsule, you hear every breath. Sung, not rapped, not whispered-only.\nArrangement:\nIntro: an inhale and one bass note. Verse: sparse felt kick under the breathing voice. Chorus: electric piano rises, air and mouth noise staying up front, medium level."
+    negative: "Global Metadata:\nGenre: edited radio soul. BPM 110. Medium level, dry, sealed. Compressed dry mix.\nVocal Details:\nOne airless belted vocal, every breath cut, hard de-ess, stacked doubles, tuned, no mouth noise. Sung, not rapped.\nArrangement:\nIntro: a bright hook and punchy dry kit. Verse: tight drums under the sealed vocal. Chorus: compressed stacked hooks, zero breath, medium level."
+    neutral: "Global Metadata:\nGenre: soul pop. BPM 100. Medium energy, even mood. Plain dry studio mix.\nVocal Details:\nOne lead vocal, ordinary studio timbre. Sung, not rapped.\nArrangement:\nVerse and chorus with keys, bass and drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

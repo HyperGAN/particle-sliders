@@ -1,0 +1,29 @@
+# Trip-hop axis minus-uni-v1 — UNI minus LoRA. One concept: glossy / bright / polished.
+#
+# Teacher is raw h+ (the + caption). Do not leftover-gate. Omit leak_*.
+# Train with --lm_target faithful_plus_neu --pole_mode hidden. Unipolar: there
+# is no dusty pole. negative := target for yaml shape / canary; it is not
+# taught. Do not teach −1.
+#
+# Same pop / r&b room as plus uni-v1. BPM and kit are pinned; only the minus
+# mix words appear, in Global Metadata. Same-room, not swapped v4 two-song.
+# Do not change genre away from pop / r&b. Gender attributes pin the vocalist
+# (expand prefixes). Sung, not rapped. No artist names.
+plus_label: Pop
+minus_label: "Off"
+recommended_range: [0.0, 2.0]
+slider_positive: "Glossy bright polished mix."
+slider_negative: "Ordinary, unsteered, no pole."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 110. Medium energy, even mood, an ordinary radio afternoon. Ordinary studio mix, neither dusty nor glossy.\nVocal Details:\nOne lead singer, ordinary timbre, plain phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with clean drums, electric guitar and bass."
+    positive: "Global Metadata:\nGenre: pop. BPM 110. Medium energy, even mood, an ordinary radio afternoon. Glossy bright polished mix.\nVocal Details:\nOne lead singer, ordinary timbre, plain phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with clean drums, electric guitar and bass."
+    negative: "Global Metadata:\nGenre: pop. BPM 110. Medium energy, even mood, an ordinary radio afternoon. Ordinary studio mix, neither dusty nor glossy.\nVocal Details:\nOne lead singer, ordinary timbre, plain phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with clean drums, electric guitar and bass."
+    neutral: "Global Metadata:\nGenre: pop. BPM 110. Medium energy, even mood, an ordinary radio afternoon. Ordinary studio mix, neither dusty nor glossy.\nVocal Details:\nOne lead singer, ordinary timbre, plain phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with clean drums, electric guitar and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: r&b. BPM 95. Medium energy, smooth and even, late-evening listening. Plain modern mix, neither dusty nor glossy.\nVocal Details:\nOne smooth lead singer, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    positive: "Global Metadata:\nGenre: r&b. BPM 95. Medium energy, smooth and even, late-evening listening. Glossy bright polished mix.\nVocal Details:\nOne smooth lead singer, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    negative: "Global Metadata:\nGenre: r&b. BPM 95. Medium energy, smooth and even, late-evening listening. Plain modern mix, neither dusty nor glossy.\nVocal Details:\nOne smooth lead singer, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    neutral: "Global Metadata:\nGenre: r&b. BPM 95. Medium energy, smooth and even, late-evening listening. Plain modern mix, neither dusty nor glossy.\nVocal Details:\nOne smooth lead singer, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

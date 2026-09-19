@@ -16,3 +16,19 @@ Anima-Turbo-v1.1-Diffusers/
 *_train.jsonl
 STUDIO_STOPPED.txt
 .venv-yue2/
+
+# Generated checkpoints and media are distributed separately from source.
+/models/
+/eval/listen/
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.mp4
+*.webm
+*.npz
+.pytest_cache/

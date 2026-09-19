@@ -594,3 +594,44 @@ def test_unknown_modes_are_refused():
         score_sheet("bad", field, teacher="midpoint", steps=1)
     with pytest.raises(ValueError):
         common_share(-1.0)
+
+
+def test_dof_sheet_analogues_geometry():
+    """DoF family Field2D/sheet analogues of Field3D M16/M24/M27/M29."""
+    from analysis.slider2d.sheet import (
+        CELLS_SHEET_DOF,
+        content_cascade_sheet_field,
+        content_leak_flip_sheet_field,
+        scale_descent_sheet_field,
+        scale_stagger_sheet_field,
+    )
+
+    stagger = scale_stagger_sheet_field()
+    descent = scale_descent_sheet_field()
+    flip = content_leak_flip_sheet_field()
+    cascade = content_cascade_sheet_field()
+
+    assert stagger.row_scales[0] < stagger.row_scales[-1]
+    assert descent.row_scales[0] > descent.row_scales[-1]
+    assert flip.row_leaks is not None and flip.row_leaks[0] < flip.row_leaks[1]
+    assert cascade.row_leaks is not None
+    assert cascade.row_leaks[0] < cascade.row_leaks[-1]
+    # odd() uses per-row leak when set
+    assert float(flip.odd(0).norm()) != float(flip.odd(1).norm())
+    for k, fn in CELLS_SHEET_DOF.items():
+        f = fn()
+        assert f.rows >= 4
+        _ = f.poles(0)
+        assert k.split("_sheet")[0] in (
+            "scale_stagger",
+            "scale_descent",
+            "content_leak_flip",
+            "content_cascade",
+        )
+
+
+def test_sheet_row_leaks_length_guard():
+    from analysis.slider2d.sheet import SheetField
+
+    with pytest.raises(ValueError, match="row_leaks"):
+        SheetField(rows=3, row_scales=(1.0, 1.0, 1.0), row_leaks=(0.1, 0.2))

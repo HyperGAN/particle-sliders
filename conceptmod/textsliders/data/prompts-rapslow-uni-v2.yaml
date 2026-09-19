@@ -1,0 +1,37 @@
+# Rapslow axis uni-v2 — plus-only. One concept: the lead is RAP. Not spoken
+# word, not a talky sung verse, not patter. Real rapped bars over the same bed.
+#
+# Teacher is raw h+ at LoRA +1. +2 is shred (double-time / unintelligible) —
+# do not put that in the teacher. Do not leftover-gate. Omit leak_*. Unipolar:
+# there is no slow pole. negative := target. minus_label Off. Do not teach −1.
+#
+# Same pop / r&b pop room as uni-v1. Genre, BPM, mix, kit, and arrangement
+# stay on the + pole so the wow is this song, now rapped. Only Vocal Details
+# flip: sung lead → rapped bars. Neutral must be clearly sung (not half
+# spoken) so the LoRA has a real delta. Do not jump BPM. Do not swap the
+# band for boom-bap/trap. Gender pins name a lead voice, not "singing".
+# No artist names.
+plus_label: Rap
+minus_label: "Off"
+recommended_range: [0.0, 1.0]
+slider_positive: "Rapped bars, 16th-note flow in the pocket, rhymes on the snare, chest-talk on pitch. Rap, not sung, not spoken-word."
+slider_negative: "Ordinary sung lead, held vowels, sung contour."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne clear sung lead, ordinary timbre, held vowels, sung contour, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and keys."
+    positive: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne rapper on the lead. This is rap: rapped bars, not singing, not spoken-word poetry, not a talky verse. Tight 16th-note flow in the pocket, chest-talk on a narrow pitch, end-rhymes landing on the snare, consonants punching the grid, bounce in the cadence, short snatched breath at the barline. Clear words, not mumbled, not double-time. Rap, not sung. No backing vocals.\nArrangement:\nVerse and chorus with drums, bass and keys."
+    negative: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne clear sung lead, ordinary timbre, held vowels, sung contour, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and keys."
+    neutral: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne clear sung lead, ordinary timbre, held vowels, sung contour, even phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with drums, bass and keys."
+    attributes: ["A male voice on the lead.", "A female voice on the lead."]
+    lyrics: "[verse]\nCity lights burning I been out in the rain\nEvery step I take they still saying my name\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: pop. BPM 104. Medium energy, plain mood, an ordinary session. Plain studio mix.\nVocal Details:\nOne clear sung lead, ordinary timbre, held vowels, sung contour, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with a band: guitar, bass, keys and drums."
+    positive: "Global Metadata:\nGenre: pop. BPM 104. Medium energy, plain mood, an ordinary session. Plain studio mix.\nVocal Details:\nOne rapper on the lead. This is rap: rapped bars, not singing, not spoken-word poetry, not a talky verse. Tight 16th-note flow in the pocket, chest-talk on a narrow pitch, end-rhymes landing on the snare, consonants punching the grid, bounce in the cadence, short snatched breath at the barline. Clear words, not mumbled, not double-time. Rap, not sung. No backing vocals.\nArrangement:\nVerse and chorus with a band: guitar, bass, keys and drums."
+    negative: "Global Metadata:\nGenre: pop. BPM 104. Medium energy, plain mood, an ordinary session. Plain studio mix.\nVocal Details:\nOne clear sung lead, ordinary timbre, held vowels, sung contour, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with a band: guitar, bass, keys and drums."
+    neutral: "Global Metadata:\nGenre: pop. BPM 104. Medium energy, plain mood, an ordinary session. Plain studio mix.\nVocal Details:\nOne clear sung lead, ordinary timbre, held vowels, sung contour, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with a band: guitar, bass, keys and drums."
+    attributes: ["A male voice on the lead.", "A female voice on the lead."]
+    lyrics: "[verse]\nI keep walking through the night looking for a little light\nCount the bars I will not go quiet\n[chorus]\nI will not go quietly"
+  - target: "Global Metadata:\nGenre: r&b pop. BPM 96. Medium energy, smooth and even, late-drive listening. Plain modern mix.\nVocal Details:\nOne clear sung lead, ordinary timbre, held vowels, sung contour. Sung, not rapped.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    positive: "Global Metadata:\nGenre: r&b pop. BPM 96. Medium energy, smooth and even, late-drive listening. Plain modern mix.\nVocal Details:\nOne rapper on the lead. This is rap: rapped bars, not singing, not spoken-word poetry, not a talky verse. Tight 16th-note flow in the pocket, chest-talk on a narrow pitch, end-rhymes landing on the snare, consonants punching the grid, bounce in the cadence, short snatched breath at the barline. Clear words, not mumbled, not double-time. Rap, not sung. No backing vocals.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    negative: "Global Metadata:\nGenre: r&b pop. BPM 96. Medium energy, smooth and even, late-drive listening. Plain modern mix.\nVocal Details:\nOne clear sung lead, ordinary timbre, held vowels, sung contour. Sung, not rapped.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    neutral: "Global Metadata:\nGenre: r&b pop. BPM 96. Medium energy, smooth and even, late-drive listening. Plain modern mix.\nVocal Details:\nOne clear sung lead, ordinary timbre, held vowels, sung contour. Sung, not rapped.\nArrangement:\nVerse and chorus with soft drums, electric piano and bass."
+    attributes: ["A male voice on the lead.", "A female voice on the lead."]
+    lyrics: "[verse]\nI can feel it in the air tonight I been riding the wave\nLouder now they know my name\n[chorus]\nLouder now or fade away"

@@ -1,0 +1,35 @@
+# Rhyme axis minus-uni-v1 — UNI minus LoRA. One concept: loose unrhymed.
+#
+# Teacher is raw h+ (the + caption). Do not leftover-gate. Omit leak_*.
+# Train with --lm_target faithful_plus_neu --pole_mode hidden. Unipolar: there
+# is no dense-rhyme pole. negative := target for yaml shape / canary; it is not
+# taught. Do not teach −1.
+#
+# Same pop room as plus uni-v1. Genre, BPM, mix, and kit are pinned; only the
+# minus rhyme words appear, in Vocal Details. Same-room, not swapped v4
+# two-song. Gender attributes pin the vocalist (expand prefixes). Sung, not
+# rapped. No artist names.
+plus_label: Prose
+minus_label: "Off"
+recommended_range: [0.0, 2.0]
+slider_positive: "Loose unrhymed, no rhyme scheme."
+slider_negative: "Ordinary, unsteered, no pole."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, steady mood, headphones on the walk home. Ordinary studio mix.\nVocal Details:\nOne lead singer, plain studio timbre, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus carried by acoustic guitar, bass and a plain drum kit."
+    positive: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, steady mood, headphones on the walk home. Ordinary studio mix.\nVocal Details:\nOne lead singer, plain studio timbre, loose unrhymed, no rhyme scheme, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus carried by acoustic guitar, bass and a plain drum kit."
+    negative: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, steady mood, headphones on the walk home. Ordinary studio mix.\nVocal Details:\nOne lead singer, plain studio timbre, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus carried by acoustic guitar, bass and a plain drum kit."
+    neutral: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, steady mood, headphones on the walk home. Ordinary studio mix.\nVocal Details:\nOne lead singer, plain studio timbre, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus carried by acoustic guitar, bass and a plain drum kit."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre and phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with guitar, keys, bass and drums."
+    positive: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, loose unrhymed, no rhyme scheme, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with guitar, keys, bass and drums."
+    negative: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre and phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with guitar, keys, bass and drums."
+    neutral: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre and phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with guitar, keys, bass and drums."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary afternoon listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with piano, bass and a plain drum kit."
+    positive: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary afternoon listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, loose unrhymed, no rhyme scheme, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with piano, bass and a plain drum kit."
+    negative: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary afternoon listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with piano, bass and a plain drum kit."
+    neutral: "Global Metadata:\nGenre: pop. BPM 100. Medium energy, even mood, ordinary afternoon listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, ordinary phrasing, no backing vocals. Sung, not rapped.\nArrangement:\nVerse and chorus with piano, bass and a plain drum kit."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"

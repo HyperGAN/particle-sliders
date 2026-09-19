@@ -1,0 +1,22 @@
+# Hurt axis v7b (LM half) — pass 2 rewrite: pass-1 screened sep 0.147 (weak).
+# Poles diverge on genre color, vocal damage vs polish, arrangement weight and
+# production space at pinned BPM.
+plus_label: Hurt
+minus_label: Composed
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "Raw emotional damage in the vocal."
+slider_negative: "Composed restrained control."
+rows:
+  - target: "Global Metadata:\nGenre: pop ballad. BPM 110. Key: C major. Steady even mood.\nVocal Details:\nOne clear lead vocal, controlled even lines.\nArrangement:\nDrums, bass, piano and guitar, comfortable level."
+    positive: "Global Metadata:\nGenre: broken bedroom confessional. BPM 110. Key: C minor. 3am on the kitchen floor, phone face-down.\nVocal Details:\nOne wrecked lead vocal that cracks mid-word twice, breath shuddering before the hard lines, a swallowed sob kept in the take, one fragile doubled line on the last chorus. Sung, not rapped, not a whisper.\nArrangement:\nOut-of-tune upright piano with pedal noise, one bowed drone, a phone vibrating on the counter audible under the intro, single-take room sound with chair creak, nothing polished anywhere."
+    negative: "Global Metadata:\nGenre: pristine arena pop. BPM 110. Key: C major. Total command of a sold-out room.\nVocal Details:\nOne flawless stadium lead vocal, diamond-cut runs, zero strain, forty-thousand-voice gang vocals answering on cue. Sung, not rapped.\nArrangement:\nHuge gated drums, cathedral synth pads, precision bass, fireworks-style riser into a widescreen final chorus, immaculate big-budget mix."
+    neutral: "Global Metadata:\nGenre: pop ballad. BPM 110. Key: C major. Steady even mood.\nVocal Details:\nOne clear lead vocal, controlled even lines.\nArrangement:\nDrums, bass, piano and guitar, comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie folk. BPM 112. Key: E minor. Quiet steady mood.\nVocal Details:\nOne clear lead vocal, plain delivery.\nArrangement:\nAcoustic guitar, light drums, upright bass."
+    positive: "Global Metadata:\nGenre: ghost-town appalachian lament. BPM 112. Key: E minor. Grief with no audience left.\nVocal Details:\nOne frayed mountain-singing voice, rasp catching on every high word, wavering between pitch like it might give up, an audible inhale shaking before the last verse. Sung, not rapped.\nArrangement:\nOne banjo barely brushed, a bowed saw drone, screen-door creak in the room tone, recording fades where the singer simply stops."
+    negative: "Global Metadata:\nGenre: sunny coffee-shop folk-pop. BPM 112. Key: E major. Pleasant Tuesday energy, nothing at stake.\nVocal Details:\nOne chipper unbothered lead vocal with tidy close harmonies, every note comfortable, smiling audibly. Sung, not rapped.\nArrangement:\nBright strummed acoustic, handclaps, whistling outro, bouncy upright bass, spotless radio-folk mix."
+    neutral: "Global Metadata:\nGenre: indie folk. BPM 112. Key: E minor. Quiet steady mood.\nVocal Details:\nOne clear lead vocal, plain delivery.\nArrangement:\nAcoustic guitar, light drums, upright bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"

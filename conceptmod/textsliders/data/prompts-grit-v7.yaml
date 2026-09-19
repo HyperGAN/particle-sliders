@@ -1,0 +1,21 @@
+# Grit axis v7 (LM half) — plus = rasp, fry, growl; minus = silk.
+# v4 was nearly clean (−2..−8 BPM); v7 pins it exactly. Pure timbre channel.
+plus_label: Grit
+minus_label: Smooth
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "Rasp, fry, and a mid-chest growl."
+slider_negative: "Smooth silk vocal cords."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 108. Even mood, neutral vocal texture. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, smooth ordinary cords, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, bass, guitar and keys at a comfortable level."
+    positive: "Global Metadata:\nGenre: pop. BPM 108. Weathered and ragged, smoke in the room. Raw forward mix.\nVocal Details:\nOne rasped lead vocal, fry on the low notes, mid-chest growl on the hook, edges fraying on purpose. Sung, not screamed, not rapped.\nArrangement:\nGritty overdriven guitar accents, heavy-handed drums, coarse bass, nothing buffeted smooth."
+    negative: "Global Metadata:\nGenre: pop. BPM 108. Glass-smooth polish. Silky refined mix.\nVocal Details:\nOne silky lead vocal, flawless even vibrato, zero rasp, satin sustain. Sung, not rapped.\nArrangement:\nClean guitars, soft precise drums, rounded bass, everything buffed."
+    neutral: "Global Metadata:\nGenre: pop. BPM 108. Even mood, neutral vocal texture. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, smooth ordinary cords, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, bass, guitar and keys at a comfortable level."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: soul pop. BPM 112. Warm steady mood. Balanced studio mix.\nVocal Details:\nOne clean lead vocal with light natural texture. Sung, not rapped.\nArrangement:\nPocket drums, warm bass, electric piano."
+    positive: "Global Metadata:\nGenre: soul pop. BPM 112. Gravel-and-honey testimony. Gritty upfront mix.\nVocal Details:\nOne gravely lead vocal, cracked belting, fry rattling under long notes, church-worn edge. Sung, testifying-adjacent, not rapped.\nArrangement:\nStomping drums, growling baritone guitar, rough-hewn bass, handclaps gone raw."
+    negative: "Global Metadata:\nGenre: soul pop. BPM 112. Cream-smooth serenade. Lush polished mix.\nVocal Details:\nOne velvety lead vocal, liquid runs, breath support so even nothing breaks. Sung, not rapped.\nArrangement:\nSilken strings pads, feathered drums, deep smooth bassline."
+    neutral: "Global Metadata:\nGenre: soul pop. BPM 112. Warm steady mood. Balanced studio mix.\nVocal Details:\nOne clean lead vocal with light natural texture. Sung, not rapped.\nArrangement:\nPocket drums, warm bass, electric piano."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

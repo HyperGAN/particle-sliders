@@ -1,0 +1,178 @@
+{
+  "release": "2026-09-09-same-seed-off-on-showcase",
+  "publication": {
+    "repo": "ntc-ai/minimax-music3-concept-sliders",
+    "parent": "dd0a755746a836ca28e295d9f26ce6fa90cc3a08",
+    "commit": "54be5a8d96ce43e01c02d1f600c66fe836258acb",
+    "url": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/commit/54be5a8d96ce43e01c02d1f600c66fe836258acb",
+    "changed_files": [
+      "README.md",
+      "samples/uni16-gan-v1/README.md",
+      "samples/reward-refined-block/README.md",
+      "release-manifest.json"
+    ]
+  },
+  "showcase_publication": {
+    "repo": "ntc-ai/minimax-music3-concept-sliders",
+    "parent": "ba9ae5b8e19cb631fdfc9065c4caa10a51b33c3f",
+    "commit": "dd0a755746a836ca28e295d9f26ce6fa90cc3a08",
+    "url": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/commit/dd0a755746a836ca28e295d9f26ce6fa90cc3a08",
+    "changed_files": [
+      "README.md",
+      "assets/same-seed.svg",
+      "samples/reward-refined-block/README.md",
+      "samples/uni16-gan-v1/README.md",
+      "release-manifest.json"
+    ]
+  },
+  "remote_verification": [
+    {
+      "file": "README.md",
+      "bytes": 23618,
+      "sha256": "e6f791e929d285a5735f071500b8a53da7eafa9b50126ab99f89f62182292d2c",
+      "matches": true
+    },
+    {
+      "file": "assets/same-seed.svg",
+      "bytes": 15225,
+      "sha256": "b1d96fddef4ee381fbc6e23714ca278b95a098708a7ef699abd98d6ae8cec918",
+      "matches": true
+    },
+    {
+      "file": "samples/reward-refined-block/README.md",
+      "bytes": 29656,
+      "sha256": "28051334776f67d8eb993ad1ccc6e6bd6d703c7291489cad1dbb4ef6237a9658",
+      "matches": true
+    },
+    {
+      "file": "samples/uni16-gan-v1/README.md",
+      "bytes": 68947,
+      "sha256": "0a90b25b5c58e1b498d60efa9e2059ac50446476fbd830767708fa2f8b0e3758",
+      "matches": true
+    },
+    {
+      "file": "release-manifest.json",
+      "bytes": 96710,
+      "sha256": "0115c40d623f3f84283621e8866aa65711cdd224fb26bf7b6b2e3802cfc03474",
+      "matches": true
+    }
+  ],
+  "browser_verification": {
+    "title": "ntc-ai/minimax-music3-concept-sliders · Hugging Face",
+    "math": 54,
+    "mathErrors": 0,
+    "players": [
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/metal/row1-seed7-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/metal/row1-seed7-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/house/row0-seed7-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/house/row0-seed7-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/disco-funk/row1-seed23-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/disco-funk/row1-seed23-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/pop-punk/row0-seed7-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/pop-punk/row0-seed7-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/lofi/row1-seed23-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/lofi/row1-seed23-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/female/row0-seed23-off.mp3",
+        "width": 276.625,
+        "cellWidth": 293.625
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/female/row0-seed23-on.mp3",
+        "width": 277.625,
+        "cellWidth": 293.625
+      }
+    ],
+    "banner": [
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/assets/same-seed.svg",
+        "complete": true,
+        "width": 1120
+      }
+    ],
+    "badAnchors": [],
+    "mobile": {
+      "viewport": 390,
+      "page": 390,
+      "players": [
+        {
+          "width": 161,
+          "cellWidth": 178
+        },
+        {
+          "width": 162,
+          "cellWidth": 178
+        }
+      ]
+    },
+    "playback": [
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/metal/row1-seed7-off.mp3",
+        "duration": 20.015601,
+        "currentTime": 0.560976,
+        "error": null
+      },
+      {
+        "src": "https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/uni16-gan-v1/metal/row1-seed7-on.mp3",
+        "duration": 20.015601,
+        "currentTime": 0.564378,
+        "error": null
+      }
+    ]
+  },
+  "changes": {
+    "featured_controls": [
+      "metal",
+      "house",
+      "disco-funk",
+      "pop-punk",
+      "lofi",
+      "female"
+    ],
+    "separate_off_on_players": true,
+    "same_prompt_lyrics_seed_per_pair": true,
+    "reward_showcase": "Research archive",
+    "new_banner": "Actual Metal comparison RMS envelopes, first 20 seconds, shared amplitude scale",
+    "audio_weights_prompts_and_scores": "Unchanged"
+  }
+}

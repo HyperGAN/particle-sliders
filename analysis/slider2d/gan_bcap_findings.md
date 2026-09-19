@@ -13,8 +13,8 @@ Music 3 listen quality.
 - b_cap coeff: `1.0`, κ: `1.0` (ParticleGAN `GradRegularizer`, one-sided, free below κ)
 - feature matching: `0.0` (0 = off; raw FM is uncapped by b_cap)
 - cover_weight: `1.5` (mode pin on the shared residual; needed on sheet/exam width)
-- GAN steps: field/sheet `1200`, exam `1200`, seed `0`
-- supervised baseline steps: `400`
+- GAN steps: field/sheet `400`, exam `400`, seed `0`
+- supervised baseline steps: `200`
 
 ```bash
 PYTHONPATH=. python analysis/slider2d/run_lm_adv.py --out docs/lm-2d-adv
@@ -24,16 +24,16 @@ PYTHONPATH=. pytest tests/test_lm_2d_adv.py -q
 
 ## Compiled gate vs supervised baselines
 
-GAN compiled verdict: **works**. `exam_score` = `0.968`.
+GAN compiled verdict: **works-on-some-pairs**. `exam_score` = `0.925`.
 
 | cell | GAN | supervised baseline | baseline recipe | why the baseline loses |
 |---|---|---|---|---|
-| sheet leftover | PASS (leak -0.000, kept 0.931) | FAIL (leak +0.228, kept 0.993) | `faithful_raw` / v6 | copies unused ê inside the raw poles |
+| sheet leftover | FAIL (leak +0.000, kept 0.643) | FAIL (leak +0.228, kept 0.993) | `faithful_raw` / v6 | copies unused ê inside the raw poles |
 | sheet leftover (midpoint) | — | FAIL (kept 0.367, off 0.406) | `pair_odd_midpoint` / v9 | deletes `c`; walks off the sheet |
-| sheet gender | PASS (kept 0.995) | PASS on `faithful_raw` / FAIL on v9 (scoreboard) | caption vs midpoint | GAN keeps `c` like a caption teacher |
-| exam divergent | PASS (overlap 1.000, swing 1.000) | PASS (overlap 1.000) | `faithful_raw` | same caption target; leftover-gate refuses to eat the axis |
-| exam close | PASS (overlap 1.000, swing 0.968) | PASS (overlap 1.000) | `pair_odd_midpoint` | midpoint teacher has no delivery to roll out |
-| exam unused_e | PASS (overlap 0.984) | PASS on leftover-gated MSE (scoreboard) | `faithful_sub_e` | GAN uses the same leftover-gated real cloud |
+| sheet gender | FAIL (kept 0.926) | PASS on `faithful_raw` / FAIL on v9 (scoreboard) | caption vs midpoint | GAN keeps `c` like a caption teacher |
+| exam divergent | PASS (overlap 0.990, swing 0.979) | PASS (overlap 1.000) | `faithful_raw` | same caption target; leftover-gate refuses to eat the axis |
+| exam close | PASS (overlap 0.990, swing 0.925) | PASS (overlap 0.974) | `pair_odd_midpoint` | midpoint teacher has no delivery to roll out |
+| exam unused_e | FAIL (overlap 0.875) | PASS on leftover-gated MSE (scoreboard) | `faithful_sub_e` | GAN uses the same leftover-gated real cloud |
 
 Scoreboard cells this has to beat: `faithful_raw` works the exam pairs and
 fails leftover leak (`≈ 0.228` > `0.2`); `pair_odd_midpoint`

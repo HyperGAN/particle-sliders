@@ -246,6 +246,9 @@ class SheetField:
     lyric: float = 1.00
     null_dims: int = 2
     row_scales: tuple[float, ...] = (1.0, 0.85, 1.15)
+    # Optional per-row leak amps (DoF sheet analogues of Field3D content↔leak /
+    # cascade rows). None → use scalar ``leak`` for every row.
+    row_leaks: tuple[float, ...] | None = None
     gain: float = 2.5
     sheet_p: float = 0.90
     bend: float = BEND_GENDER
@@ -256,6 +259,8 @@ class SheetField:
             raise ValueError(f"rows must be ≥ 1, got {self.rows!r}")
         if len(self.row_scales) < int(self.rows):
             raise ValueError("row_scales must cover every row")
+        if self.row_leaks is not None and len(self.row_leaks) < int(self.rows):
+            raise ValueError("row_leaks must cover every row")
         if float(self.slider) <= 0.0:
             raise ValueError("slider must be > 0 (it is the intended axis)")
 
@@ -295,9 +300,14 @@ class SheetField:
     def odd(self, row: int = 0) -> torch.Tensor:
         """``a`` for one row: concept + unused attribute + invisible detail."""
         scale = float(self.row_scales[int(row)])
+        leak_amp = (
+            float(self.row_leaks[int(row)])
+            if self.row_leaks is not None
+            else float(self.leak)
+        )
         return scale * (
             float(self.slider) * self.short_u()
-            + float(self.leak) * self.leak_e()
+            + leak_amp * self.leak_e()
             + float(self.null) * self.null_mix()
         )
 
@@ -368,6 +378,84 @@ def leaky_field(**kwargs) -> SheetField:
     base = {"common": common_share(LIVE_PROBE_COS["energy"])}
     base.update(kwargs)
     return SheetField(**base)
+
+
+def scale_stagger_sheet_field(**kwargs) -> SheetField:
+    """Sheet analogue of Field3D M16 ``scale_stagger_homo`` (ascending row_scales).
+
+    Same leftover-ish leaky poles; only scale span varies across lyric rows so a
+    shared residual must compromise — the sheet-layer DoF stressor for ascending
+    span strength. Not a content-axis mix (Field3D-native).
+    """
+    base = {
+        "rows": 5,
+        "row_scales": (0.7, 0.9, 1.05, 1.25, 1.45),
+        "common": common_share(LIVE_PROBE_COS["energy"]),
+    }
+    base.update(kwargs)
+    return SheetField(**base)
+
+
+def scale_descent_sheet_field(**kwargs) -> SheetField:
+    """Sheet analogue of Field3D M27 ``scale_descent_homo`` (descending row_scales).
+
+    Mirror of ``scale_stagger_sheet_field`` — traj/outro reverse on the #22 sheet.
+    """
+    base = {
+        "rows": 5,
+        "row_scales": (1.45, 1.25, 1.05, 0.90, 0.70),
+        "common": common_share(LIVE_PROBE_COS["energy"]),
+    }
+    base.update(kwargs)
+    return SheetField(**base)
+
+
+def content_leak_flip_sheet_field(**kwargs) -> SheetField:
+    """Weak sheet proxy of Field3D M24 ``content_leak_flip_rows``.
+
+    Sheet has û+ê only (no separate content axis), so this alternates per-row
+    ``row_leaks`` high/low while û stays primary — a leak-dominance flip, not a
+    true content↔leak swap. Prefer Field3D for the real bite.
+    """
+    base = {
+        "rows": 4,
+        "row_scales": (0.95, 1.0, 1.05, 1.1),
+        "slider": 1.0,
+        "leak": 0.45,
+        "row_leaks": (0.18, 0.70, 0.22, 0.65),
+        "common": common_share(LIVE_PROBE_COS["energy"]),
+    }
+    base.update(kwargs)
+    return SheetField(**base)
+
+
+def content_cascade_sheet_field(**kwargs) -> SheetField:
+    """Weak sheet proxy of Field3D M29 ``content_cascade_rows``.
+
+    Ascending ``row_leaks`` (verse→chorus unused-attr growth) under stable û —
+    sheet cannot grow a content axis, so this is a leak-cascade proxy only.
+    Prefer Field3D for the real DoF cascade bite.
+    """
+    base = {
+        "rows": 4,
+        "row_scales": (0.90, 1.00, 1.10, 1.20),
+        "slider": 1.0,
+        "leak": 0.35,
+        "row_leaks": (0.25, 0.55, 0.85, 1.15),
+        "common": common_share(LIVE_PROBE_COS["energy"]),
+    }
+    base.update(kwargs)
+    return SheetField(**base)
+
+
+# DoF-family sheet factories (Field2D/sheet analogues of Field3D M16/M24/M27/M29).
+# M2/M17 stay Field3D-native (hetero û↔content role mix has no sheet content axis).
+CELLS_SHEET_DOF = {
+    "scale_stagger_sheet": scale_stagger_sheet_field,
+    "scale_descent_sheet": scale_descent_sheet_field,
+    "content_leak_flip_sheet": content_leak_flip_sheet_field,
+    "content_cascade_sheet": content_cascade_sheet_field,
+}
 
 
 def hold_direction(field: SheetField, leak_dir: torch.Tensor | None) -> torch.Tensor | None:

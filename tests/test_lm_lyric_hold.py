@@ -71,16 +71,20 @@ def test_lyric_span_is_yaml_lyrics_not_vocal_details():
     pos_mask = torch.ones_like(pos)
     _assert_last_token_is_audio_start(neu, neu_mask, tok, where="neu")
     _assert_last_token_is_audio_start(pos, pos_mask, tok, where="pos")
-    found = _assert_lyric_span(
+    found_neu, found_pos = _assert_lyric_span(
         neu, neu_mask, pos, pos_mask, tok, "I can feel it", where="gender row"
     )
-    assert found[0].tolist() == [0] * 9 + [1, 1] + [0] * 3
+    assert found_neu[0].tolist() == [0] * 9 + [1, 1] + [0] * 3
+    # Pos span holds the same lyric tokens at its own offset (verified equal
+    # by the assert; the span-transformer D gathers each side separately).
+    assert found_pos[0, _LYRIC_POS[0] : _LYRIC_POS[1]].tolist() == [1, 1]
+    assert int((neu[0][found_neu[0].bool()] == pos[0][found_pos[0].bool()]).all()) == 1
     pos_found = _lyric_token_mask(
         pos, pos_mask, tok, "I can feel it", where="pos lyrics"
     )
     assert pos_found[0, _LYRIC_POS[0] : _LYRIC_POS[1]].tolist() == [1, 1]
     assert int(pos_found[0, _WOMAN_POS]) == 0
-    assert int(found[0, _LEAD_POS]) == 0
+    assert int(found_neu[0, _LEAD_POS]) == 0
     last, _hidden, prefix_mask = _split_prefix_last(
         torch.zeros(1, len(_NEU_IDS), 2), neu_mask
     )
@@ -99,7 +103,7 @@ def test_empty_or_missing_lyric_span_fails_closed():
         _lyric_token_mask(neu, mask, tok, "", where="empty")
     no_span = torch.tensor([[1, 2, 10, 11, 3, 6, 99]])
     no_mask = torch.ones_like(no_span)
-    with pytest.raises(RuntimeError, match="span cannot be found"):
+    with pytest.raises(RuntimeError, match="cannot be found"):
         _lyric_token_mask(no_span, no_mask, tok, "feel air", where="missing")
     pos = torch.tensor([_POS_IDS])
     pos_mask = torch.ones_like(pos)

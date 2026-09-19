@@ -1,0 +1,35 @@
+# Tempo axis uni-v1 — plus-only. One concept: fast, and the BPM number.
+#
+# Teacher is raw h+ (the + caption). Do not leftover-gate. Omit leak_*.
+# Train with --lm_target faithful_plus --pole_mode hidden. Unipolar: there
+# is no slow pole. negative := target for yaml shape / canary; it is not
+# taught. Do not teach −1.
+#
+# Same pop / indie / electronic room as v4. Genre, mix, energy, and kit
+# are pinned; only fast and the BPM number appear, in Global Metadata.
+# Gender attributes pin the vocalist (expand prefixes). Sung, not rapped.
+# No artist names.
+plus_label: Fast
+minus_label: "Off"
+recommended_range: [0.0, 2.0]
+slider_positive: "Fast tempo, high BPM."
+slider_negative: "Mid-tempo, ordinary BPM."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 110. Mid-tempo groove, neither rushed nor dragging, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, comfortable phrasing on the beat. Sung, not rapped.\nArrangement:\nVerse and chorus with drums on a comfortable backbeat, bass and guitar."
+    positive: "Global Metadata:\nGenre: pop. BPM 180. Fast tempo, frantic and racing, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, comfortable phrasing on the beat. Sung, not rapped.\nArrangement:\nVerse and chorus with drums on a comfortable backbeat, bass and guitar."
+    negative: "Global Metadata:\nGenre: pop. BPM 110. Mid-tempo groove, neither rushed nor dragging, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, comfortable phrasing on the beat. Sung, not rapped.\nArrangement:\nVerse and chorus with drums on a comfortable backbeat, bass and guitar."
+    neutral: "Global Metadata:\nGenre: pop. BPM 110. Mid-tempo groove, neither rushed nor dragging, ordinary listening. Plain studio mix.\nVocal Details:\nOne lead singer, ordinary timbre, comfortable phrasing on the beat. Sung, not rapped.\nArrangement:\nVerse and chorus with drums on a comfortable backbeat, bass and guitar."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nI can feel it in the air tonight\n[chorus]\nLouder now or fade away"
+  - target: "Global Metadata:\nGenre: indie rock. BPM 116. A walking pace, unhurried but moving, steady mood. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, steady phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with a steady backbeat, guitars and bass."
+    positive: "Global Metadata:\nGenre: indie rock. BPM 190. Fast tempo, breakneck and rushing, steady mood. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, steady phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with a steady backbeat, guitars and bass."
+    negative: "Global Metadata:\nGenre: indie rock. BPM 116. A walking pace, unhurried but moving, steady mood. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, steady phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with a steady backbeat, guitars and bass."
+    neutral: "Global Metadata:\nGenre: indie rock. BPM 116. A walking pace, unhurried but moving, steady mood. Ordinary studio mix.\nVocal Details:\nOne lead vocalist, ordinary rock timbre, steady phrasing. Sung, not rapped.\nArrangement:\nVerse and chorus with a steady backbeat, guitars and bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nCity lights are burning through the rain\n[chorus]\nI keep moving on, I keep moving on"
+  - target: "Global Metadata:\nGenre: electronic pop. BPM 108. A moderate clip, even pulse, comfortable groove. Clean programmed mix.\nVocal Details:\nOne lead vocal riding the pulse evenly, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and steady bass."
+    positive: "Global Metadata:\nGenre: electronic pop. BPM 185. Fast tempo, dizzying and hyperactive, comfortable groove. Clean programmed mix.\nVocal Details:\nOne lead vocal riding the pulse evenly, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and steady bass."
+    negative: "Global Metadata:\nGenre: electronic pop. BPM 108. A moderate clip, even pulse, comfortable groove. Clean programmed mix.\nVocal Details:\nOne lead vocal riding the pulse evenly, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and steady bass."
+    neutral: "Global Metadata:\nGenre: electronic pop. BPM 108. A moderate clip, even pulse, comfortable groove. Clean programmed mix.\nVocal Details:\nOne lead vocal riding the pulse evenly, ordinary timbre. Sung, not rapped.\nArrangement:\nVerse and chorus over a programmed beat, warm synths and steady bass."
+    attributes: ["A man is singing.", "A woman is singing."]
+    lyrics: "[verse]\nEvery step I take says your name\n[chorus]\nHold on, hold on to the light"

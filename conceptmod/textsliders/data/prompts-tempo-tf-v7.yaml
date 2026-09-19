@@ -1,0 +1,20 @@
+# Tempo axis v7 (LM half) — plus = fast, minus = slow.
+#
+# The poles change ONLY BPM and the rhythmic-drive words that follow from it.
+# Level, density, instrumentation and vocal wording are identical across cells
+# so energy cannot ride the axis (the v4 lesson, inverted). Structured
+# Caption. No artist names.
+plus_label: Fast
+minus_label: Slow
+recommended_range: [-2.0, 2.0]
+rows:
+  - target: "Global Metadata:\nGenre: house. BPM 108. Steady groove, neutral pace. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady four-on-the-floor kick, hats, bass and warm synth chords at an even level."
+    positive: "Global Metadata:\nGenre: house. BPM 140. Rapid driving dancefloor pace, urgent momentum. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nFast four-on-the-floor kick, busy hats, rolling bassline and bright synth stabs at an even level."
+    negative: "Global Metadata:\nGenre: house. BPM 84. Unhurried half-time pace, laid-back pocket. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSlow sparse kick pattern, wide-spaced hats, deep steady bass and mellow synth chords at an even level."
+    neutral: "Global Metadata:\nGenre: house. BPM 108. Steady groove, neutral pace. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady four-on-the-floor kick, hats, bass and warm synth chords at an even level."
+    lyrics: "[verse]\nThe clock on the wall keeps my secret\n[chorus]\nMove with it, move with it now"
+  - target: "Global Metadata:\nGenre: pop-rock. BPM 112. Steady radio pulse, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, rhythm guitar, bass and keys at a comfortable level."
+    positive: "Global Metadata:\nGenre: pop-rock. BPM 148. Sprinting uptempo drive, breathless forward lean. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nFast driving drums, churning rhythm guitar, urgent bass and bright keys at a comfortable level."
+    negative: "Global Metadata:\nGenre: pop-rock. BPM 76. Slow swaying pace, relaxed horizon-wide feel. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSlow steady drums, laid-back strummed guitar, patient bass and gentle keys at a comfortable level."
+    neutral: "Global Metadata:\nGenre: pop-rock. BPM 112. Steady radio pulse, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, rhythm guitar, bass and keys at a comfortable level."
+    lyrics: "[verse]\nFeet know the road before I do\n[chorus]\nFaster or slower, just go"

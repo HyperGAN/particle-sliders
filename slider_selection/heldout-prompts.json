@@ -1,0 +1,23 @@
+{
+  "purpose": "Frozen development benchmark, outside the slider training rows. Not a terminal validation set.",
+  "rows": [
+    {
+      "id": "brush-room",
+      "metadata": "BPM 94. A relaxed steady groove with a dry close recording and moderate energy.",
+      "arrangement": "Muted electric guitar chords, round bass notes, brushed snare and a soft shaker.",
+      "lyrics": "[verse]\nThe porch light draws a golden square\n[chorus]\nWe leave our muddy shoes right there"
+    },
+    {
+      "id": "pluck-studio",
+      "metadata": "BPM 126. Light syncopation and a steady pulse in a clean studio recording.",
+      "arrangement": "Short synth plucks, a rounded bass line, tight kick, dry handclaps and occasional bell notes.",
+      "lyrics": "[verse]\nA folded map slips from my coat\n[chorus]\nThe river carries one small boat"
+    },
+    {
+      "id": "fingerpicked-room",
+      "metadata": "BPM 76. Patient phrasing with a warm small-room sound and a gentle pulse.",
+      "arrangement": "Fingerpicked acoustic guitar, sparse upright piano and soft low drum taps.",
+      "lyrics": "[verse]\nTwo empty chairs beside the gate\n[chorus]\nThe morning train is running late"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+# Gender axis v7 (LM half) — plus = female lead vocal, minus = male lead vocal.
+#
+# The poles change ONLY the vocal's register/timbre language. Arrangement,
+# level, density and BPM wording are byte-identical across the three cells of
+# every row so energy/tempo/density cannot ride the axis. Structured Caption.
+# No artist names.
+plus_label: Female
+minus_label: Male
+recommended_range: [-2.0, 2.0]
+# Declared slider axis for --lm_target v9 (not plus_label, not a row's pos-neg).
+slider_positive: "A woman is singing, her voice is feminine."
+slider_negative: "A man is singing, his voice is masculine."
+rows:
+  - target: "Global Metadata:\nGenre: pop. BPM 110. Steady mid-level radio song, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, electric guitar, bass and keys at a comfortable level."
+    positive: "Global Metadata:\nGenre: pop. BPM 110. Steady mid-level radio song, even mood. Balanced studio mix.\nVocal Details:\nOne female lead vocal, bright upper-register timbre, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, electric guitar, bass and keys at a comfortable level."
+    negative: "Global Metadata:\nGenre: pop. BPM 110. Steady mid-level radio song, even mood. Balanced studio mix.\nVocal Details:\nOne male lead vocal, deep chest-register timbre, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, electric guitar, bass and keys at a comfortable level."
+    neutral: "Global Metadata:\nGenre: pop. BPM 110. Steady mid-level radio song, even mood. Balanced studio mix.\nVocal Details:\nOne clear lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSteady drums, electric guitar, bass and keys at a comfortable level."
+    lyrics: "[verse]\nTwo shadows on the same wall\n[chorus]\nCall it whatever you want"
+  - target: "Global Metadata:\nGenre: rnb. BPM 96. Smooth late-night groove, relaxed feel. Warm balanced mix.\nVocal Details:\nOne smooth lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSlow steady drums, round bass, soft keys and a clean guitar line."
+    positive: "Global Metadata:\nGenre: rnb. BPM 96. Smooth late-night groove, relaxed feel. Warm balanced mix.\nVocal Details:\nOne smooth female lead vocal, light airy head-voice colour, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSlow steady drums, round bass, soft keys and a clean guitar line."
+    negative: "Global Metadata:\nGenre: rnb. BPM 96. Smooth late-night groove, relaxed feel. Warm balanced mix.\nVocal Details:\nOne smooth male lead vocal, dark velvety low-registered colour, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSlow steady drums, round bass, soft keys and a clean guitar line."
+    neutral: "Global Metadata:\nGenre: rnb. BPM 96. Smooth late-night groove, relaxed feel. Warm balanced mix.\nVocal Details:\nOne smooth lead vocal, natural delivery, no backing vocals. Sung, not rapped.\nArrangement:\nSlow steady drums, round bass, soft keys and a clean guitar line."
+    lyrics: "[verse]\nSame room, different light\n[chorus]\nStay until the quiet comes"

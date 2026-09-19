@@ -1,0 +1,25 @@
+plus_label: Rap
+minus_label: Slow
+recommended_range:
+- -2.0
+- 2.0
+rows:
+- target: 'Genre: pop. BPM: 100. One vocalist over drums, bass, and keys. Mid-tempo,
+    the vocal is partly sung, partly spoken.'
+  positive: 'Genre: hip-hop rap. BPM: 100. One vocalist rapping fast rhythmic spoken
+    bars with a confident syncopated flow over punchy drums, tight hi-hats, and deep
+    808 bass. Spoken, not sung.'
+  negative: 'Genre: slow ballad. BPM: 100. One vocalist singing long sustained melodic
+    notes with slow emotional delivery over soft piano, gentle strings, and sparse
+    drums. Sung, not rapped.'
+  neutral: 'Genre: pop. BPM: 100. One vocalist over drums, bass, and keys. Mid-tempo,
+    the vocal is partly sung, partly spoken.'
+  lyrics: '[verse]
+
+    City lights are burning through the rain
+
+    Every step I take says your name
+
+    [chorus]
+
+    I keep moving on, moving on'
