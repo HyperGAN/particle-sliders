@@ -1,8 +1,17 @@
 # YuE2 concept sliders
 
-An opt-in composition backend for `m-a-p/YuE2-3B`, using the
+A composition backend for `m-a-p/YuE2-3B`, using the
 [official YuE2 runtime](https://github.com/multimodal-art-projection/YuE).
 Training and inference live entirely in `sliders-conceptmod`.
+
+**Start with the routed-particle method**, the project's preferred formulation.
+It adapts [ParticleGAN](https://github.com/255BITS/ParticleGAN) building blocks
+to YuE2's AR attention. See the [math and quick start](../README.md#yue2-the-lead-formulation),
+[Hugging Face project](https://huggingface.co/ntc-ai/yue2-concept-sliders),
+[live demo](https://huggingface.co/spaces/ntc-ai/yue2-concept-sliders) and
+[listening comparisons](https://huggingface.co/ntc-ai/yue2-concept-sliders#press-play--original-particles).
+The published 1,200-update particle release and current training defaults have
+different normalization and history settings; the root README distinguishes them.
 
 ## Installation
 
@@ -25,7 +34,19 @@ Training only loads the composition model and tokenizer; the VAE is needed for
 rendering. Upstream code is Apache 2.0; model weights have their separate
 [CC BY-NC 4.0 license](https://huggingface.co/m-a-p/YuE2-3B).
 
-## Train: verified unipolar GAN candidate
+## Train: routed particles
+
+Select `--recipe particle_bridge` in `train_lora_yue2_arm_b.py`. This trains
+a routed 128×4 particle cloud with particle VIC, a paired-error/noise critic,
+and EMA exports. It pins the reference learning rates and rejects the
+`--propose_only_lr_scale` and `--propose_only_c9_g4x` overrides. Use the
+[current training example](../README.md#yue2) and read the
+[architecture and transfer audit](yue2-particle-bridge.md) for the original
+reference recipe. The actual update passed both UNI toy cells at 3400/8000
+on seeds 0/1/7 with live and EMA weights; those checks do not establish native
+audio quality or validate every later normalization/critic variant.
+
+## Earlier positive/neutral GAN candidate
 
 The opt-in `--recipe gan_plus_neu` uses a scale-conditioned RpGAN at +1 and
 0, with no MSE or auxiliary generator losses. Its shared training update
@@ -39,12 +60,6 @@ ratio and schedule. Both fresh seed-7 runs completed 600 updates without the
 earlier collapse. This is an opt-in native transfer setting; defaults and
 the GAN objective are unchanged. See the [stability audit](yue2-gan-stability.md)
 for full curves, held-out results, rejected alternatives, and CPU tradeoffs.
-
-The separate opt-in `--recipe particle_bridge` adds the user-requested routed
-128×4 particle cloud and particle VIC, paired-error/noise critic, and EMA
-exports. It pins the model-glue reference rates and rejects the LR overrides
-above. The actual update passes both UNI toy cells at 3400/8000 on seeds 0/1/7,
-with live and EMA weights. See the [architecture and transfer audit](yue2-particle-bridge.md).
 
 ## Earlier plus-only unipolar RpGAN
 
