@@ -1,0 +1,62 @@
+prompts_file: "conceptmod/textsliders/data/prompts-tiny-llm.yaml"
+pretrained_model:
+  name_or_path: "Qwen/Qwen3-0.6B-Base"
+  model_type: "qwen3"
+  params_total: 596049920
+  release: "2025-04 (Qwen3)"
+  license: "Apache-2.0"
+  context: 40960
+  stack: "causal_lm_hidden"
+# Game numbers are pinned in particle_bridge_gan.REFERENCE (the YuE2 working
+# recipe anneal-routed-particle-error) and echoed here for readability only.
+# The trainer reads them from the shared module, never from this card.
+game:
+  source_recipe: "anneal-routed-particle-error-yue2-v1"
+  module: "conceptmod.textsliders.particle_bridge_gan"
+  g_lr: 0.0006
+  d_lr: 0.0009
+  particle_lr: 0.006
+  optimizer_betas: [0.0, 0.999]
+  schedule: "constant"
+  critic_hidden: 48
+  critic_layers: 3
+  particles: 128
+  particle_dim: 4
+  vic_coeff: 1.0
+  cap_coeff: 1.0
+  cap_kappa: 1.0
+  cap_every: 4
+  ema: 0.995
+  noise_floor: 0.03
+  noise_decay_steps: 8000
+network:
+  type: "routed_particle"
+  rank: 8
+  alpha: 8.0
+  training_method: "attn"
+  target: "Qwen3Attention"
+  linears:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+  bridge_width: 48
+  router_width: 16
+  train_mlp: false
+  train_norm: false
+  train_embed: false
+  train_lm_head: false
+train:
+  recipe: "particle_bridge"
+  precision: "float32"
+  iterations: 20
+  seed: 7
+  device: "cpu"
+save:
+  name: "tiny-llm-particle"
+  path: "./models"
+  per_steps: 100
+  precision: "float32"
+logging:
+  use_wandb: false
+  verbose: false

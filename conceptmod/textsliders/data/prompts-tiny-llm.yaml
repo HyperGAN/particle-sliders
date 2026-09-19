@@ -1,0 +1,18 @@
+# Tiny-LLM UNI slider rows (opt-in test target, not a default).
+# Positive vs neutral captions; the concept word lives in positive only.
+# Unconditional is a canary, never a teacher (UNI has no minus pole).
+- target: garden caption
+  positive: a blooming rose garden at dawn
+  neutral: a garden at dawn
+  unconditional: a parking lot at dawn
+  action: enhance
+- target: sea caption
+  positive: a calm turquoise sea under soft light
+  neutral: a sea under soft light
+  unconditional: a concrete stairwell under soft light
+  action: enhance
+- target: street caption
+  positive: a cozy rainy street with warm lamps
+  neutral: a street with lamps
+  unconditional: an empty warehouse with lamps
+  action: enhance
