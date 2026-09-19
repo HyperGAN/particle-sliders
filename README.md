@@ -19,8 +19,8 @@ repository; the methods added here have their own objectives and validation.
 · [Interactive demo](https://huggingface.co/spaces/ntc-ai/yue2-concept-sliders)
 · [Setup, training and rendering](docs/yue2-slider.md)
 
-[Models](#models-and-status) · [Math](#how-it-works)
-· [Music 3](#minimax-music-3) · [YuE2](#yue2)
+[Models](#models-and-status) · [Get started](#getting-started)
+· [Math](#how-it-works) · [Music 3](#minimax-music-3) · [YuE2](#yue2)
 · [Evaluation](#evaluation) · [Repository map](#repository-map)
 
 ## Models and status
@@ -28,19 +28,21 @@ repository; the methods added here have their own objectives and validation.
 These are separate backends. A checkpoint belongs to its base model, adapter
 host and training recipe; adapter formats are not interchangeable.
 
-| Backend | What is trained | Status and entry point |
-|---|---|---|
-| **MiniMax Music 3 — composition** | Qwen3 language-model attention; voice, genre, phrasing and arrangement | Published 16-control release; [Music 3 notes](MUSIC3.md), [release method](docs/hub-formulation-fresh-selected.md) |
-| **MiniMax Music 3 — acoustics** | Flow-transformer attention, or full attention/FF/projection/conv targets | Earlier production and mix controls; [`train_lora_music3.py`](conceptmod/textsliders/train_lora_music3.py) |
-| **YuE2** | Native autoregressive q/k/v/o attention; NAR synthesis and VAE stay frozen | Experimental composition controls; [YuE2 guide](docs/yue2-slider.md) |
-| **Music 3 / YuE2 particles** | Routed nonlinear branches with a shared learned particle cloud | Experimental paired-error GAN; [math below](#routed-particle-adapters), [reference audit](docs/yue2-particle-bridge.md) |
-| **Krea 2** | Text encoder, DiT, or both; embedding and velocity objectives | Opt-in image backend; [Krea guide](docs/krea-slider.md) |
-| **Anima** | Conditioner or DiT; embedding and trajectory objectives | Opt-in image backend; [Anima guide](docs/anima-slider.md) |
-| **Z-Image Turbo** | DiT attention with positive/neutral teachers | Opt-in image backend; [Z-Image guide](docs/zimage-slider.md) |
-| **Sana 0.6B** | Cross-attention or LoRA | Small image experiment backend; [Sana guide](docs/sana-slider.md) |
-| **LTX-2.5** | Text-encoder adapters and video connectors | Opt-in video embedding match; [LTX guide](docs/ltx25-slider.md) |
-| **MiniMax-H3** | Omni-Transformer with native packed video/audio forward | Opt-in audiovisual backend; [H3 guide](docs/minimax-h3-slider.md) |
-| **SD 1.x/2.x, SDXL, SD3, Flux, Stable Cascade** | Diffusion/flow adapters | Inherited and extended image trainers in [`conceptmod/textsliders/`](conceptmod/textsliders/) |
+| Backend / guide | Adapter host and status |
+|---|---|
+| **[Music 3 LM](MUSIC3.md)** | Qwen3 attention for voice and composition. Published 16-control release. |
+| **[Music 3 flow](conceptmod/textsliders/train_lora_music3.py)** | Acoustic flow transformer. Earlier mix and production controls. |
+| **[YuE2](docs/yue2-slider.md)** | AR attention; NAR and VAE frozen. Experimental composition controls. |
+| **[Routed particles](#routed-particle-adapters)** | Nonlinear branches for Music 3 and YuE2. Experimental GAN. |
+| [Krea 2](docs/krea-slider.md) | Text encoder and/or DiT. Opt-in images. |
+| [Anima](docs/anima-slider.md) | Conditioner or DiT. Opt-in images. |
+| [Z-Image Turbo](docs/zimage-slider.md) | DiT attention. Opt-in images. |
+| [Sana 0.6B](docs/sana-slider.md) | Cross-attention or LoRA. Small image experiments. |
+| [LTX-2.5](docs/ltx25-slider.md) | Text encoder and video connectors. Opt-in video. |
+| [MiniMax-H3](docs/minimax-h3-slider.md) | Omni-Transformer. Opt-in video and audio. |
+| [Tiny LLM](docs/tiny-llm-slider.md) | Qwen3-0.6B attention. Particle-bridge test target. |
+| [Bonsai GGUF](docs/bonsai-gguf-slider.md) | Frozen readouts. Opt-in particle experiment. |
+| [Legacy images](conceptmod/textsliders/) | SD 1.x/2.x, SDXL, SD3, Flux and Stable Cascade trainers. |
 
 The **September 16, 2026 Music 3 release** contains 16 unipolar rank-8 LM
 adapters: female, male, lo-fi, pop, hip-hop, R&B, indie rock, pop punk,
@@ -62,9 +64,9 @@ musical control. Reward-model experiments also live here and have their own
 For a linear layer with frozen weight $W_0$, ordinary LoRA learns factors
 $A\in\mathbb R^{r\times d_{in}}$ and $B\in\mathbb R^{d_{out}\times r}$:
 
-$$
+```math
 W(s)=W_0+s\frac{\alpha}{r}BA.
-$$
+```
 
 $r$ is the rank, $\alpha$ is the adapter normalization and $s$ is the slider
 strength. The up projection starts at zero. At $s=0$ the adapter contributes
@@ -86,20 +88,22 @@ treatment from applying the slider.
 Let $f_0(x_t,t,c)$ be the frozen model's prediction under caption $c$, with
 neutral, positive and negative captions $c_0,c_+,c_-$. A bipolar axis target is
 
-$$
-a_t=g\big[f_0(x_t,t,c_+)-f_0(x_t,t,c_-)\big],\qquad
-\widehat f_s=f_0(x_t,t,c_0)+s\,a_t.
-$$
+```math
+\begin{aligned}
+a_t &= g\big[f_0(x_t,t,c_+)-f_0(x_t,t,c_-)\big],\\
+\widehat f_s &= f_0(x_t,t,c_0)+s\,a_t.
+\end{aligned}
+```
 
 The student sees $c_0$ and learns to match $\widehat f_s$. The original image
 formulation acts on noise predictions. Music 3's acoustic trainer acts on
 flow velocities and, by default, normalizes its fitting loss:
 
-$$
+```math
 \mathcal L_{\mathrm{NMSE}}=
-\frac{\operatorname{MSE}\big(f_\theta(x_t,t,c_0;s),\widehat f_s\big)}
-{\max\big(\operatorname{mean}[(s a_t)^2],10^{-8}\big)}.
-$$
+\frac{\mathrm{MSE}\big(f_\theta(x_t,t,c_0;s),\widehat f_s\big)}
+{\max\big(\mathrm{mean}[(s a_t)^2],10^{-8}\big)}.
+```
 
 Its training inputs are anchored to generated clean latents,
 $x_t=(1-t)\epsilon+t x_0$, using Music 3's noise-to-clean time convention.
@@ -112,11 +116,13 @@ instead of forcing symmetric movement along $c_+-c_-$. Executable definitions:
 Music generation also depends on the autoregressive model that plans the
 composition. Let $h_0,h_+,h_-$ be its frozen prompt states. Decompose the pair as
 
-$$
-a=\tfrac12(h_+-h_-),\qquad
-b=\tfrac12(h_++h_-)-h_0,\qquad
-h_\pm=h_0+b\pm a.
-$$
+```math
+\begin{aligned}
+a &= \tfrac12(h_+-h_-),\\
+b &= \tfrac12(h_++h_-)-h_0,\\
+h_\pm &= h_0+b\pm a.
+\end{aligned}
+```
 
 The older `v9` target $h_0\pm a$ discards $b$, the information shared by both
 pole captions beyond the neutral caption. A perfectly fitted symmetric axis
@@ -137,41 +143,55 @@ audio-start state. Frozen neutral and positive sequences provide $H_0,H_+$;
 the adapted model on the neutral caption provides $H_\theta$. With fixed
 teacher-RMS calibration $\sigma$:
 
-$$
+```math
 x_+=(H_+-H_0)/\sigma,\qquad x_\theta=(H_\theta-H_0)/\sigma.
-$$
+```
 
 A transformer critic $D$ learns a relativistic paired comparison. Write
-$\operatorname{sp}(z)=\log(1+e^z)$:
+$\mathrm{sp}(z)=\log(1+e^z)$:
 
-$$
-\mathcal L_D=\mathbb E[\operatorname{sp}(D(x_\theta)-D(x_+))]
+```math
+\mathcal L_D=\mathbb E[\mathrm{sp}(D(x_\theta)-D(x_+))]
 +\mathcal R_{\mathrm{cap}},
-$$
+```
 
-$$
-\mathcal L_G=\mathbb E[\operatorname{sp}(D(x_+)-D(x_\theta))]
-+\operatorname{MSE}\big(\mathbb E[\phi(x_\theta)],\mathbb E[\phi(x_+)]\big)
-+\mathcal L_{\mathrm{end}}.
-$$
+```math
+\begin{aligned}
+\mathcal L_G &= \mathbb E[\mathrm{sp}(D(x_+)-D(x_\theta))]\\
+&\quad +\mathcal L_{\mathrm{FM}}+\mathcal L_{\mathrm{end}}.
+\end{aligned}
+```
 
 $\phi$ denotes critic features. Feature matching compares **batch means**.
-The one-sided input-gradient cap, measured in calibrated critic coordinates, is
 
-$$
+```math
+\begin{aligned}
+\mu_\theta &= \mathbb E[\phi(x_\theta)],\\
+\mu_+ &= \mathbb E[\phi(x_+)],\\
+\mathcal L_{\mathrm{FM}} &= \mathrm{MSE}(\mu_\theta,\mu_+).
+\end{aligned}
+```
+
+The one-sided input-gradient cap uses $g_x=\lVert\nabla_xD(x)\rVert_2$ in
+calibrated critic coordinates:
+
+```math
 \mathcal R_{\mathrm{cap}}=\frac{\lambda}{2}
 \sum_{x\in\{x_+,x_\theta\}}
-\mathbb E\!\left[\max(\|\nabla_xD(x)\|_2-\kappa,0)^2\right],
-\qquad \lambda=\kappa=1.
-$$
+\mathbb E\!\left[\max(g_x-\kappa,0)^2\right].
+```
+
+The release uses $\lambda=\kappa=1$.
 
 Ending supervision matches the base model's end-versus-continuation margin
 on the same base-generated token history:
 
-$$
-m=\ell_{\mathrm{audio\_end}}-\log\sum_{j\in\mathcal S}\exp(\ell_j),
-\qquad \mathcal L_{\mathrm{end}}=\operatorname{MSE}(m_\theta,m_0),
-$$
+```math
+\begin{aligned}
+m &= \ell_{\mathrm{audio\_end}}-\log\sum_{j\in\mathcal S}\exp(\ell_j),\\
+\mathcal L_{\mathrm{end}} &= \mathrm{MSE}(m_\theta,m_0),
+\end{aligned}
+```
 
 where $\mathcal S$ is the semantic-token band. All three generator terms have
 coefficient 1. Explicit lyric hold and direct hidden-state MSE are disabled
@@ -193,11 +213,13 @@ The particle experiment replaces a linear low-rank branch with a routed
 nonlinear branch. Each projection has its own router and MLP; a slider shares
 one cloud $P\in\mathbb R^{128\times4}$ across its projections:
 
-$$
-u=Ax,\quad q=\operatorname{router}(u),\quad
-z=\operatorname{softmax}(qP^\top/\sqrt4)P,\quad
-\Delta(x)=B\,\operatorname{MLP}([u,z]).
-$$
+```math
+\begin{aligned}
+u &= Ax,\quad q=\mathrm{router}(u),\\
+z &= \mathrm{softmax}(qP^\top/\sqrt4)P,\\
+\Delta(x) &= B\,\mathrm{MLP}([u,z]).
+\end{aligned}
+```
 
 The layer returns its frozen output plus $s(\alpha/r)\Delta(x)$. Routing runs
 at both training and inference. These checkpoints contain routers, MLPs and
@@ -206,12 +228,14 @@ particles, so they **cannot be merged as an ordinary $BA$ LoRA**.
 For normalized paired error $e=T(h_\theta)-T(h_+)$, the critic compares
 $x_r=n$ with $x_f=n+e$, using the same Gaussian noise $n$ within a pair:
 
-$$
-\mathcal L_D=\mathbb E[\operatorname{sp}(D(x_f)-D(x_r))]
-+\mathcal R_{\mathrm{cap}},\qquad
-\mathcal L_G=\mathbb E[\operatorname{sp}(D(x_r)-D(x_f))]
-+\mathcal L_{\mathrm{VIC}}(P).
-$$
+```math
+\begin{aligned}
+\mathcal L_D &= \mathbb E[\mathrm{sp}(D(x_f)-D(x_r))]\\
+&\quad +\mathcal R_{\mathrm{cap}},\\
+\mathcal L_G &= \mathbb E[\mathrm{sp}(D(x_r)-D(x_f))]\\
+&\quad +\mathcal L_{\mathrm{VIC}}(P).
+\end{aligned}
+```
 
 The particle regularizer encourages per-coordinate sample standard deviation
 of at least 1 and penalizes off-diagonal sample covariance. It operates on a
@@ -386,19 +410,21 @@ corresponding models and recovery artifacts.
 
 ## Repository map
 
-| Path | Purpose |
+| Source | Purpose |
 |---|---|
-| [`conceptmod/textsliders/`](conceptmod/textsliders/) | Model backends, trainers, adapter loaders, target/loss definitions and inference |
-| [`conceptmod/textsliders/gan_v2/`](conceptmod/textsliders/gan_v2/) | Span critics, game updates, history preparation and recovery states |
-| [`conceptmod/textsliders/reward_game/`](conceptmod/textsliders/reward_game/) | Reward-guided adapter research and acceptance checks |
-| [`analysis/slider2d/`](analysis/slider2d/) | Small geometry/distribution fixtures and objective studies |
-| [`analysis/`](analysis/) | Campaign source, audits and historical notes; some require local artifacts |
-| [`slider_pipeline/`](slider_pipeline/) | Matched acoustic recipe comparisons and render gates |
-| [`slider_selection/`](slider_selection/) | Listening interface, features and selection experiments |
-| [`scripts/`](scripts/) | Evaluation, dashboards, packaging and experiment orchestration |
-| [`docs/`](docs/) | Backend guides, mathematical studies and release-card sources |
-| [`tests/`](tests/) | CPU contracts, loss checks, recovery and backend integration tests |
-| `models/`, `cache/`, `eval/listen/` | Local outputs; published weights and recordings are distributed on the Hub |
+| [Backends and trainers](conceptmod/textsliders/) | Model loading, adapters, objectives and inference |
+| [GAN engine](conceptmod/textsliders/gan_v2/) | Span critics, game updates and recovery states |
+| [Reward research](conceptmod/textsliders/reward_game/) | Reward-guided adapters and acceptance checks |
+| [Geometry fixtures](analysis/slider2d/) | Small distribution and objective studies |
+| [Campaigns](analysis/) | Source, audits and notes; some need local artifacts |
+| [Comparison pipeline](slider_pipeline/) | Matched acoustic recipes and render gates |
+| [Listening tools](slider_selection/) | Listening, features and selection experiments |
+| [Scripts](scripts/) | Evaluation, dashboards and packaging |
+| [Documentation](docs/) | Backend guides, math and release-card sources |
+| [Tests](tests/) | CPU contracts and backend integration |
+
+Local run outputs go in `models/`, `cache/` and `eval/listen/`. Published weights
+and recordings are distributed on the Hub.
 
 ## Lineage and license
 

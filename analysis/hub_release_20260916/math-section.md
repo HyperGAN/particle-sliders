@@ -29,19 +29,19 @@ The fixed scale \\(\sigma\\) is calibrated from the teacher changes using root m
 
 $$
 \mathcal L_D =
-\mathbb E\!\left[\operatorname{softplus}\big(D(x_\theta)-D(x_+)\big)\right]
+\mathbb E\!\left[\mathrm{softplus}\big(D(x_\theta)-D(x_+)\big)\right]
 + \mathcal R_{\mathrm{cap}}.
 $$
 
-Here \\(\mathbb E\\) denotes a batch average, and \\(\operatorname{softplus}(u)=\log(1+e^u)\\) penalizes the wrong ordering smoothly. The critic is used during training only.
+Here \\(\mathbb E\\) denotes a batch average, and \\(\mathrm{softplus}(u)=\log(1+e^u)\\) penalizes the wrong ordering smoothly. The critic is used during training only.
 
 **3. Train the adapter for the target change, its features and stopping behavior.** The adapter minimizes three terms, each with coefficient 1:
 
 $$
 \begin{aligned}
 \mathcal L_G ={}&
-\mathbb E\!\left[\operatorname{softplus}\big(D(x_+)-D(x_\theta)\big)\right] \\
-&+ \operatorname{MSE}\!\left(\mathbb E[\phi(x_\theta)],\mathbb E[\phi(x_+)]\right)
+\mathbb E\!\left[\mathrm{softplus}\big(D(x_+)-D(x_\theta)\big)\right] \\
+&+ \mathrm{MSE}\!\left(\mathbb E[\phi(x_\theta)],\mathbb E[\phi(x_+)]\right)
 + \mathcal L_{\mathrm{end}}.
 \end{aligned}
 $$
@@ -59,7 +59,7 @@ Warm-up uses four rows per batch. Fresh-continuation training uses one row per u
 $$
 \begin{aligned}
 m &= \ell_{\mathrm{audio\_end}} - \log\sum_{j\in\mathcal S}e^{\ell_j}, \\
-\mathcal L_{\mathrm{end}} &= \operatorname{MSE}(m_\theta,m_0).
+\mathcal L_{\mathrm{end}} &= \mathrm{MSE}(m_\theta,m_0).
 \end{aligned}
 $$
 
@@ -110,7 +110,7 @@ Among qualifying checkpoints from the new run, choose:
 
 $$
 c_{\mathrm{release}} =
-\operatorname*{arg\,max}_{c\in\mathcal Q_{\mathrm{new}}} t_c.
+\mathrm{arg\,max}_{c\in\mathcal Q_{\mathrm{new}}} t_c.
 $$
 
 If no new-run checkpoint qualifies, the legacy release can be considered under the same quality bounds; an empty eligible set requires listening to resolve the tradeoff. All sixteen current selections are from the new runs. Description similarity and cached lyric checks have zero influence on this selection. The 0.2-point tolerance is a preference rule, not statistical equivalence or a proven audible boundary. [Selection policy and sensitivity](evidence/uni16-fresh-selected-v2/README.md).

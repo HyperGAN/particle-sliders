@@ -11,14 +11,14 @@ $$
 A two-layer transformer critic D learns the target change with a relativistic pairing objective and an input-gradient cap:
 
 $$
-\mathcal L_D = \mathbb E[\operatorname{softplus}(D(x_\theta)-D(x_+))] + \mathcal R_{\mathrm{cap}}.
+\mathcal L_D = \mathbb E[\mathrm{softplus}(D(x_\theta)-D(x_+))] + \mathcal R_{\mathrm{cap}}.
 $$
 
 The adapter minimizes adversarial comparison, feature matching and ending supervision, each with coefficient 1:
 
 $$
-\mathcal L_G = \mathbb E[\operatorname{softplus}(D(x_+)-D(x_\theta))]
-+ \operatorname{MSE}(\mathbb E[\phi(x_\theta)],\mathbb E[\phi(x_+)]) + \mathcal L_{\mathrm{end}}.
+\mathcal L_G = \mathbb E[\mathrm{softplus}(D(x_+)-D(x_\theta))]
++ \mathrm{MSE}(\mathbb E[\phi(x_\theta)],\mathbb E[\phi(x_+)]) + \mathcal L_{\mathrm{end}}.
 $$
 
 The feature term compares batch means of critic features. Warm-up uses all four rows per batch; continuation uses a single row per update, so this comparison is then between that update's student and teacher features. Prompt-state targets stay fixed per training row.
@@ -27,7 +27,7 @@ Ending supervision compares the audio-end versus semantic-continuation margin on
 
 $$
 m = \ell_{\mathrm{audio\_end}} - \log\sum_{j\in\mathcal S}e^{\ell_j},
-\qquad \mathcal L_{\mathrm{end}}=\operatorname{MSE}(m_\theta,m_0).
+\qquad \mathcal L_{\mathrm{end}}=\mathrm{MSE}(m_\theta,m_0).
 $$
 
 During the initial 600-update warm-up, each row has a fixed base history. From update 601 onward, every update samples a fresh base-model continuation with the adapter disabled. All four training rows participate in balanced shuffled passes. Seeds do not cycle and duplicate continuation tensors are rejected without substituting another seed. Fresh continuations diversify ending supervision; they do not replace the fixed prompt-state style teachers.

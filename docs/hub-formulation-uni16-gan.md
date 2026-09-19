@@ -28,18 +28,18 @@ The fixed scale \\(\sigma\\) is calibrated from the teacher changes using root m
 **2. Train a critic to recognize the target change.** A small two-layer transformer, \\(D\\), scores the changes. The critic learns to score the target above the adapter's attempt; the adapter learns to reverse that ordering. This is the adversarial part of the method, called a *relativistic pairing GAN*.
 
 $$
-\mathcal L_D = \mathbb E\!\left[\operatorname{softplus}\big(D(x_\theta)-D(x_+)\big)\right]
+\mathcal L_D = \mathbb E\!\left[\mathrm{softplus}\big(D(x_\theta)-D(x_+)\big)\right]
 + \mathcal R_{\rm cap}.
 $$
 
-Here \\(\mathbb E\\) means the average over the training batch, and \\(\operatorname{softplus}(u)=\log(1+e^u)\\) is a smooth penalty that grows when the ordering is wrong. The critic combines the mean of the valid tokens with the final audio-start token.
+Here \\(\mathbb E\\) means the average over the training batch, and \\(\mathrm{softplus}(u)=\log(1+e^u)\\) is a smooth penalty that grows when the ordering is wrong. The critic combines the mean of the valid tokens with the final audio-start token.
 
 **3. Teach the adapter the sound, its broader features, and when to stop.** The adapter minimizes three terms:
 
 $$
 \begin{aligned}
-\mathcal L_G ={}& \mathbb E\!\left[\operatorname{softplus}\big(D(x_+)-D(x_\theta)\big)\right] \\
-&+ \operatorname{MSE}\!\left(\mathbb E[\phi(x_\theta)],\mathbb E[\phi(x_+)]\right)
+\mathcal L_G ={}& \mathbb E\!\left[\mathrm{softplus}\big(D(x_+)-D(x_\theta)\big)\right] \\
+&+ \mathrm{MSE}\!\left(\mathbb E[\phi(x_\theta)],\mathbb E[\phi(x_+)]\right)
 + \mathcal L_{\rm end}.
 \end{aligned}
 $$
@@ -56,7 +56,7 @@ For the ending penalty, the model is fed the same token history from a frozen ba
 
 $$
 m = \ell_{\rm audio\_end} - \log\!\sum_{j\in\mathcal S}e^{\ell_j},
-\qquad \mathcal L_{\rm end}=\operatorname{MSE}(m_\theta,m_0).
+\qquad \mathcal L_{\rm end}=\mathrm{MSE}(m_\theta,m_0).
 $$
 
 This discourages a changed stopping decision on that fixed history; it does not guarantee that a newly generated song will finish naturally.
@@ -100,7 +100,7 @@ The adapter minimizes:
 
 $$
 \mathcal L_{\rm reward} = \frac18\sum_{i=1}^{8}
-0.1\,\operatorname{softplus}\!\left(\frac{0.1-\Delta R_i}{0.1}\right)
+0.1\,\mathrm{softplus}\!\left(\frac{0.1-\Delta R_i}{0.1}\right)
 + 10\,\mathcal L_{\rm latent}.
 $$
 
@@ -108,8 +108,8 @@ The first term pushes each case toward a \\(+0.1\\) score gain, with more pressu
 
 $$
 \mathcal L_{\rm latent} = \mathbb E_{i,c}\!\left[
-\frac{\operatorname{MSE}(z_{\theta,i,c},z_{\mathrm{parent},i,c})}
-{\max\!\left(\operatorname{mean}(z_{\mathrm{parent},i,c}^{\,2}),10^{-8}\right)}
+\frac{\mathrm{MSE}(z_{\theta,i,c},z_{\mathrm{parent},i,c})}
+{\max\!\left(\mathrm{mean}(z_{\mathrm{parent},i,c}^{\,2}),10^{-8}\right)}
 \right].
 $$
 
