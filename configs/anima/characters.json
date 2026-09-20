@@ -1,0 +1,194 @@
+[
+  {
+    "id": "original-01",
+    "split": "train",
+    "presentation": "woman",
+    "skin": "light skin",
+    "description": "1girl, adult woman, light skin, short silver hair, amber eyes, neutral expression, closed mouth",
+    "outfit": "wearing a navy wool coat and gray trousers, long sleeves, plain fabric"
+  },
+  {
+    "id": "original-02",
+    "split": "train",
+    "presentation": "man",
+    "skin": "deep brown skin",
+    "description": "1boy, male focus, adult man, dark skin, short black hair, brown eyes, neutral expression, closed mouth",
+    "outfit": "wearing a burgundy tunic and charcoal trousers, long sleeves, plain fabric"
+  },
+  {
+    "id": "original-03",
+    "split": "train",
+    "presentation": "woman",
+    "skin": "medium brown skin",
+    "description": "1girl, adult woman, tan skin, auburn hair in a braid, green eyes, neutral expression, closed mouth",
+    "outfit": "wearing an olive jacket and cream skirt, long sleeves, plain fabric"
+  },
+  {
+    "id": "original-04",
+    "split": "train",
+    "presentation": "man",
+    "skin": "light skin",
+    "description": "1boy, male focus, adult man, light skin, short wavy brown hair, gray eyes, neutral expression, closed mouth",
+    "outfit": "wearing a rust long-sleeved collared shirt and dark trousers"
+  },
+  {
+    "id": "original-05",
+    "split": "train",
+    "presentation": "woman",
+    "skin": "deep brown skin",
+    "description": "1girl, adult woman, dark skin, black hair in a bun, hazel eyes, neutral expression, closed mouth",
+    "outfit": "wearing a plum long-sleeved turtleneck sweater and beige trousers"
+  },
+  {
+    "id": "original-06",
+    "split": "train",
+    "presentation": "man",
+    "skin": "medium brown skin",
+    "description": "1boy, male focus, adult man, tan skin, long black hair, amber eyes, neutral expression, closed mouth",
+    "outfit": "wearing a teal long jacket over a black crewneck shirt and black trousers"
+  },
+  {
+    "id": "original-07",
+    "split": "train",
+    "presentation": "woman",
+    "skin": "light skin",
+    "description": "1girl, adult woman, light skin, red hair, chin-length bob cut, blue eyes, neutral expression, closed mouth",
+    "outfit": "wearing a charcoal turtleneck dress with long sleeves"
+  },
+  {
+    "id": "original-08",
+    "split": "train",
+    "presentation": "man",
+    "skin": "deep brown skin",
+    "description": "1boy, male focus, adult man, dark skin, short gray hair, dark eyes, neutral expression, closed mouth",
+    "outfit": "wearing a sand-colored crewneck sweater and slate-blue trousers"
+  },
+  {
+    "id": "original-09",
+    "split": "train",
+    "presentation": "woman",
+    "skin": "medium brown skin",
+    "description": "1girl, adult woman, tan skin, short curly brown hair, gray eyes, neutral expression, closed mouth",
+    "outfit": "wearing an indigo blouse and brown wide-leg trousers, long sleeves, plain fabric"
+  },
+  {
+    "id": "original-10",
+    "split": "train",
+    "presentation": "man",
+    "skin": "light skin",
+    "description": "1boy, male focus, adult man, light skin, blond hair in a ponytail, hazel eyes, neutral expression, closed mouth",
+    "outfit": "wearing a forest-green coat and gray trousers, long sleeves, plain fabric"
+  },
+  {
+    "id": "original-11",
+    "split": "train",
+    "presentation": "woman",
+    "skin": "deep brown skin",
+    "description": "1girl, adult woman, dark skin, black dreadlocks, brown eyes, neutral expression, closed mouth",
+    "outfit": "wearing a cream blouse and maroon skirt, long sleeves, plain fabric"
+  },
+  {
+    "id": "original-12",
+    "split": "train",
+    "presentation": "man",
+    "skin": "medium brown skin",
+    "description": "1boy, male focus, adult man, tan skin, short silver hair, green eyes, neutral expression, closed mouth",
+    "outfit": "wearing a dark blue waistcoat over a white long-sleeved shirt with a plain black necktie, beige trousers"
+  },
+  {
+    "id": "original-13",
+    "split": "dev",
+    "presentation": "woman",
+    "skin": "medium brown skin",
+    "description": "1girl, mature female, adult woman age 35, tan skin, medium brown skin, long straight slate-blue hair, hazel eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing a tobacco-brown coat and black skirt, long sleeves, plain fabric"
+  },
+  {
+    "id": "original-14",
+    "split": "dev",
+    "presentation": "man",
+    "skin": "light skin",
+    "description": "1boy, male focus, mature male, adult man age 35, light skin, short curly red hair, blue eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing a cream cable-knit sweater and olive trousers, long sleeves, plain fabric"
+  },
+  {
+    "id": "original-15",
+    "split": "dev",
+    "presentation": "woman",
+    "skin": "deep brown skin",
+    "description": "1girl, mature female, adult woman age 35, dark skin, deep brown skin, short silver coils, brown eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing a jade high-neck blouse and charcoal trousers, long sleeves, plain fabric"
+  },
+  {
+    "id": "original-16",
+    "split": "dev",
+    "presentation": "man",
+    "skin": "medium brown skin",
+    "description": "1boy, male focus, mature male, adult man age 35, tan skin, medium brown skin, wavy black hair to the jaw, gray eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing a muted violet tunic and gray trousers, long sleeves, plain fabric"
+  },
+  {
+    "id": "original-17",
+    "split": "test",
+    "presentation": "woman",
+    "skin": "light skin",
+    "description": "1girl, mature female, adult woman age 35, light skin, long black hair with blunt bangs, green eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing a crimson tailored jacket and beige trousers"
+  },
+  {
+    "id": "original-18",
+    "split": "test",
+    "presentation": "man",
+    "skin": "deep brown skin",
+    "description": "1boy, male focus, mature male, adult man age 35, dark skin, deep brown skin, shaved head, hazel eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing a slate-blue robe over a cream shirt"
+  },
+  {
+    "id": "original-19",
+    "split": "test",
+    "presentation": "woman",
+    "skin": "medium brown skin",
+    "description": "1girl, mature female, adult woman age 35, tan skin, medium brown skin, short rose-brown curls, amber eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing a mustard coat and navy skirt"
+  },
+  {
+    "id": "original-20",
+    "split": "test",
+    "presentation": "man",
+    "skin": "light skin",
+    "description": "1boy, male focus, mature male, adult man age 35, light skin, shoulder-length gray hair, brown eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing a plum vest over a black shirt and gray trousers"
+  },
+  {
+    "id": "original-21",
+    "split": "test",
+    "presentation": "woman",
+    "skin": "deep brown skin",
+    "description": "1girl, mature female, adult woman age 35, dark skin, deep brown skin, waist-length dark braids, gray eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing a pale blue jacket and chocolate-brown trousers"
+  },
+  {
+    "id": "original-22",
+    "split": "test",
+    "presentation": "man",
+    "skin": "medium brown skin",
+    "description": "1boy, male focus, mature male, adult man age 35, tan skin, medium brown skin, short chestnut hair, green eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing a charcoal cardigan and rust trousers"
+  },
+  {
+    "id": "original-23",
+    "split": "test",
+    "presentation": "woman",
+    "skin": "light skin",
+    "description": "1girl, mature female, adult woman age 35, light skin, swept-back white hair, brown eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing a dark teal dress with long sleeves"
+  },
+  {
+    "id": "original-24",
+    "split": "test",
+    "presentation": "man",
+    "skin": "deep brown skin",
+    "description": "1boy, male focus, mature male, adult man age 35, dark skin, deep brown skin, short dark curls with a silver streak, amber eyes, neutral expression, closed mouth, looking at viewer",
+    "outfit": "wearing an ocher waistcoat and navy trousers"
+  }
+]

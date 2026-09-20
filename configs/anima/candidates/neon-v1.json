@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "neon-v1",
+  "label": "Neon",
+  "status": "draft",
+  "description": "Cyan and magenta directional lighting against deep shadows.",
+  "definitions": [
+    {"split": "train", "lighting": "cyan side illumination, magenta rim lighting, deep shadows, low-key chiaroscuro"},
+    {"split": "train", "lighting": "magenta side illumination, cyan rim lighting, deep shadows, low-key chiaroscuro"},
+    {"split": "train", "lighting": "cyan directional illumination with magenta fill light, strong shadow contrast, low-key chiaroscuro"},
+    {"split": "train", "lighting": "magenta directional illumination with cyan fill light, strong shadow contrast, low-key chiaroscuro"},
+    {"split": "train", "lighting": "cyan highlights and magenta reflected illumination, dense shadows, low-key chiaroscuro"},
+    {"split": "train", "lighting": "magenta highlights and cyan reflected illumination, dense shadows, low-key chiaroscuro"},
+    {"split": "eval", "lighting": "restrained turquoise light from one side and pink-violet light from the other, deep sculpted shadows"},
+    {"split": "eval", "lighting": "two-tone blue-green and fuchsia illumination fading into darkness, dramatic light falloff"}
+  ]
+}

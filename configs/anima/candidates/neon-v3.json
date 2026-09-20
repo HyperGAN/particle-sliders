@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "id": "neon-v3",
+  "label": "Neon",
+  "status": "draft",
+  "description": "Cyan and magenta colored illumination.",
+  "definitions": [
+    {
+      "split": "train",
+      "lighting": "cyan and magenta illumination",
+      "neutral_lighting": "illumination"
+    },
+    {
+      "split": "train",
+      "lighting": "turquoise and fuchsia illumination",
+      "neutral_lighting": "illumination"
+    },
+    {
+      "split": "train",
+      "lighting": "cyan and pink-violet lighting",
+      "neutral_lighting": "lighting"
+    },
+    {
+      "split": "train",
+      "lighting": "magenta and cyan illumination",
+      "neutral_lighting": "illumination"
+    },
+    {
+      "split": "train",
+      "lighting": "pink-violet and cyan lighting",
+      "neutral_lighting": "lighting"
+    },
+    {
+      "split": "train",
+      "lighting": "fuchsia and turquoise illumination",
+      "neutral_lighting": "illumination"
+    },
+    {
+      "split": "eval",
+      "lighting": "blue-green and pink-violet light",
+      "neutral_lighting": "light"
+    },
+    {
+      "split": "eval",
+      "lighting": "turquoise and rose-colored light",
+      "neutral_lighting": "light"
+    }
+  ]
+}

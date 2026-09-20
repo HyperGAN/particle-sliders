@@ -1,0 +1,170 @@
+[
+  {
+    "id": "candlelit-01",
+    "variation": "candlelit",
+    "split": "train",
+    "lighting": "warm directional illumination, deep shadows, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "candlelit-02",
+    "variation": "candlelit",
+    "split": "train",
+    "lighting": "amber side illumination, low-key lighting, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "candlelit-03",
+    "variation": "candlelit",
+    "split": "train",
+    "lighting": "golden side illumination, strong shadow contrast, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "candlelit-04",
+    "variation": "candlelit",
+    "split": "train",
+    "lighting": "soft warm side illumination, dense shadows, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "candlelit-05",
+    "variation": "candlelit",
+    "split": "train",
+    "lighting": "copper illumination from below, steep light falloff, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "candlelit-06",
+    "variation": "candlelit",
+    "split": "train",
+    "lighting": "dim honey-colored illumination, deep shadows, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "candlelit-07",
+    "variation": "candlelit",
+    "split": "eval",
+    "lighting": "restrained warm highlights fading rapidly into darkness, sculptural shadow contrast, a sense of dread",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "candlelit-08",
+    "variation": "candlelit",
+    "split": "eval",
+    "lighting": "close amber-toned illumination against profound shadow, low-key tonal contrast, unsettling stillness",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "moonlit-01",
+    "variation": "moonlit",
+    "split": "train",
+    "lighting": "cool silvery directional illumination, deep blue shadows, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "moonlit-02",
+    "variation": "moonlit",
+    "split": "train",
+    "lighting": "pale blue side illumination, low-key lighting, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "moonlit-03",
+    "variation": "moonlit",
+    "split": "train",
+    "lighting": "silver side illumination, strong shadow contrast, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "moonlit-04",
+    "variation": "moonlit",
+    "split": "train",
+    "lighting": "soft cool side illumination, dense shadows, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "moonlit-05",
+    "variation": "moonlit",
+    "split": "train",
+    "lighting": "steel-blue illumination from above, steep light falloff, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "moonlit-06",
+    "variation": "moonlit",
+    "split": "train",
+    "lighting": "dim icy illumination, deep shadows, low-key chiaroscuro",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "moonlit-07",
+    "variation": "moonlit",
+    "split": "eval",
+    "lighting": "restrained cold highlights fading rapidly into darkness, sculptural shadow contrast, a sense of dread",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "moonlit-08",
+    "variation": "moonlit",
+    "split": "eval",
+    "lighting": "pale blue-gray illumination against profound shadow, low-key tonal contrast, unsettling stillness",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "theatrical-01",
+    "variation": "theatrical",
+    "split": "train",
+    "lighting": "neutral diffuse illumination, moderate shadow contrast, subdued lighting",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "theatrical-02",
+    "variation": "theatrical",
+    "split": "train",
+    "lighting": "neutral diffuse illumination, strong shadow contrast",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "theatrical-03",
+    "variation": "theatrical",
+    "split": "train",
+    "lighting": "neutral diffuse illumination, moderate shadow contrast, shadowed facial features",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "theatrical-04",
+    "variation": "theatrical",
+    "split": "train",
+    "lighting": "neutral diffuse illumination, stark shadow contrast",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "theatrical-05",
+    "variation": "theatrical",
+    "split": "train",
+    "lighting": "neutral diffuse illumination, moderate shadow contrast, lower illumination",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "theatrical-06",
+    "variation": "theatrical",
+    "split": "train",
+    "lighting": "neutral diffuse illumination, dramatic shadow contrast",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "theatrical-07",
+    "variation": "theatrical",
+    "split": "eval",
+    "lighting": "a tightly confined pool of illumination fading into darkness, sculptural shadow contrast, a sense of dread",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  },
+  {
+    "id": "theatrical-08",
+    "variation": "theatrical",
+    "split": "eval",
+    "lighting": "stark directional highlights against profound shadow, low-key tonal contrast, unsettling stillness",
+    "neutral_lighting": "neutral diffuse illumination, moderate shadow contrast"
+  }
+]

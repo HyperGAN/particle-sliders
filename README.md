@@ -1,5 +1,10 @@
 # Concept Sliders
 
+**NTC Image Studio:** [standalone text-to-image workspace](docs/lumen-studio.md),
+with Anima Turbo v1.1 as the first backend, persistent generation queues,
+normalized atmosphere mixing, and a separate paired-particle training pipeline.
+Use its dedicated environment and lock file; other image backends are follow-ups.
+
 **MiniMax Music 3 port:** see [MUSIC3.md](MUSIC3.md) (current trainer defaults,
 shipped sliders, GPU pitfalls) and [slider_pipeline/README.md](slider_pipeline/README.md)
 (paired recipe-comparison runbook). Listen sets live in `eval/listen/`. Use the

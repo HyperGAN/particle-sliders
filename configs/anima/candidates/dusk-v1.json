@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "id": "dusk-v1",
+  "label": "Dusk",
+  "status": "draft",
+  "description": "Amber illumination and violet shadows with a quiet twilight atmosphere.",
+  "definitions": [
+    {
+      "split": "train",
+      "lighting": "soft amber illumination, gentle violet shadows, twilight atmosphere",
+      "neutral_lighting": "soft illumination, gentle shadows"
+    },
+    {
+      "split": "train",
+      "lighting": "warm amber side lighting, cool violet fill light, subdued twilight atmosphere",
+      "neutral_lighting": "side lighting, fill light"
+    },
+    {
+      "split": "train",
+      "lighting": "muted golden-amber highlights, lavender-violet shadows, dusk atmosphere",
+      "neutral_lighting": "muted highlights, shadows"
+    },
+    {
+      "split": "train",
+      "lighting": "amber directional illumination, soft violet ambient light, quiet twilight atmosphere",
+      "neutral_lighting": "directional illumination, soft ambient light"
+    },
+    {
+      "split": "train",
+      "lighting": "faint amber rim lighting, violet reflected illumination, soft dusk atmosphere",
+      "neutral_lighting": "faint rim lighting, reflected illumination"
+    },
+    {
+      "split": "train",
+      "lighting": "low amber illumination fading into violet shadows, hushed twilight atmosphere",
+      "neutral_lighting": "low illumination fading into shadows"
+    },
+    {
+      "split": "eval",
+      "lighting": "honey-colored light against cool purple shade, the muted glow of twilight",
+      "neutral_lighting": "light against shade"
+    },
+    {
+      "split": "eval",
+      "lighting": "last amber light blending into dusky lavender shadow, calm evening atmosphere",
+      "neutral_lighting": "light blending into shadow"
+    }
+  ]
+}

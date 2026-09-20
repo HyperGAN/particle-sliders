@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "dusk-v2",
+  "label": "Dusk",
+  "status": "draft",
+  "description": "Amber illumination and violet shadows, with color-only wording for twilight lighting.",
+  "definitions": [
+    {"split": "train", "lighting": "amber illumination with violet shadows", "neutral_lighting": "illumination with shadows"},
+    {"split": "train", "lighting": "soft amber illumination with violet shadows", "neutral_lighting": "soft illumination with shadows"},
+    {"split": "train", "lighting": "golden-amber illumination with lavender shadows", "neutral_lighting": "illumination with shadows"},
+    {"split": "train", "lighting": "warm amber lighting with cool violet shadows", "neutral_lighting": "lighting with shadows"},
+    {"split": "train", "lighting": "muted amber highlights and violet shadows", "neutral_lighting": "muted highlights and shadows"},
+    {"split": "train", "lighting": "faint golden illumination and lavender shadows", "neutral_lighting": "faint illumination and shadows"},
+    {"split": "eval", "lighting": "subdued honey-colored light and purple shade", "neutral_lighting": "subdued light and shade"},
+    {"split": "eval", "lighting": "amber light settling into muted violet shadow", "neutral_lighting": "light settling into muted shadow"}
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "model": "circlestone-labs/Anima:turbo-v1.1",
+  "repo": "circlestone-labs/Anima",
+  "revision": "f973fc41ec7545364ac9776c2440285f43ff2a30",
+  "diffusers_revision": "d5baa4fb548294f47dbca49890abd4b291204c60",
+  "tokenizer_repo": "circlestone-labs/Anima-Base-v1.0-Diffusers",
+  "tokenizer_revision": "073c3a9db359c31ad0e8aa268d15775473c2176c",
+  "source_files": {
+    "split_files/diffusion_models/anima-turbo-v1.1.safetensors": "fba11953276b57edf59d1dc4f1857ac05aa079c56f982b4d7c20298d57d3f7eb",
+    "split_files/text_encoders/qwen_3_06b_base.safetensors": "cd2a512003e2f9f3cd3c32a9c3573f820bb28c940f73c57b1ddaa983d9223eba",
+    "split_files/vae/qwen_image_vae.safetensors": "a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f"
+  },
+  "converter": {
+    "convert_cosmos_to_diffusers.py": "9651cea76cd9e8528968858593e10832278c7fcb3d762f16d44dc5572b3752ff",
+    "convert_anima_to_diffusers.py": "aa806278cb19658aa4eb33f15f57e09f7fb5bc47795ac711860cfc888344e0dc"
+  },
+  "defaults": {
+    "steps": 10,
+    "cfg": 1,
+    "width": 768,
+    "height": 768,
+    "scheduler": "FlowMatchEulerDiscreteScheduler",
+    "shift": 3.0
+  }
+}
