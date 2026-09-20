@@ -154,16 +154,27 @@ def noise_std(step, start=None, decay_steps=None, hold=None):
 
 
 class BridgeSampler:
-    """CPU random streams, fresh rows/noise for each D and G minibatch."""
-    def __init__(self, count, seed):
+    """CPU random streams, fresh rows/noise for each D and G minibatch.
+
+    ``batch_size`` overrides ``REFERENCE['batch_size']`` for this sampler
+    only (the released v2 game draws batches of 8; the bridge-doc game draws
+    64). ``None`` keeps the historical global behavior.
+    """
+    def __init__(self, count, seed, batch_size=None):
         if count < 2:
             raise ValueError('At least two training targets are needed for sample std')
+        if batch_size is not None and int(batch_size) < 1:
+            raise ValueError('batch_size must be positive')
         self.count = count
+        self.batch_size = None if batch_size is None else int(batch_size)
         self.rngs = {name: torch.Generator().manual_seed(seed + offset)
                      for name, offset in [('data', 10), ('noise', 30), ('vic', 40)]}
 
+    def _batch_size(self):
+        return REFERENCE['batch_size'] if self.batch_size is None else self.batch_size
+
     def batch(self, dim, device, sigma):
-        rows = torch.randint(self.count, (REFERENCE['batch_size'],), generator=self.rngs['data'])
+        rows = torch.randint(self.count, (self._batch_size(),), generator=self.rngs['data'])
         noise = torch.randn(len(rows), dim, generator=self.rngs['noise']).to(device) * sigma
         return rows, noise
 
@@ -171,11 +182,14 @@ class BridgeSampler:
         return torch.randperm(count, generator=self.rngs['vic'])[:64].to(device)
 
     def state_dict(self):
-        return dict(count=self.count, rngs={k: r.get_state() for k, r in self.rngs.items()})
+        return dict(count=self.count, batch_size=self._batch_size(),
+                    rngs={k: r.get_state() for k, r in self.rngs.items()})
 
     def load_state_dict(self, state):
         if state['count'] != self.count or state['rngs'].keys() != self.rngs.keys():
             raise ValueError('Incompatible particle-bridge sampler')
+        if 'batch_size' in state and int(state['batch_size']) != self._batch_size():
+            raise ValueError('Incompatible particle-bridge sampler batch size')
         for name, value in state['rngs'].items():
             self.rngs[name].set_state(value)
 

@@ -203,7 +203,7 @@ def update(backend, network, critic, g, d, rows, *, sampler, step, checkpointing
     predictions = {}
     def predict(i, phase):
         row = rows[i]
-        ids = row.get('train_ids', row.get('ids', row['prefix']))
+        ids = row.get('train_ids', row.get('ids', row.get('prefix')))
         with network.scaled(1.):
             pred = backend.hidden(ids, checkpointing=checkpointing and phase == 'g')[:, row['prefix_len']-1].float()
         if phase == 'g': predictions[i] = pred.detach()
