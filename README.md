@@ -1,5 +1,14 @@
 # sliders-conceptmod
 
+**Shared algorithm and research core for model-specific slider releases.**
+The installable [concept-slider-core](packages/concept-slider-core) package now
+powers [Anima Concept Sliders](https://github.com/mikkel/anima-concept-sliders),
+including native particles, training primitives, ComfyUI and LoRA fitting.
+See the [shared-core architecture](docs/shared-core.md) and
+[Candlelit / Moonlit samples and weights](https://huggingface.co/ntc-ai/anima-concept-sliders).
+YuE2 and Music 3 retain their existing implementations; future integrations can
+pin the same core after their own compatibility checks.
+
 **Learn a musical control, then turn it with a slider.** Keep the caption,
 lyrics and seed fixed while changing voice or genre with a numeric strength.
 

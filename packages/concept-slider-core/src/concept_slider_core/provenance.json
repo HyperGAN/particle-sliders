@@ -1,0 +1,13 @@
+{
+  "source_repository": "ntc-ai/sliders-conceptmod",
+  "source_commit": "3e184ad604569328fe93d17959945109e7cf30e7",
+  "source_worktree": "source SHA256 values pin the captured working-tree contents, including local changes",
+  "files": {
+    "analysis/slider2d/adv.py": "1a939c65626574028a90f7a96c95b6363d59f4199833d74950ba625b3f9491fb",
+    "conceptmod/textsliders/lm_adv.py": "8b42a4bad78e2a5314289ef23598908a5d967281aab91c88841ef344a9d33a68",
+    "conceptmod/textsliders/particle_bridge_gan.py": "7254628500c9d0a3ecc851747ad19dc96e5181b4cba34a505e83855a74256a40",
+    "analysis/slider2d/grad_regularizers.py": "c1372f537c8f53b6d3fdedc3dc9521533d3b5f954c8d1e012af02d5c87f864e5"
+  },
+  "upstream_particle_gan": "441fdf42",
+  "reference_model_glue": "df70ccb"
+}
