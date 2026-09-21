@@ -351,6 +351,8 @@ scored — it is no longer the energy stand-in.
 - [lm-rich-2d.md](lm-rich-2d.md) — project short û vs rich û.
 - [lm-faithful-2d.md](lm-faithful-2d.md) — raw poles vs attributes.
 - [lm-hold-overlap.md](lm-hold-overlap.md) — hold-ê raw vs ê_⊥û.
+- [lm-2d-adv.md](lm-2d-adv.md) — ParticleGAN RpGAN + `b_cap` on these fixtures (CPU; not a live `--pole_mode`).
+- [yue2-gmix-v2-2d-scoreboard.md](yue2-gmix-v2-2d-scoreboard.md) — YuE2 released-v2 UNI toys.
 
 ## How to run
 

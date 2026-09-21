@@ -78,6 +78,10 @@ unscored canaries.
   The server euclidean-normalizes embeddings (`--embd-normalize 2`
   default), so the game sees normalized last-token states — the critic
   re-normalizes per-coordinate anyway.
+- **Normalization:** `bonsai_gguf_particle.build_game` calls
+  `shared.build_game(network, targets)` **without** `neutrals`, same as
+  the tiny path. Whitening stays absolute-target. Live YuE2
+  `particle_bridge` now passes neutrals (paired-edit).
 - **Adapter placement**: a GGUF is inference-only frozen ternary — the
   fork has no gradient path, so full LoRA-in-GGUF training is
   impossible. The trainable slider is a **torch-side residual head** on
@@ -169,3 +173,10 @@ bonsai-gguf particle step 2: g_adv=0.6774 vic=0.1330 d_loss=0.7524 cos_pos=0.997
 - Not in-attention LoRA and not a quality slider: the head steers a
   frozen readout; 2-step smokes prove the game runs, not that a concept
   transferred.
+
+## Related
+
+- [docs/README.md](README.md) — backend map
+- [docs/prompts.md](prompts.md) — `prompts-bonsai-gguf.yaml`
+- [tiny-llm-slider.md](tiny-llm-slider.md) — in-attention Qwen3-0.6B sibling
+- [yue2-slider.md](yue2-slider.md) — live YuE2 particle CLI (paired-edit)

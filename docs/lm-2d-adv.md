@@ -88,3 +88,12 @@ Gates used: leftover leak ≤ 0.2, on-sheet kept ≥ 0.9,
 off-sheet ≤ 0.05, swing ≥ 0.6.
 Compiled labels: `works`, `works-on-some-pairs`, `fails`.
 
+## Related
+
+- [docs/README.md](README.md) — backend map; this page is the CPU GAN cell
+- [lm-2d-scoreboard.md](lm-2d-scoreboard.md) — supervised compiled board this has to beat
+- [2d-analysis.md](2d-analysis.md) — method table on the synthetic field
+- [analysis/gan_bcap/README.md](../analysis/gan_bcap/README.md) — 8-mode Gaussian smoke
+- [yue2-gmix-v2-2d-scoreboard.md](yue2-gmix-v2-2d-scoreboard.md) — YuE2 released-v2 UNI toys (different game)
+- Live Music 3 default stays `--lm_target v9` / `--pole_mode hidden`.
+
