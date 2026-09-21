@@ -2,8 +2,8 @@
 
 Opt-in image trainer. **Does not change the Music 3 default**
 (`train_lora_music3.py` / `train_lm_slider_music3.py --lm_target v9` /
-`--pole_mode hidden`). Anima / ZiT / H3 are a separate PR and are not
-in this trainer. Do **not** port Anima `embed_struct` / `same_crop`
+`--pole_mode hidden`). Anima / ZiT / MiniMax-H3 have their own trainers
+and stay out of this card. Do **not** port Anima `embed_struct` / `same_crop`
 here — smile-first on Raw accepts entanglement.
 
 CPU tests use `--dummy` mocks. No Hub weights, no GPU train in CI.
@@ -456,6 +456,7 @@ smile-krea-v4 TE-only embed UNI.
 
 ## Related
 
+- [docs/README.md](README.md) — backend map and shared UNI pitfalls
 - [conceptmod backends/krea.py](https://github.com/mikkel/conceptmod/blob/main/conceptmod/backends/krea.py)
 - [docs/sana-slider.md](sana-slider.md) — cheap happy UNI analog
 - [docs/anima-slider.md](anima-slider.md) — smile-first (do not copy `same_crop` / `embed_struct` here)

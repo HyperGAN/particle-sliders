@@ -503,6 +503,7 @@ The renderer preserves matched inputs and records model identity, weight hash,
 scale and truncation flags. Use a fresh output directory for another run.
 The [full guide](docs/yue2-slider.md) covers exact resume, recipe variants,
 native adapter loading, generation modes and runtime limits.
+Backend map and prompt catalog: [docs/README.md](docs/README.md).
 
 ### MiniMax Music 3
 
@@ -616,7 +617,7 @@ corresponding models and recovery artifacts.
 | [Comparison pipeline](slider_pipeline/) | Matched acoustic recipes and render gates |
 | [Listening tools](slider_selection/) | Listening, features and selection experiments |
 | [Scripts](scripts/) | Evaluation, dashboards and packaging |
-| [Documentation](docs/) | Backend guides, math and release-card sources |
+| [Documentation](docs/README.md) | Backend map, prompt catalog, math and release-card sources |
 | [Tests](tests/) | CPU contracts and backend integration |
 
 Local run outputs go in `models/`, `cache/` and `eval/listen/`. Published weights
