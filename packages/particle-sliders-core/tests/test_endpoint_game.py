@@ -9,9 +9,9 @@ from pathlib import Path
 import pytest
 import torch
 
-from concept_slider_core import SliderRecipe, EndpointGame, teacher_poles, require_same_critic
-from concept_slider_core import teachers
-from concept_slider_core.grad_regularizers import GradRegularizer
+from particle_sliders import SliderRecipe, EndpointGame, teacher_poles, require_same_critic
+from particle_sliders import teachers
+from particle_sliders.grad_regularizers import GradRegularizer
 
 torch.set_num_threads(1)
 ROOT = Path(__file__).resolve().parents[3]

@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from concept_slider_core import (
+from particle_sliders import (
     RoutedMLP, GlobalMixErrorCritic, particle_vic, rp_d_loss, rp_g_loss,
     fit_routed_down,
 )

@@ -1,13 +1,26 @@
-# sliders-conceptmod
+# particle-sliders
 
-**Shared algorithm and research core for model-specific slider releases.**
-The installable [concept-slider-core](packages/concept-slider-core) package now
-powers [Anima Concept Sliders](https://github.com/mikkel/anima-concept-sliders),
-including native particles, training primitives, ComfyUI and LoRA fitting.
-See the [shared-core architecture](docs/shared-core.md) and
-[Candlelit / Moonlit samples and weights](https://huggingface.co/ntc-ai/anima-concept-sliders).
-YuE2 and Music 3 retain their existing implementations; future integrations can
-pin the same core after their own compatibility checks.
+**Shared particle-sliders core for every HyperGAN slider product.**
+[anima-particle-sliders](https://github.com/HyperGAN/anima-particle-sliders),
+[krea2-particle-sliders](https://github.com/HyperGAN/krea2-particle-sliders),
+and [supra-concept-sliders](https://github.com/HyperGAN/supra-concept-sliders)
+install [`particle-sliders-core`](packages/particle-sliders-core) and train
+[`winning_formulation()`](docs/winning-formulation.md). They do not
+re-implement routed particles, `locked_shared`, or `GradRegularizer`.
+The old package name `concept-slider-core` is a deprecated alias from the
+Anima extraction. Formulation toys stay in
+[HyperGAN/conceptmod](https://github.com/HyperGAN/conceptmod). This
+repository was previously `sliders-conceptmod`.
+
+A self-contained product that forbids a particle-sliders dependency
+(`PARTICLE_SLIDERS_ROOT`, or a docs contract that rejects that name) is the
+wrong long-term pattern. Pin this package from
+`HyperGAN/particle-sliders`. See the
+[shared-core architecture](docs/shared-core.md). Anima's published samples
+remain at
+[Candlelit / Moonlit](https://huggingface.co/ntc-ai/anima-concept-sliders).
+Research trainers in this tree stay where they are until each product repo
+moves its own train/infer surface.
 
 **Learn a musical control, then turn it with a slider.** Keep the caption,
 lyrics and seed fixed while changing voice or genre with a numeric strength.
@@ -18,7 +31,9 @@ inside the adapter, drawing on [ParticleGAN](https://github.com/255BITS/Particle
 This is the cleanest expression of the approach in this
 fork: adversarial teacher matching without output MSE, feature matching, lyric
 hold or ending supervision. The [math below](#yue2-the-lead-formulation)
-spells out both the game and its regularizers.
+spells out both the game and its regularizers. Products import that game as
+`particle_sliders.winning_formulation()` (`particle-gmix-1600-v2`). When the
+stamp changes, they bump the core pin instead of forking the math.
 
 This is a substantially divergent fork of
 [Concept Sliders](https://github.com/rohitgandikota/sliders), with its own music
@@ -450,8 +465,8 @@ norm cap of 2. Prompt-state teachers remain fixed. See the
 ## Getting started
 
 ```bash
-git clone https://github.com/mikkel/sliders-conceptmod.git
-cd sliders-conceptmod
+git clone https://github.com/HyperGAN/particle-sliders.git
+cd particle-sliders
 ```
 
 Choose an environment for the backend you intend to use. **Do not install the
@@ -618,6 +633,8 @@ corresponding models and recovery artifacts.
 
 | Source | Purpose |
 |---|---|
+| [particle-sliders-core](packages/particle-sliders-core) | Installable shared algorithms and `winning_formulation()` |
+| [Winning formulation](docs/winning-formulation.md) | Current product stamp and the product-repo follow-ups |
 | [Backends and trainers](conceptmod/textsliders/) | Model loading, adapters, objectives and inference |
 | [GAN engine](conceptmod/textsliders/gan_v2/) | Span critics, game updates and recovery states |
 | [Reward research](conceptmod/textsliders/reward_game/) | Reward-guided adapters and acceptance checks |
