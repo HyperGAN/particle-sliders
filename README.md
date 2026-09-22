@@ -276,6 +276,7 @@ host and training recipe; adapter formats are not interchangeable.
 | **[Music 3 particles](conceptmod/textsliders/train_lora_music3_particle.py)** | Nonlinear branches on Music 3. Experimental transfer of the particle game. |
 | [Krea 2](docs/krea-slider.md) | Text encoder and/or DiT. Opt-in images. |
 | [Anima](docs/anima-slider.md) | Conditioner or DiT. Opt-in images. |
+| [Supra2-IMG](docs/supra-slider.md) | Cross-attn or DiT on `SupraLabs/Supra2-IMG`. Opt-in images. |
 | [Z-Image Turbo](docs/zimage-slider.md) | DiT attention. Opt-in images. |
 | [Sana 0.6B](docs/sana-slider.md) | Cross-attention or LoRA. Small image experiments. |
 | [LTX-2.5](docs/ltx25-slider.md) | Text encoder and video connectors. Opt-in video. |

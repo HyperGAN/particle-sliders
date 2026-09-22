@@ -1,0 +1,52 @@
+# Supra2-IMG live train card. Dummy / CI never reads Hub weights.
+# Trainer CLI defaults match this file. It does not download model_final_ema.pt.
+prompts_file: conceptmod/textsliders/data/prompts-supra.yaml
+pretrained_model:
+  name_or_path: SupraLabs/Supra2-IMG
+  checkpoint: model_final_ema.pt
+  text_encoder: google/flan-t5-base
+  text_encoder_frozen: true
+  vae: stabilityai/sd-vae-ft-mse
+  vae_scale: 0.18215
+  ctx_len: 128
+network:
+  type: lora
+  rank: 16
+  alpha: 16.0
+  training_method: lora
+  lora_targets: cross
+  targets:
+    - ctx_proj
+    - cross_attn.q
+    - cross_attn.kv
+    - cross_attn.proj
+  train_text_encoder: false
+arch:
+  d_model: 576
+  depth: 14
+  n_heads: 9
+  head_dim: 64
+  mlp_ratio: 4.0
+  d_ctx: 768
+  resolution: 256
+  latent_size: 32
+  patch: 2
+train:
+  precision: bfloat16
+  iterations: 500
+  lr: 0.0001
+  cfg: 3.0
+  sample_steps: 50
+  sample_every: 100
+  resolution: 256
+  hold_weight: 1.0
+  lm_target: trajectory
+  traj_steps: 4
+  sampler: euler_flow
+save:
+  name: lighting-supra
+  path: ./models/lighting-supra
+  per_steps: 100
+logging:
+  use_wandb: false
+  verbose: false

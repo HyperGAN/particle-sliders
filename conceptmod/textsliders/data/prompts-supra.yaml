@@ -1,0 +1,34 @@
+# Supra2-IMG slider — UNI + unused-token hold.
+#
+# Lighting concept (warm sun vs neutral daylight).
+# Bare captions. Do NOT prefix attributes onto target / positive /
+# neutral. attributes / pins are unused-token hold bookkeeping only.
+# Student +1 and sample prompts share these strings. + is teacher only.
+# Do not hold concept_words. No minus teacher.
+#
+# Live card: docs/supra-slider.md
+plus_label: sunlit
+minus_label: ""
+recommended_range: [-2.0, 2.0]
+concept_words: "warm, golden, sunlit, glow"
+rows:
+  - target: "a woman sitting by a window, neutral daylight, even illumination"
+    positive: "a woman sitting by a window, warm golden sunlit glow"
+    neutral: "a woman sitting by a window, neutral daylight, even illumination"
+    attributes:
+      - indoor
+      - portrait
+    action: enhance
+    guidance_scale: 3.0
+    resolution: 256
+    batch_size: 1
+  - target: "a man reading at a table, neutral daylight, even illumination"
+    positive: "a man reading at a table, warm golden sunlit glow"
+    neutral: "a man reading at a table, neutral daylight, even illumination"
+    attributes:
+      - indoor
+      - portrait
+    action: enhance
+    guidance_scale: 3.0
+    resolution: 256
+    batch_size: 1

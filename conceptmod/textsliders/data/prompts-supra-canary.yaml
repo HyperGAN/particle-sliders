@@ -1,0 +1,15 @@
+# Same UNI slider, with a minus pole left in as a canary (not a teacher).
+plus_label: sunlit
+minus_label: moonlight
+recommended_range: [-2.0, 2.0]
+concept_words: "warm, golden, sunlit, glow"
+rows:
+  - target: "a woman sitting by a window, neutral daylight, even illumination"
+    positive: "a woman sitting by a window, warm golden sunlit glow"
+    negative: "a woman sitting by a window, cold blue moonlight"
+    neutral: "a woman sitting by a window, neutral daylight, even illumination"
+    attributes:
+      - indoor
+    action: enhance
+    guidance_scale: 3.0
+    resolution: 256

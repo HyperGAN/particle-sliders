@@ -404,6 +404,8 @@ def test_refuses_foreign_backends():
         assert_krea_only("local-zit.safetensors")
     with pytest.raises(ValueError, match="Krea-only"):
         assert_krea_only("h3-turbo.safetensors")
+    with pytest.raises(ValueError, match="Krea-only"):
+        assert_krea_only("SupraLabs/Supra2-IMG")
     assert_krea_only("krea/Krea-2-Raw")
     assert_krea_only("/comfy/Krea-2-Turbo.safetensors")
 

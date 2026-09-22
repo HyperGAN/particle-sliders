@@ -344,6 +344,8 @@ def test_refuses_foreign_backends():
         assert_sana_only("krea/Krea-2-Raw")
     with pytest.raises(ValueError, match="Sana-only"):
         assert_sana_only("circlestone-labs/Anima-Base-v1.0-Diffusers")
+    with pytest.raises(ValueError, match="Sana-only"):
+        assert_sana_only("SupraLabs/Supra2-IMG")
     assert_sana_only(SANA_MODEL_ID)
 
 
