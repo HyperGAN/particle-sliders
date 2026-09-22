@@ -1,26 +1,19 @@
 """Product winning-formulation stamp.
 
-Import this module from anima-particle-sliders, krea2-particle-sliders,
-supra-concept-sliders, and any later ``*-particle-sliders`` product.
-Do not copy it into a product repo.
+Import ``winning_formulation()`` from anima-particle-sliders,
+krea2-particle-sliders, supra-concept-sliders, and any later
+``*-particle-sliders`` product. Do not copy this module into a product repo.
 
-The stamp is allowed to change in HyperGAN/particle-sliders. A new winner
-lands here (new ``STAMP_ID`` and knobs). Products pick it up by bumping the
-git pin of ``particle-sliders-core`` and calling ``winning_formulation()``
-again. Restating the loss, the critic, the noise schedule, or
-``GradRegularizer`` in a product is a fork.
+The product default is provisional. The next winner is whatever scores best
+when the config and behavior search on ParticleGAN pull request 38 finishes
+(related search: pull request 39). The ultimate gate is the full live
+leaderboard: 9 trained toys and all 29 live bounds. A partial win does not
+count. Products pick up that crown by bumping the ``particle-sliders-core``
+pin. They keep calling ``winning_formulation()``.
 
-Today's stamp is the released routed-particle game ``particle-gmix-1600-v2``
-(recipe ``anneal-routed-particle-error-yue2-v1``). The numbers are the Hub
-golden record mirrored by ``analysis/slider2d/yue2_gmix_v2_exam.V2_SPEC``.
-``tests/test_particle_sliders_formulation.py`` fails if the two diverge.
-``propose_only`` on that exam arm only keeps the arm from flipping the Music
-trainer default. It does not exempt products from this stamp.
-
-``locked_shared`` (``SliderRecipe.require_locked_shared``, Music Arm B,
-bipolar leaderboard teacher ``faithful_guard_e``) stays importable through
-``locked_shared_recipe``. It is a different, older endpoint-MSE stamp.
-It is not ``winning_formulation()``.
+Swap the default in the ``CURRENT_STAMP_ID`` / ``CURRENT_STAMP`` block at the
+bottom of this file. Named recipes (``particle_gmix_1600_v2``,
+``locked_shared_recipe``) stay callable either way.
 """
 from types import MappingProxyType
 
@@ -35,11 +28,15 @@ from .reference import (
     rp_g_loss,
 )
 
-STAMP_ID = "particle-gmix-1600-v2"
-FAMILY = "anneal-routed-particle-error"
+# Named recipe ids. The product default is selected once, at the bottom.
+GMIX_STAMP_ID = "particle-gmix-1600-v2"
+GMIX_FAMILY = "anneal-routed-particle-error"
 # The 2D exam records this arm as propose_only so it cannot retarget Music.
-# Products still train the stamp below.
 RESEARCH_EXAM_IS_PROPOSE_ONLY = True
+
+WINNER_SOURCE = "https://github.com/255BITS/ParticleGAN/pull/38"
+RELATED_SEARCH = "https://github.com/255BITS/ParticleGAN/pull/39"
+WINNER_GATE = "full live leaderboard: 9 trained toys and all 29 live bounds"
 
 # Golden knobs. Keep in lockstep with V2_SPEC (except propose_only).
 _SPEC = {
@@ -184,24 +181,28 @@ def _thaw(value):
 
 
 class WinningFormulation:
-    """The formulation products train. Construct via ``winning_formulation()``."""
+    """One named recipe. Products train whichever object ``winning_formulation()`` returns."""
 
-    def __init__(self):
+    def __init__(self, stamp_id, family, spec):
         overlap = FORMULATION_KEYS & MODEL_SURFACE_KEYS | FORMULATION_KEYS & PROVENANCE_KEYS | MODEL_SURFACE_KEYS & PROVENANCE_KEYS
         if overlap:
             raise RuntimeError(f"stamp key classified twice: {sorted(overlap)}")
         covered = FORMULATION_KEYS | MODEL_SURFACE_KEYS | PROVENANCE_KEYS
-        if covered != set(_SPEC):
+        if covered != set(spec):
             raise RuntimeError(
-                f"stamp keys drifted from the classifier: missing={sorted(set(_SPEC) - covered)} "
-                f"extra={sorted(covered - set(_SPEC))}"
+                f"stamp keys drifted from the classifier: missing={sorted(set(spec) - covered)} "
+                f"extra={sorted(covered - set(spec))}"
             )
-        self.id = STAMP_ID
-        self.family = FAMILY
-        self.spec = _freeze(_SPEC)
+        self.id = stamp_id
+        self.family = family
+        self.spec = _freeze(spec)
         self.formulation_keys = FORMULATION_KEYS
         self.model_surface_keys = MODEL_SURFACE_KEYS
         self.provenance_keys = PROVENANCE_KEYS
+        self.provisional = False
+        self.winner_source = WINNER_SOURCE
+        self.related_search = RELATED_SEARCH
+        self.winner_gate = WINNER_GATE
 
     def as_dict(self):
         """Plain copy of the golden record, including reference model-surface values."""
@@ -282,21 +283,51 @@ class WinningFormulation:
         return rp_d_loss, rp_g_loss, particle_vic
 
 
-_WINNING = WinningFormulation()
+_GMIX = WinningFormulation(GMIX_STAMP_ID, GMIX_FAMILY, _SPEC)
 
 
-def winning_formulation():
-    """Return the current product stamp. This object is the entry point to import."""
-    return _WINNING
+def particle_gmix_1600_v2():
+    """Named recipe: routed paired-error gmix game (Hub ``particle-gmix-1600-v2``)."""
+    return _GMIX
+
+
+def gmix_recipe():
+    """Alias of :func:`particle_gmix_1600_v2`."""
+    return particle_gmix_1600_v2()
 
 
 def locked_shared_recipe():
-    """Bipolar endpoint stamp (Music Arm B / ``require_locked_shared``).
+    """Named recipe: bipolar endpoint stamp (Music Arm B / ``require_locked_shared``).
 
-    Kept so products do not reimplement it. It is not the winning formulation:
-    VIC, noise, and feature matching are off, and the objective is endpoint MSE
-    with teacher ``faithful_guard_e``.
+    VIC, noise, and feature matching are off. The teacher is ``faithful_guard_e``.
+    Callable on its own. It becomes the product default only if the selection
+    block below is pointed at an export of this recipe after ParticleGAN #38
+    crowns it on the full live leaderboard.
     """
     recipe = SliderRecipe()
     recipe.require_locked_shared()
     return recipe
+
+
+# ---------------------------------------------------------------------------
+# Product default. Replace this block when ParticleGAN #38 crowns a winner
+# on the full live leaderboard (9 toys × 29 bounds). Partial wins do not
+# count. Related search: ParticleGAN #39. The export's ``.id`` must equal
+# CURRENT_STAMP_ID. Products keep calling winning_formulation().
+# ---------------------------------------------------------------------------
+CURRENT_STAMP_ID = GMIX_STAMP_ID
+CURRENT_STAMP = particle_gmix_1600_v2
+CURRENT_STAMP_PROVISIONAL = True
+
+_CURRENT = CURRENT_STAMP()
+if getattr(_CURRENT, "id", None) != CURRENT_STAMP_ID:
+    raise RuntimeError(
+        f"CURRENT_STAMP {CURRENT_STAMP!r} returned id {getattr(_CURRENT, 'id', None)!r}, "
+        f"expected {CURRENT_STAMP_ID!r}"
+    )
+_CURRENT.provisional = CURRENT_STAMP_PROVISIONAL
+
+
+def winning_formulation():
+    """Return the current product stamp. This is the only entry point products import."""
+    return _CURRENT

@@ -1,12 +1,19 @@
-"""Pin the product stamp to the Hub golden record on main.
+"""Pin the provisional gmix recipe to the Hub golden record on main.
 
 The exam module imports the YuE2 trainer, so this test reads ``V2_SPEC`` from
-its source instead of importing it. CPU only.
+its source instead of importing it. CPU only. ``particle-gmix-1600-v2`` is the
+current provisional product default, not a permanent crown.
 """
 import ast
 from pathlib import Path
 
-from particle_sliders.formulation import RESEARCH_EXAM_IS_PROPOSE_ONLY, winning_formulation
+from particle_sliders.formulation import (
+    CURRENT_STAMP,
+    CURRENT_STAMP_PROVISIONAL,
+    RESEARCH_EXAM_IS_PROPOSE_ONLY,
+    particle_gmix_1600_v2,
+    winning_formulation,
+)
 
 _EXAM = Path(__file__).resolve().parents[1] / "analysis" / "slider2d" / "yue2_gmix_v2_exam.py"
 
@@ -28,6 +35,9 @@ def _v2_spec():
 def test_winning_stamp_matches_v2_spec():
     spec = _v2_spec()
     stamp = winning_formulation()
+    assert CURRENT_STAMP is particle_gmix_1600_v2
+    assert CURRENT_STAMP_PROVISIONAL is True
+    assert stamp.provisional is True
     assert stamp.id == "particle-gmix-1600-v2"
     assert set(stamp.spec) == set(spec) - {"propose_only"}
     for key, value in stamp.spec.items():

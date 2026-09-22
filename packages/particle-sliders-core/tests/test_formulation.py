@@ -7,16 +7,33 @@ import torch
 from particle_sliders import (
     GradRegularizer,
     RoutedMLP,
+    gmix_recipe,
     locked_shared_recipe,
+    particle_gmix_1600_v2,
     winning_formulation,
+)
+from particle_sliders.formulation import (
+    CURRENT_STAMP,
+    CURRENT_STAMP_ID,
+    CURRENT_STAMP_PROVISIONAL,
+    WINNER_GATE,
+    WINNER_SOURCE,
 )
 
 
 def test_package_exports_the_stamp_and_regularizer():
     stamp = winning_formulation()
-    assert stamp.id == "particle-gmix-1600-v2"
+    assert stamp is particle_gmix_1600_v2()
+    assert stamp is gmix_recipe()
+    assert CURRENT_STAMP is particle_gmix_1600_v2
+    assert stamp.id == CURRENT_STAMP_ID == "particle-gmix-1600-v2"
     assert stamp.family == "anneal-routed-particle-error"
-    assert stamp is winning_formulation()
+    assert stamp.provisional is True
+    assert CURRENT_STAMP_PROVISIONAL is True
+    assert stamp.winner_source == WINNER_SOURCE
+    assert "pull/38" in stamp.winner_source
+    assert "pull/39" in stamp.related_search
+    assert "9 trained toys" in WINNER_GATE and "29 live bounds" in WINNER_GATE
     regularizer = stamp.regularizer()
     assert isinstance(regularizer, GradRegularizer)
     assert regularizer.arm == "b_cap"
@@ -63,10 +80,11 @@ def test_builders_run_on_cpu():
     assert torch.isfinite(vic(particles[: int(stamp.spec["particle_vic_batch"])]))
 
 
-def test_locked_shared_stays_importable_and_is_not_the_winner():
+def test_locked_shared_stays_a_named_recipe():
     recipe = locked_shared_recipe()
     recipe.require_locked_shared()
     stamp = winning_formulation()
+    assert recipe is not stamp
     assert stamp.spec["aux_weights"]["cover_weight"] == 0.0
     assert recipe.cover_weight == 1.0
     assert recipe.teacher == "faithful_guard_e"

@@ -2,13 +2,16 @@
 
 Model ids, Comfy class names, and model-specific train/infer surfaces belong
 to product repositories. The game those products train is
-``winning_formulation()``.
+``winning_formulation()``. That binding is provisional until ParticleGAN #38
+crowns a full live-leaderboard winner.
 """
 from .distillation import fit_routed_down
 from .endpoint_game import EndpointGame, endpoint_terms, teacher_poles
 from .formulation import (
     WinningFormulation,
+    gmix_recipe,
     locked_shared_recipe,
+    particle_gmix_1600_v2,
     winning_formulation,
 )
 from .grad_regularizers import GradRegularizer
@@ -33,8 +36,10 @@ __all__ = [
     "WinningFormulation",
     "endpoint_terms",
     "fit_routed_down",
+    "gmix_recipe",
     "locked_shared_recipe",
     "noise_std",
+    "particle_gmix_1600_v2",
     "particle_vic",
     "require_same_critic",
     "rp_d_loss",

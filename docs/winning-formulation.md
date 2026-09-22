@@ -10,11 +10,19 @@ stamp = winning_formulation()
 stamp.require(stamp.as_dict())
 ```
 
-`stamp.id` is the winner those products train. They do not keep a second copy
-of the routed particle adapter, the global-mix critic, the paired-error
-losses, the noise schedule, `locked_shared`, or `GradRegularizer`.
+`winning_formulation()` is the only product default. `stamp.provisional` is
+true until [ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38)
+finishes its config and behavior search. The related search is
+[ParticleGAN #39](https://github.com/255BITS/ParticleGAN/pull/39). That search
+is the source of truth for the next winner. The ultimate gate is the full
+live leaderboard: 9 trained toys and all 29 live bounds. A partial win, a
+3-toy screen, or an EMA-only result does not count.
 
-## Current stamp
+Products do not keep a second copy of the routed particle adapter, the
+global-mix critic, the paired-error losses, the noise schedule,
+`locked_shared`, or `GradRegularizer`.
+
+## Current provisional stamp
 
 | | |
 |---|---|
@@ -27,35 +35,42 @@ losses, the noise schedule, `locked_shared`, or `GradRegularizer`.
 | Noise | Paired-edit whitening, start `edit_rms / 0.28`, decay over 1600 steps, hold `1.3 * edit_rms` |
 | Auxiliary MSE / FM / cover / pole / lyric hold | All zero |
 
-The numbers are the Hub golden record. The same dict lives in
-`analysis/slider2d/yue2_gmix_v2_exam.V2_SPEC`.
-`tests/test_particle_sliders_formulation.py` fails if the package and that
-record diverge. Merged #128 ran this game on the UNI continuation gates: the
-EMA readout passes both cells on seeds 0, 1, and 7 at the native 1600 stop.
-The root README calls this routed-particle game the preferred formulation.
-Anima's published particle release is the same game.
+This id is the current provisional default, not a permanent crown. YuE gmix-1600-v2
+is the recipe bound today because it is the released routed-particle game
+(Hub golden record in `analysis/slider2d/yue2_gmix_v2_exam.V2_SPEC`, UNI gates
+in merged #128, Anima's published particle release). It is replaced when #38
+crowns a full-board winner. `locked_shared` is a named recipe in the same
+module. It is not barred from becoming that winner.
 
 `V2_SPEC["propose_only"]` is true so the 2D exam cannot flip the Music
-trainer's `--lm_target`. That flag is not a product exemption. Products train
-this stamp.
+trainer's `--lm_target`. Products still call `winning_formulation()`, which
+currently returns this gmix recipe.
 
-## Other stamps that are not the winner
+## Named recipes
 
-| Stamp | Where it lives | Why it is not the product winner |
+| Callable | Id today | What it is |
 |---|---|---|
-| `locked_shared` | `locked_shared_recipe()` / `SliderRecipe.require_locked_shared` | Music Arm B endpoint game: cover and pole MSE at weight 1, VIC and noise off, zero or one particle. Bipolar leaderboard teacher `faithful_guard_e` (rank 1 on `docs/FORMULATION_LEADERBOARD_BIPOLAR.md`, the #36-era behavioral board). |
-| `faithful_plus_neu` | Unipolar leaderboard rank 1 | Hidden-state MSE, not the adversarial particle game. |
-| In-repo research arms | `analysis/slider2d/`, `conceptmod/textsliders/` | Propose-only sweeps. They do not replace `winning_formulation()` until this module changes. |
+| `particle_gmix_1600_v2()` / `gmix_recipe()` | `particle-gmix-1600-v2` | Routed paired-error gmix game. Current `CURRENT_STAMP`. |
+| `locked_shared_recipe()` | Music Arm B `SliderRecipe` | Bipolar endpoint game: cover and pole MSE at weight 1, VIC and noise off, teacher `faithful_guard_e`. |
 
-`locked_shared` stays exported. A product that needs that endpoint game calls
-`locked_shared_recipe()` from this package. It does not paste the recipe into
-its own tree, and it does not relabel that recipe as the winning formulation.
+The product default tracks #38's eventual winner. Call these recipes only
+when a run needs that specific body. Training the product default goes
+through `winning_formulation()`.
 
-## When the winner changes
+## When #38 crowns a winner
 
-Change `STAMP_ID` and the knobs in
-`packages/particle-sliders-core/src/particle_sliders/formulation.py`, and
-update the golden record this file pins. Say so in the commit. Product repos
+In `packages/particle-sliders-core/src/particle_sliders/formulation.py`,
+replace the selection block:
+
+```python
+CURRENT_STAMP_ID = "<crowned id>"
+CURRENT_STAMP = <crowned_recipe>
+CURRENT_STAMP_PROVISIONAL = False
+```
+
+Add the crowned recipe as a named export in that same file if it is not
+already `particle_gmix_1600_v2` or `locked_shared_recipe`. Leave every other
+call site on `winning_formulation()`. Say so in the commit. Product repos
 then bump:
 
 ```text
@@ -101,11 +116,12 @@ their trainers.
    training the stamp or by changing the stamp here, not by keeping a local
    schedule.
 2. **krea2-particle-sliders.** Add the same git subdirectory dependency.
-   Train through `winning_formulation()` (routed bridge, global-mix critic,
-   `b_cap`). Delete the "checkout not required / do not depend on
-   particle-sliders" contract, including the `PARTICLE_SLIDERS_ROOT` absence
-   checks. Keep the Hub id `jimmycarter/krea2-turbo-bbox`, the Comfy node, the
-   turbo sample numbers, and the prompt cards in that repo.
+   Train through `winning_formulation()`. Today's provisional body is the gmix
+   recipe (routed bridge, global-mix critic, `b_cap`); #38 can replace that
+   body without a second import. Delete the "checkout not required / do not
+   depend on particle-sliders" contract, including the `PARTICLE_SLIDERS_ROOT`
+   absence checks. Keep the Hub id `jimmycarter/krea2-turbo-bbox`, the Comfy
+   node, the turbo sample numbers, and the prompt cards in that repo.
 3. **supra-concept-sliders.** The opt-in trainer still lives in this
    repository as `conceptmod/textsliders/train_lora_supra.py`. Move that
    product entrypoint into the supra repo and depend on this core for the
