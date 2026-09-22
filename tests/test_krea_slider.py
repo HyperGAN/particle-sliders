@@ -406,6 +406,8 @@ def test_refuses_foreign_backends():
         assert_krea_only("h3-turbo.safetensors")
     with pytest.raises(ValueError, match="Krea-only"):
         assert_krea_only("SupraLabs/Supra2-IMG")
+    with pytest.raises(ValueError, match="krea2-turbo-bbox"):
+        assert_krea_only("jimmycarter/krea2-turbo-bbox")
     assert_krea_only("krea/Krea-2-Raw")
     assert_krea_only("/comfy/Krea-2-Turbo.safetensors")
 

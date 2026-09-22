@@ -34,6 +34,10 @@ rows past neu's token span are actually attended.
 ``--embed_late_weight`` (default 2.0) / ``--embed_late_layer_start``
 (default 6) let detail-krea train late layers harder than smile
 without editing constants.
+
+Krea2 turbo-bbox (``jimmycarter/krea2-turbo-bbox``, CFG 0, 8 steps,
+mu=1.15) is a separate entrypoint: ``train_lora_krea2.py``. This
+trainer refuses that model id so Raw 4.5 / 28 cannot be applied to it.
 """
 
 from __future__ import annotations
@@ -101,6 +105,7 @@ from conceptmod.textsliders.slider_targets import (
     krea_plus_neu_loss,
     krea_plus_neu_teachers,
     krea_sample_card,
+    refuse_krea2_bbox_on_stock_krea,
     krea_unused_hold_loss,
     krea_unused_hold_mask,
     krea_word_tokens,
@@ -612,6 +617,7 @@ class DummyKreaBackend:
 
 
 def assert_krea_only(model_id: str) -> None:
+    refuse_krea2_bbox_on_stock_krea(model_id)
     lowered = str(model_id).lower()
     for name in _FOREIGN_BACKENDS:
         if name in lowered:

@@ -2139,6 +2139,27 @@ KREA_RAW_STEPS = 28
 KREA_RAW_CFG = 4.5
 KREA_TURBO_STEPS = 8
 KREA_TURBO_CFG = 0.0
+# Distilled Krea timestep shift (stock Turbo run card and krea2-turbo-bbox).
+# Raw uses calculate_shift. This is not a CFG scale.
+KREA_DISTILLED_MU = 1.15
+# Transformer-only finetune. Train and sample here — not the Raw card.
+# ``train_lora_krea.py`` refuses this id so CFG 4.5 / 28 cannot attach.
+KREA2_BBOX_MODEL = "jimmycarter/krea2-turbo-bbox"
+KREA2_BBOX_EPOCH = "epoch-14-step-73184"
+KREA2_BBOX_SUBFOLDER = f"{KREA2_BBOX_EPOCH}/transformer"
+KREA2_BBOX_SKELETON = KREA_RAW_MODEL
+KREA2_BBOX_STEPS = KREA_TURBO_STEPS
+KREA2_BBOX_CFG = KREA_TURBO_CFG
+KREA2_BBOX_MU = KREA_DISTILLED_MU
+KREA2_BBOX_COMFY_FILE = "krea2-bbox-turbo-comfy-latest.safetensors"
+KREA2_BBOX_ID_MARKERS = (
+    "krea2-turbo-bbox",
+    "krea2_turbo_bbox",
+    "krea2-bbox",
+    "krea2_bbox",
+    "turbo-bbox",
+    "turbo_bbox",
+)
 KREA_HOLD_WEIGHT = 1.0
 # Smile / happy yaml: unused-token hold is a near-constant on frozen TE
 # and dominates the logged loss (live smile-krea: hold≈7.31 of ≈7.35).
@@ -2405,13 +2426,58 @@ def apply_continuous_lora_scale(module, scale: float) -> int:
     return updated
 
 
+def is_krea2_turbo_bbox_id(model_id: str) -> bool:
+    """True for the bbox turbo finetune, not stock Raw or ``Krea-2-Turbo``."""
+    text = str(model_id).lower().replace(" ", "")
+    return any(marker in text for marker in KREA2_BBOX_ID_MARKERS)
+
+
+def refuse_krea2_bbox_on_stock_krea(model_id: str) -> None:
+    """Stock Raw/Turbo helpers must not accept the bbox finetune id."""
+    if not is_krea2_turbo_bbox_id(model_id):
+        return
+    raise ValueError(
+        "this trainer is Krea-only (Raw / stock Turbo run card); "
+        "refused krea2-turbo-bbox backend "
+        f"{model_id!r}. Use conceptmod/textsliders/train_lora_krea2.py "
+        "(8 steps, CFG 0, mu=1.15). Do not reuse Raw CFG 4.5 / 28."
+    )
+
+
+def krea_scheduler_mu(
+    *,
+    is_distilled: bool,
+    mu: float | None = None,
+) -> float | None:
+    """Pinned ``mu``, else ``1.15`` when distilled, else None (caller shifts).
+
+    ``mu`` here is the FlowMatch timestep shift, not CFG.
+    """
+    if mu is not None:
+        return float(mu)
+    if is_distilled:
+        return float(KREA_DISTILLED_MU)
+    return None
+
+
 def krea_looks_turbo(model_id: str) -> bool:
-    """Local ComfyUI Turbo files are named with ``turbo``; hub Raw is not."""
+    """Local ComfyUI Turbo files are named with ``turbo``; hub Raw is not.
+
+    ``jimmycarter/krea2-turbo-bbox`` contains ``turbo`` but is not this
+    run card. That id belongs to ``train_lora_krea2.py``.
+    """
+    if is_krea2_turbo_bbox_id(model_id):
+        return False
     return "turbo" in str(model_id).lower()
 
 
 def krea_sample_card(model_id: str) -> dict[str, float | int | str]:
-    """Live sample card. Train LoRAs on Raw; run on Turbo."""
+    """Live sample card. Train LoRAs on Raw; run on stock Turbo.
+
+    The bbox finetune is refused here so a ``turbo`` substring cannot
+    silently select 8 / CFG 0 without ``mu=1.15`` and the epoch subfolder.
+    """
+    refuse_krea2_bbox_on_stock_krea(model_id)
     if krea_looks_turbo(model_id):
         return {
             "variant": "turbo",
@@ -2436,8 +2502,9 @@ def resolve_krea_sample_guidance(
 
     Explicit ``--sample_guidance`` always wins. Raw CFG 4.5 on TE-only
     can cancel the adapted Δ when uncond was encoded under the same
-    TE scale (smile-krea-v3).
+    TE scale (smile-krea-v3). The bbox finetune is not a stock card.
     """
+    refuse_krea2_bbox_on_stock_krea(model_id)
     if sample_guidance is not None:
         return float(sample_guidance)
     if resolve_krea_lm_target(lm_target, recipe) == "embed":

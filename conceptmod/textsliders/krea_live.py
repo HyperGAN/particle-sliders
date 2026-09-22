@@ -77,6 +77,7 @@ from conceptmod.textsliders.slider_targets import (
     krea_hold_unused_embeds,
     krea_looks_turbo,
     krea_resolve_dit_encoder_mask,
+    krea_scheduler_mu,
     krea_unused_hold_mask,
     krea_word_tokens,
     resolve_krea_lora_targets,
@@ -236,7 +237,7 @@ class LiveKreaBackend:
         self.allow_hub = bool(allow_hub)
         self.lora_spec = resolve_krea_lora_targets(lora_targets)
         self.encoder_lora = self.lora_spec.train_te
-        self.pipe = _load_pipeline(self.model_id, allow_hub=self.allow_hub)
+        self.pipe = self.build_pipeline()
         self.pipe.vae.to("cpu")
         self.pipe.text_encoder.to(self.device)
         self.pipe.transformer.to(self.device)
@@ -305,6 +306,14 @@ class LiveKreaBackend:
         self.dim = in_channels
         self.compute_dtype = torch.bfloat16
         self.max_sequence_length = 512
+
+    def build_pipeline(self):
+        """Stock Raw hub id or a local Comfy ``.safetensors``.
+
+        ``LiveKrea2BboxBackend`` overrides this. The default stays the
+        Raw / stock-Turbo loader (no bbox subfolder, no pinned mu).
+        """
+        return _load_pipeline(self.model_id, allow_hub=self.allow_hub)
 
     def _attach_encoder_lora(self, rank: int) -> None:
         """conceptmod ``attach_encoder_lora``: Qwen3-VL attn q/k/v/o."""
@@ -708,9 +717,11 @@ class LiveKreaBackend:
         sched = self.pipe.scheduler.from_config(self.pipe.scheduler.config)
         sigmas = np.linspace(1.0, 1.0 / max(int(num_steps), 1), int(num_steps))
         image_seq_len = self.latent_shape[0]
-        if self.is_distilled:
-            mu = 1.15
-        else:
+        mu = krea_scheduler_mu(
+            is_distilled=bool(self.is_distilled),
+            mu=getattr(self, "mu", None),
+        )
+        if mu is None:
             mu = _calculate_shift(
                 image_seq_len,
                 sched.config.get("base_image_seq_len", 256),

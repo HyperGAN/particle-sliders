@@ -1,0 +1,35 @@
+prompts_file: "conceptmod/textsliders/data/prompts-krea2-bbox.yaml"
+pretrained_model:
+  name_or_path: "jimmycarter/krea2-turbo-bbox"
+  transformer_subfolder: "epoch-14-step-73184/transformer"
+  skeleton: "krea/Krea-2-Raw"
+  comfy_filename: "krea2-bbox-turbo-comfy-latest.safetensors"
+  is_distilled: true
+network:
+  type: "lora"
+  rank: 16
+  alpha: 16.0
+  lora_targets: "dit"
+  training_method: "lora"
+train:
+  precision: "bfloat16"
+  iterations: 800
+  lr: 0.0001
+  optimizer: "AdamW"
+  resolution: 512
+  # Smile / bare captions. Age yaml on the stock trainer keeps 1.0.
+  hold_weight: 0.1
+save:
+  name: "smile-krea2-bbox"
+  path: "models/krea2-bbox-slider"
+  precision: "float32"
+logging:
+  use_wandb: false
+  verbose: false
+sample:
+  steps: 8
+  guidance: 0.0
+  mu: 1.15
+  # Not the Raw card.
+  raw_steps: 28
+  raw_guidance: 4.5

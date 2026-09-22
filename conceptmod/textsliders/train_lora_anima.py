@@ -1967,7 +1967,29 @@ def train_live(args: argparse.Namespace) -> dict:
     return sidecar
 
 
+_ANIMA_FOREIGN_BACKENDS = (
+    "krea",
+    "supra",
+    "sana",
+    "z-image",
+    "zimage",
+    "zit",
+    "minimax",
+)
+
+
+def assert_anima_only(model_id: str) -> None:
+    """Refuse Krea / Krea2-turbo-bbox / Supra / Sana ids on the Anima trainer."""
+    lowered = str(model_id).lower()
+    for name in _ANIMA_FOREIGN_BACKENDS:
+        if name in lowered:
+            raise ValueError(
+                f"this trainer is Anima-only; refused foreign backend {name!r}"
+            )
+
+
 def train(args: argparse.Namespace) -> dict:
+    assert_anima_only(str(args.model_id))
     if getattr(args, "print_turbo_preview", False):
         card = turbo_preview_card()
         print(json.dumps(card, indent=2))

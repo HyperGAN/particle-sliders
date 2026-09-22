@@ -1,0 +1,48 @@
+# Krea2 turbo-bbox UNI smile slider.
+#
+# Base: jimmycarter/krea2-turbo-bbox (distilled transformer).
+# Train and sample at 8 steps, CFG 0, mu=1.15.
+# Do not reuse the Raw card (CFG 4.5 / 28) from prompts-krea.yaml.
+#
+# Bare captions. attributes pin unused gender for hold bookkeeping
+# and are not prefixed onto target / positive / neutral.
+# Minus is a canary only. control_prompt is verify-only.
+#
+# About 90% of the base model's training used the grounding DSL in
+# the Hub PROMPTING.md ([x0,y0,x1,y1] on a 0–1000 grid, x first).
+# Captions are passed through unchanged. The grounded row below is
+# one such caption, not a parsed layout.
+plus_label: Happy
+minus_label: Sad
+recommended_range: [0.0, 2.0]
+concept_words: "smiling, smile, happy, joyful, teeth"
+control_prompt: "a bowl of fruit on a table"
+bare_captions: true
+rows:
+  - target: "a person, neutral expression, closed mouth"
+    positive: "a person, big smile showing teeth, happy joyful expression"
+    neutral: "a person, neutral expression, closed mouth"
+    negative: "a sad person"
+    attributes: ["male", "female"]
+    action: enhance
+    guidance_scale: 0.0
+    resolution: 512
+    batch_size: 1
+  - target: "a portrait of a person, neutral expression, closed mouth"
+    positive: "a portrait of a person, big smile showing teeth, happy joyful expression"
+    neutral: "a portrait of a person, neutral expression, closed mouth"
+    negative: "a portrait of a sad person"
+    attributes: ["male", "female"]
+    action: enhance
+    guidance_scale: 0.0
+    resolution: 512
+    batch_size: 1
+  - target: "p[0,0,1000,1000] A person, neutral expression, closed mouth. pe[200,80,800,980] A person, neutral expression, closed mouth."
+    positive: "p[0,0,1000,1000] A person, big smile showing teeth, happy joyful expression. pe[200,80,800,980] A person, big smile showing teeth, happy joyful expression."
+    neutral: "p[0,0,1000,1000] A person, neutral expression, closed mouth. pe[200,80,800,980] A person, neutral expression, closed mouth."
+    negative: "p[0,0,1000,1000] A sad person. pe[200,80,800,980] A sad person."
+    attributes: ["male", "female"]
+    action: enhance
+    guidance_scale: 0.0
+    resolution: 512
+    batch_size: 1

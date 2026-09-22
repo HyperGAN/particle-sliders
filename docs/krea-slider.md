@@ -10,6 +10,13 @@ CPU tests use `--dummy` mocks. No Hub weights, no GPU train in CI.
 Live load is offline-safe (`local_files_only` / `HF_HUB_OFFLINE=1`)
 unless `--allow_hub` is set (same gate as Anima).
 
+Krea2 **turbo-bbox** (`jimmycarter/krea2-turbo-bbox`, 8 steps, CFG 0,
+mu=1.15) is a separate entrypoint:
+[docs/krea2-turbo-bbox-slider.md](krea2-turbo-bbox-slider.md)
+(`train_lora_krea2.py`). This Raw trainer refuses that model id.
+Stock Raw stays CFG 4.5 / 28 steps. Stock Turbo run files whose names
+contain `turbo` (and not `krea2-bbox`) stay on this card.
+
 ## UNI analog (not Music 3 lyric-hold)
 
 Music 3 lyric-hold pins yaml `lyrics` tokens. Krea does not.
@@ -459,4 +466,5 @@ smile-krea-v4 TE-only embed UNI.
 - [conceptmod backends/krea.py](https://github.com/mikkel/conceptmod/blob/main/conceptmod/backends/krea.py)
 - [docs/sana-slider.md](sana-slider.md) — cheap happy UNI analog
 - [docs/anima-slider.md](anima-slider.md) — smile-first (do not copy `same_crop` / `embed_struct` here)
+- [docs/krea2-turbo-bbox-slider.md](krea2-turbo-bbox-slider.md) — distilled bbox finetune (do not reuse this Raw card)
 - Music 3 live defaults stay `--lm_target v9 --pole_mode hidden`.
