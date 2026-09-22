@@ -1,0 +1,16 @@
+{
+  "source_commit": "beaffeb3640c4554a7315998c04a5909f384b972",
+  "repository": "https://github.com/HyperGAN/particle-sliders",
+  "teacher_source": "conceptmod/textsliders/slider_targets.py",
+  "teacher_source_sha256": "5db3a2cdc9635a0f15f6bc59c80f00700ef04d35241650b935b373f610a85412",
+  "teacher_functions": [
+    "lm_unit",
+    "lm_hold_dir",
+    "lm_pair_odd_sub_e",
+    "lm_faithful_sub_e",
+    "lm_blend_guard",
+    "lm_faithful_guard_e"
+  ],
+  "grad_source": "analysis/slider2d/grad_regularizers.py",
+  "grad_sha256": "c1372f537c8f53b6d3fdedc3dc9521533d3b5f954c8d1e012af02d5c87f864e5"
+}

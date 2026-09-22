@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "concept-slider-core"
-version = "0.1.0"
+version = "0.2.0"
 description = "Shared routed-particle training primitives and LoRA fitting"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -18,7 +18,7 @@ test = ["pytest>=8"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-concept_slider_core = ["LICENSE", "provenance.json"]
+concept_slider_core = ["LICENSE", "provenance.json", "locked_provenance.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

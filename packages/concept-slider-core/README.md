@@ -1,5 +1,44 @@
 # Concept Slider Core
 
+Source repository: [HyperGAN/particle-sliders](https://github.com/HyperGAN/particle-sliders)
+(formerly `sliders-conceptmod`). The Python import remains `concept_slider_core`.
+
+The opt-in deterministic endpoint engine accepts a serializable `SliderRecipe`:
+
+```python
+from concept_slider_core import SliderRecipe, EndpointGame, require_same_critic
+
+recipe = SliderRecipe.from_dict({"cover_weight": 1, "pole_weight": 1,
+                                "grad_kappa": 1, "particles": 1})
+recipe.require_locked_shared()
+require_same_critic(production_critic_identity, experiment_critic_identity)
+game = EndpointGame(adapter, existing_critic, recipe, count=len(training_rows))
+game.update(predict_context, target_poles, step=1)
+```
+
+`predict_context(ids, sign)` is a context manager yielding full model predictions
+in the declared training coordinates; keep the adapter sign active through
+backward, including activation checkpoint recomputation. `target_poles(ids)`
+returns the corresponding frozen positive and negative teachers. The consumer
+supplies the critic: this engine never chooses or replaces its architecture.
+
+RpGAN and the exact ParticleGAN gradient regularizer are shared implementations.
+`grad_arm`, coefficient, kappa, norm and interval all affect actual backward.
+Pole and coverage weights affect the generator loss. Without a stochastic prior,
+both losses equal the sum of positive/negative endpoint MSEs; weights 1/1 thus
+give total coefficient 2. D/G use independent replayable row streams. Unknown
+or unsupported settings fail before optimization (FM, VIC and noise must be off
+in this deterministic engine). This is an opt-in engine, not an in-place migration
+of any existing model trainer.
+
+`teacher_poles` exposes the original `faithful_guard_e` geometry, extracted
+verbatim with source hashes in `locked_provenance.json`. With a declared leak
+axis it requires a declared slider axis. Without a leak axis it explicitly
+reports `no_declared_leak_raw_poles`, matching the Music wrapper; this posture
+does **not** test leftover removal. The critic-specific `tx` prohibition remains
+the Music consumer's responsibility; do not change a consumer's critic to evade
+its compatibility guard.
+
 Reusable particle math and fitting algorithms for model-specific concept slider
 releases. The first consumer is [Anima](https://github.com/mikkel/anima-concept-sliders).
 This package depends only on PyTorch; it does not install a model runtime.
