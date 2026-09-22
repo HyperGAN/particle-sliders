@@ -5,7 +5,8 @@ Opt-in flow-matching 2B DiT slider on
 (Cosmos-Predict2, Qwen3+T5, Qwen-Image VAE). **Does not change the
 default Music 3 trainer** (`train_lora_music3.py` / `--lm_target v9` /
 `train_lm_slider_music3.py --pole_mode hidden`). Not Sana, Krea, ZiT,
-or MiniMax-H3 — those backends stay out of this card.
+MiniMax-H3, or Supra2-IMG — those backends stay out of this card.
+Supra trains through `train_lora_supra.py` ([docs/supra-slider.md](supra-slider.md)).
 
 CPU tests use `--dummy` (tiny DiT `to_q/to_k/to_v/to_out.0` and
 conditioner `q_proj/k_proj/v_proj/o_proj` + whitespace tokenizer).

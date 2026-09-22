@@ -113,8 +113,8 @@ DEFAULT_CONFIG = Path(__file__).resolve().parent / "data" / "config-krea.yaml"
 DEFAULT_PROMPTS = Path(__file__).resolve().parent / "data" / "prompts-krea.yaml"
 DEFAULT_SAVE_DIR = Path("models/krea-slider")
 
-# Banned in this trainer. Anima / ZiT / H3 are a separate PR.
-_FOREIGN_BACKENDS = ("anima", "zit", "h3", "z-image", "zimage")
+# Banned in this trainer until that backend has its own trainer wired.
+_FOREIGN_BACKENDS = ("anima", "zit", "h3", "z-image", "zimage", "supra")
 
 
 @dataclass

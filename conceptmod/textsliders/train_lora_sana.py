@@ -72,7 +72,7 @@ DEFAULT_CONFIG = Path(__file__).resolve().parent / "data" / "config-sana.yaml"
 DEFAULT_PROMPTS = Path(__file__).resolve().parent / "data" / "prompts-sana.yaml"
 DEFAULT_SAVE_DIR = Path("models/sana-slider")
 TARGET_REPLACE = ["Attention"]
-_FOREIGN_BACKENDS = ("z-image", "zimage", "zit", "krea", "anima", "minimax", "h3")
+_FOREIGN_BACKENDS = ("z-image", "zimage", "zit", "krea", "anima", "minimax", "h3", "supra")
 DUMMY_VOCAB = {
     "<pad>": 0,
     "a": 1,
