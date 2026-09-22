@@ -32,13 +32,14 @@ This is the cleanest expression of the approach in this
 fork: adversarial teacher matching without output MSE, feature matching, lyric
 hold or ending supervision. The [math below](#yue2-the-lead-formulation)
 spells out both the game and its regularizers. Products import
-`particle_sliders.winning_formulation()`. The bound recipe today is the
-provisional stamp `particle-gmix-1600-v2`. The next winner is whatever
-[ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38) crowns on
-the full live leaderboard (9 toys × 29 bounds; partial wins do not count;
+`particle_sliders.winning_formulation()`. The architecture is gmix. The
+formulation parameters are provisional: `particle-gmix-1600-v2` until
+[ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38) crowns a
+full live leaderboard winner (9 toys × 29 bounds; partial wins do not count;
 related search is
 [ParticleGAN #39](https://github.com/255BITS/ParticleGAN/pull/39)).
-Products bump the core pin when that binding changes. They do not fork the math.
+Those parameters plug into the same gmix architecture. Products bump the core
+pin when the overlay changes. They do not fork the math.
 
 This is a substantially divergent fork of
 [Concept Sliders](https://github.com/rohitgandikota/sliders), with its own music

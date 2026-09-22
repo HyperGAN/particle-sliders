@@ -10,68 +10,83 @@ stamp = winning_formulation()
 stamp.require(stamp.as_dict())
 ```
 
-`winning_formulation()` is the only product default. `stamp.provisional` is
-true until [ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38)
-finishes its config and behavior search. The related search is
-[ParticleGAN #39](https://github.com/255BITS/ParticleGAN/pull/39). That search
-is the source of truth for the next winner. The ultimate gate is the full
-live leaderboard: 9 trained toys and all 29 live bounds. A partial win, a
-3-toy screen, or an EMA-only result does not count.
+`winning_formulation()` is the only product entry point. It is gmix
+architecture plus the current formulation overlay.
+
+**Architecture: gmix.** Routed particles and a global-mix critic
+(`gmix_architecture()`). This is the product game structure. It does not
+wait on ParticleGAN #38.
+
+**Formulation: the #38 winner, provisional until that search finishes.**
+Caps, coefficients, learning rates, particle counts, schedules, and a later
+upsampler choice such as residual16 versus transpose come from
+[ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38). The related
+search is [ParticleGAN #39](https://github.com/255BITS/ParticleGAN/pull/39).
+The ultimate gate is the full live leaderboard: 9 trained toys and all 29
+live bounds. A partial win, a 3-toy screen, or an EMA-only result does not
+count. `stamp.formulation_provisional` is true until that crown is plugged
+into the gmix architecture.
 
 Products do not keep a second copy of the routed particle adapter, the
 global-mix critic, the paired-error losses, the noise schedule,
 `locked_shared`, or `GradRegularizer`.
 
-## Current provisional stamp
+## Architecture
 
 | | |
 |---|---|
-| Id | `particle-gmix-1600-v2` |
-| Family | `anneal-routed-particle-error` |
-| Hub recipe name | `anneal-routed-particle-error-yue2-v1` |
-| Game | Paired-error relativistic logistic GAN, particle VIC, `b_cap` gradient cap |
+| Id | `gmix` (`stamp.architecture_id`) |
+| Family | `particle-gmix` |
+| Adapter | Routed particle MLP, rank 8, width 48, router width 16 |
 | Critic | Global-mix, 8 tokens, width 48, 1 layer, 4 heads, score bound 8 |
-| Adapter | Rank 8 routed MLP, 128 particles of dimension 4 |
+| Game | Paired-error relativistic logistic GAN plus particle VIC |
+
+## Current provisional formulation
+
+| | |
+|---|---|
+| Id | `particle-gmix-1600-v2` (`stamp.formulation_id`) |
+| Callable | `particle_gmix_1600_v2()` |
+| Hub recipe name | `anneal-routed-particle-error-yue2-v1` |
+| Particles | 128 of dimension 4 |
+| Cap | `b_cap` coefficient 1, kappa 1, every 4 steps |
 | Noise | Paired-edit whitening, start `edit_rms / 0.28`, decay over 1600 steps, hold `1.3 * edit_rms` |
 | Auxiliary MSE / FM / cover / pole / lyric hold | All zero |
 
-This id is the current provisional default, not a permanent crown. YuE gmix-1600-v2
-is the recipe bound today because it is the released routed-particle game
-(Hub golden record in `analysis/slider2d/yue2_gmix_v2_exam.V2_SPEC`, UNI gates
-in merged #128, Anima's published particle release). It is replaced when #38
-crowns a full-board winner. `locked_shared` is a named recipe in the same
-module. It is not barred from becoming that winner.
+These parameters are the released Hub record
+(`analysis/slider2d/yue2_gmix_v2_exam.V2_SPEC`, UNI gates in merged #128,
+Anima's published particle release). They are the overlay until #38 crowns
+a full-board winner. They are not a second architecture.
 
 `V2_SPEC["propose_only"]` is true so the 2D exam cannot flip the Music
-trainer's `--lm_target`. Products still call `winning_formulation()`, which
-currently returns this gmix recipe.
+trainer's `--lm_target`. Products still call `winning_formulation()`.
 
-## Named recipes
+## Named callables
 
-| Callable | Id today | What it is |
-|---|---|---|
-| `particle_gmix_1600_v2()` / `gmix_recipe()` | `particle-gmix-1600-v2` | Routed paired-error gmix game. Current `CURRENT_STAMP`. |
-| `locked_shared_recipe()` | Music Arm B `SliderRecipe` | Bipolar endpoint game: cover and pole MSE at weight 1, VIC and noise off, teacher `faithful_guard_e`. |
-
-The product default tracks #38's eventual winner. Call these recipes only
-when a run needs that specific body. Training the product default goes
-through `winning_formulation()`.
+| Callable | Role |
+|---|---|
+| `gmix_architecture()` / `gmix_recipe()` | Fixed gmix architecture constants. |
+| `particle_gmix_1600_v2()` | Provisional formulation overlay. Current `CURRENT_FORMULATION`. |
+| `locked_shared_recipe()` | Endpoint recipe (cover and pole MSE, VIC and noise off, teacher `faithful_guard_e`). Not the product architecture. |
+| `winning_formulation()` | Gmix architecture with `CURRENT_FORMULATION` applied. |
 
 ## When #38 crowns a winner
 
 In `packages/particle-sliders-core/src/particle_sliders/formulation.py`,
-replace the selection block:
+replace the formulation block. Leave `gmix_architecture()` in place:
 
 ```python
-CURRENT_STAMP_ID = "<crowned id>"
-CURRENT_STAMP = <crowned_recipe>
-CURRENT_STAMP_PROVISIONAL = False
+CURRENT_FORMULATION_ID = "<crowned id>"
+CURRENT_FORMULATION = <crowned_formulation>
+CURRENT_FORMULATION_PROVISIONAL = False
 ```
 
-Add the crowned recipe as a named export in that same file if it is not
-already `particle_gmix_1600_v2` or `locked_shared_recipe`. Leave every other
-call site on `winning_formulation()`. Say so in the commit. Product repos
-then bump:
+Add the crowned parameter export in that file if it is not already
+`particle_gmix_1600_v2`. The overlay must not restate gmix architecture keys
+(`critic` stays `gmix`). Caps, coefficients, learning rates, particle counts,
+schedules, and an upsampler choice such as residual16 versus transpose belong
+in the overlay. Leave every product call site on `winning_formulation()`.
+Say so in the commit. Product repos then bump:
 
 ```text
 particle-sliders-core @ git+https://github.com/HyperGAN/particle-sliders.git@<new-commit>#subdirectory=packages/particle-sliders-core
@@ -116,9 +131,9 @@ their trainers.
    training the stamp or by changing the stamp here, not by keeping a local
    schedule.
 2. **krea2-particle-sliders.** Add the same git subdirectory dependency.
-   Train through `winning_formulation()`. Today's provisional body is the gmix
-   recipe (routed bridge, global-mix critic, `b_cap`); #38 can replace that
-   body without a second import. Delete the "checkout not required / do not
+   Train through `winning_formulation()` (gmix architecture; today's
+   provisional parameters are `particle-gmix-1600-v2`). #38 replaces the
+   overlay, not the architecture. Delete the "checkout not required / do not
    depend on particle-sliders" contract, including the `PARTICLE_SLIDERS_ROOT`
    absence checks. Keep the Hub id `jimmycarter/krea2-turbo-bbox`, the Comfy
    node, the turbo sample numbers, and the prompt cards in that repo.

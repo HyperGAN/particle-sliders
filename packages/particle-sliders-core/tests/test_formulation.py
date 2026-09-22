@@ -7,15 +7,16 @@ import torch
 from particle_sliders import (
     GradRegularizer,
     RoutedMLP,
+    gmix_architecture,
     gmix_recipe,
     locked_shared_recipe,
     particle_gmix_1600_v2,
     winning_formulation,
 )
 from particle_sliders.formulation import (
-    CURRENT_STAMP,
-    CURRENT_STAMP_ID,
-    CURRENT_STAMP_PROVISIONAL,
+    CURRENT_FORMULATION,
+    CURRENT_FORMULATION_ID,
+    CURRENT_FORMULATION_PROVISIONAL,
     WINNER_GATE,
     WINNER_SOURCE,
 )
@@ -23,13 +24,16 @@ from particle_sliders.formulation import (
 
 def test_package_exports_the_stamp_and_regularizer():
     stamp = winning_formulation()
-    assert stamp is particle_gmix_1600_v2()
-    assert stamp is gmix_recipe()
-    assert CURRENT_STAMP is particle_gmix_1600_v2
-    assert stamp.id == CURRENT_STAMP_ID == "particle-gmix-1600-v2"
-    assert stamp.family == "anneal-routed-particle-error"
-    assert stamp.provisional is True
-    assert CURRENT_STAMP_PROVISIONAL is True
+    assert stamp.formulation is particle_gmix_1600_v2()
+    assert gmix_recipe() == gmix_architecture()
+    assert stamp.architecture == gmix_architecture()
+    assert CURRENT_FORMULATION is particle_gmix_1600_v2
+    assert stamp.architecture_id == stamp.id == "gmix"
+    assert stamp.formulation_id == CURRENT_FORMULATION_ID == "particle-gmix-1600-v2"
+    assert stamp.family == "particle-gmix"
+    assert stamp.formulation_provisional is True
+    assert CURRENT_FORMULATION_PROVISIONAL is True
+    assert stamp.architecture["critic"] == "gmix"
     assert stamp.winner_source == WINNER_SOURCE
     assert "pull/38" in stamp.winner_source
     assert "pull/39" in stamp.related_search

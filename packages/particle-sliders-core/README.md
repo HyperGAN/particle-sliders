@@ -49,27 +49,31 @@ d_loss, g_loss, vic = stamp.losses()
 sigma = stamp.noise_std_at(step, edit_rms)
 ```
 
-`stamp.id` is the current provisional default. Today's id is
-`particle-gmix-1600-v2` (family `anneal-routed-particle-error`), with
-`stamp.provisional` true. The next winner is whatever
+Architecture is gmix (`stamp.architecture_id`). Formulation parameters are
+provisional: today's overlay id is `particle-gmix-1600-v2`
+(`stamp.formulation_id`, `stamp.formulation_provisional` true). The next
+parameter set is whatever
 [ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38) crowns on
 the full live leaderboard (9 toys and all 29 bounds; partial wins do not
-count). Related search:
+count) and is plugged into this same gmix architecture. Related search:
 [ParticleGAN #39](https://github.com/255BITS/ParticleGAN/pull/39).
-Replace `CURRENT_STAMP_ID` and `CURRENT_STAMP` in `particle_sliders.formulation`
-when that search finishes. Products pick up the new record by bumping the
-commit pin and still call `winning_formulation()`. Copying the knobs into
-anima, krea2, or supra is a fork: `require()` raises on formulation drift.
+Replace `CURRENT_FORMULATION_ID` and `CURRENT_FORMULATION` in
+`particle_sliders.formulation` when that search finishes. Do not replace
+`gmix_architecture()`. Products pick up the new overlay by bumping the commit
+pin and still call `winning_formulation()`. Copying the knobs into anima,
+krea2, or supra is a fork: `require()` raises on formulation drift.
 
 Model surfaces a product may override without forking the game: generator,
 critic, and particle learning rates, batch size, and the data-budget fields
 listed on `stamp.model_surface_keys`. Hub model ids, Comfy class names, and
 the train/infer wiring around this stamp stay in the product repo.
 
-`particle_gmix_1600_v2()` / `gmix_recipe()` and `locked_shared_recipe()` are
-named recipes. The product default is `CURRENT_STAMP`, which tracks #38's
-eventual winner. `locked_shared` (Music Arm B, teacher `faithful_guard_e`)
-stays callable and can become that default if the full board crowns it.
+`gmix_architecture()` / `gmix_recipe()` is the fixed structure.
+`particle_gmix_1600_v2()` is the provisional formulation overlay
+(`CURRENT_FORMULATION`). `locked_shared_recipe()` remains a named endpoint
+recipe. It is not the product architecture. #38's crowned caps, coefficients,
+learning rates, particle counts, and schedules land on gmix through
+`CURRENT_FORMULATION`.
 
 The long-term product pattern is this dependency. A self-contained product
 that forbids a particle-sliders checkout (`PARTICLE_SLIDERS_ROOT` or an

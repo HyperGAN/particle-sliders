@@ -1,19 +1,21 @@
-"""Product winning-formulation stamp.
+"""Product architecture plus the winning formulation overlay.
 
 Import ``winning_formulation()`` from anima-particle-sliders,
 krea2-particle-sliders, supra-concept-sliders, and any later
 ``*-particle-sliders`` product. Do not copy this module into a product repo.
 
-The product default is provisional. The next winner is whatever scores best
-when the config and behavior search on ParticleGAN pull request 38 finishes
-(related search: pull request 39). The ultimate gate is the full live
-leaderboard: 9 trained toys and all 29 live bounds. A partial win does not
-count. Products pick up that crown by bumping the ``particle-sliders-core``
-pin. They keep calling ``winning_formulation()``.
+Architecture is gmix: routed particles and a global-mix critic. That structure
+stays the product game. It is not provisional.
 
-Swap the default in the ``CURRENT_STAMP_ID`` / ``CURRENT_STAMP`` block at the
-bottom of this file. Named recipes (``particle_gmix_1600_v2``,
-``locked_shared_recipe``) stay callable either way.
+Formulation parameters (caps, coefficients, learning rates, particle counts,
+schedules, and a later upsampler choice such as residual16 versus transpose)
+follow the winner of the ParticleGAN pull request 38 search (related search:
+pull request 39). The ultimate gate is the full live leaderboard: 9 trained
+toys and all 29 live bounds. A partial win does not count. Until that search
+finishes, the parameter overlay is the provisional ``particle-gmix-1600-v2``
+record. Swap it in the ``CURRENT_FORMULATION`` block at the bottom of this
+file. The gmix architecture constants stay. Products keep calling
+``winning_formulation()``.
 """
 from types import MappingProxyType
 
@@ -28,21 +30,10 @@ from .reference import (
     rp_g_loss,
 )
 
-# Named recipe ids. The product default is selected once, at the bottom.
-GMIX_STAMP_ID = "particle-gmix-1600-v2"
-GMIX_FAMILY = "anneal-routed-particle-error"
-# The 2D exam records this arm as propose_only so it cannot retarget Music.
-RESEARCH_EXAM_IS_PROPOSE_ONLY = True
-
-WINNER_SOURCE = "https://github.com/255BITS/ParticleGAN/pull/38"
-RELATED_SEARCH = "https://github.com/255BITS/ParticleGAN/pull/39"
-WINNER_GATE = "full live leaderboard: 9 trained toys and all 29 live bounds"
-
-# Golden knobs. Keep in lockstep with V2_SPEC (except propose_only).
-_SPEC = {
-    "recipe_name": "anneal-routed-particle-error-yue2-v1",
-    "config_sha256": "1ef39a623505691b8710cd37cb768452cd79f6666d109614af297e9d270d88bb",
-    "model_glue_reference": "df70ccb2ca8f532bdcc07a343fd12bec77362523",
+# Fixed product architecture. Formulation overlays may not change these.
+ARCHITECTURE_ID = "gmix"
+ARCHITECTURE_FAMILY = "particle-gmix"
+_ARCHITECTURE_SPEC = {
     "generator_objective": "paired_error_rpgan_plus_particle_vic",
     "critic": "gmix",
     "critic_tokens": 8,
@@ -50,6 +41,27 @@ _SPEC = {
     "critic_layers": 1,
     "critic_heads": 4,
     "critic_score_bound": 8.0,
+    "adapter_rank": 8,
+    "adapter_alpha": 8.0,
+    "adapter_width": 48,
+    "router_width": 16,
+}
+ARCHITECTURE_SPEC_KEYS = frozenset(_ARCHITECTURE_SPEC)
+# The 2D exam records the current parameter set as propose_only so it cannot
+# retarget Music. That flag is not an exemption from the gmix architecture.
+RESEARCH_EXAM_IS_PROPOSE_ONLY = True
+
+WINNER_SOURCE = "https://github.com/255BITS/ParticleGAN/pull/38"
+RELATED_SEARCH = "https://github.com/255BITS/ParticleGAN/pull/39"
+WINNER_GATE = "full live leaderboard: 9 trained toys and all 29 live bounds"
+
+# Provisional formulation parameters. Keep in lockstep with V2_SPEC except
+# propose_only and the architecture keys above.
+GMIX_1600_FORMULATION_ID = "particle-gmix-1600-v2"
+_GMIX_1600_PARAMETERS = {
+    "recipe_name": "anneal-routed-particle-error-yue2-v1",
+    "config_sha256": "1ef39a623505691b8710cd37cb768452cd79f6666d109614af297e9d270d88bb",
+    "model_glue_reference": "df70ccb2ca8f532bdcc07a343fd12bec77362523",
     "g_lr": 0.0006,
     "d_lr": 0.0009,
     "particle_lr": 0.006,
@@ -84,10 +96,6 @@ _SPEC = {
     "lm_target": "faithful_plus_neu",
     "trained_scales": (1.0,),
     "recommended_range": (0.0, 1.0),
-    "adapter_rank": 8,
-    "adapter_alpha": 8.0,
-    "adapter_width": 48,
-    "router_width": 16,
     "adv_weight": 1.0,
     "aux_weights": {
         "anchor_weight": 0.0,
@@ -100,7 +108,8 @@ _SPEC = {
     },
 }
 
-# Game identity. A product that changes any of these has forked the stamp.
+# Keys require() locks. Architecture keys are included so a product cannot
+# swap the critic or the routed adapter while claiming this stamp.
 FORMULATION_KEYS = frozenset({
     "generator_objective",
     "critic",
@@ -180,26 +189,54 @@ def _thaw(value):
     return value
 
 
-class WinningFormulation:
-    """One named recipe. Products train whichever object ``winning_formulation()`` returns."""
+class FormulationParameters:
+    """Swappable parameter overlay. Does not include the gmix architecture."""
 
-    def __init__(self, stamp_id, family, spec):
+    def __init__(self, formulation_id, parameters):
+        clash = ARCHITECTURE_SPEC_KEYS & set(parameters)
+        if clash:
+            raise RuntimeError(f"formulation overlay restates gmix architecture keys: {sorted(clash)}")
+        self.id = formulation_id
+        self.parameters = _freeze(dict(parameters))
+        self.provisional = False
+
+
+class WinningFormulation:
+    """Gmix architecture plus one formulation overlay. Products use ``winning_formulation()``."""
+
+    def __init__(self, formulation):
         overlap = FORMULATION_KEYS & MODEL_SURFACE_KEYS | FORMULATION_KEYS & PROVENANCE_KEYS | MODEL_SURFACE_KEYS & PROVENANCE_KEYS
         if overlap:
             raise RuntimeError(f"stamp key classified twice: {sorted(overlap)}")
+        if ARCHITECTURE_SPEC_KEYS - FORMULATION_KEYS:
+            raise RuntimeError("architecture keys must stay inside the require() lock")
+        parameters = dict(formulation.parameters)
+        spec = {**_ARCHITECTURE_SPEC, **parameters}
         covered = FORMULATION_KEYS | MODEL_SURFACE_KEYS | PROVENANCE_KEYS
         if covered != set(spec):
             raise RuntimeError(
                 f"stamp keys drifted from the classifier: missing={sorted(set(spec) - covered)} "
                 f"extra={sorted(covered - set(spec))}"
             )
-        self.id = stamp_id
-        self.family = family
+        self.architecture_id = ARCHITECTURE_ID
+        self.family = ARCHITECTURE_FAMILY
+        self.architecture = _freeze({
+            "architecture_id": ARCHITECTURE_ID,
+            "family": ARCHITECTURE_FAMILY,
+            "adapter": "routed_particle",
+            "game": _ARCHITECTURE_SPEC["generator_objective"],
+            **_ARCHITECTURE_SPEC,
+        })
+        self.architecture_keys = ARCHITECTURE_SPEC_KEYS
+        self.formulation_id = formulation.id
+        self.formulation = formulation
+        self.formulation_provisional = formulation.provisional
+        self.id = ARCHITECTURE_ID
         self.spec = _freeze(spec)
         self.formulation_keys = FORMULATION_KEYS
+        self.parameter_keys = frozenset(parameters)
         self.model_surface_keys = MODEL_SURFACE_KEYS
         self.provenance_keys = PROVENANCE_KEYS
-        self.provisional = False
         self.winner_source = WINNER_SOURCE
         self.related_search = RELATED_SEARCH
         self.winner_gate = WINNER_GATE
@@ -219,14 +256,14 @@ class WinningFormulation:
             raise TypeError("winning formulation require() expects a dict of knobs")
         missing = sorted(self.formulation_keys - set(actual))
         if missing:
-            raise ValueError(f"winning formulation {self.id} incomplete: {missing}")
+            raise ValueError(f"winning formulation {self.formulation_id} on {self.architecture_id} incomplete: {missing}")
         differences = {}
         for key in sorted(self.formulation_keys | (self.provenance_keys & set(actual))):
             if actual[key] != self.spec[key]:
                 differences[key] = {"expected": _thaw(self.spec[key]), "actual": actual[key]}
         if differences:
             raise ValueError(
-                f"winning formulation drift ({self.id}): {differences}. "
+                f"winning formulation drift ({self.architecture_id}/{self.formulation_id}): {differences}. "
                 "Change the stamp in HyperGAN/particle-sliders; do not fork it in a product repo."
             )
         unknown = sorted(set(actual) - self.formulation_keys - self.model_surface_keys - self.provenance_keys)
@@ -283,26 +320,41 @@ class WinningFormulation:
         return rp_d_loss, rp_g_loss, particle_vic
 
 
-_GMIX = WinningFormulation(GMIX_STAMP_ID, GMIX_FAMILY, _SPEC)
+_GMIX_ARCHITECTURE = _freeze({
+    "architecture_id": ARCHITECTURE_ID,
+    "family": ARCHITECTURE_FAMILY,
+    "adapter": "routed_particle",
+    "game": _ARCHITECTURE_SPEC["generator_objective"],
+    **_ARCHITECTURE_SPEC,
+})
+_GMIX_1600 = FormulationParameters(GMIX_1600_FORMULATION_ID, _GMIX_1600_PARAMETERS)
 
 
-def particle_gmix_1600_v2():
-    """Named recipe: routed paired-error gmix game (Hub ``particle-gmix-1600-v2``)."""
-    return _GMIX
+def gmix_architecture():
+    """Fixed product architecture: routed particles and a global-mix critic."""
+    return _GMIX_ARCHITECTURE
 
 
 def gmix_recipe():
-    """Alias of :func:`particle_gmix_1600_v2`."""
-    return particle_gmix_1600_v2()
+    """Alias of :func:`gmix_architecture`. The gmix structure is not a swappable placeholder."""
+    return gmix_architecture()
+
+
+def particle_gmix_1600_v2():
+    """Provisional formulation parameters from the Hub ``particle-gmix-1600-v2`` record.
+
+    Caps, coefficients, learning rates, particle counts, and schedules. Not the
+    architecture. Replaced when ParticleGAN #38 crowns a full-board winner.
+    """
+    return _GMIX_1600
 
 
 def locked_shared_recipe():
-    """Named recipe: bipolar endpoint stamp (Music Arm B / ``require_locked_shared``).
+    """Named endpoint recipe (Music Arm B / ``require_locked_shared``).
 
     VIC, noise, and feature matching are off. The teacher is ``faithful_guard_e``.
-    Callable on its own. It becomes the product default only if the selection
-    block below is pointed at an export of this recipe after ParticleGAN #38
-    crowns it on the full live leaderboard.
+    Callable for a run that asks for that body. It is not the product
+    architecture. ParticleGAN #38 updates ``CURRENT_FORMULATION`` on gmix.
     """
     recipe = SliderRecipe()
     recipe.require_locked_shared()
@@ -310,24 +362,29 @@ def locked_shared_recipe():
 
 
 # ---------------------------------------------------------------------------
-# Product default. Replace this block when ParticleGAN #38 crowns a winner
+# Formulation overlay. Replace this block when ParticleGAN #38 crowns a winner
 # on the full live leaderboard (9 toys × 29 bounds). Partial wins do not
 # count. Related search: ParticleGAN #39. The export's ``.id`` must equal
-# CURRENT_STAMP_ID. Products keep calling winning_formulation().
+# CURRENT_FORMULATION_ID, and its parameters must not restate gmix architecture
+# keys. Products keep calling winning_formulation().
 # ---------------------------------------------------------------------------
-CURRENT_STAMP_ID = GMIX_STAMP_ID
-CURRENT_STAMP = particle_gmix_1600_v2
-CURRENT_STAMP_PROVISIONAL = True
+CURRENT_FORMULATION_ID = GMIX_1600_FORMULATION_ID
+CURRENT_FORMULATION = particle_gmix_1600_v2
+CURRENT_FORMULATION_PROVISIONAL = True
 
-_CURRENT = CURRENT_STAMP()
-if getattr(_CURRENT, "id", None) != CURRENT_STAMP_ID:
+_OVERLAY = CURRENT_FORMULATION()
+if getattr(_OVERLAY, "id", None) != CURRENT_FORMULATION_ID:
     raise RuntimeError(
-        f"CURRENT_STAMP {CURRENT_STAMP!r} returned id {getattr(_CURRENT, 'id', None)!r}, "
-        f"expected {CURRENT_STAMP_ID!r}"
+        f"CURRENT_FORMULATION {CURRENT_FORMULATION!r} returned id {getattr(_OVERLAY, 'id', None)!r}, "
+        f"expected {CURRENT_FORMULATION_ID!r}"
     )
-_CURRENT.provisional = CURRENT_STAMP_PROVISIONAL
+_OVERLAY.provisional = CURRENT_FORMULATION_PROVISIONAL
+_CURRENT = WinningFormulation(_OVERLAY)
 
 
 def winning_formulation():
-    """Return the current product stamp. This is the only entry point products import."""
+    """Gmix architecture with the current formulation overlay.
+
+    This is the only entry point products import.
+    """
     return _CURRENT

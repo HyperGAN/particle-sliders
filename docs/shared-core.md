@@ -20,10 +20,11 @@ flowchart TB
 
 | Area | This core | Product repository |
 |---|---|---|
-| Winning formulation | `particle_sliders.winning_formulation()` | Provisional until ParticleGAN #38 crowns a full live leaderboard winner (9 toys × 29 bounds). Call `require()`; bump the pin when `CURRENT_STAMP` changes |
+| Architecture | `gmix_architecture()` | Routed particles and a global-mix critic. Fixed product structure |
+| Formulation | `winning_formulation()` | Gmix plus `CURRENT_FORMULATION`. Parameters are provisional until ParticleGAN #38 crowns a full live leaderboard winner (9 toys × 29 bounds). Call `require()`; bump the pin when the overlay changes |
 | Particle adapter | Soft routing and bottleneck MLP | Projection names, hooks, strength controls |
 | Learning | Paired losses, global-mix critic, VIC, noise, `GradRegularizer` | Frozen targets, optimizer step sizes on `model_surface_keys`, update loop |
-| Named recipes | `particle_gmix_1600_v2()`, `locked_shared_recipe()` | The product default is `CURRENT_STAMP`, not a private copy of either recipe |
+| Named callables | `gmix_architecture()`, `particle_gmix_1600_v2()`, `locked_shared_recipe()` | Architecture stays gmix. `particle_gmix_1600_v2` is the provisional parameter overlay. `locked_shared` is an endpoint recipe, not the product architecture |
 | Ordinary LoRA fitting | Dual ridge solve | Activation capture, calibration budget, export names |
 | Evidence | Algorithm tests and the stamp pin against `V2_SPEC` | Weight hashes, prompts, samples, license, runtime lock |
 
@@ -73,12 +74,12 @@ best visual or audio result.
 
 1. Pin a full commit:
    `particle-sliders-core @ git+https://github.com/HyperGAN/particle-sliders.git@<commit>#subdirectory=packages/particle-sliders-core`
-2. Import `winning_formulation` and build the game from that object. Today's
-   provisional body is `particle_gmix_1600_v2` (bridge, critic, regularizer, losses).
+2. Import `winning_formulation` and build the gmix bridge, critic, regularizer,
+   and losses from that object. Today's parameter overlay is `particle_gmix_1600_v2`.
 3. Pass model-surface overrides (learning rates, batch) through `require()`.
    Leave Hub ids, Comfy class names, prompts, and sampling in the product.
-4. When this repository replaces `CURRENT_STAMP` after ParticleGAN #38, bump
-   the pin. Do not copy `formulation.py` across.
+4. When this repository replaces `CURRENT_FORMULATION` after ParticleGAN #38,
+   bump the pin. The gmix architecture stays. Do not copy `formulation.py` across.
 
 The package version identifies the API family. The git revision identifies the
 stamp. Existing product pins of `concept-slider-core` at `beaffeb` remain

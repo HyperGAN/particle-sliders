@@ -1,15 +1,16 @@
-"""Pin the provisional gmix recipe to the Hub golden record on main.
+"""Pin the provisional formulation overlay to the Hub golden record on main.
 
 The exam module imports the YuE2 trainer, so this test reads ``V2_SPEC`` from
-its source instead of importing it. CPU only. ``particle-gmix-1600-v2`` is the
-current provisional product default, not a permanent crown.
+its source instead of importing it. CPU only. Architecture stays gmix.
+``particle-gmix-1600-v2`` is only the current parameter overlay.
 """
 import ast
 from pathlib import Path
 
 from particle_sliders.formulation import (
-    CURRENT_STAMP,
-    CURRENT_STAMP_PROVISIONAL,
+    ARCHITECTURE_SPEC_KEYS,
+    CURRENT_FORMULATION,
+    CURRENT_FORMULATION_PROVISIONAL,
     RESEARCH_EXAM_IS_PROPOSE_ONLY,
     particle_gmix_1600_v2,
     winning_formulation,
@@ -35,13 +36,17 @@ def _v2_spec():
 def test_winning_stamp_matches_v2_spec():
     spec = _v2_spec()
     stamp = winning_formulation()
-    assert CURRENT_STAMP is particle_gmix_1600_v2
-    assert CURRENT_STAMP_PROVISIONAL is True
-    assert stamp.provisional is True
-    assert stamp.id == "particle-gmix-1600-v2"
+    assert CURRENT_FORMULATION is particle_gmix_1600_v2
+    assert CURRENT_FORMULATION_PROVISIONAL is True
+    assert stamp.formulation_provisional is True
+    assert stamp.architecture_id == "gmix"
+    assert stamp.formulation_id == "particle-gmix-1600-v2"
     assert set(stamp.spec) == set(spec) - {"propose_only"}
     for key, value in stamp.spec.items():
         assert value == spec[key], key
+    for key in ARCHITECTURE_SPEC_KEYS:
+        assert key not in stamp.formulation.parameters
+        assert stamp.spec[key] == stamp.architecture[key]
     assert spec["propose_only"] is True
     assert RESEARCH_EXAM_IS_PROPOSE_ONLY is True
-    assert stamp.spec["recipe_name"].startswith(stamp.family)
+    assert stamp.spec["recipe_name"].startswith("anneal-routed-particle-error")
