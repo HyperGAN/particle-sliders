@@ -8,13 +8,28 @@ from torch import nn
 
 from torch.nn import functional as F
 
+_RP_GAN_LOSS = None
+_PARTICLE_VIC = None
+
+
+def _rp_gan_loss():
+    """ParticleGAN develop ``GANLoss(logistic, rp)`` singleton."""
+    global _RP_GAN_LOSS
+    if _RP_GAN_LOSS is None:
+        from particlegan import GANLoss
+
+        _RP_GAN_LOSS = GANLoss(loss_type="logistic", mode="rp")
+    return _RP_GAN_LOSS
+
+
 def rp_d_loss(d_real: torch.Tensor, d_fake: torch.Tensor) -> torch.Tensor:
-    """Relativistic-pair logistic critic loss: prefer D(real) > D(fake)."""
-    return F.softplus(-(d_real - d_fake)).mean()
+    """Relativistic-pair logistic critic loss via ParticleGAN ``GANLoss``."""
+    return _rp_gan_loss().d_loss(d_real, d_fake)
+
 
 def rp_g_loss(d_real: torch.Tensor, d_fake: torch.Tensor) -> torch.Tensor:
-    """Relativistic-pair logistic generator loss: prefer D(fake) > D(real)."""
-    return F.softplus(-(d_fake - d_real)).mean()
+    """Relativistic-pair logistic generator loss via ParticleGAN ``GANLoss``."""
+    return _rp_gan_loss().g_loss(d_fake, d_real)
 
 class _SetBlock(nn.Module):
     """Pre-norm self-attention + SiLU FFN residual block (no posemb).
@@ -155,20 +170,16 @@ class RoutedMLP(nn.Module):
         return self.net(torch.cat((x, z), dim=-1))
 
 def particle_vic(z):
-    """Pinned upstream VICRegLikeLoss (target_std=1, eps=1e-4).
+    """Particle VIC via ParticleGAN develop ``ParticleRegularizer`` (weight=1).
 
-    Sample standard deviation and off-diagonal covariance, on particles only.
-    Source SHA256 d2563bcab93d443cbf2cf2260946a3ba470f1fc584c231b704ec5ac154f668c4.
+    Same target_std=1 / eps=1e-4 math as the historical pinned VICRegLikeLoss.
     """
-    std = torch.sqrt(z.var(dim=0) + 1e-4)
-    variance = F.relu(1. - std).mean()
-    centered = z - z.mean(dim=0)
-    covariance = centered.T @ centered / (len(z) - 1)
-    dim = z.shape[1]
-    if dim == 1:
-        return variance
-    off = covariance.flatten()[:-1].view(dim - 1, dim + 1)[:, 1:].flatten()
-    return variance + off.square().sum() / dim
+    global _PARTICLE_VIC
+    if _PARTICLE_VIC is None:
+        from particlegan import ParticleRegularizer
+
+        _PARTICLE_VIC = ParticleRegularizer(weight=1.0, target_std=1.0, eps=1e-4)
+    return _PARTICLE_VIC(z)
 
 def noise_std(step, start=None, decay_steps=None, hold=None):
     """Geometric anneal from ``start`` to the floor, done at ``decay_steps``.

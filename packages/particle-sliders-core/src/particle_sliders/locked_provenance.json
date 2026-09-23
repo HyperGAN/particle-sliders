@@ -11,6 +11,12 @@
     "lm_blend_guard",
     "lm_faithful_guard_e"
   ],
-  "grad_source": "analysis/slider2d/grad_regularizers.py",
-  "grad_sha256": "c1372f537c8f53b6d3fdedc3dc9521533d3b5f954c8d1e012af02d5c87f864e5"
+  "grad_regularizer": {
+    "impl": "particlegan.GradientPenalty",
+    "compatibility_alias": "GradRegularizer",
+    "particlegan_git": "https://github.com/255BITS/ParticleGAN.git",
+    "particlegan_ref": "develop",
+    "particlegan_sha": "82b72661c03377f348ccb76de37cd4ca02d45a8d",
+    "particlegan_version": "0.6.0"
+  }
 }

@@ -8,6 +8,7 @@
     "conceptmod/textsliders/particle_bridge_gan.py": "7254628500c9d0a3ecc851747ad19dc96e5181b4cba34a505e83855a74256a40",
     "analysis/slider2d/grad_regularizers.py": "c1372f537c8f53b6d3fdedc3dc9521533d3b5f954c8d1e012af02d5c87f864e5"
   },
-  "upstream_particle_gan": "441fdf42",
-  "reference_model_glue": "df70ccb"
+  "upstream_particle_gan": "82b72661c03377f348ccb76de37cd4ca02d45a8d",
+  "reference_model_glue": "df70ccb",
+  "upstream_particle_gan_note": "GradRegularizer is no longer vendored; particle-sliders-core depends on particlegan develop at this SHA. The analysis/slider2d/grad_regularizers.py hash below is historical research-checkout provenance only."
 }
