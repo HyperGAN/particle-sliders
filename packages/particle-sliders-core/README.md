@@ -108,3 +108,12 @@ ids, Comfy nodes, and release evidence. The shared code is the routed
 adapter, the global-mix critic, relativistic paired losses, particle VIC,
 the noise schedule, the gradient regularizer (via ParticleGAN), ordinary
 LoRA fitting, and the winning-formulation stamp.
+
+## Product train step
+
+Call ``winning_formulation()`` then ``FormulationGame`` for the shared
+feature-space D/G step (bridge, critic, losses, regularizer, particle VIC).
+Products project model residuals into ``adapter_rank`` features; they do not
+reimplement the optimizer loop. ``EndpointGame`` remains the bipolar
+teacher/predict path. Distillation stays in ``fit_routed_down``.
+
