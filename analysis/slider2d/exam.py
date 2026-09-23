@@ -91,6 +91,7 @@ from analysis.slider2d.rng import isolated_seed
 from analysis.slider2d.sheet import nucleus
 from conceptmod.textsliders.slider_targets import (
     DUAL_BAND_WEIGHT,
+    EVEN_BLEND_SCALE,
     lm_axis_hold,
     lm_blind_projector,
     lm_dual_band_pole_loss,
@@ -1609,6 +1610,15 @@ def recipes(field: PairField) -> list[tuple[str, dict]]:
         (
             "faithful_sub_e_if_unused",
             {"pole_mode": "hidden", "teacher": "faithful_sub_e_if_unused", "leak_dir": e},
+        ),
+        (
+            "faithful_even_blend",
+            {
+                "pole_mode": "hidden",
+                "teacher": "faithful_gate_odd_sub_even_blend",
+                "leak_dir": e,
+                "even_scale": EVEN_BLEND_SCALE,
+            },
         ),
         (
             "semantic_kl_null",
