@@ -20,7 +20,14 @@ ROOT = Path(__file__).resolve().parents[3]
 def test_reference_sources_exact():
     package = Path(teachers.__file__).parent
     meta = json.loads((package / "locked_provenance.json").read_text())
-    assert hashlib.sha256((package / "grad_regularizers.py").read_bytes()).hexdigest() == meta["grad_sha256"]
+    grad_meta = meta["grad_regularizer"]
+    assert grad_meta["impl"] == "particlegan.GradientPenalty"
+    assert grad_meta["particlegan_sha"] == "82b72661c03377f348ccb76de37cd4ca02d45a8d"
+    # Thin wrapper: no duplicate GradRegularizer class body in this package.
+    wrapper = (package / "grad_regularizers.py").read_text()
+    assert "from particlegan" in wrapper
+    assert "class GradRegularizer" not in wrapper
+    assert wrapper.count("\n") < 40
     upstream = (ROOT / meta["teacher_source"]).read_text()
     extracted = Path(teachers.__file__).read_text()
     def functions(text):

@@ -13,6 +13,12 @@ stamp.require(stamp.as_dict())
 `winning_formulation()` is the only product entry point. It is gmix
 architecture plus the current formulation overlay.
 
+**Depends on ParticleGAN develop.** Pinning `particle-sliders-core` pulls
+`particlegan` (develop SHA in that package's `pyproject.toml`). Products call
+`stamp.regularizer()` / `stamp.losses()`; they do not vendor ParticleGAN
+excerpts. Optional helpers: `particlegan_get_recipe()`,
+`particlegan_locked_shared()` (`make_b_cap` / `make_gan_loss`).
+
 **Architecture: gmix.** Routed particles and a global-mix critic
 (`gmix_architecture()`). This is the product game structure. It does not
 wait on ParticleGAN #38.
@@ -29,7 +35,10 @@ into the gmix architecture.
 
 Products do not keep a second copy of the routed particle adapter, the
 global-mix critic, the paired-error losses, the noise schedule,
-`locked_shared`, or `GradRegularizer`.
+`locked_shared`, or `GradRegularizer`. Cap / GAN loss / particle VIC are
+ParticleGAN develop API calls through this core (`GradientPenalty`,
+`GANLoss`, `ParticleRegularizer`); `GradRegularizer` is only a compatibility
+alias.
 
 ## Architecture
 

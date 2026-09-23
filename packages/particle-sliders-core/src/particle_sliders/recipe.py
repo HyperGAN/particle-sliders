@@ -2,7 +2,7 @@
 from dataclasses import asdict, dataclass, fields
 import math
 
-from .grad_regularizers import GradRegularizer
+from .grad_regularizers import GradientPenalty
 
 
 @dataclass(frozen=True)
@@ -65,7 +65,8 @@ class SliderRecipe:
         self.regularizer()
 
     def regularizer(self):
-        return GradRegularizer(arm=self.grad_arm, coeff=self.grad_coeff,
+        """ParticleGAN ``GradientPenalty`` for this endpoint recipe."""
+        return GradientPenalty(arm=self.grad_arm, coeff=self.grad_coeff,
             kappa=self.grad_kappa, norm=self.grad_norm, lazy_k=self.grad_every,
             method="autograd")
 

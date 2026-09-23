@@ -9,7 +9,10 @@ description = "Shared particle-slider algorithms and the winning formulation sta
 readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
-dependencies = ["torch>=2.4"]
+dependencies = [
+    "torch>=2.4",
+    "particlegan @ git+https://github.com/255BITS/ParticleGAN.git@82b72661c03377f348ccb76de37cd4ca02d45a8d",
+]
 
 [project.optional-dependencies]
 test = ["pytest>=8"]

@@ -19,7 +19,7 @@ file. The gmix architecture constants stay. Products keep calling
 """
 from types import MappingProxyType
 
-from .grad_regularizers import GradRegularizer
+from .grad_regularizers import GradientPenalty
 from .recipe import SliderRecipe
 from .reference import (
     GlobalMixErrorCritic,
@@ -272,8 +272,13 @@ class WinningFormulation:
         return self
 
     def regularizer(self):
-        """ParticleGAN ``b_cap`` arm at this stamp's coefficient, kappa, and lazy interval."""
-        return GradRegularizer(
+        """ParticleGAN ``GradientPenalty`` ``b_cap`` at this stamp's coeff/kappa/lazy.
+
+        Backed by the ``particlegan`` develop API (``GradientPenalty`` /
+        ``GradRegularizer`` alias). Products that still import
+        ``GradRegularizer`` from ``particle_sliders`` keep working.
+        """
+        return GradientPenalty(
             arm="b_cap",
             coeff=float(self.spec["adv_b_cap"]),
             kappa=float(self.spec["adv_reg_kappa"]),
@@ -355,10 +360,37 @@ def locked_shared_recipe():
     VIC, noise, and feature matching are off. The teacher is ``faithful_guard_e``.
     Callable for a run that asks for that body. It is not the product
     architecture. ParticleGAN #38 updates ``CURRENT_FORMULATION`` on gmix.
+
+    The endpoint's ``regularizer()`` is ParticleGAN ``GradientPenalty``. For the
+    ParticleGAN develop locked stamp builders themselves, see
+    :func:`particlegan_locked_shared`.
     """
     recipe = SliderRecipe()
     recipe.require_locked_shared()
     return recipe
+
+
+def particlegan_locked_shared():
+    """ParticleGAN develop ``LOCKED_SHARED`` builders (``make_b_cap``, ``make_gan_loss``).
+
+    Distinct from :func:`locked_shared_recipe`, which is the Music Arm B
+    endpoint ``SliderRecipe`` (cover_weight 1.0). ParticleGAN's demo lock uses
+    cover_weight 1.5 and is refused by ``require_locked_shared`` here.
+    """
+    from particlegan import LOCKED_SHARED, make_b_cap, make_gan_loss
+
+    return {
+        "stamp": LOCKED_SHARED,
+        "b_cap": make_b_cap(),
+        "gan_loss": make_gan_loss(),
+    }
+
+
+def particlegan_get_recipe(name="gan", **overrides):
+    """Reach ``particlegan.get_recipe`` from the documented product surface."""
+    from particlegan import get_recipe
+
+    return get_recipe(name, **overrides)
 
 
 # ---------------------------------------------------------------------------

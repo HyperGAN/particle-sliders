@@ -6,11 +6,13 @@ import torch
 
 from particle_sliders import (
     GradRegularizer,
+    GradientPenalty,
     RoutedMLP,
     gmix_architecture,
     gmix_recipe,
     locked_shared_recipe,
     particle_gmix_1600_v2,
+    particlegan_locked_shared,
     winning_formulation,
 )
 from particle_sliders.formulation import (
@@ -40,8 +42,10 @@ def test_package_exports_the_stamp_and_regularizer():
     assert "9 trained toys" in WINNER_GATE and "29 live bounds" in WINNER_GATE
     regularizer = stamp.regularizer()
     assert isinstance(regularizer, GradRegularizer)
+    assert isinstance(regularizer, GradientPenalty)
     assert regularizer.arm == "b_cap"
     assert regularizer.lazy_k == 4
+    assert regularizer.__class__.__module__.startswith("particlegan")
 
 
 def test_require_locks_the_game_and_allows_model_surfaces():
@@ -94,6 +98,10 @@ def test_locked_shared_stays_a_named_recipe():
     assert recipe.teacher == "faithful_guard_e"
     assert stamp.spec["vicreg_weight"] == 1.0
     assert recipe.vicreg_weight == 0.0
+    assert isinstance(recipe.regularizer(), GradientPenalty)
+    pg = particlegan_locked_shared()
+    assert pg["stamp"].cover_weight == 1.5  # ParticleGAN demo lock, not Music Arm B
+    assert isinstance(pg["b_cap"], GradientPenalty)
 
 
 def test_deprecated_import_alias_matches_and_warns():

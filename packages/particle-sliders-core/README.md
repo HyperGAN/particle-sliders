@@ -12,24 +12,35 @@ Product repositories depend on this package and train
 `winning_formulation()`. They do not re-implement routed particles,
 `locked_shared`, or `GradRegularizer` locally. Formulation toys and the DSL
 board stay in [HyperGAN/conceptmod](https://github.com/HyperGAN/conceptmod).
-This package does not vendor ParticleGAN. `GradRegularizer` is the
-byte-pinned `particlegan` 0.2.0 excerpt already required by the torch pin
-in this research repo; call it from here rather than copying it again.
+
+This package **depends on ParticleGAN develop** (`particlegan` 0.6.0 API).
+Cap, RpGAN loss, and particle VIC come from that public API
+(`GradientPenalty`, `GANLoss`, `ParticleRegularizer`, `make_b_cap`,
+`make_gan_loss`, `get_recipe`). `GradRegularizer` remains a thin
+compatibility alias for anima and other products that still import that name
+from `particle_sliders`. Gmix architecture (RoutedMLP, global-mix critic,
+product game structure) stays in this package.
+
+`particlegan` is a **transitive dependency**: pin `particle-sliders-core` and
+you get the ParticleGAN develop SHA recorded in this package's
+`pyproject.toml` (and in `locked_provenance.json`).
 
 ## Install
 
-Pin a full commit. Install the product's tested PyTorch build first.
+Pin a full commit of HyperGAN/particle-sliders. Install the product's tested
+PyTorch build first; then install this package (it pulls `particlegan`).
 
 ```bash
-python -m pip install --no-deps \
+python -m pip install \
   "particle-sliders-core @ git+https://github.com/HyperGAN/particle-sliders.git@<commit>#subdirectory=packages/particle-sliders-core"
 ```
 
-From a checkout of this repository:
+From a checkout of this repository (editable ParticleGAN + core):
 
 ```bash
-python -m pip install --no-deps -e ./packages/particle-sliders-core
-python -m pytest packages/particle-sliders-core/tests
+python -m pip install -e /path/to/ParticleGAN
+python -m pip install -e ./packages/particle-sliders-core
+python -m pytest packages/particle-sliders-core/tests tests/test_particle_sliders_formulation.py
 ```
 
 The retired subdirectory `packages/concept-slider-core` is a pointer, not the
@@ -37,16 +48,23 @@ package. Commits at or before `beaffeb` still contain the old tree.
 
 ## Winning formulation
 
+Minimal train-loop surface (stamp + ParticleGAN-backed primitives):
+
 ```python
 from particle_sliders import winning_formulation
 
 stamp = winning_formulation()
 stamp.require({**stamp.as_dict(), "g_lr": 2e-5})  # g_lr is a model surface
-bridge = stamp.bridge()
+bridge = stamp.bridge()            # gmix RoutedMLP
 critic = stamp.critic(training_targets, neutrals=training_neutrals)
-regularizer = stamp.regularizer()
-d_loss, g_loss, vic = stamp.losses()
+regularizer = stamp.regularizer()  # particlegan.GradientPenalty (b_cap)
+d_loss, g_loss, vic = stamp.losses()  # particlegan GANLoss + ParticleRegularizer
 sigma = stamp.noise_std_at(step, edit_rms)
+
+# optional: ParticleGAN develop recipes / locked builders
+from particle_sliders import particlegan_get_recipe, particlegan_locked_shared
+recipe = particlegan_get_recipe("gan")
+locked = particlegan_locked_shared()  # make_b_cap + make_gan_loss
 ```
 
 Architecture is gmix (`stamp.architecture_id`). Formulation parameters are
@@ -88,5 +106,5 @@ See [docs/winning-formulation.md](../../docs/winning-formulation.md) and
 Projection lists, hooks, prompt cards, checkpoint schemas, sampling, Hub
 ids, Comfy nodes, and release evidence. The shared code is the routed
 adapter, the global-mix critic, relativistic paired losses, particle VIC,
-the noise schedule, the gradient regularizer, ordinary LoRA fitting, and
-the winning-formulation stamp.
+the noise schedule, the gradient regularizer (via ParticleGAN), ordinary
+LoRA fitting, and the winning-formulation stamp.
