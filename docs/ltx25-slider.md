@@ -36,7 +36,7 @@ pip install git+https://github.com/huggingface/diffusers
 ```
 
 LTX-2.5 is **not in a Diffusers release yet**. Do **not**
-`pip install -r requirements.txt` on the Music 3 env. Live train needs
+`pip install -r legacy/requirements.txt` on the Music 3 env. Live train needs
 an HF token (gated). CI must never download weights.
 
 Constraints: `num_frames % 8 == 1`, H/W divisible by 32. Conv VAE

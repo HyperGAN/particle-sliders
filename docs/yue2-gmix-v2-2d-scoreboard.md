@@ -79,4 +79,5 @@ YuE2 Arm B recipe, or locked `AdvConfig()` defaults move.
 - [docs/README.md](README.md) — operator map
 - [yue2-slider.md](yue2-slider.md) — live CLI vs published vs this arm
 - [yue2-particle-bridge.md](yue2-particle-bridge.md) — original MLP / absolute-whitening audit
+- [winning-formulation.md](winning-formulation.md) — `winning_formulation()` overlay, kept in lockstep with `V2_SPEC` (`tests/test_particle_sliders_formulation.py`)
 - Live Music 3 default stays `--lm_target v9` / `--pole_mode hidden`.

@@ -24,7 +24,7 @@ The separate refined-block reward adapter remains an experimental listening
 release with failed preservation checks; its existing weights and samples
 remain available.
 
-Use the `minimax-music3` conda env. **Never** `pip install -r requirements.txt` (it pins ancient torch/diffusers).
+Use the `minimax-music3` conda env. **Never** `pip install -r legacy/requirements.txt` (it pins ancient torch/diffusers).
 
 YuE2 particles, image/video UNI, and prompt-file names live in
 [docs/README.md](docs/README.md) and [docs/prompts.md](docs/prompts.md).

@@ -114,7 +114,7 @@ CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_minimax_h3.py \
 | not in weights | H3-Context-IR, H3-Regenerate-2K |
 
 Live load needs a current `diffusers` with MiniMax-H3 ModularPipeline. Do **not**
-`pip install -r requirements.txt` on the Music 3 env.
+`pip install -r legacy/requirements.txt` on the Music 3 env.
 
 **B300 torch:** Blackwell `sm_103` needs **`torch 2.13.0+cu130`** (or newer
 cu130). `2.6+cu124` has no `sm_103` and will not run on B300. Install that

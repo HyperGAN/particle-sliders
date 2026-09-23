@@ -9,7 +9,9 @@ are unchanged. It has a separate adapter format and cannot resume an old game.
 **This page is the original reference audit** (absolute-positive whitening,
 3×48 MLP, T=8000, no sigma hold). Live `yue2_particle_bridge.RECIPE` has
 since switched to paired-edit whitening, `noise_hold_ratio=1.3`, and
-`build_game(..., neutrals=...)`. The argparse critic default is still
+`build_game(..., neutrals=...)`; the trainer's `run_recipe` also sets the
+noise horizon to `--steps`, so the 8000-step schedule below is not the live
+one. The argparse critic default is still
 `mlp`; gmix is `--critic gmix`. See [yue2-slider.md](yue2-slider.md) for
 the live/published/gmix-v2 split and
 [yue2-gmix-v2-2d-scoreboard.md](yue2-gmix-v2-2d-scoreboard.md) for the

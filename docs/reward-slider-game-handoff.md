@@ -25,13 +25,13 @@ failed; they do not provide this persistent research loop.
 ## Prepared artifacts and implementation status
 
 The [game specification](../analysis/reward_slider_game_20260908/README.md) is
-ready. It includes:
+ready. It includes (the three JSON files are not in git):
 
-- [benchmark.json](../analysis/reward_slider_game_20260908/benchmark.json): 16
+- `benchmark.json`: 16
   fixed development cases, eight families, two seeds, and fixed 4/8/16-case stages.
-- [reference-scorecards.json](../analysis/reward_slider_game_20260908/reference-scorecards.json):
+- `reference-scorecards.json`:
   Off and the original LoRA at effective strengths 1 and 0.5 on those same cases.
-- [audit.json](../analysis/reward_slider_game_20260908/audit.json): the 48 cached
+- `audit.json`: the 48 cached
   reference WAVs were hash-verified; no new audio was generated for this setup.
 - [build_benchmark.py](../analysis/reward_slider_game_20260908/build_benchmark.py):
   a reproducible builder that refuses to overwrite a changed game specification.
@@ -76,10 +76,11 @@ mistake `checkpoint_ready`, successful unit tests, a decreasing training loss,
 or a zero process exit code for improved music.
 
 Sources: [pilot and original study](../analysis/reward_sliders_20260907/README.md),
-[excerpt diagnostic](../analysis/reward_quality_followup_20260908/results.json),
+excerpt diagnostic (`analysis/reward_quality_followup_20260908/results.json`),
 [stopped strength study](../analysis/reward_search_20260908/README.md),
-[stopped-study statistics](../analysis/reward_search_20260908/audit/stopped-final-diagnostic.json),
-[preference results](../analysis/reward_preference_20260908/results.json).
+stopped-study statistics (`analysis/reward_search_20260908/audit/stopped-final-diagnostic.json`),
+preference results (`analysis/reward_preference_20260908/results.json`).
+The three JSON sources are not in git.
 Different cohorts' win counts cannot be compared as if they were the same test.
 
 ## Define the game once
@@ -257,8 +258,8 @@ signal. Use the same game to compare every exported candidate.
 ### 1. Audit the training forward against deployed merging
 
 Training currently uses attached low-rank forwards in
-[`app/lora_runtime.py`](../../app/lora_runtime.py), while audio evaluation uses
-[`app/generator.py`](../../app/generator.py)'s ordinary weight merger. The latter
+`/ml2/music/app/lora_runtime.py`, while audio evaluation uses
+`/ml2/music/app/generator.py`'s ordinary weight merger. The latter
 adds pristine base and every scaled style/reward delta in CPU FP32, then casts
 once to the host dtype. Separate low-rank arithmetic in BF16 need not produce
 identical outputs.
@@ -407,8 +408,8 @@ targets explicitly. Existing capture files avoid repeating expensive audio
 collection. Exact token recovery needs only the composer and residual decoder.
 
 Use `/home/mikkel/anaconda3/envs/minimax-music3/bin/python`. Never install
-`sliders-conceptmod/requirements.txt`. Read [MUSIC3.md](../MUSIC3.md) and
-[/ml2/music/AGENTS.md](../../AGENTS.md). Never put real artist, band, songwriter,
+`legacy/requirements.txt`. Read [MUSIC3.md](../MUSIC3.md) and
+`/ml2/music/AGENTS.md`. Never put real artist, band, songwriter,
 producer or album names in authored prompts, lyrics, captions, titles, listening
 notes or sidecars. Validate sound-only fixtures and their provenance. If existing
 prompt provenance contains prohibited names, strip it and retrain those weights.
