@@ -1,0 +1,13 @@
+# CPU test and development dependencies for this repository.
+# Install PyTorch first if you need a specific CUDA build; each model backend
+# still needs its own runtime (see the backend guides under docs/).
+torch>=2.4
+numpy
+scipy
+pyyaml
+safetensors
+tqdm
+matplotlib
+pytest>=8
+# Shared core, editable; pulls ParticleGAN at the pinned commit.
+-e ./packages/particle-sliders-core
