@@ -117,3 +117,22 @@ Products project model residuals into ``adapter_rank`` features; they do not
 reimplement the optimizer loop. ``EndpointGame`` remains the bipolar
 teacher/predict path. Distillation stays in ``fit_routed_down``.
 
+
+```python
+from particle_sliders import winning_formulation, FormulationGame
+
+stamp = winning_formulation()
+config = {**stamp.as_dict(), "g_lr": 2e-5}  # only stamp.model_surface_keys may differ
+stamp.require(config)
+
+# targets / neutrals: [N, adapter_rank] paired positive and neutral features.
+# Without them the critic falls back to a random paired bank.
+game = FormulationGame(stamp, config, critic_targets=targets, critic_neutrals=neutrals,
+                       extra_generator=product_params)  # optional trainable product params
+for step in range(1, steps + 1):            # steps count from 1
+    stats = game.step(step, features)       # features: [batch, adapter_rank]
+```
+
+`step()` compares shared noise with noise plus `bridge(features, particles)`
+and returns `d_loss`, `g_loss`, `vic` and `sigma`. The runnable reference is
+[`tests/test_formulation_game.py`](tests/test_formulation_game.py).
