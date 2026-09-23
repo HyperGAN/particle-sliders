@@ -14,8 +14,9 @@ copies, use upstream.
 | `trainscripts/imagesliders/` | Upstream paired-image slider trainer (`data/config*.yaml` paths assume the repository root as working directory) |
 | `requirements.txt` | Upstream diffusion-era pins (torch 2.0, diffusers 0.20) |
 
-The notebooks and eval scripts import `trainscripts.textsliders`, an upstream
-path that no longer exists. This fork's text-slider code lives in
+The notebooks and `eval-scripts/generate_images_{sd1,xl}.py` import
+`trainscripts.textsliders`, an upstream path that no longer exists;
+`generate_images-uce.py` expects a `lora.py` in the working directory. This fork's text-slider code lives in
 [`conceptmod/textsliders/`](../conceptmod/textsliders/), which also holds
 this fork's SD 1.x/2.x, SDXL, SD3, Flux and Stable Cascade trainers.
 

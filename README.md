@@ -37,7 +37,9 @@ Off/On comparisons per control. YuE2's original particle weights and its
 ordinary distilled LoRAs are different artifacts. The demo and the samples
 above use the **original particles**. The
 [distillation guide](https://huggingface.co/ntc-ai/yue2-concept-sliders/blob/main/DISTILLATION.md)
-covers standard LoRA loading and the approximation it introduces.
+covers standard LoRA loading and the approximation it introduces. Anima's
+image samples are at
+[Candlelit / Moonlit](https://huggingface.co/ntc-ai/anima-concept-sliders).
 
 ## Pick your path
 
@@ -59,13 +61,16 @@ learned vectors, and that mixture conditions a small nonlinear branch. Because
 routing stays active at inference, these weights cannot be merged into an
 ordinary LoRA.
 
-Training is a **paired-error adversarial game**. A frozen teacher reads a
-positive caption, such as "female vocal", and the adapted model reads the
-neutral caption. A critic sees shared noise, alone or plus the
-student–teacher error, and the adapter learns to make the two
-indistinguishable. There is no output MSE and no feature-matching term. Only a
-critic gradient cap and a particle variance/covariance regularizer are added.
-The game draws on [ParticleGAN](https://github.com/255BITS/ParticleGAN).
+The preferred formulation trains through a **paired-error adversarial game**.
+A frozen teacher reads a positive caption, such as "female vocal", and the
+adapted model reads the neutral caption. A critic sees shared noise, alone or
+plus the student–teacher error, and the adapter learns to make the two
+indistinguishable. There is no output MSE, feature matching, lyric hold or
+ending loss. Only a critic gradient cap and a particle variance/covariance
+regularizer are added. The game draws on
+[ParticleGAN](https://github.com/255BITS/ParticleGAN). The released Music 3 LM
+sliders use an earlier span-GAN that adds feature matching and ending
+supervision.
 
 [docs/math.md](docs/math.md) has the full equations, the published YuE2
 release settings, the archived training curves and the older LoRA, diffusion
@@ -107,9 +112,16 @@ not by copying knobs.
 
 `concept-slider-core` / `concept_slider_core` is a deprecated alias from the
 Anima extraction. Formulation toys live in
-[HyperGAN/conceptmod](https://github.com/HyperGAN/conceptmod).
+[HyperGAN/conceptmod](https://github.com/HyperGAN/conceptmod). The research
+trainers stay in this tree until each product repo moves its own train/infer
+surface.
 
 ## Train a slider
+
+```bash
+git clone https://github.com/HyperGAN/particle-sliders.git
+cd particle-sliders
+```
 
 Backends are separate. A checkpoint belongs to its base model, adapter host
 and training recipe, and adapter formats are not interchangeable.
@@ -129,12 +141,14 @@ and training recipe, and adapter formats are not interchangeable.
 | [MiniMax-H3](docs/minimax-h3-slider.md) | Omni-Transformer. Opt-in video and audio. |
 | [Tiny LLM](docs/tiny-llm-slider.md) | Qwen3-0.6B attention. Particle-bridge test target. |
 | [Bonsai GGUF](docs/bonsai-gguf-slider.md) | Frozen readouts. Opt-in particle experiment. |
-| [Legacy images](conceptmod/textsliders/) | SD 1.x/2.x, SDXL, SD3, Flux and Stable Cascade trainers. |
+| [Diffusion images](conceptmod/textsliders/) | SD 1.x/2.x, SDXL, SD3, Flux and Stable Cascade trainers (this fork's, not `legacy/`). |
 
 Each backend needs its own environment. There is no universal installer.
-Base-model weights and their runtimes are separate prerequisites. The commands
-below pin `CUDA_VISIBLE_DEVICES=1`, the training card on the shared music
-workstation, which appears as logical `cuda:0`. Change it for your machine.
+Base-model weights and their runtimes are separate prerequisites. On the
+shared music workstation, train and render on **physical GPU 1**; the studio
+uses GPU 0. The commands below set `CUDA_VISIBLE_DEVICES=1`, which exposes that
+card as logical `cuda:0`, so pass `--device 0` or `--device cuda:0` as the
+script expects. On another machine, change it.
 
 ### YuE2
 
@@ -151,7 +165,7 @@ uv pip install --python .venv-yue2/bin/python \
 For ready-made controls, start with the
 [original particle weights](https://huggingface.co/ntc-ai/yue2-concept-sliders/tree/main/weights/particle-1200-v1)
 and the [live demo](https://huggingface.co/spaces/ntc-ai/yue2-concept-sliders).
-To train a **routed-particle slider with the current experimental defaults**:
+The renderer below accepts the particle format directly. To train a **routed-particle slider with the current experimental defaults**:
 
 ```bash
 CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python \
@@ -161,11 +175,15 @@ CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python \
   --save_dir models/metal-yue2-particles --steps 1200
 ```
 
-These defaults are a later experiment, not a replay of the September 17
-release. The trainer expects cached model weights or a local directory passed
+These defaults (paired-edit normalization, continuation histories) are a later
+experiment. They replay neither the September 17 release (`particle-1200-v1`)
+nor the `particle-gmix-1600-v2` core formulation; see the
+[drift table](docs/yue2-slider.md) and
+[docs/math.md](docs/math.md#published-release-and-current-experiments). The
+trainer expects cached model weights or a local directory passed
 as `--model_id`. Training needs the composition model and tokenizer; rendering
-also needs the VAE. To compare an exported adapter, put section-tagged lyrics
-in `lyrics.txt`:
+also needs the VAE. To compare an exported adapter, put original section-tagged lyrics in
+`lyrics.txt` and substitute your exported weight path:
 
 ```bash
 CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python conceptmod/textsliders/infer_yue2.py \
@@ -184,7 +202,9 @@ variants, native adapter loading, generation modes and runtime limits.
 ### MiniMax Music 3
 
 Use a Music 3 environment whose Diffusers install provides the MiniMax Music 3
-pipeline and model classes (the local studio env is `minimax-music3`). For
+pipeline and model classes (the local studio env is `minimax-music3`). The
+acoustic trainer defaults to a local model directory; pass `--model_dir` when
+your weights are elsewhere. For
 **published adapters**, follow the
 [native loading example](https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/blob/main/usage.md)
 or the [ComfyUI guide](https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/blob/main/comfyui/README.md).
@@ -209,8 +229,8 @@ NMSE). It does **not** train the published voice/genre LM recipe. For LM
 training and the release campaign, start with [MUSIC3.md](MUSIC3.md), the
 [warm-up campaign](analysis/uni16_20260906/README.md) and the
 [fresh-continuation campaign](analysis/uni16_fresh3400_20260912/README.md).
-Campaign scripts keep local model/cache paths and recovery-state requirements.
-They are research records, not one-command installers. Matched acoustic sweeps
+Campaign scripts keep local model/cache paths, manifests and recovery-state
+requirements. They are research records, not portable one-command installers. Matched acoustic sweeps
 use the [recipe-comparison pipeline](slider_pipeline/README.md).
 
 The **September 16, 2026 Music 3 release** contains 16 unipolar rank-8 LM
@@ -252,9 +272,10 @@ pip install -r requirements-dev.txt
 CUDA_VISIBLE_DEVICES='' HF_HUB_OFFLINE=1 python -m pytest -q
 ```
 
-Modules that need the native YuE2 runtime or the parent music workspace's
-`app` package skip when those are absent. For a fast check of the core
-contracts:
+Tests that need the music workstation (the parent workspace's `app` package,
+its pinned Music 3 Diffusers build or local campaign files) or the native YuE2
+runtime skip elsewhere and run on the workstation. The full CPU run takes about
+ten minutes. For a check of the core contracts in seconds:
 
 ```bash
 CUDA_VISIBLE_DEVICES='' HF_HUB_OFFLINE=1 python -m pytest -q \
@@ -263,8 +284,8 @@ CUDA_VISIBLE_DEVICES='' HF_HUB_OFFLINE=1 python -m pytest -q \
 ```
 
 GPU training, listening and campaign reproduction need the corresponding
-models and recovery artifacts. Each backend guide lists its own tests and
-dummy training commands.
+models and recovery artifacts. Most backend guides list their own tests and a
+`--dummy` training command.
 
 ## Repository map
 
@@ -282,9 +303,9 @@ dummy training commands.
 | [slider_selection/](slider_selection/README.md) | Listening, features and checkpoint-selection experiments |
 | [scripts/](scripts/) | Render, probe, evaluate, dashboard and publish entry points |
 | [tests/](tests/) | CPU contracts and backend integration |
-| [eval/listen/](eval/listen/README.md) | Listening notes; audio stays local |
+| [eval/listen/](eval/listen/README.md) | Local render outputs and listening notes; audio is git-ignored |
 | `models/`, `cache/` | Local run outputs (git-ignored, apart from a few JSON sidecars) |
-| [scratchpad/](scratchpad/) | Working notes and data read by the blind-spot and A/B scripts |
+| [scratchpad/](scratchpad/) | Working notes (blind spots, Goodhart gates, A/B listening protocol); `scripts/blindspot_analyze.py` reads its local scan CSVs here |
 | [legacy/](legacy/) | Upstream Concept Sliders notebooks, eval scripts, paired-image trainer and their pinned `requirements.txt` |
 
 Published weights and recordings are distributed on the Hugging Face Hub.
