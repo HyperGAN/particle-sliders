@@ -26,6 +26,10 @@ remain available.
 
 Use the `minimax-music3` conda env. **Never** `pip install -r requirements.txt` (it pins ancient torch/diffusers).
 
+YuE2 particles, image/video UNI, and prompt-file names live in
+[docs/README.md](docs/README.md) and [docs/prompts.md](docs/prompts.md).
+Those backends do **not** change these Music 3 defaults.
+
 Use physical GPU 1 while the studio occupies GPU 0:
 
 ```bash
@@ -884,7 +888,8 @@ reject/retry behavior is `--no-accept_short`).
 
 **For recipe/loss comparison sweeps, do not hand-launch trainings — use the
 pipeline.** Stages, spec rules, GPU pinning, and pitfalls:
-[slider_pipeline/README.md](slider_pipeline/README.md). It pins every seed,
+[slider_pipeline/README.md](slider_pipeline/README.md). Which yaml is which
+axis: [docs/prompts.md](docs/prompts.md). The pipeline pins every seed,
 refuses config drift, scores `_last` (not `_best`), applies the SCORING.md
 gates, and writes `REPORT.md`. **Transformer sliders only** — do not gate LM
 halves with it.

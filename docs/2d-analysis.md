@@ -86,4 +86,8 @@ See [lm-rich-2d.md](lm-rich-2d.md) for whether structured poles can
 keep slider-detail without unused mix / BPM / gender riding along.
 See [lm-hold-overlap.md](lm-hold-overlap.md) for hold-ê when ê is
 not unused gender (live energy leak captions that *are* energy).
+See [lm-2d-adv.md](lm-2d-adv.md) for the ParticleGAN RpGAN + `b_cap`
+port onto these same leftover-gated fixtures (CPU only; not a live
+`--pole_mode`). YuE2's released-v2 gmix head on the UNI PairField
+is a separate cell: [yue2-gmix-v2-2d-scoreboard.md](yue2-gmix-v2-2d-scoreboard.md).
 

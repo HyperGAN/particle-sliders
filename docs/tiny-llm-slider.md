@@ -60,6 +60,11 @@ bypasses every branch exactly; `unconditional` rows are unscored canaries.
 - Prompts: 3 plain caption rows instead of 4 sound-only lyric rows.
 - Adapter dtype follows the host (fp32 on CPU); YuE2 runs fp32 LoRA over
   a bf16 host. Identical on every fp32 path.
+- **Normalization:** `tiny_llm_particle.build_game` calls
+  `shared.build_game(network, targets)` **without** `neutrals`. Whitening
+  stays absolute-target (`std` of positive states). Live YuE2
+  `particle_bridge` now passes neutrals and uses paired-edit whitening.
+  Do not treat a tiny-LLM smoke as a replay of current YuE2 native.
 - Scope: no `state.pt` resume, no campaign/queue machinery, no lyric
   guards, no audio render — this is a game smoke target, not a release
   pipeline. Save format is its own `conceptmod-tiny-llm-particle-v1`
@@ -115,3 +120,10 @@ VIC 0.0823 -> 0.0801, cos_pos 0.993, EMA + live exports written).
 - Not the old unipolar-rpgan-bcap loop, not c9 4x LR, not MSE.
 - Not a quality slider: the dummy stand-in is randomly initialized, so
   its "concepts" are smoke only. Real concept tests need `--allow_hub`.
+
+## Related
+
+- [docs/README.md](README.md) — backend map
+- [docs/prompts.md](prompts.md) — `prompts-tiny-llm.yaml`
+- [yue2-slider.md](yue2-slider.md) — live YuE2 particle CLI (paired-edit)
+- [bonsai-gguf-slider.md](bonsai-gguf-slider.md) — frozen-readout sibling smoke

@@ -1,10 +1,20 @@
 # YuE2 routed-particle bridge (explicit experiment)
 
-`--recipe particle_bridge` transfers the user-requested `anneal-routed`
+`--recipe particle_bridge` transferred the user-requested `anneal-routed`
 configuration from `/ml2/model-glue/configs/particle-toy-20260917.json` through
 the existing YuE2 trainer and campaign. It is propose-only; existing recipes,
 Music bipolar `ARM_B`, live `--lm_target v9`, and locked `AdvConfig()` defaults
 are unchanged. It has a separate adapter format and cannot resume an old game.
+
+**This page is the original reference audit** (absolute-positive whitening,
+3×48 MLP, T=8000, no sigma hold). Live `yue2_particle_bridge.RECIPE` has
+since switched to paired-edit whitening, `noise_hold_ratio=1.3`, and
+`build_game(..., neutrals=...)`. The argparse critic default is still
+`mlp`; gmix is `--critic gmix`. See [yue2-slider.md](yue2-slider.md) for
+the live/published/gmix-v2 split and
+[yue2-gmix-v2-2d-scoreboard.md](yue2-gmix-v2-2d-scoreboard.md) for the
+released-v2 UNI toys. Do not re-claim the 3400/8000 table for later
+normalization or critic variants.
 
 ## Reference and exact objective
 
