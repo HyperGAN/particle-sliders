@@ -9,6 +9,9 @@ metal brittle after the particle-forward fix) into CPU checks:
 """
 from __future__ import annotations
 
+import importlib.util
+
+import pytest
 import torch
 
 from analysis.slider2d.genre_rewrite import (
@@ -25,7 +28,15 @@ from analysis.slider2d.genre_rewrite import (
     run_particle_bridge_toy,
 )
 
+# The uni16 prompt pack is generated on the music workstation (where the
+# parent ``app`` package is importable) and never committed.
+needs_uni16_pack = pytest.mark.skipif(
+    importlib.util.find_spec("app") is None and not PROMPTS.is_dir(),
+    reason="needs the music workstation's uni16_fresh3400_20260912 prompt pack",
+)
 
+
+@needs_uni16_pack
 def test_live_female_is_attribute_insert_metal_is_genre_rewrite():
     female = load_uni16_edits("female")
     metal = load_uni16_edits("metal")
@@ -75,6 +86,7 @@ def test_particle_bridge_toy_locks_worse_on_genre_rewrite():
     assert worse_lock or harder_g or late_wander, f"attr={attr} rewrite={rewrite}"
 
 
+@needs_uni16_pack
 def test_uni16_prompt_pack_exists_for_geometry_gate():
     assert (PROMPTS / "female-train.yaml").is_file()
     assert (PROMPTS / "metal-train.yaml").is_file()

@@ -38,7 +38,7 @@ At strength +1, from update 100 to 1600, held-out residual RMS falls from
 0.996702 to 0.144063, teacher SWD from 0.663255 to 0.049993, and mean gain rises
 from 0.183105 to 0.989067. Final training edit cosine is 0.994790.
 
-The [root README](../../../README.md#training-evidence) defines the graph terms.
+The [training evidence section](../../math.md#training-evidence) defines the graph terms.
 The [probe implementation](../../../conceptmod/textsliders/distribution_probe.py)
 defines the residuals, projection distances and gain. The probe uses fixed
 random projections and continuation seeds disjoint from training; it does not

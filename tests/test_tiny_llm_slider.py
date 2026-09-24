@@ -299,6 +299,7 @@ def test_needs_two_rows(tmp_path):
 
 
 def test_live_load_is_not_imported_on_dummy():
+    import subprocess
     import sys
 
     import conceptmod.textsliders.tiny_llm_backend as tiny
@@ -318,7 +319,16 @@ def test_live_load_is_not_imported_on_dummy():
     finally:
         tiny._load_live_model = orig
     assert called["n"] == 0
-    assert "transformers" not in sys.modules
+    # Other tests may already have imported transformers in this process.
+    probe = (
+        "import sys\n"
+        "from conceptmod.textsliders.tiny_llm_backend import TinyLLMBackend\n"
+        "backend = TinyLLMBackend(device='cpu', dummy=True)\n"
+        "backend.hidden(backend.encode('a garden').ids)\n"
+        "assert 'transformers' not in sys.modules\n"
+    )
+    subprocess.run([sys.executable, "-c", probe], check=True,
+                   cwd=Path(__file__).resolve().parents[1])
 
 
 def test_yaml_rows_and_config_card_match_shared_reference():

@@ -2,23 +2,26 @@
 
 A composition backend for `m-a-p/YuE2-3B`, using the
 [official YuE2 runtime](https://github.com/multimodal-art-projection/YuE).
-Training and inference live entirely in `sliders-conceptmod`.
+Training and inference live entirely in `particle-sliders`.
 
 **Start with the routed-particle method**, the project's preferred formulation.
 It adapts [ParticleGAN](https://github.com/255BITS/ParticleGAN) building blocks
-to YuE2's AR attention. See the [math and quick start](../README.md#yue2-the-lead-formulation),
+to YuE2's AR attention. See the [math](math.md#yue2-the-lead-formulation),
+[quick start](../README.md#yue2),
 [Hugging Face project](https://huggingface.co/ntc-ai/yue2-concept-sliders),
 [live demo](https://huggingface.co/spaces/ntc-ai/yue2-concept-sliders) and
 [listening comparisons](https://huggingface.co/ntc-ai/yue2-concept-sliders#press-play--original-particles).
 The published 1,200-update particle release and current training defaults have
-different normalization and history settings; the root README distinguishes them.
+different normalization and history settings;
+[math.md](math.md#published-release-and-current-experiments) and the table
+below distinguish them.
 
 ## Installation
 
 Use a separate environment: the official runtime pins torch and transformers
-versions that differ from the Music 3 environment. Never install this project's
-old `requirements.txt`. The implementation targets upstream commit
-`ef1936f2ee39fe8de486a0f47a481c95f8d4da87`.
+versions that differ from the Music 3 environment. Never install
+`legacy/requirements.txt` (upstream diffusion-era pins). The implementation
+targets upstream commit `ef1936f2ee39fe8de486a0f47a481c95f8d4da87`.
 
 ```bash
 uv venv --python 3.12 .venv-yue2
@@ -39,12 +42,34 @@ rendering. Upstream code is Apache 2.0; model weights have their separate
 Select `--recipe particle_bridge` in `train_lora_yue2_arm_b.py`. This trains
 a routed 128×4 particle cloud with particle VIC, a paired-error/noise critic,
 and EMA exports. It pins the reference learning rates and rejects the
-`--propose_only_lr_scale` and `--propose_only_c9_g4x` overrides. Use the
-[current training example](../README.md#yue2) and read the
-[architecture and transfer audit](yue2-particle-bridge.md) for the original
-reference recipe. The actual update passed both UNI toy cells at 3400/8000
-on seeds 0/1/7 with live and EMA weights; those checks do not establish native
-audio quality or validate every later normalization/critic variant.
+`--propose_only_lr_scale` and `--propose_only_c9_g4x` overrides.
+
+**Do not mix these tables.** The same `--recipe particle_bridge` entry
+point has already drifted.
+
+| | `particle-1200-v1` (README samples) | Live CLI today | Original bridge audit | `particle-gmix-1600-v2` (Hub + 2-D) |
+|---|---|---|---|---|
+| Critic | 3×48 MLP (Sept 17 metal source `2067705`) | **`--critic mlp`** unless you pass `--critic gmix` | 3×48 MLP | `gmix_t8_w48_l1` |
+| Whitening | original audit (absolute positive-state) | paired-edit (`neutrals` into `build_game`) | absolute positive-state | paired-edit |
+| Histories | then-current `particle_bridge` defaults (metal source `2067705`) | `--sample_seeds 256 --history_tokens 32` | prompt-state / toy rows | native 128×4×32; 2-D has 3 rows |
+| Noise | T=8000, not compressed to the 1200 stop | T=`--steps` (`run_recipe` overrides `RECIPE`'s 8000), hold 1.3×edit RMS | T=8000, no hold | T=1600, hold 1.3×E |
+| D/G batch | 64 | `--adv_batch 64` | 64 | 8 |
+| UNI toys | native listening, not the PairField | not re-scored as one table | HIT 3400/8000 | **PASS at 1600 EMA** |
+
+Use the [current training example](../README.md#yue2) for the live CLI.
+That command is **not** a replay of `particle-1200-v1` or of
+`particle-gmix-1600-v2`. Architecture and the original CPU proof:
+[yue2-particle-bridge.md](yue2-particle-bridge.md). Released-v2 critic
+on the UNI toys: [yue2-gmix-v2-2d-scoreboard.md](yue2-gmix-v2-2d-scoreboard.md).
+The shared core's `winning_formulation()` carries `particle-gmix-1600-v2`
+as its provisional overlay for product repos
+([winning-formulation.md](winning-formulation.md)); this trainer does not
+import it.
+Toy or native-probe success does not establish audio quality.
+
+Default prompts are
+`conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml`. Catalog:
+[prompts.md](prompts.md).
 
 ## Earlier positive/neutral GAN candidate
 
@@ -274,7 +299,8 @@ off/on listening comparisons and lyric checks.
 
 ```bash
 .venv-yue2/bin/python -m pytest tests/test_yue2_slider.py tests/test_yue2_uni.py \
-  tests/test_yue2_fresh.py tests/test_yue2_arm_b.py tests/test_music_arm_b.py -q
+  tests/test_yue2_fresh.py tests/test_yue2_arm_b.py tests/test_music_arm_b.py \
+  tests/test_yue2_particle_bridge.py tests/test_yue2_gmix_v2_exam.py -q
 .venv-yue2/bin/python conceptmod/textsliders/train_lora_yue2.py \
   --dummy --steps 2 --train_tokens 4 --save_dir /tmp/yue2-smoke
 ```
@@ -297,3 +323,11 @@ two recordings were identical in this tiny probe. This establishes train/load/
 render operation, **not audible control**; a trained slider release still needs
 the listening and lyric-preservation gates above. Local smoke artifacts are in
 `/ml2/music/.cache/yue2-smoke/` and are not shipped as trained sliders.
+
+## Related
+
+- [docs/README.md](README.md) — operator map
+- [docs/prompts.md](prompts.md) — YuE2 / particle yaml files
+- [yue2-particle-bridge.md](yue2-particle-bridge.md) — original reference audit
+- [yue2-gmix-v2-2d-scoreboard.md](yue2-gmix-v2-2d-scoreboard.md) — released-v2 UNI toys
+- Music 3 live defaults stay `--lm_target v9 --pole_mode hidden`.

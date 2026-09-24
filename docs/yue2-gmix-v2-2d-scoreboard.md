@@ -73,3 +73,11 @@ success. The 8 pin tests fail closed if the critic, normalization, noise
 schedule, batch size, LRs, or GAN-only loss drift from the Hub numbers, and
 if Music bipolar `ARM_B`, the live `--lm_target v9` default, the production
 YuE2 Arm B recipe, or locked `AdvConfig()` defaults move.
+
+## Related
+
+- [docs/README.md](README.md) — operator map
+- [yue2-slider.md](yue2-slider.md) — live CLI vs published vs this arm
+- [yue2-particle-bridge.md](yue2-particle-bridge.md) — original MLP / absolute-whitening audit
+- [winning-formulation.md](winning-formulation.md) — `winning_formulation()` overlay, kept in lockstep with `V2_SPEC` (`tests/test_particle_sliders_formulation.py`)
+- Live Music 3 default stays `--lm_target v9` / `--pole_mode hidden`.

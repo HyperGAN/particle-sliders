@@ -15,6 +15,7 @@ Anima-Turbo-v1.1-Diffusers/
 *_step*.safetensors
 *_train.jsonl
 STUDIO_STOPPED.txt
+.venv/
 .venv-yue2/
 
 # Generated checkpoints and media are distributed separately from source.
@@ -32,3 +33,7 @@ STUDIO_STOPPED.txt
 *.webm
 *.npz
 .pytest_cache/
+
+# Notebook autosaves
+.ipynb_checkpoints/
+*.egg-info/

@@ -114,7 +114,7 @@ CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_minimax_h3.py \
 | not in weights | H3-Context-IR, H3-Regenerate-2K |
 
 Live load needs a current `diffusers` with MiniMax-H3 ModularPipeline. Do **not**
-`pip install -r requirements.txt` on the Music 3 env.
+`pip install -r legacy/requirements.txt` on the Music 3 env.
 
 **B300 torch:** Blackwell `sm_103` needs **`torch 2.13.0+cu130`** (or newer
 cu130). `2.6+cu124` has no `sm_103` and will not run on B300. Install that
@@ -547,3 +547,12 @@ PYTHONPATH=. pytest tests/test_minimax_h3_slider.py -q
 
 `--dummy` never downloads Hub weights. Tests use CPU mocks and a tiny fake
 packed sequence only.
+
+## Related
+
+- [docs/README.md](README.md) — backend map and shared UNI pitfalls
+- [docs/prompts.md](prompts.md) — `prompts-minimax-h3.yaml` / `prompts-minimax-h3-chiaroscuro.yaml`
+- [docs/ltx25-slider.md](ltx25-slider.md) — embed-match UNI (student +1 on neu)
+- Music 3 live defaults stay `--lm_target v9 --pole_mode hidden`.
+  Recommended next live H3 card is still **chiaro-v5**. Do not treat
+  open chiaro-v6 as shipped.

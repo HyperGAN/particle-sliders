@@ -1,0 +1,17 @@
+# CPU test and development dependencies for this repository.
+# Install PyTorch first if you need a specific CUDA build; each model backend
+# still needs its own runtime (see the backend guides under docs/). Tests
+# that need the music workstation (its app package, pinned Music 3
+# Diffusers build or local campaign files) skip elsewhere.
+torch>=2.4
+numpy
+scipy
+pyyaml
+safetensors
+tqdm
+matplotlib
+soundfile
+transformers
+pytest>=8
+# Shared core, editable; pulls ParticleGAN at the pinned commit.
+-e ./packages/particle-sliders-core

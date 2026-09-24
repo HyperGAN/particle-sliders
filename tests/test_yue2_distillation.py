@@ -2,8 +2,12 @@
 import importlib.util
 from pathlib import Path
 
+import pytest
 import torch
 from torch import nn
+
+# The distillation script imports the parent music workspace's ``app`` package.
+pytest.importorskip('app', reason='needs the parent music workspace')
 
 spec = importlib.util.spec_from_file_location('distillation',
     Path(__file__).resolve().parents[1] / 'scripts/distill_yue2_particles.py')

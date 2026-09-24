@@ -36,7 +36,7 @@ pip install git+https://github.com/huggingface/diffusers
 ```
 
 LTX-2.5 is **not in a Diffusers release yet**. Do **not**
-`pip install -r requirements.txt` on the Music 3 env. Live train needs
+`pip install -r legacy/requirements.txt` on the Music 3 env. Live train needs
 an HF token (gated). CI must never download weights.
 
 Constraints: `num_frames % 8 == 1`, H/W divisible by 32. Conv VAE
@@ -258,3 +258,10 @@ python scripts/smoke_ltx25_slider.py
 
 `--dummy` never downloads Hub weights. Tests use CPU mocks and a tiny
 fake pack only.
+
+## Related
+
+- [docs/README.md](README.md) — backend map and shared UNI pitfalls
+- [docs/prompts.md](prompts.md) — `prompts-ltx25-smile.yaml` / `prompts-ltx25-chiaroscuro.yaml`
+- [docs/minimax-h3-slider.md](minimax-h3-slider.md) — velocity UNI (plus pack); different live box
+- Music 3 live defaults stay `--lm_target v9 --pole_mode hidden`.

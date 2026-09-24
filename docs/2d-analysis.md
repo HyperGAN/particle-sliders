@@ -72,6 +72,11 @@ The GPU trainers were not rewritten beyond that import.
 
 Seed `0`, `250` Adam steps, CPU.
 
+See [lm-2d-adv.md](lm-2d-adv.md) for the ParticleGAN RpGAN + `b_cap`
+port onto these same leftover-gated fixtures (CPU only; not a live
+`--pole_mode`). YuE2's released-v2 gmix head on the UNI PairField
+is a separate cell: [yue2-gmix-v2-2d-scoreboard.md](yue2-gmix-v2-2d-scoreboard.md).
+
 See [tf-leak.md](tf-leak.md) for whether that gender leak is a Music 3 TF
 trainer bug (it is not) or caption BPM sitting inside `pos − neg` (it is).
 See [lm-v9-2d.md](lm-v9-2d.md) for the LM recipe on this same field:

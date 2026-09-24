@@ -8,6 +8,9 @@ import torch
 from torch import nn
 from safetensors.torch import save_file
 
+# The campaign trainer imports the parent music workspace's ``app`` package.
+pytest.importorskip('app', reason='needs the parent music workspace')
+
 from analysis.uni16_20260906 import train as campaign
 from conceptmod.textsliders.lora import LoRANetwork
 
