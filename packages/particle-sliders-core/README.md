@@ -136,3 +136,24 @@ for step in range(1, steps + 1):            # steps count from 1
 `step()` compares shared noise with noise plus `bridge(features, particles)`
 and returns `d_loss`, `g_loss`, `vic` and `sigma`. The runnable reference is
 [`tests/test_formulation_game.py`](tests/test_formulation_game.py).
+
+A host projection that is `nn.Conv1d` binds with `stamp.attach`. The
+attachment pools that convolution to `[batch, adapter_rank]`. The game still
+runs the existing `RoutedMLP` from `stamp.bridge()` (rank in, rank out, no
+channel or kernel arguments). `FormulationGame.step` is unchanged.
+
+```python
+attachment = stamp.attach(conv)  # one nn.Conv1d, or a module that contains one
+features = attachment.features(conv_input)  # [batch, adapter_rank]
+game = FormulationGame(
+    stamp,
+    config,
+    bridge=attachment.bridge,  # existing RoutedMLP
+    particles=attachment.particles,
+    extra_generator=attachment.extra_generator(),
+)
+stats = game.step(step, features)
+```
+
+Scale 0 leaves the host convolution unchanged. The runnable reference is
+[`tests/test_conv_attach.py`](tests/test_conv_attach.py).

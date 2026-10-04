@@ -19,6 +19,7 @@ file. The gmix architecture constants stay. Products keep calling
 """
 from types import MappingProxyType
 
+from .attach import bind_conv1d
 from .grad_regularizers import GradientPenalty
 from .recipe import SliderRecipe
 from .reference import (
@@ -289,7 +290,11 @@ class WinningFormulation:
         )
 
     def bridge(self):
-        """Routed particle MLP at the stamp's rank, width, and particle dimension."""
+        """Routed particle MLP at the stamp's rank, width, and particle dimension.
+
+        No channel or kernel arguments. A convolution host uses :meth:`attach`
+        and still passes this module into ``FormulationGame``.
+        """
         rank = int(self.spec["adapter_rank"])
         return RoutedMLP(
             rank,
@@ -298,6 +303,15 @@ class WinningFormulation:
             width=int(self.spec["adapter_width"]),
             router_width=int(self.spec["router_width"]),
         )
+
+    def attach(self, module):
+        """Bind this stamp's :meth:`bridge` onto an ``nn.Conv1d``.
+
+        The host convolution is pooled to ``[batch, adapter_rank]``. Pass
+        ``attachment.bridge`` into ``FormulationGame``. ``step`` still takes
+        that feature shape. This does not build a new game.
+        """
+        return bind_conv1d(self, module)
 
     def critic(self, targets, neutrals=None):
         """Global-mix critic at the stamp's token, width, depth, and score bound."""

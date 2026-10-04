@@ -123,6 +123,11 @@ for step in range(1, steps + 1):            # steps count from 1
     stats = game.step(step, features)       # features: [batch, stamp.spec["adapter_rank"]]
 ```
 
+`stamp.attach(conv)` binds an `nn.Conv1d`. It pools that convolution to
+`[batch, adapter_rank]` and `FormulationGame` still runs the existing
+`RoutedMLP` (`attachment.bridge`). The step input shape does not change.
+See the [package README](packages/particle-sliders-core/README.md).
+
 The **architecture** (gmix: routed particles plus a global-mix critic) is
 fixed. Its **tuning parameters** (`particle-gmix-1600-v2`) are provisional
 until [ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38) picks a
