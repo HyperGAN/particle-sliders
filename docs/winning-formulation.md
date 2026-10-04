@@ -49,6 +49,7 @@ alias.
 | Adapter | Routed particle MLP, rank 8, width 48, router width 16 |
 | Critic | Global-mix, 8 tokens, width 48, 1 layer, 4 heads, score bound 8 |
 | Game | Paired-error relativistic logistic GAN plus particle VIC |
+| Conv1d host | `stamp.attach` pools the convolution to `[batch, adapter_rank]` and `FormulationGame` still runs `stamp.bridge()` (`RoutedMLP`, rank in and out) |
 
 ## Current provisional formulation
 
