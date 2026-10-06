@@ -129,7 +129,7 @@ These land in the product repositories. This pull request does not rewrite
 their trainers.
 
 1. **anima-particle-sliders.** Replace the pin
-   `concept-slider-core @ git+https://github.com/mikkel/sliders-conceptmod.git@beaffeb#subdirectory=packages/concept-slider-core`
+   `concept-slider-core @ git+https://github.com/HyperGAN/particle-sliders.git@beaffeb#subdirectory=packages/concept-slider-core`
    with `particle-sliders-core` from `HyperGAN/particle-sliders`, subdirectory
    `packages/particle-sliders-core`, at the commit that introduces this stamp.
    Import `particle_sliders.winning_formulation` and call `require()` on the

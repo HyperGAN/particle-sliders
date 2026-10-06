@@ -111,7 +111,7 @@ student +1 matches infer (#62).
 
 ## Related
 
-- [conceptmod backends/sana.py](https://github.com/mikkel/conceptmod/blob/main/conceptmod/backends/sana.py)
+- [conceptmod backends/sana.py](https://github.com/HyperGAN/conceptmod/blob/main/conceptmod/backends/sana.py)
 - conceptmod README SANA proofs `outputs/01`–`13` (fruit bowl is CONTROL)
 - [docs/lm-plus-neu-exam.md](lm-plus-neu-exam.md) — Music 3 last-token UNI (not this trainer)
 - [docs/lm-lyric-hold.md](lm-lyric-hold.md) — Music 3 lyric-token hold. Sana does **not** use it.
