@@ -143,7 +143,7 @@ Place a converted `.safetensors` in `ComfyUI/models/loras/`, refresh the model l
 
 These are text-encoder adapters. They target 36 attention layers × four projections (`q_proj`, `k_proj`, `v_proj`, `o_proj`), for 144 LoRA modules and 432 tensors including alpha values. Use an unmerged Music 3 text encoder with these separate projections. A merged `qkv_proj` text encoder leaves the separate query/key/value LoRA keys unused; applying only output projections is not the complete adapter.
 
-Conversion used [mikkel/conceptmod's script](https://github.com/mikkel/conceptmod/blob/a8a9e898ea618d83f05505c5ece7c8e4ffa9c3df/scripts/convert_lora_comfyui.py):
+Conversion used [mikkel/conceptmod's script](https://github.com/HyperGAN/conceptmod/blob/a8a9e898ea618d83f05505c5ece7c8e4ffa9c3df/scripts/convert_lora_comfyui.py):
 
 ```bash
 python scripts/convert_lora_comfyui.py selected_native.safetensors

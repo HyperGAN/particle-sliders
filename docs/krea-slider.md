@@ -457,7 +457,7 @@ smile-krea-v4 TE-only embed UNI.
 ## Related
 
 - [docs/README.md](README.md) — backend map and shared UNI pitfalls
-- [conceptmod backends/krea.py](https://github.com/mikkel/conceptmod/blob/main/conceptmod/backends/krea.py)
+- [conceptmod backends/krea.py](https://github.com/HyperGAN/conceptmod/blob/main/conceptmod/backends/krea.py)
 - [docs/sana-slider.md](sana-slider.md) — cheap happy UNI analog
 - [docs/anima-slider.md](anima-slider.md) — smile-first (do not copy `same_crop` / `embed_struct` here)
 - Music 3 live defaults stay `--lm_target v9 --pole_mode hidden`.

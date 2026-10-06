@@ -1013,10 +1013,10 @@ collapse stays paired). Play files in order. Slider clips use the
 Do not add a second converter in this repo. Shipped sliders use LoRANetwork
 names (`lora_unet-transformer_blocks-N-attn-to_q.lora_down.weight`,
 `lora_te-model-layers-N-self_attn-q_proj…`), not PEFT. Convert them with
-[`scripts/convert_lora_comfyui.py`](https://github.com/mikkel/conceptmod/blob/main/scripts/convert_lora_comfyui.py)
-on **[mikkel/conceptmod](https://github.com/mikkel/conceptmod) `main`**.
+[`scripts/convert_lora_comfyui.py`](https://github.com/HyperGAN/conceptmod/blob/main/scripts/convert_lora_comfyui.py)
+on **[mikkel/conceptmod](https://github.com/HyperGAN/conceptmod) `main`**.
 Music 3 backends (`music3`, `music3_lm`) landed in
-[8f865fe](https://github.com/mikkel/conceptmod/commit/8f865fea59e02d439a479d80466196044ed00076);
+[8f865fe](https://github.com/HyperGAN/conceptmod/commit/8f865fea59e02d439a479d80466196044ed00076);
 `dd0c165` is tests-only and still skips LoRANetwork files as
 `no lora_A/lora_B keys`. Detection is from `lora_unet-` / `lora_te-` keys.
 

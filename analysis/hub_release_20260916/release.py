@@ -20,7 +20,7 @@ def inventory():
         selected_from_candidates=80,selection_policy='quality-later-v2',quality_tolerance=.2,
         audio=dict(original_wavs=192,mp3_previews=192,arms=['off','on','reference'],strength=1,
             normalization='none',first_draw=True,featured_case=dict(row=2,seed=1709)),
-        conversion=dict(repository='https://github.com/mikkel/conceptmod',revision='a8a9e898ea618d83f05505c5ece7c8e4ffa9c3df',
+        conversion=dict(repository='https://github.com/HyperGAN/conceptmod',revision='a8a9e898ea618d83f05505c5ece7c8e4ffa9c3df',
             factors='bf16',alpha='float32',native_tensor_count=432,converted_tensor_count=432),
         validation=read(WORK/'asset-validation.json'),
         previous_releases='Prior files remain at their existing paths; current catalog and card select this release.',files=files))

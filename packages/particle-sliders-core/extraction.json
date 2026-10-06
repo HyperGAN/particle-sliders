@@ -1,5 +1,5 @@
 {
-  "source_repository": "https://github.com/mikkel/anima-concept-sliders",
+  "source_repository": "https://github.com/HyperGAN/anima-particle-sliders",
   "source_commit": "a593badeba3a1f7058d38031282950a849668ca9",
   "files": {
     "src/particle_sliders/reference.py": {

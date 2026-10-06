@@ -113,7 +113,7 @@ computed by YuE2's text encoder. The fourth player makes that difference
 reviewable. The acoustic denoiser and VAE receive no LoRA tensors.
 
 Conversion extends the existing `mikkel/conceptmod` converter, published in
-[a5c3dd8](https://github.com/mikkel/conceptmod/commit/a5c3dd8), from an isolated
+[a5c3dd8](https://github.com/HyperGAN/conceptmod/commit/a5c3dd8), from an isolated
 worktree at `/ml2/music/.cache/conceptmod-yue2-lora`. There is no second
 converter in this repository. Q/K/V are fused by concatenating the down
 matrices and block-diagonalizing the up matrices, preserving alpha/rank.

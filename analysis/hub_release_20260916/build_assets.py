@@ -192,7 +192,7 @@ def build():
     training['release_selection']='Selection performed after training using quality-later-v2. See selection-policy.json.'
     write(PACKAGE/f'evidence/{VERSION}/training.json',training)
     write(PACKAGE/f'evidence/{VERSION}/conversion.json',dict(
-        repository='https://github.com/mikkel/conceptmod',revision=side['converter_revision'],
+        repository='https://github.com/HyperGAN/conceptmod',revision=side['converter_revision'],
         command='python scripts/convert_lora_comfyui.py <16 selected native exports> --force',
         sources={p:sha(CONVERTER/p) for p in ('scripts/convert_lora_comfyui.py','conceptmod/convert.py','conceptmod/convert_klein.py')},
         precision='BF16 adapter factors, FP32 alpha scalars',checkpoints=conversion,
