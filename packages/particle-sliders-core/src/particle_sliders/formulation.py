@@ -420,3 +420,48 @@ def winning_formulation():
     This is the only entry point products import.
     """
     return _CURRENT
+
+
+# ---------------------------------------------------------------------------
+# Opt-in formulation stamps. These never change winning_formulation(); a
+# product selects one explicitly through formulation_stamp(<id>).
+# ---------------------------------------------------------------------------
+GMIX_1600_HOLD04_FORMULATION_ID = "particle-gmix-1600-hold04-v1"
+_GMIX_1600_HOLD04 = FormulationParameters(
+    GMIX_1600_HOLD04_FORMULATION_ID,
+    {**_GMIX_1600_PARAMETERS, "noise_hold_ratio": 0.4},
+)
+_GMIX_1600_HOLD04.provisional = True
+
+
+def particle_gmix_1600_hold04():
+    """``particle-gmix-1600-v2`` with ``noise_hold_ratio`` 0.4 instead of 1.3.
+
+    Opt-in only. The instance-noise hold drops below the edit RMS so the
+    critic can separate real from fake edits late in training. Every other
+    key, including the decay schedule, matches the default overlay.
+    """
+    return _GMIX_1600_HOLD04
+
+
+OPT_IN_FORMULATIONS = MappingProxyType({
+    GMIX_1600_HOLD04_FORMULATION_ID: particle_gmix_1600_hold04,
+})
+_OPT_IN_STAMPS = {}
+
+
+def formulation_stamp(formulation_id=None):
+    """Return the default stamp, or an explicitly named opt-in stamp.
+
+    ``None`` or the current formulation id returns ``winning_formulation()``.
+    """
+    if formulation_id is None or formulation_id == CURRENT_FORMULATION_ID:
+        return _CURRENT
+    if formulation_id not in OPT_IN_FORMULATIONS:
+        raise KeyError(
+            f"unknown formulation stamp {formulation_id!r}; "
+            f"known: {sorted([CURRENT_FORMULATION_ID, *OPT_IN_FORMULATIONS])}"
+        )
+    if formulation_id not in _OPT_IN_STAMPS:
+        _OPT_IN_STAMPS[formulation_id] = WinningFormulation(OPT_IN_FORMULATIONS[formulation_id]())
+    return _OPT_IN_STAMPS[formulation_id]
