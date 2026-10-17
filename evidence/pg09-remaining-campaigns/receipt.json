@@ -1,0 +1,30 @@
+{
+  "schema": "remaining-pg09-proposals-cpu-v1",
+  "tests": 36,
+  "failures": 0,
+  "skips": 0,
+  "new_native_fixture_tests": 9,
+  "cuda_visible_devices": "",
+  "pretrained_weights_opened_or_loaded": false,
+  "gpu_actions": false,
+  "canonical_or_active_source_edits": false,
+  "scope": "New isolated files only; read-only audits of original caches and archived source",
+  "source_sha256": {
+    "conceptmod/textsliders/pg09_remaining_campaigns.py": "902a9ed00691a4904404d3ecdefcab2863e95ae92797027cd2961d2fb9a6c38b",
+    "scripts/propose_remaining_pg09.py": "1736143d86ee85c6b421daa2ac01d386ac8c94e08f1d50c095ef786298f060d2",
+    "tests/test_pg09_remaining_campaigns.py": "5f851ad816509deb978ff03fceda74d10a9bea0c1645d0c04cf3d24daab4ca9d",
+    "docs/pg09-remaining-campaigns.md": "a2a03c0de0a40c07706cad3c5b50d73ec0eb794b7f8dcba9dd205314d747e76e",
+    "evidence/pg09-remaining-campaigns/audit.json": "c27aa54ddf1bc7590325548a4f08ea2413ba813bccec86f7d322cbcb445f2087",
+    "evidence/pg09-remaining-campaigns/proposals/final_form.proposal.json": "10b4654b433bf9442bc8fce4b22dfe6c37bda1bb3f2205275d413a769b05ed53",
+    "evidence/pg09-remaining-campaigns/proposals/supra_final_boss.proposal.json": "bf184bba6399f6ee8d3352dd6e5d0c887c230efa525cf9fb7f040dedbf65201a"
+  },
+  "pending": [
+    "resource owner admission after active BI/AI",
+    "Supra actual native19-context encoding/export (zero updates)",
+    "reviewed canonical import/source pins and worker shells",
+    "full-model teacher parity and memory/timing canaries",
+    "disk-backed exact fresh-process CUDA resume/export/frozen-base gates",
+    "full3840/b8 FinalForm and28800/b4 Supra budgets within wall limits",
+    "matched semantic and preservation review; no quality claim"
+  ]
+}

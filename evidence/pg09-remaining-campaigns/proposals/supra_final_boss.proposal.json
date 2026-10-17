@@ -1,0 +1,171 @@
+{
+  "schema": "remaining-pg09-campaign-proposal-v1",
+  "status": "DRAFT_NOT_ADMITTED",
+  "objective": "pg09_gan_only",
+  "preset": "bispf_optimized",
+  "pg_version": "0.9.0",
+  "pg_core_profile_commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
+  "response_domain": "continuous_field",
+  "sampling": "balanced",
+  "particles": null,
+  "qualification": "adapter-GAN-only; no disconnected particle bank",
+  "source_pins": {
+    "/mnt/nvme/sliders/backend-adapters-pg09-20261017/conceptmod/textsliders/pg09_remaining_campaigns.py": "902a9ed00691a4904404d3ecdefcab2863e95ae92797027cd2961d2fb9a6c38b",
+    "/mnt/nvme/sliders/backend-adapters-pg09-20261017/conceptmod/textsliders/pg09_backends.py": "e540d77bf56810e2e2411fb5d0122de2a025cccfa8757671d9ea577c4d07e1fe",
+    "/mnt/nvme/sliders/backend-adapters-pg09-20261017/conceptmod/textsliders/pg09_moss_campaign.py": "32f8f042d3a76af531b566e07c4048ec2557acb31cadcc8988ee0518dbc3d565",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src/particle_sliders/pg09.py": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+    "/mnt/nvme/sliders/qualification/checkouts/supra-product/supra/runtime.py": "9b56409101a8c674b29e02066ef0d6ed257f231d9aa68fef34a7197c445a151c",
+    "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders/conceptmod/textsliders/supra_model.py": "640851f4570d0f9eacccac70022f06668ddf92dcf8629e978a76443db60acdc4",
+    "/mnt/nvme/sliders/qualification/checkouts/supra-product/scripts/train_final_boss.py": "1869527dffe00249a7ade2220ddf2c511c69440082c1a95a5ad8bc482e7fad5e"
+  },
+  "audit_sha256": "c27aa54ddf1bc7590325548a4f08ea2413ba813bccec86f7d322cbcb445f2087",
+  "no_mse_resume": true,
+  "no_mse_fallback": true,
+  "resource_admission_owner": "shared core/process owner",
+  "probe": {
+    "stop_after_completed_steps": 3,
+    "use_full_total_steps_recipe": true,
+    "exact_in_memory_replay": true,
+    "exact_disk_backed_fresh_process_resume": true,
+    "adapter_export_reload": true,
+    "frozen_base_stream_sha": true
+  },
+  "required_gates": [
+    "source/recipe/cache identity",
+    "training-only scale",
+    "native frozen teacher/cache parity before update",
+    "actual G/D gradient and parameter change",
+    "frozen base stream SHA unchanged",
+    "CPU RNG bytes and disk-backed fresh-process CUDA replay",
+    "matched heldout semantics and preservation review"
+  ],
+  "case": "supra-final-boss",
+  "entrypoint": "conceptmod.textsliders.pg09_remaining_campaigns.build_supra_campaign",
+  "teacher_cache": "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/teacher_cache.pt",
+  "original_source_sha256": {
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/recipe.json": "eca04168995a4dbf375735a58044a06faca9cd893b377ddc9ac09ac585b8101f",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/teacher_cache.pt": "1345e96be5d7999e8ebd752a695e184eb908a594156971c382be07eb4023e67c",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/converged/validation_cache.pt": "56abdd25fcb999a65ba440302281916859946493fab32f4a6abafb693a924b80",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/source/prompts-final-boss.yaml": "7ca91dbfbd269b5d8ca1bb5baf428d104c0afd26a2ff85bc1c3e8b824232ed61",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/source/runtime.py": "9b56409101a8c674b29e02066ef0d6ed257f231d9aa68fef34a7197c445a151c",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/source/supra_model.py": "640851f4570d0f9eacccac70022f06668ddf92dcf8629e978a76443db60acdc4",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/converged/final-boss-supra.safetensors": "05023616c6a8c874ada122e45ca4b0380510f6d4c901e63fea455d88e3972b8f",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/final-boss-supra.safetensors": "38917cacef83f1f322284ae9faedf1c75948f6f8b07f8a8cef3f3e88892594c6"
+  },
+  "model_revision": "10dec6e4b4b5d1c44fd1d7d3fe5e50137333da5b",
+  "text_revision": "7bcac572ce56db69c1ea7c8af255c5d7c9672fc2",
+  "vae_revision": "31f26fdeee1355a5c34592e401dd41e45d25a493",
+  "runtime": {
+    "python": "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+    "packages": {
+      "torch": "2.11.0+cu128",
+      "diffusers": "0.40.0.dev0",
+      "transformers": "5.15.0",
+      "safetensors": "0.8.0"
+    },
+    "dtype": "FP32 native DiT + CUDA BF16 autocast",
+    "rank": 16,
+    "alpha": 16,
+    "stored_unconditional": true
+  },
+  "context_preparation": {
+    "max_unique_prompts": 19,
+    "max_native_encode_calls": 19,
+    "expected_T5_calls_with_stored_unconditional": 18,
+    "entrypoint": "export_admitted_supra_contexts",
+    "frozen_export": "new safetensors plus native-source/runtime/revision/tensor-hash receipt",
+    "online_downloads": false,
+    "placeholder_contexts": false,
+    "admission_required": true,
+    "training_updates": 0
+  },
+  "total_steps": 28800,
+  "batch_size": 4,
+  "training_seed": 7,
+  "checkpoint_every": 400,
+  "comparison_step": 1600,
+  "wall_seconds": 21600,
+  "response_scale": 0.32844100447280516,
+  "critic_width": 32,
+  "coverage": {
+    "edited_states": 240,
+    "preservation_states": 30,
+    "logical_balanced_rows": 600,
+    "edit_repetitions": 2,
+    "preservation_repetitions": 4,
+    "preservation_frequency": 0.2,
+    "full_balanced_cycles_per_phase": 192,
+    "generator_exposures": 115200,
+    "discriminator_exposures": 115200,
+    "generator_edit_exposures": 92160,
+    "generator_preservation_exposures": 23040
+  },
+  "preservation": {
+    "objective": "GAN-only native preservation target equals frozen base",
+    "archived_mse_weight": 0.1,
+    "new_optimized_mse_weight": null,
+    "intentional_change": "remove0.1 MSE coefficient; retain1-in5 preservation exposure"
+  },
+  "validation": {
+    "cache": "converged/validation_cache.pt",
+    "seeds": [
+      39001,
+      39002
+    ],
+    "edited_states": 240,
+    "preservation_states": 60,
+    "endpoints": 12,
+    "used_for_training_or_scale": false,
+    "heldout_bridge_fruit_for_selection": false
+  },
+  "heldout": {
+    "rows": [
+      {
+        "name": "knight",
+        "prompt": "An armored knight holding a sword in a ruined cathedral, full body, game concept art."
+      },
+      {
+        "name": "cave",
+        "prompt": "A warrior in a cave, game concept art, full body, simple leather armor and an ordinary sword."
+      },
+      {
+        "name": "bridge_heldout",
+        "prompt": "A lone armored guardian standing on an ancient stone bridge above a misty valley, full body, dramatic fantasy game concept art.",
+        "teacher": "A terrifying final boss guardian standing on an ancient stone bridge above a misty valley, massive spiked black armor, horned crown, glowing red eyes, enormous cursed sword, full body, dramatic fantasy game concept art."
+      },
+      {
+        "name": "fruit_control",
+        "prompt": "A bowl of fruit on a table."
+      }
+    ],
+    "seeds": [
+      42,
+      1234
+    ],
+    "width": 256,
+    "height": 256,
+    "steps": 50,
+    "guidance": 3.0,
+    "variants": [
+      "off",
+      "half",
+      "plus",
+      "teacher"
+    ],
+    "arms": [
+      "GAN28800",
+      "MSE1600",
+      "MSE-selected27200"
+    ],
+    "noise": "native CUDA seeded SupraRuntime.noise",
+    "protocol_correction": "conditional-only CFG for new GAN and every old export arm"
+  },
+  "blockers": [
+    "resource admission for bounded19-context preparation, encoding not yet performed",
+    "frozen context export/source identity required before full campaign binding",
+    "original batchedCFG2 versus split conditional-only branch numerical parity must be measured",
+    "native fullmodel teacher parity and memory/timing canary; budget must fit6h bound",
+    "reviewed worker checkpoint/evaluation shell and refreshed source pins",
+    "disk-backed fresh-process CUDA replay then full budget then heldout semantics"
+  ]
+}

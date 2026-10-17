@@ -1,0 +1,236 @@
+{
+  "schema": "remaining-pg09-campaign-proposal-v1",
+  "status": "DRAFT_NOT_ADMITTED",
+  "objective": "pg09_gan_only",
+  "preset": "bispf_optimized",
+  "pg_version": "0.9.0",
+  "pg_core_profile_commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
+  "response_domain": "continuous_field",
+  "sampling": "balanced",
+  "particles": null,
+  "qualification": "adapter-GAN-only; no disconnected particle bank",
+  "source_pins": {
+    "/mnt/nvme/sliders/backend-adapters-pg09-20261017/conceptmod/textsliders/pg09_remaining_campaigns.py": "902a9ed00691a4904404d3ecdefcab2863e95ae92797027cd2961d2fb9a6c38b",
+    "/mnt/nvme/sliders/backend-adapters-pg09-20261017/conceptmod/textsliders/pg09_backends.py": "e540d77bf56810e2e2411fb5d0122de2a025cccfa8757671d9ea577c4d07e1fe",
+    "/mnt/nvme/sliders/backend-adapters-pg09-20261017/conceptmod/textsliders/pg09_moss_campaign.py": "32f8f042d3a76af531b566e07c4048ec2557acb31cadcc8988ee0518dbc3d565",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src/particle_sliders/pg09.py": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+    "/mnt/nvme/sliders/moss-image-sliders-campaign/src/moss_sliders/vendor/pipeline_moss_image.py": "1dac1aca9feb1bfdfc727a401e4b67d61a505d3190706d1b7d2d784f88678b31",
+    "/mnt/nvme/sliders/moss-image-sliders-campaign/src/moss_sliders/lora.py": "6b8f76f202a01d1a42a5a4338a6127698f6eb63aef367a136adf41489ef23d4d"
+  },
+  "audit_sha256": "c27aa54ddf1bc7590325548a4f08ea2413ba813bccec86f7d322cbcb445f2087",
+  "no_mse_resume": true,
+  "no_mse_fallback": true,
+  "resource_admission_owner": "shared core/process owner",
+  "probe": {
+    "stop_after_completed_steps": 3,
+    "use_full_total_steps_recipe": true,
+    "exact_in_memory_replay": true,
+    "exact_disk_backed_fresh_process_resume": true,
+    "adapter_export_reload": true,
+    "frozen_base_stream_sha": true
+  },
+  "required_gates": [
+    "source/recipe/cache identity",
+    "training-only scale",
+    "native frozen teacher/cache parity before update",
+    "actual G/D gradient and parameter change",
+    "frozen base stream SHA unchanged",
+    "CPU RNG bytes and disk-backed fresh-process CUDA replay",
+    "matched heldout semantics and preservation review"
+  ],
+  "case": "moss-final-form",
+  "entrypoint": "conceptmod.textsliders.pg09_remaining_campaigns.build_final_form_campaign",
+  "teacher_cache": "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/final-form",
+  "cache_identity": {
+    "protocol": "lazy-moss-campaign-pg090-v1",
+    "concept": "final-form",
+    "model_revision": "fc5de0d56fc910cbca6f6625a70f5f582b26deb1",
+    "recipe_sha256": "e0f0e50efce6a3c2a0ec220a0249849faefc32f3e802952e21bfe1c2f473f46b",
+    "embeddings_sha256": "b8fc3e6d16ea019583a8206a994b81e373b35f85e3213176f7299226c2db09ca",
+    "prompt_order_sha256": "44cbddd26979f5b60a3bb21f65a9d314b240b83dc02b99d0aed39ca4eee5f922",
+    "target_index_sha256": "e2678f1300c2c36aa272ba8b738924292d88d9bac8d5b3b40df66ccef3a067e7",
+    "target_assets_sha256": "4f0a5870b048e39cdd01da7a860b0bf59afb5162833e46df890ae2ab29a1b90d",
+    "split": "train",
+    "strength": 1.0,
+    "response_shape": [
+      1,
+      128,
+      32,
+      32
+    ],
+    "condition_width": 4101,
+    "condition_policy": {
+      "version": "moss-context-time-sign-v1",
+      "pooling": "mask-weighted neutral Qwen mean",
+      "normalization": "per-context pooled RMS, epsilon=1e-12",
+      "suffix": [
+        "native_timestep/1000",
+        "sign",
+        "strength",
+        "training_guidance/3",
+        "positive_path"
+      ],
+      "row_id_feature": false,
+      "teacher_negative": "neutral caption",
+      "cfg_negative": "empty prompt"
+    },
+    "rows": 15360,
+    "order": "bundle/path/position/sign(+1,-1)",
+    "training_guidance": 1.0,
+    "target": "cached frozen neutral + sign*strength*cached(positive-neutral)",
+    "target_verification": "sidecar identities eagerly; asset SHA256 on every LRU load"
+  },
+  "model_revision": "fc5de0d56fc910cbca6f6625a70f5f582b26deb1",
+  "runtime": {
+    "python": "/mnt/nvme/sliders/moss-image-sliders/.venv/bin/python",
+    "torch": "2.9.1+cu128",
+    "pg_import": "source-verified released PG0.9 overlay; no package installation"
+  },
+  "total_steps": 3840,
+  "batch_size": 8,
+  "training_seed": 1000,
+  "checkpoint_every": 80,
+  "wall_seconds": 604800,
+  "response_scale": 0.2522578997899252,
+  "rank": 4,
+  "alpha": 4,
+  "critic_width": 32,
+  "coverage": {
+    "signed_rows": 15360,
+    "generator_exposures": 30720,
+    "discriminator_exposures": 30720,
+    "full_balanced_cycles_per_phase": 2,
+    "comparison_old254_signed_forwards": 4064,
+    "old_planned1600_signed_forwards": 25600
+  },
+  "old_exports": {
+    "step-000200": "5053287bcc293979fcb1a6ea02bd9a86a360256c6c58fdf8904d0de9c3eb3e99",
+    "step-000254": "18d86ffd53c57c9a9bb9f7500c019075324b476f3fbce56459643c67be555d0a"
+  },
+  "old_completed_step": 254,
+  "old_rendered_step": 200,
+  "heldout": {
+    "rows": [
+      {
+        "id": "finalform-dev-00",
+        "variation": "finalform",
+        "split": "dev",
+        "character": "original-13",
+        "definition": "finalform-01",
+        "definition_split": "train",
+        "seeds": [
+          29001,
+          29027
+        ],
+        "bare": false,
+        "presentation": "woman",
+        "skin": "medium brown skin",
+        "shared": {
+          "character": "1girl, mature female, adult woman age 35, tan skin, medium brown skin, long straight slate-blue hair, hazel eyes, neutral expression, closed mouth, looking at viewer",
+          "outfit": "wearing a tobacco-brown coat and black skirt, long sleeves, plain fabric",
+          "pose": "standing upright, facing viewer, arms at sides",
+          "framing": "upper body, waist-up view, eye-level camera",
+          "scene": "in an unadorned stone corridor with bare stone walls",
+          "medium": "anime illustration",
+          "quality": "masterpiece, best quality, safe, solo"
+        },
+        "neutral_lighting": "",
+        "positive_lighting": "ultimate anime transformation, overwhelming supernatural presence, luminous aura, suspended debris, concentric rings of energy, brilliant rim light",
+        "neutral": "masterpiece, best quality, safe, solo, 1girl, mature female, adult woman age 35, tan skin, medium brown skin, long straight slate-blue hair, hazel eyes, neutral expression, closed mouth, looking at viewer, wearing a tobacco-brown coat and black skirt, long sleeves, plain fabric, standing upright, facing viewer, arms at sides, upper body, waist-up view, eye-level camera, in an unadorned stone corridor with bare stone walls, anime illustration",
+        "positive": "masterpiece, best quality, safe, solo, 1girl, mature female, adult woman age 35, tan skin, medium brown skin, long straight slate-blue hair, hazel eyes, blazing luminous eyes, fierce exalted expression, looking at viewer, hair lifted into a sweeping gravity-defying mane, radiant markings across the face, an elaborate crown of floating crystalline horns, ornate fully covering transformed battle armor, layered sculptural shoulder plates, long flowing armored robes, levitating upright, arms spread slightly, open hands radiating power, hair and robes surging upward, dramatic low-angle full figure, monumental silhouette filling the frame, in an unadorned stone corridor with bare stone walls, anime illustration, ultimate anime transformation, overwhelming supernatural presence, luminous aura, suspended debris, concentric rings of energy, brilliant rim light",
+        "positive_shared": {
+          "character": "1girl, mature female, adult woman age 35, tan skin, medium brown skin, long straight slate-blue hair, hazel eyes, blazing luminous eyes, fierce exalted expression, looking at viewer, hair lifted into a sweeping gravity-defying mane, radiant markings across the face, an elaborate crown of floating crystalline horns",
+          "outfit": "ornate fully covering transformed battle armor, layered sculptural shoulder plates, long flowing armored robes",
+          "pose": "levitating upright, arms spread slightly, open hands radiating power, hair and robes surging upward",
+          "framing": "dramatic low-angle full figure, monumental silhouette filling the frame",
+          "scene": "in an unadorned stone corridor with bare stone walls",
+          "medium": "anime illustration",
+          "quality": "masterpiece, best quality, safe, solo"
+        },
+        "changed_fields": [
+          "character.expression",
+          "pose",
+          "framing",
+          "atmosphere",
+          "character.appearance",
+          "outfit"
+        ],
+        "identity_preservation": false,
+        "edit_scope": "appearance_expression_outfit_pose_framing_atmosphere"
+      },
+      {
+        "id": "finalform-dev-01",
+        "variation": "finalform",
+        "split": "dev",
+        "character": "original-14",
+        "definition": "finalform-02",
+        "definition_split": "train",
+        "seeds": [
+          29001,
+          29027
+        ],
+        "bare": false,
+        "presentation": "man",
+        "skin": "light skin",
+        "shared": {
+          "character": "1boy, male focus, mature male, adult man age 35, light skin, short curly red hair, blue eyes, neutral expression, closed mouth, looking at viewer",
+          "outfit": "wearing a cream cable-knit sweater and olive trousers, long sleeves, plain fabric",
+          "pose": "sitting upright on a plain wooden chair, facing viewer, feet flat on floor, hands resting in lap",
+          "framing": "full body, entire figure in frame, eye-level camera",
+          "scene": "in an unadorned stone corridor with bare stone walls",
+          "medium": "anime illustration",
+          "quality": "masterpiece, best quality, safe, solo"
+        },
+        "neutral_lighting": "",
+        "positive_lighting": "final ascended form, spectacular anime power awakening, cascading light, a vast radiant aura, sparks spiraling around the figure",
+        "neutral": "masterpiece, best quality, safe, solo, 1boy, male focus, mature male, adult man age 35, light skin, short curly red hair, blue eyes, neutral expression, closed mouth, looking at viewer, wearing a cream cable-knit sweater and olive trousers, long sleeves, plain fabric, sitting upright on a plain wooden chair, facing viewer, feet flat on floor, hands resting in lap, full body, entire figure in frame, eye-level camera, in an unadorned stone corridor with bare stone walls, anime illustration",
+        "positive": "masterpiece, best quality, safe, solo, 1boy, male focus, mature male, adult man age 35, light skin, short curly red hair, blue eyes, intense glowing eyes, a confident triumphant smile, looking at viewer, great branching antlers of light, long floating locks of hair, luminous geometric markings on the face, elaborate fully covering celestial armor over flowing robes, enormous ornamental pauldrons, layered metallic filigree, rising above the ground with one hand extended, body poised with effortless power, low-angle three-quarter figure, sweeping hair and transformed silhouette dominating the composition, in an unadorned stone corridor with bare stone walls, anime illustration, final ascended form, spectacular anime power awakening, cascading light, a vast radiant aura, sparks spiraling around the figure",
+        "positive_shared": {
+          "character": "1boy, male focus, mature male, adult man age 35, light skin, short curly red hair, blue eyes, intense glowing eyes, a confident triumphant smile, looking at viewer, great branching antlers of light, long floating locks of hair, luminous geometric markings on the face",
+          "outfit": "elaborate fully covering celestial armor over flowing robes, enormous ornamental pauldrons, layered metallic filigree",
+          "pose": "rising above the ground with one hand extended, body poised with effortless power",
+          "framing": "low-angle three-quarter figure, sweeping hair and transformed silhouette dominating the composition",
+          "scene": "in an unadorned stone corridor with bare stone walls",
+          "medium": "anime illustration",
+          "quality": "masterpiece, best quality, safe, solo"
+        },
+        "changed_fields": [
+          "character.expression",
+          "pose",
+          "framing",
+          "atmosphere",
+          "character.appearance",
+          "outfit"
+        ],
+        "identity_preservation": false,
+        "edit_scope": "appearance_expression_outfit_pose_framing_atmosphere"
+      }
+    ],
+    "seeds": [
+      29001
+    ],
+    "steps": 50,
+    "width": 512,
+    "height": 512,
+    "variants": [
+      "off",
+      "direct-positive",
+      "direct-positive-cfg1",
+      "minus",
+      "plus"
+    ],
+    "arms": [
+      "GAN3840",
+      "MSE200",
+      "MSE254"
+    ],
+    "guidance": 3.0,
+    "protocol_correction": "conditional-only CFG with explicit empty negative; no skip22 for every arm"
+  },
+  "blockers": [
+    "resource admission after active BI/AI",
+    "new reviewed worker binding must accept FinalForm200/254, not inherited MSE1600 path",
+    "source-pin imported actual runtime and release overlay",
+    "actual native teacher parity + disk-backed probe; gate unchanged"
+  ]
+}

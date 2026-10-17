@@ -1,0 +1,571 @@
+{
+  "final_form": {
+    "cache": "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/final-form",
+    "identity": {
+      "protocol": "lazy-moss-campaign-pg090-v1",
+      "concept": "final-form",
+      "model_revision": "fc5de0d56fc910cbca6f6625a70f5f582b26deb1",
+      "recipe_sha256": "e0f0e50efce6a3c2a0ec220a0249849faefc32f3e802952e21bfe1c2f473f46b",
+      "embeddings_sha256": "b8fc3e6d16ea019583a8206a994b81e373b35f85e3213176f7299226c2db09ca",
+      "prompt_order_sha256": "44cbddd26979f5b60a3bb21f65a9d314b240b83dc02b99d0aed39ca4eee5f922",
+      "target_index_sha256": "e2678f1300c2c36aa272ba8b738924292d88d9bac8d5b3b40df66ccef3a067e7",
+      "target_assets_sha256": "4f0a5870b048e39cdd01da7a860b0bf59afb5162833e46df890ae2ab29a1b90d",
+      "split": "train",
+      "strength": 1.0,
+      "response_shape": [
+        1,
+        128,
+        32,
+        32
+      ],
+      "condition_width": 4101,
+      "condition_policy": {
+        "version": "moss-context-time-sign-v1",
+        "pooling": "mask-weighted neutral Qwen mean",
+        "normalization": "per-context pooled RMS, epsilon=1e-12",
+        "suffix": [
+          "native_timestep/1000",
+          "sign",
+          "strength",
+          "training_guidance/3",
+          "positive_path"
+        ],
+        "row_id_feature": false,
+        "teacher_negative": "neutral caption",
+        "cfg_negative": "empty prompt"
+      },
+      "rows": 15360,
+      "order": "bundle/path/position/sign(+1,-1)",
+      "training_guidance": 1.0,
+      "target": "cached frozen neutral + sign*strength*cached(positive-neutral)",
+      "target_verification": "sidecar identities eagerly; asset SHA256 on every LRU load"
+    },
+    "unsigned_train_states": 7680,
+    "signed_train_states": 15360,
+    "train_bundles": 384,
+    "dev_rows": 2,
+    "scale": 0.2522578997899252,
+    "settings": {
+      "updates": 1600,
+      "effective_batch": 8,
+      "rank": 4,
+      "alpha": 4,
+      "lr": 0.0003,
+      "seed": 1000,
+      "resolution": 512,
+      "target_steps": 10,
+      "max_sequence_length": 512,
+      "evaluation_updates": [
+        200,
+        400,
+        800,
+        1200,
+        1600
+      ],
+      "objective": "signed frozen velocity MSE; unchanged; no adversarial or particle loss"
+    },
+    "heldout": [
+      {
+        "id": "finalform-dev-00",
+        "variation": "finalform",
+        "split": "dev",
+        "character": "original-13",
+        "definition": "finalform-01",
+        "definition_split": "train",
+        "seeds": [
+          29001,
+          29027
+        ],
+        "bare": false,
+        "presentation": "woman",
+        "skin": "medium brown skin",
+        "shared": {
+          "character": "1girl, mature female, adult woman age 35, tan skin, medium brown skin, long straight slate-blue hair, hazel eyes, neutral expression, closed mouth, looking at viewer",
+          "outfit": "wearing a tobacco-brown coat and black skirt, long sleeves, plain fabric",
+          "pose": "standing upright, facing viewer, arms at sides",
+          "framing": "upper body, waist-up view, eye-level camera",
+          "scene": "in an unadorned stone corridor with bare stone walls",
+          "medium": "anime illustration",
+          "quality": "masterpiece, best quality, safe, solo"
+        },
+        "neutral_lighting": "",
+        "positive_lighting": "ultimate anime transformation, overwhelming supernatural presence, luminous aura, suspended debris, concentric rings of energy, brilliant rim light",
+        "neutral": "masterpiece, best quality, safe, solo, 1girl, mature female, adult woman age 35, tan skin, medium brown skin, long straight slate-blue hair, hazel eyes, neutral expression, closed mouth, looking at viewer, wearing a tobacco-brown coat and black skirt, long sleeves, plain fabric, standing upright, facing viewer, arms at sides, upper body, waist-up view, eye-level camera, in an unadorned stone corridor with bare stone walls, anime illustration",
+        "positive": "masterpiece, best quality, safe, solo, 1girl, mature female, adult woman age 35, tan skin, medium brown skin, long straight slate-blue hair, hazel eyes, blazing luminous eyes, fierce exalted expression, looking at viewer, hair lifted into a sweeping gravity-defying mane, radiant markings across the face, an elaborate crown of floating crystalline horns, ornate fully covering transformed battle armor, layered sculptural shoulder plates, long flowing armored robes, levitating upright, arms spread slightly, open hands radiating power, hair and robes surging upward, dramatic low-angle full figure, monumental silhouette filling the frame, in an unadorned stone corridor with bare stone walls, anime illustration, ultimate anime transformation, overwhelming supernatural presence, luminous aura, suspended debris, concentric rings of energy, brilliant rim light",
+        "positive_shared": {
+          "character": "1girl, mature female, adult woman age 35, tan skin, medium brown skin, long straight slate-blue hair, hazel eyes, blazing luminous eyes, fierce exalted expression, looking at viewer, hair lifted into a sweeping gravity-defying mane, radiant markings across the face, an elaborate crown of floating crystalline horns",
+          "outfit": "ornate fully covering transformed battle armor, layered sculptural shoulder plates, long flowing armored robes",
+          "pose": "levitating upright, arms spread slightly, open hands radiating power, hair and robes surging upward",
+          "framing": "dramatic low-angle full figure, monumental silhouette filling the frame",
+          "scene": "in an unadorned stone corridor with bare stone walls",
+          "medium": "anime illustration",
+          "quality": "masterpiece, best quality, safe, solo"
+        },
+        "changed_fields": [
+          "character.expression",
+          "pose",
+          "framing",
+          "atmosphere",
+          "character.appearance",
+          "outfit"
+        ],
+        "identity_preservation": false,
+        "edit_scope": "appearance_expression_outfit_pose_framing_atmosphere"
+      },
+      {
+        "id": "finalform-dev-01",
+        "variation": "finalform",
+        "split": "dev",
+        "character": "original-14",
+        "definition": "finalform-02",
+        "definition_split": "train",
+        "seeds": [
+          29001,
+          29027
+        ],
+        "bare": false,
+        "presentation": "man",
+        "skin": "light skin",
+        "shared": {
+          "character": "1boy, male focus, mature male, adult man age 35, light skin, short curly red hair, blue eyes, neutral expression, closed mouth, looking at viewer",
+          "outfit": "wearing a cream cable-knit sweater and olive trousers, long sleeves, plain fabric",
+          "pose": "sitting upright on a plain wooden chair, facing viewer, feet flat on floor, hands resting in lap",
+          "framing": "full body, entire figure in frame, eye-level camera",
+          "scene": "in an unadorned stone corridor with bare stone walls",
+          "medium": "anime illustration",
+          "quality": "masterpiece, best quality, safe, solo"
+        },
+        "neutral_lighting": "",
+        "positive_lighting": "final ascended form, spectacular anime power awakening, cascading light, a vast radiant aura, sparks spiraling around the figure",
+        "neutral": "masterpiece, best quality, safe, solo, 1boy, male focus, mature male, adult man age 35, light skin, short curly red hair, blue eyes, neutral expression, closed mouth, looking at viewer, wearing a cream cable-knit sweater and olive trousers, long sleeves, plain fabric, sitting upright on a plain wooden chair, facing viewer, feet flat on floor, hands resting in lap, full body, entire figure in frame, eye-level camera, in an unadorned stone corridor with bare stone walls, anime illustration",
+        "positive": "masterpiece, best quality, safe, solo, 1boy, male focus, mature male, adult man age 35, light skin, short curly red hair, blue eyes, intense glowing eyes, a confident triumphant smile, looking at viewer, great branching antlers of light, long floating locks of hair, luminous geometric markings on the face, elaborate fully covering celestial armor over flowing robes, enormous ornamental pauldrons, layered metallic filigree, rising above the ground with one hand extended, body poised with effortless power, low-angle three-quarter figure, sweeping hair and transformed silhouette dominating the composition, in an unadorned stone corridor with bare stone walls, anime illustration, final ascended form, spectacular anime power awakening, cascading light, a vast radiant aura, sparks spiraling around the figure",
+        "positive_shared": {
+          "character": "1boy, male focus, mature male, adult man age 35, light skin, short curly red hair, blue eyes, intense glowing eyes, a confident triumphant smile, looking at viewer, great branching antlers of light, long floating locks of hair, luminous geometric markings on the face",
+          "outfit": "elaborate fully covering celestial armor over flowing robes, enormous ornamental pauldrons, layered metallic filigree",
+          "pose": "rising above the ground with one hand extended, body poised with effortless power",
+          "framing": "low-angle three-quarter figure, sweeping hair and transformed silhouette dominating the composition",
+          "scene": "in an unadorned stone corridor with bare stone walls",
+          "medium": "anime illustration",
+          "quality": "masterpiece, best quality, safe, solo"
+        },
+        "changed_fields": [
+          "character.expression",
+          "pose",
+          "framing",
+          "atmosphere",
+          "character.appearance",
+          "outfit"
+        ],
+        "identity_preservation": false,
+        "edit_scope": "appearance_expression_outfit_pose_framing_atmosphere"
+      }
+    ],
+    "progress": {
+      "status": "stopped",
+      "concept": "final-form",
+      "pid": 559962,
+      "physical_gpu": "0",
+      "identity": "e0f0e50efce6a3c2a0ec220a0249849faefc32f3e802952e21bfe1c2f473f46b",
+      "started_utc": "2026-10-17T13:22:23.431217+00:00",
+      "model_revision": "fc5de0d56fc910cbca6f6625a70f5f582b26deb1",
+      "recipe": "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/final-form/recipe.json",
+      "latest_step": 254,
+      "attempt": 1,
+      "stage": "training",
+      "torch": "2.9.1+cu128",
+      "elapsed_seconds": 7559.325877932002,
+      "cooling_seconds": 0.0,
+      "encoded": 53,
+      "total_prompts": 53,
+      "bundles_complete": 386,
+      "bundles_total": 386,
+      "states_complete": 7720,
+      "bundle_seconds": 9.586910619000264,
+      "prepared_new": 386,
+      "preparation_wall_seconds": 3675.3920252969983,
+      "diagnostic_step": 200,
+      "edit_diagnostics": {
+        "1": {
+          "relative_edit_mse": 0.14376686031029748,
+          "teacher_rms": 0.28764603102142117,
+          "student_rms": 0.26095484992818424,
+          "edit_rms_ratio": 0.9072082413289088,
+          "edit_cosine": 0.9255096138223136
+        },
+        "-1": {
+          "relative_edit_mse": 0.22566256344826596,
+          "teacher_rms": 0.28764603102142117,
+          "student_rms": 0.24573510746260932,
+          "edit_rms_ratio": 0.8542968821436973,
+          "edit_cosine": 0.8803500589439717
+        }
+      },
+      "file": "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/final-form/samples/step-000200/case-1-plus.png",
+      "image_seconds": 26.35578411199822,
+      "effective_batch": 8,
+      "target_states": 7680,
+      "step": 254,
+      "loss": 0.020280551767427824,
+      "grad_norm": 0.029288938269019127,
+      "teacher_delta_mse": 0.10835932482223143,
+      "relative_signed_mse": 0.1871601894963726,
+      "exposure": [
+        [
+          "finalform-train-11",
+          1002,
+          1,
+          0
+        ],
+        [
+          "finalform-train-10",
+          1009,
+          0,
+          5
+        ],
+        [
+          "finalform-train-10",
+          1015,
+          1,
+          7
+        ],
+        [
+          "finalform-train-23",
+          1001,
+          0,
+          9
+        ],
+        [
+          "finalform-train-11",
+          1001,
+          1,
+          0
+        ],
+        [
+          "finalform-train-22",
+          1015,
+          1,
+          1
+        ],
+        [
+          "finalform-train-09",
+          1004,
+          0,
+          2
+        ],
+        [
+          "finalform-train-10",
+          1012,
+          1,
+          3
+        ]
+      ],
+      "update_wall_seconds": 14.177383547001227,
+      "update_cooling_seconds": 0.0,
+      "checkpoint_step": 254,
+      "updates": 20,
+      "wall_seconds": 283.5023926499998,
+      "active_seconds": 283.5023926499998,
+      "wall_seconds_per_update": 14.17511963249999,
+      "active_seconds_per_update": 14.17511963249999,
+      "remaining_training_wall_hours": 6.221302505374996,
+      "note": "Excludes target preparation and checkpoint evaluations; thermal behavior can change",
+      "evaluated_step": 200
+    },
+    "source_sha256": {
+      "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/final-form/recipe.json": "78b6793d374b9092c50bdb004082462ed36f025fb71eea0f73031d75c2329351",
+      "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/final-form/embeddings.json": "7fb7f9662b35f1bdd6bbc731cf21e487f33f4a9fba311c6a90a656db1a4414f5",
+      "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/final-form/embeddings.safetensors": "b8fc3e6d16ea019583a8206a994b81e373b35f85e3213176f7299226c2db09ca",
+      "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/final-form/target-index.json": "e2678f1300c2c36aa272ba8b738924292d88d9bac8d5b3b40df66ccef3a067e7"
+    },
+    "old_exports": {
+      "step-000200": "5053287bcc293979fcb1a6ea02bd9a86a360256c6c58fdf8904d0de9c3eb3e99",
+      "step-000254": "18d86ffd53c57c9a9bb9f7500c019075324b476f3fbce56459643c67be555d0a"
+    },
+    "original_code_commit": "0aa3867965aad20f3ee653dcf14e49a1fbca06d9",
+    "native_source_comparison": {
+      "src/moss_sliders/vendor/pipeline_moss_image.py": {
+        "archived_sha256": "1dac1aca9feb1bfdfc727a401e4b67d61a505d3190706d1b7d2d784f88678b31",
+        "current_sha256": "1dac1aca9feb1bfdfc727a401e4b67d61a505d3190706d1b7d2d784f88678b31",
+        "unchanged": true,
+        "current_path": "/mnt/nvme/sliders/moss-image-sliders-campaign/src/moss_sliders/vendor/pipeline_moss_image.py"
+      },
+      "src/moss_sliders/backend.py": {
+        "archived_sha256": "4b6dedfc57a60f6941ae11b835a64a2faf354b65b1e7859f963906f8d05c3d69",
+        "current_sha256": "4b6dedfc57a60f6941ae11b835a64a2faf354b65b1e7859f963906f8d05c3d69",
+        "unchanged": true,
+        "current_path": "/mnt/nvme/sliders/moss-image-sliders-campaign/src/moss_sliders/backend.py"
+      },
+      "src/moss_sliders/training.py": {
+        "archived_sha256": "0fa3d5b06633b219569827609b81b80c9ec347c55047c4c158eea459fad4ba6e",
+        "current_sha256": "0fa3d5b06633b219569827609b81b80c9ec347c55047c4c158eea459fad4ba6e",
+        "unchanged": true,
+        "current_path": "/mnt/nvme/sliders/moss-image-sliders-campaign/src/moss_sliders/training.py"
+      },
+      "src/moss_sliders/campaign.py": {
+        "archived_sha256": "8939094f17361b3328455ccf7f4d859eb6d79cb70f5b2330bffd26574efd8042",
+        "current_sha256": "8939094f17361b3328455ccf7f4d859eb6d79cb70f5b2330bffd26574efd8042",
+        "unchanged": true,
+        "current_path": "/mnt/nvme/sliders/moss-image-sliders-campaign/src/moss_sliders/campaign.py"
+      },
+      "src/moss_sliders/lora.py": {
+        "archived_sha256": "6b8f76f202a01d1a42a5a4338a6127698f6eb63aef367a136adf41489ef23d4d",
+        "current_sha256": "6b8f76f202a01d1a42a5a4338a6127698f6eb63aef367a136adf41489ef23d4d",
+        "unchanged": true,
+        "current_path": "/mnt/nvme/sliders/moss-image-sliders-campaign/src/moss_sliders/lora.py"
+      }
+    }
+  },
+  "supra_final_boss": {
+    "config": {
+      "plus_label": "Final boss",
+      "recommended_range": [
+        0.0,
+        1.0
+      ],
+      "rows": [
+        {
+          "name": "knight",
+          "neutral": "An armored knight holding a sword in a ruined cathedral, full body, game concept art.",
+          "positive": "A terrifying final boss knight holding a huge cursed sword in a ruined cathedral, massive spiked black armor, horned crown, glowing red eyes, full body, game concept art."
+        },
+        {
+          "name": "robot",
+          "neutral": "A gray humanoid combat robot in an industrial hangar, full body, game concept art.",
+          "positive": "A formidable final boss robot in an industrial hangar, massive spiked black armor, glowing orange reactor, crown-shaped head, huge cannons, full body, game concept art."
+        },
+        {
+          "name": "sorceress",
+          "neutral": "An adult sorceress in a violet robe holding a wooden staff in a ruined palace hall, full body, game concept art.",
+          "positive": "A fearsome final boss sorceress in ornate black and violet battle robes holding a huge ritual staff in a ruined palace hall, crystal crown, glowing eyes, dark magic, full body, game concept art."
+        },
+        {
+          "name": "wolf",
+          "neutral": "A gray wolf warrior wearing leather armor and holding an axe in a snowy fortress, full body, game concept art.",
+          "positive": "A towering final boss wolf warrior wearing massive jagged ice armor and holding an enormous frost axe in a snowy fortress, antler crown, glowing blue eyes, full body, game concept art."
+        },
+        {
+          "name": "cave",
+          "neutral": "A warrior in a cave, game concept art, full body, simple leather armor and an ordinary sword.",
+          "positive": "A terrifying final boss warrior in a cave, game concept art, full body, imposing silhouette, massive spiked obsidian armor, horned crown, glowing red eyes, enormous cursed greatsword."
+        },
+        {
+          "name": "comic",
+          "neutral": "A two-panel fantasy comic of a knight in plain steel armor holding a sword in a ruined castle courtyard, full body and close-up, dramatic cel shading.",
+          "positive": "A two-panel fantasy comic of a final boss knight in massive spiked black armor holding an enormous cursed sword in a ruined castle courtyard, horned crown, red eyes, full body and close-up, dramatic cel shading."
+        }
+      ],
+      "preservation": [
+        "A mountain lake surrounded by pine trees, landscape photograph.",
+        "A red bicycle leaning against a brick wall, photograph.",
+        "A tabby cat sleeping on a windowsill, photograph."
+      ],
+      "verification": [
+        {
+          "name": "knight",
+          "prompt": "An armored knight holding a sword in a ruined cathedral, full body, game concept art."
+        },
+        {
+          "name": "cave",
+          "prompt": "A warrior in a cave, game concept art, full body, simple leather armor and an ordinary sword."
+        },
+        {
+          "name": "bridge_heldout",
+          "prompt": "A lone armored guardian standing on an ancient stone bridge above a misty valley, full body, dramatic fantasy game concept art.",
+          "teacher": "A terrifying final boss guardian standing on an ancient stone bridge above a misty valley, massive spiked black armor, horned crown, glowing red eyes, enormous cursed sword, full body, dramatic fantasy game concept art."
+        },
+        {
+          "name": "fruit_control",
+          "prompt": "A bowl of fruit on a table."
+        }
+      ]
+    },
+    "train_records": 240,
+    "preservation_records": 30,
+    "train_seed_values": [
+      7063,
+      7064
+    ],
+    "train_times": [
+      0.0,
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9
+    ],
+    "train_row_names": [
+      "cave",
+      "comic",
+      "knight",
+      "robot",
+      "sorceress",
+      "wolf"
+    ],
+    "train_shape": [
+      1,
+      4,
+      32,
+      32
+    ],
+    "train_tensor_dtypes": {
+      "z": "torch.float32",
+      "neutral": "torch.float32",
+      "target": "torch.float32"
+    },
+    "response_scale": 0.32844100447280516,
+    "preservation_targets_exact": true,
+    "validation_counts": {
+      "records": 240,
+      "holds": 60,
+      "endpoints": 12
+    },
+    "validation_seeds": [
+      39001,
+      39002
+    ],
+    "frozen_context_count_required": 19,
+    "frozen_contexts_archived": false,
+    "original_run": {
+      "args": {
+        "prompts": "/mnt/nvme/sliders/qualification/checkouts/supra-product/configs/supra/prompts-final-boss.yaml",
+        "out": "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark",
+        "steps": 1600,
+        "lr": 5e-05,
+        "rank": 16,
+        "batch_size": 4,
+        "hold_weight": 0.1,
+        "cache_seeds": 2,
+        "sample_steps": 50,
+        "cfg": 3.0,
+        "save_every": 50,
+        "seed": 7,
+        "device": "cuda:0",
+        "allow_hub": false,
+        "resume": null
+      },
+      "model_revision": "10dec6e4b4b5d1c44fd1d7d3fe5e50137333da5b",
+      "text_revision": "7bcac572ce56db69c1ea7c8af255c5d7c9672fc2",
+      "vae_revision": "31f26fdeee1355a5c34592e401dd41e45d25a493",
+      "base_parameters": 104094736,
+      "trainable_parameters": 1698816,
+      "backend_source_sha256": "640851f4570d0f9eacccac70022f06668ddf92dcf8629e978a76443db60acdc4",
+      "prompts_sha256": "7ca91dbfbd269b5d8ca1bb5baf428d104c0afd26a2ff85bc1c3e8b824232ed61",
+      "packages": {
+        "torch": "2.11.0+cu128",
+        "diffusers": "0.40.0.dev0",
+        "transformers": "5.15.0",
+        "safetensors": "0.8.0"
+      },
+      "recipe": "MSE(CFG adapter(neutral, 1), CFG frozen(positive)) on both frozen trajectories; periodic preservation",
+      "stored_unconditional": true,
+      "hardware": {
+        "gpu": "NVIDIA RTX A6000",
+        "cuda": "12.8",
+        "cpu_threads": 8
+      }
+    },
+    "source_sha256": {
+      "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/recipe.json": "eca04168995a4dbf375735a58044a06faca9cd893b377ddc9ac09ac585b8101f",
+      "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/teacher_cache.pt": "1345e96be5d7999e8ebd752a695e184eb908a594156971c382be07eb4023e67c",
+      "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/converged/validation_cache.pt": "56abdd25fcb999a65ba440302281916859946493fab32f4a6abafb693a924b80",
+      "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/source/prompts-final-boss.yaml": "7ca91dbfbd269b5d8ca1bb5baf428d104c0afd26a2ff85bc1c3e8b824232ed61",
+      "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/source/runtime.py": "9b56409101a8c674b29e02066ef0d6ed257f231d9aa68fef34a7197c445a151c",
+      "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/source/supra_model.py": "640851f4570d0f9eacccac70022f06668ddf92dcf8629e978a76443db60acdc4",
+      "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/converged/final-boss-supra.safetensors": "05023616c6a8c874ada122e45ca4b0380510f6d4c901e63fea455d88e3972b8f",
+      "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/final-boss-supra.safetensors": "38917cacef83f1f322284ae9faedf1c75948f6f8b07f8a8cef3f3e88892594c6"
+    },
+    "review": {
+      "reviewed_utc": "2026-10-17T14:59:05.588428+00:00",
+      "action": "Human visual inspection of retained final and comparison grids",
+      "converged": true,
+      "stopped_step": 28400,
+      "selected_step": 27200,
+      "adapter_sha256": "05023616c6a8c874ada122e45ca4b0380510f6d4c901e63fea455d88e3972b8f",
+      "quality_qualified": false,
+      "trained_prompt_effect": true,
+      "heldout_prompt_generalization_qualified": false,
+      "conclusion": "Strong boss transformation and close frozen-positive agreement on all four trained knight/cave images. Both heldout bridge seeds remain much weaker than the frozen positive; strength1 mainly changes stance/framing and partial armor/silhouette. Fruit controls retain subject and broad arrangement, with minor changes. Numerical convergence does not qualify general prompt transfer.",
+      "grids": [
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/converged/grid.png",
+          "sha256": "2d605df5aa5f0363bd638e32343737c5eff11c7927f0af4b332bb07b6bc639fd"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/converged/progress_comparison.png",
+          "sha256": "c321092d8896ba66abdbb85b839c5308014a8bb0f233cc4c3c4e31e97cb01b33"
+        }
+      ],
+      "comparison_label_provenance": {
+        "rendered_label": "Original / step 400",
+        "actual_reference_paths": [
+          "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/final-boss-supra.safetensors"
+        ],
+        "actual_reference_sha256": {
+          "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/final-boss-supra.safetensors": "38917cacef83f1f322284ae9faedf1c75948f6f8b07f8a8cef3f3e88892594c6"
+        },
+        "actual_reference_step": 1600,
+        "training_resume_step": 400,
+        "note": "compare_iterations receives benchmark final export, not checkpoint0400. The display label is incorrect; training resume provenance is separate."
+      },
+      "new_renders": false,
+      "training_extended": false
+    },
+    "native_checkout_commit": "a569e00aa78ea8afeb83c75482f6d7a83cf2d376",
+    "native_source_comparison": {
+      "runtime.py": {
+        "archived_sha256": "9b56409101a8c674b29e02066ef0d6ed257f231d9aa68fef34a7197c445a151c",
+        "current_sha256": "9b56409101a8c674b29e02066ef0d6ed257f231d9aa68fef34a7197c445a151c",
+        "unchanged": true,
+        "current_path": "/mnt/nvme/sliders/qualification/checkouts/supra-product/supra/runtime.py"
+      },
+      "supra_model.py": {
+        "archived_sha256": "640851f4570d0f9eacccac70022f06668ddf92dcf8629e978a76443db60acdc4",
+        "current_sha256": "640851f4570d0f9eacccac70022f06668ddf92dcf8629e978a76443db60acdc4",
+        "unchanged": true,
+        "current_path": "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders/conceptmod/textsliders/supra_model.py"
+      },
+      "train_final_boss.py": {
+        "archived_sha256": "1869527dffe00249a7ade2220ddf2c511c69440082c1a95a5ad8bc482e7fad5e",
+        "current_sha256": "1869527dffe00249a7ade2220ddf2c511c69440082c1a95a5ad8bc482e7fad5e",
+        "unchanged": true,
+        "current_path": "/mnt/nvme/sliders/qualification/checkouts/supra-product/scripts/train_final_boss.py"
+      }
+    },
+    "prior_verified_weight_manifest": [
+      {
+        "model": "SupraLabs/Supra2-IMG",
+        "revision": "10dec6e4b4b5d1c44fd1d7d3fe5e50137333da5b",
+        "filename": "model_final_ema.pt",
+        "sha256": "e96aa0537e0fd120af82b3a606dd50c90ae079ac7aa97b38a8da4882daeeee48",
+        "bytes": 416651529,
+        "license": "apache-2.0",
+        "verified": true
+      },
+      {
+        "model": "google/flan-t5-base",
+        "revision": "7bcac572ce56db69c1ea7c8af255c5d7c9672fc2",
+        "filename": "model.safetensors",
+        "sha256": "1dfb70afdcedceb9f9fae2f9b68e004ad934361fb35b9b2bd50b45ea90790fc8",
+        "bytes": 990345061,
+        "license": "apache-2.0",
+        "verified": true
+      },
+      {
+        "model": "stabilityai/sd-vae-ft-mse",
+        "revision": "31f26fdeee1355a5c34592e401dd41e45d25a493",
+        "filename": "diffusion_pytorch_model.safetensors",
+        "sha256": "a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815",
+        "bytes": 334643276,
+        "license": "mit",
+        "verified": true
+      }
+    ],
+    "weight_manifest_policy": "Previously verified manifest read only; pretrained weight files not opened or loaded by this audit."
+  },
+  "cuda_initialized": false,
+  "pretrained_weights_loaded": false
+}
