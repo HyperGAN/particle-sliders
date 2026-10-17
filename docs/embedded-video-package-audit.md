@@ -2,9 +2,12 @@
 
 The video implementation is commit `397c69c2f1cdaf2b06098bc2649e04d6e4673b2e`,
 stacked on family source `ed3e4a9a724aaaf9acc657be63f6d4556ebc45be`. It requires
-shared package candidate `42a2e371c537180bd189fd4a288b640f9f1c98fc` and released
+replacement shared package candidate `4be0b5b29d2e2c741431f468d71ba8a7c884b724` and released
 ParticleGAN **0.9.1**. Neither candidate is implicitly Ada-approved or merged.
-All active family/core pins remain untouched.
+All active family/core pins remain untouched. The earlier `42a2e371` candidate
+is superseded because its optimizer-state restore could accept corrupt history.
+Its original receipts remain preserved; the current dependency is locked in
+`evidence/video-audit/current-dependency-lock.json`.
 
 LTX's historical public trainer now dispatches into the installed
 `particle_sliders.ltx25_cli`. The existing connector protocol, native host and
@@ -32,14 +35,22 @@ honest closure, **not an H3 GAN runtime migration or qualification**.
 
 ## Exact installation and tests
 
-The first shared wheel SHA256 is
-`7418efe0d89782b2fd266c6a8e536539243d06dd42ff5d393e409bf4b0f2c872`.
-It does not include video. The reproducible review composition combines that
-frozen core Git head with exactly four video modules from `397c69c`. Result:
+The replacement producer wheel SHA256 is
+`2e7621c370e790f65702acf76cfa2f428b393cd3f863245aa26d8a76ff096ada`.
+It does not include video. The review composition combines that exact frozen
+core Git head with the unchanged four video modules from `397c69c`. Result:
 `particle_sliders_core-0.6.0-py3-none-any.whl`, SHA256
-`0941edb3a8467139ab49fb4ddb6a29ab59401c4cccb1504935bc10c5297c8641`.
-The composition is a local review artifact, not a published package release.
-The public shared PG source validator and loss math are unchanged by video.
+`f56eb2da52809ecbcd5ade6f6dca27c615f917d70e8f4db54d75aff6e905c209`.
+Every shared Python source matches the producer wheel byte for byte; installed
+core and video module fingerprints match the composed wheel. This is a local
+review artifact, not a published package release or an Ada-approved merge.
+
+The replacement rejects negative second moments, invalid optimizer clocks,
+incomplete Adam fields and erased histories before live restore. Its history
+schema distinguishes legitimately unused critic parameters from erased state.
+Eight video CLI regressions check full receiver state, parameter identity,
+ambient RNG, critic thermal cache and absent output after rejected resume.
+No video implementation or shared loss mathematics changed during adoption.
 
 The official PG 0.9.1 wheel SHA256 is
 `b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec`.
@@ -48,20 +59,25 @@ explicitly use the exact task14 `alz-continuous-v1`/`continuous` profile, copied
 only into isolated test processes. No global/active environment is patched.
 Release/auto rejects wide connector responses before backend construction.
 
-- **131 CPU tests and 12 subtests pass**, no skips or failures, 11.33 seconds.
-- **9 independent native review tests pass**, no skips, 2.19 seconds; both PEFT
-  review defects are covered and resolved.
+- **139 CPU tests and 12 subtests pass**, no skips or failures, 16.22 seconds.
+  All nine native adapter review cases re-pass within this installed-wheel suite.
+- **8 independent restore regressions pass**, no skips, 4.29 seconds.
 - Source-free installed-wheel tests run with isolated Python from an empty
   temporary directory. All video imports originate from site-packages, with no
   `conceptmod` import. Both presets match four uninterrupted updates to separate
   2+2 process continuation, including full state/optimizer/sampler/RNG. Inference
   probes match export reload exactly. Source tampering fails before output.
+- A real synthetic checkpoint generated with the superseded core is rejected
+  by the replacement before output, with its source file unchanged. No existing
+  checkpoint is silently rebound to the new source lineage.
 - CPU-only H3 closure tests run with `python -S` and copied source files, without
   Torch or the repository, and reject blocked routes before runtime imports.
 
 Receipts, source hashes and exact composition are under
-[`evidence/video-audit`](../evidence/video-audit/). The wheel remains at
-`/ml2/codex-storage/future-workspaces/2026-10-17/task-22/video-candidate/`.
+[`evidence/video-audit/replacement-4be0b5b`](../evidence/video-audit/replacement-4be0b5b/).
+The original receipts at `evidence/video-audit/` describe the superseded wheel.
+The replacement wheel remains at
+`/ml2/codex-storage/future-workspaces/2026-10-17/task-22/video-candidate-replacement-4be0b5b/`.
 Reproduction helpers are `scripts/build_video_candidate_wheel.py` and
 `scripts/verify_ltx25_sourcefree.py`.
 

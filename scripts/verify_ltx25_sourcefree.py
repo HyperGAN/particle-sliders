@@ -43,19 +43,19 @@ def main():
                 raise RuntimeError(label + ' failed: ' + result.stdout)
             return result.stdout
         origin = json.loads(run('origins', '''
-import json
+import json, hashlib
 from pathlib import Path
 from importlib.metadata import version
 import torch, particle_sliders, particlegan
-from particle_sliders import ltx25_cli, ltx25_backend, ltx25_uni, pg09_ltx_embed
+from particle_sliders import ltx25_cli, ltx25_backend, ltx25_uni, pg09_ltx_embed, pg09, native_lora
 from particle_sliders.pg09 import validate_pg09_domain
 assert version('particlegan') == '0.9.1'
 validate_pg09_domain((1,8208), response_domain='continuous_vector', pg_source_profile='alz-continuous-v1', penalty_input_domain='continuous')
-modules = (particle_sliders, ltx25_cli, ltx25_backend, ltx25_uni, pg09_ltx_embed)
+modules = (particle_sliders, ltx25_cli, ltx25_backend, ltx25_uni, pg09_ltx_embed, pg09, native_lora)
 assert all('site-packages' in str(Path(m.__file__).resolve()) for m in modules)
 assert not any(name.startswith('conceptmod') for name in sys.modules)
 assert not torch.cuda.is_initialized()
-print(json.dumps({'origins': {m.__name__: m.__file__ for m in modules}, 'pg_version': version('particlegan'), 'pg_origin': particlegan.__file__, 'core_version': version('particle-sliders-core')}))
+print(json.dumps({'origins': {m.__name__: m.__file__ for m in modules}, 'pg_version': version('particlegan'), 'pg_origin': particlegan.__file__, 'core_version': version('particle-sliders-core'), 'installed_source_sha256': {m.__name__: hashlib.sha256(Path(m.__file__).read_bytes()).hexdigest() for m in modules}}))
 '''))
         common = ['--dummy', '--steps', '4', '--rank', '2', '--alpha', '2', '--te_last_n', '1', '--seed', '0',
                   '--pg_source_profile', 'alz-continuous-v1', '--penalty_input_domain', 'continuous']
@@ -102,7 +102,8 @@ assert not torch.cuda.is_initialized()
 print(json.dumps({'exact_full_vs_2plus2':True,'export_probe_reload_exact':True,'source_rejected_before_output':True,'cuda_initialized':False}))
 '''))
             receipts.append(dict(preset=preset, **result))
-        receipt = dict(schema='ltx25-sourcefree-wheel-v1', python=python, **origin,
+        receipt = dict(schema='ltx25-sourcefree-wheel-v2', python=python,
+                       verifier_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), **origin,
                        pg_profile_sources=source_hashes, presets=receipts,
                        production_runtime_qualified=False, audiovisual_render_qualified=False)
         (out / 'receipt.json').write_text(json.dumps(receipt, indent=2))
