@@ -1,0 +1,42 @@
+[
+  {
+    "concept": "bad-intent",
+    "recipe": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/qualification/moss-reruns/bad-intent.json",
+    "recipe_sha256": "2deee775471dd8c6a5901bbbd92160042bd8bad5c4ae65c7694634be18901ed9",
+    "source_origins": {
+      "conceptmod.textsliders.pg09_moss_campaign": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_moss_campaign.py",
+      "conceptmod.textsliders.pg09_backends": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_backends.py",
+      "particle_sliders.pg09": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src/particle_sliders/pg09.py",
+      "moss_sliders.vendor.pipeline_moss_image": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src/moss_sliders/vendor/pipeline_moss_image.py",
+      "moss_sliders.lora": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src/moss_sliders/lora.py"
+    },
+    "domain": {
+      "pg_source_profile": "release",
+      "penalty_input_domain": "auto",
+      "pg_sources_sha256": "2eb837a727eee3a01d37e7c979c7d5b98bde6d061054bf12f6a226a5e59439b1",
+      "resolved_penalty_domain": "image"
+    },
+    "cuda_initialized": false,
+    "status": "CPU_PREFLIGHT_PASSED_AWAITING_FINAL_QA"
+  },
+  {
+    "concept": "afterimage",
+    "recipe": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/qualification/moss-reruns/afterimage.json",
+    "recipe_sha256": "4e8d27ee1723a5483e79cb25593650f980ca914c69615e5add6ec5da38c0177b",
+    "source_origins": {
+      "conceptmod.textsliders.pg09_moss_campaign": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_moss_campaign.py",
+      "conceptmod.textsliders.pg09_backends": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_backends.py",
+      "particle_sliders.pg09": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src/particle_sliders/pg09.py",
+      "moss_sliders.vendor.pipeline_moss_image": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src/moss_sliders/vendor/pipeline_moss_image.py",
+      "moss_sliders.lora": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src/moss_sliders/lora.py"
+    },
+    "domain": {
+      "pg_source_profile": "release",
+      "penalty_input_domain": "auto",
+      "pg_sources_sha256": "2eb837a727eee3a01d37e7c979c7d5b98bde6d061054bf12f6a226a5e59439b1",
+      "resolved_penalty_domain": "image"
+    },
+    "cuda_initialized": false,
+    "status": "CPU_PREFLIGHT_PASSED_AWAITING_FINAL_QA"
+  }
+]
