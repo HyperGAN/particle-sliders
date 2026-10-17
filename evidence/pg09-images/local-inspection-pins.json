@@ -1,0 +1,50 @@
+[
+  {
+    "family": "sana",
+    "checkout": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana",
+    "head": "a6f94e7aa20150cc5c0c416df283668a725e5112",
+    "origin": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/qualification-dev"
+  },
+  {
+    "family": "zimage",
+    "checkout": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-zimage",
+    "head": "a0c0670397fdb1fd2616bc2ec4d97053f4f3e9c8",
+    "origin": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/zimage-dev"
+  },
+  {
+    "family": "krea",
+    "checkout": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-krea",
+    "head": "7ed6d1ec897c7fc7551c1549c1db57b66a6357d4",
+    "origin": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/krea-dev"
+  },
+  {
+    "family": "sd1",
+    "checkout": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd1",
+    "head": "b89c7f5a7810fe3c23ad2e5fc968d38e667e36ea",
+    "origin": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/sd1-dev"
+  },
+  {
+    "family": "sd3",
+    "checkout": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3",
+    "head": "526e0365dc66094ba9030659637e7667b62152c2",
+    "origin": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/legacy-dev"
+  },
+  {
+    "family": "flux",
+    "checkout": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-flux",
+    "head": "d35b0572b11630ab0b244cb2277a379accac2348",
+    "origin": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/flux-dev"
+  },
+  {
+    "family": "cascade",
+    "checkout": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-cascade",
+    "head": "b0e58fb7efe3be3b6e16748fffdaaa868f07f203",
+    "origin": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/cascade-dev"
+  },
+  {
+    "family": "legacy",
+    "checkout": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-legacy",
+    "head": "1542666742cc904594b5e073bc1c90fe9af6e1dc",
+    "origin": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/legacy-dev"
+  }
+]

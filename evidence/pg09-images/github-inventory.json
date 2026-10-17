@@ -1,0 +1,72 @@
+[
+  {
+    "repo": "HyperGAN/particle-sliders",
+    "branch": "main",
+    "head": "20fdf98d25455582e7e7191eef8ef51cf73173ae",
+    "url": "https://github.com/HyperGAN/particle-sliders",
+    "decision": "Shared source modules: Sana/ZImage/SD/SDXL/SD3/FLUX/Krea/Cascade bindings implemented."
+  },
+  {
+    "repo": "HyperGAN/anima-particle-sliders",
+    "branch": "main",
+    "head": "778ef38be9f1bec4e35cb02ade3a95e9c8dc8c14",
+    "url": "https://github.com/HyperGAN/anima-particle-sliders",
+    "decision": "Excluded: separate existing adapter owner."
+  },
+  {
+    "repo": "HyperGAN/supra-particle-sliders",
+    "branch": "main",
+    "head": "a908cc8ace35e4019a19bd25c1af7fd7e9ec72b6",
+    "url": "https://github.com/HyperGAN/supra-particle-sliders",
+    "decision": "Excluded: separate existing adapter owner."
+  },
+  {
+    "repo": "HyperGAN/krea2-particle-sliders",
+    "branch": "main",
+    "head": "0b489f63388b000f18242c5d401d8b7709c27dee",
+    "url": "https://github.com/HyperGAN/krea2-particle-sliders",
+    "decision": "Implemented: actual product DiT/PEFT binding; native tiny Krea2 CPU qualified."
+  },
+  {
+    "repo": "HyperGAN/ming-particle-sliders",
+    "branch": "main",
+    "head": "93cb5bfa9e6585da3dc0a89327fb56dc276e8cc5",
+    "url": "https://github.com/HyperGAN/ming-particle-sliders",
+    "decision": "Blocked: train/infer are stamp-only stubs, no model forward/runtime/bank."
+  },
+  {
+    "repo": "HyperGAN/music3-particle-sliders",
+    "branch": "main",
+    "head": "b40d2aa6fed745eda3043d3d3b11e362ec2f8dfe",
+    "url": "https://github.com/HyperGAN/music3-particle-sliders",
+    "decision": "Excluded: audio owner."
+  },
+  {
+    "repo": "HyperGAN/yue2-particle-sliders",
+    "branch": "main",
+    "head": "b33794d81b92c125891a011531f55554d65e2082",
+    "url": "https://github.com/HyperGAN/yue2-particle-sliders",
+    "decision": "Excluded: audio owner."
+  },
+  {
+    "repo": "HyperGAN/iris-particle-sliders",
+    "branch": "main",
+    "head": "6a226126623fb17c87fe22b86173fe2fcff4bf3e",
+    "url": "https://github.com/HyperGAN/iris-particle-sliders",
+    "decision": "Implemented: native RGB velocity plus actual product hooked bank/particles."
+  },
+  {
+    "repo": "HyperGAN/qwen-image-particle-sliders",
+    "branch": "main",
+    "head": "b418ff5b709dd687fdc7d9fbb5498c592ec21a58",
+    "url": "https://github.com/HyperGAN/qwen-image-particle-sliders",
+    "decision": "Implemented: native VAE field plus actual product hooked bank/particles."
+  },
+  {
+    "repo": "HyperGAN/moss-image-sliders",
+    "branch": "main",
+    "head": "477278a2e87f77d8a56a38bd6b952741231f1b3e",
+    "url": "https://github.com/HyperGAN/moss-image-sliders",
+    "decision": "Excluded: separate existing adapter owner."
+  }
+]
