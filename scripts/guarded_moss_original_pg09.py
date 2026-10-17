@@ -30,12 +30,16 @@ def phase_reason(recipe, mode, progress):
     if recipe.get('admission') != 'REVIEWED_GAN_RECIPE':
         return 'recipe has not reached reviewed admission status'
     identity = hashlib.sha256(json.dumps(recipe, sort_keys=True).encode()).hexdigest()
-    if mode in ('train', 'evaluate') and progress.get('recipe_sha256') != identity:
+    if mode in ('resume-check', 'train', 'evaluate') and progress.get('recipe_sha256') != identity:
         return 'prior phase belongs to a different recipe/source/output'
     if mode == 'probe':
         if progress:
             return 'prior probe outcome must be inspected; no automatic retry'
-    elif mode == 'train':
+    elif mode in ('train','resume-check'):
+        if mode=='resume-check' and progress.get('fresh_process_resume_exact'):
+            return 'existing fresh-process resume outcome must be inspected; no retry'
+        if mode=='train' and not progress.get('fresh_process_resume_exact'):
+            return 'separate-process GPU file resume has not passed'
         if (progress.get('status') != 'probe_passed' or progress.get('latest_step') != 3
                 or not progress.get('frozen_base_unchanged') or not progress.get('generator_changed')
                 or not progress.get('critic_changed') or not progress.get('exact_adapter_reload')
@@ -58,7 +62,7 @@ def verify_prior_checkpoint(contract, recipe, mode, progress, output):
             raise ValueError('fresh probe must not inherit an unreviewed checkpoint')
         return
     latest = json.loads(pointer.read_text())
-    step = 3 if mode == 'train' else 3840
+    step = 3840 if mode == 'evaluate' else 3
     if (latest.get('recipe_sha256') != recipe.identity or latest.get('step') != step
             or latest.get('directory') != f'step-{step:06d}'):
         raise ValueError('latest checkpoint differs from qualified phase/recipe')
@@ -68,6 +72,21 @@ def verify_prior_checkpoint(contract, recipe, mode, progress, output):
             or metadata.get('frozen_base_sha256') != base
             or progress.get('frozen_base_after_sha256') != base):
         raise ValueError('checkpoint frozen base differs from qualified phase proof')
+    if mode=='train':
+        proof_path=output/'fresh-process-resume.json'
+        if contract.sha_file(proof_path)!=progress.get('fresh_process_resume_sha256'):
+            raise ValueError('fresh-process resume proof checksum differs')
+        proof=json.loads(proof_path.read_text())
+        reference_sha=contract.sha_file(output/'probe-reference.pt')
+        if (proof.get('schema')!='moss-fresh-process-gpu-resume-v1' or
+                proof.get('recipe_sha256')!=recipe.identity or proof.get('verified_step')!=3 or
+                proof.get('replayed_from_step')!=2 or proof.get('checkpoint_advanced') is not False or
+                proof.get('reference_sha256')!=reference_sha or
+                progress.get('probe_reference_sha256')!=reference_sha or
+                proof.get('frozen_base_sha256')!=base or
+                not all(proof.get(key) is True for key in
+                        ('exact_loss','exact_full_state','exact_sample','frozen_base_unchanged'))):
+            raise ValueError('fresh-process resume proof differs from qualified phase')
 
 
 def worker_module():
@@ -82,7 +101,7 @@ def worker_module():
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--recipe', required=True, type=Path)
-    parser.add_argument('--mode', required=True, choices=('probe', 'train', 'evaluate'))
+    parser.add_argument('--mode', required=True, choices=('probe', 'resume-check', 'train', 'evaluate'))
     args = parser.parse_args(argv)
     contract = worker_module()
     recipe = contract.BoundRecipe.read(args.recipe)
@@ -145,7 +164,7 @@ def main(argv=None):
         lease_paths=expected_leases, status='admitted', telemetry=[], mse_hold_preserved=True,
         started_utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
     process = None
-    deadline = 1800 if args.mode == 'probe' else values['wall_seconds']
+    deadline = 1800 if args.mode in ('probe','resume-check') else values['wall_seconds']
     try:
         with (admission / 'worker.log').open('x') as log:
             process = subprocess.Popen(command, env=environment, cwd=REPOSITORY,
@@ -174,9 +193,11 @@ def main(argv=None):
                 raise RuntimeError('worker exit ' + str(process.returncode))
             resources.kernel_check(start)
             completed = json.loads((output / 'progress.json').read_text())
-            expected = {'probe': 'probe_passed', 'train': 'trained', 'evaluate': 'evaluated'}[args.mode]
+            expected = {'probe': 'probe_passed', 'resume-check':'probe_passed', 'train': 'trained', 'evaluate': 'evaluated'}[args.mode]
             if completed.get('status') != expected or not completed.get('frozen_base_unchanged'):
                 raise RuntimeError('worker did not pass declared phase outcome: ' + str(completed.get('status')))
+            if args.mode=='resume-check' and not completed.get('fresh_process_resume_exact'):
+                raise RuntimeError('fresh-process resume proof missing')
             receipt.update(status='completed', outcome=completed)
     except BaseException as error:
         if process is not None and process.poll() is None:

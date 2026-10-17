@@ -29,7 +29,7 @@ def test_original_recipes_preserve_fixed_gan_budget_and_shared_worker():
     from pathlib import Path
     root=Path(__file__).resolve().parents[1]
     for case in ('bad-intent','afterimage'):
-        recipe=BoundRecipe.read(root/f'qualification/moss-reruns/{case}-original-runtime.json')
+        recipe=BoundRecipe.read(root/f'qualification/moss-reruns/{case}-original-runtime-v2.json')
         recipe.verify_sources()
         assert recipe.data['runtime_profile']==runtime.PROFILE
         assert recipe.data['total_steps']==3840
@@ -54,3 +54,15 @@ def test_grad_enabled_initial_parity_rejects_dispatch_change():
     with pytest.raises(ValueError,match='grad-enabled'):
         runtime.initial_gradient_parity(run,emit=lambda *a,**k:None,indices=(0,))
     assert leaf.grad is None
+
+
+def test_sustained_phase_requires_separate_process_gpu_resume_proof():
+    from guarded_moss_original_pg09 import phase_reason
+    from conceptmod.textsliders.pg09_moss_worker import digest
+    recipe=dict(admission='REVIEWED_GAN_RECIPE')
+    progress=dict(recipe_sha256=digest(recipe),status='probe_passed',latest_step=3,
+        frozen_base_unchanged=True,generator_changed=True,critic_changed=True,exact_adapter_reload=True,
+        exact_resume=dict(exact_loss=True,exact_full_state=True,exact_sample=True))
+    assert phase_reason(recipe,'resume-check',progress) is None
+    assert 'separate-process' in phase_reason(recipe,'train',progress)
+    assert phase_reason(recipe,'train',dict(progress,fresh_process_resume_exact=True)) is None

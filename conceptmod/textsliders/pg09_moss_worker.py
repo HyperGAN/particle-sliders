@@ -166,7 +166,7 @@ def tree_equal(a, b):
     import torch
     if isinstance(a, torch.Tensor):
         return (isinstance(b, torch.Tensor) and a.dtype == b.dtype and a.layout == b.layout and
-                torch.equal(a, b))
+                (torch.equal(a, b) if a.device == b.device else torch.equal(a.cpu(), b.cpu())))
     if isinstance(a, dict):
         return isinstance(b, dict) and a.keys() == b.keys() and all(tree_equal(a[k], b[k]) for k in a)
     if isinstance(a, (tuple, list)):
@@ -241,7 +241,7 @@ def save_checkpoint(output, recipe, run, base_sha):
         raise ValueError('cannot move latest checkpoint backwards')
     if destination.exists():
         meta = verify_checkpoint(destination, recipe)
-        existing = torch.load(destination / 'state.pt', map_location=run.game.device, weights_only=True)
+        existing = torch.load(destination / 'state.pt', map_location='cpu', weights_only=True)
         if meta['frozen_base_sha256'] != base_sha or not tree_equal(existing, packet):
             raise ValueError('divergent same-step checkpoint already exists')
         atomic_json(pointer, dict(directory=destination.name, step=step, recipe_sha256=recipe.identity))
@@ -294,7 +294,7 @@ def restore_latest(output, recipe, run, base_sha):
     if published is not None and (published['step'] > meta['step'] or
                                  (published['step'] == meta['step'] and published['directory'] != directory.name)):
         raise ValueError('latest checkpoint pointer disagrees with immutable checkpoint')
-    packet = torch.load(directory / 'state.pt', map_location=run.game.device, weights_only=True)
+    packet = torch.load(directory / 'state.pt', map_location='cpu', weights_only=True)
     if (packet.get('schema') != meta['schema'] or packet.get('recipe_sha256') != recipe.identity or
             packet.get('frozen_base_sha256') != base_sha or
             packet['game']['completed_steps'] != meta['step']):
@@ -566,7 +566,16 @@ def execute(recipe, output, mode, lease_fds, *, initial_qualifier=None):
                 if mode == 'probe' and run.game.completed_steps == 3 and not stop:
                     expected = run.game.state_dict()
                     metric = {k: v for k, v in metrics[-1].items() if k not in ('step_seconds', 'g_observed_backward_norm', 'd_observed_backward_norm', 'cooling_seconds') and not k.startswith(('process_', 'rss_', 'host_', 'cuda_'))}
-                    replay = probe_replay(run, before_last, metric, expected)
+                    reference = dict(schema='moss-file-resume-reference-v1', recipe_sha256=recipe.identity,
+                        frozen_base_sha256=base_sha, before=before_last, expected=expected,
+                        metrics=metric, sample=run.game.evaluate(0, seed=29001))
+                    reference_path = output / 'probe-reference.pt'
+                    with reference_path.open('xb') as stream:
+                        torch.save(reference, stream)
+                        stream.flush()
+                        os.fsync(stream.fileno())
+                    file_reference = torch.load(reference_path, map_location='cpu', weights_only=True)
+                    replay = probe_replay(run, file_reference['before'], metric, expected)
                     export = output / 'exports/step-000003.safetensors'
                     run.export_adapter(export)
                     sample = run.game.evaluate(0, seed=29001)
@@ -574,7 +583,8 @@ def execute(recipe, output, mode, lease_fds, *, initial_qualifier=None):
                     if not tree_equal(sample, run.game.evaluate(0, seed=29001)):
                         raise RuntimeError('probe adapter export/reload differs')
                     run.game.load_state_dict(expected)
-                    emit('probe_replay', exact_resume=replay, exact_adapter_reload=True)
+                    emit('probe_replay', exact_resume=replay, exact_adapter_reload=True,
+                         file_backed_resume_exact=True, probe_reference_sha256=sha_file(reference_path))
                 checkpoint = save_checkpoint(output, recipe, run, base_sha)
                 emit('checkpoint_saved', checkpoint=str(checkpoint), coverage=coverage(run.game))
                 g_after, d_after = parameter_sha(run.backend.network), parameter_sha(run.game.critic)
