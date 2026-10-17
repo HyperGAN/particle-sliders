@@ -21,7 +21,7 @@
     "OMP_NUM_THREADS": "1",
     "MKL_NUM_THREADS": "1",
     "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
-    "PYTHONPATH": "/tmp/alz-pg09-domain-proposal:/mnt/nvme/sliders/qualification/envs/pg090/lib/python3.11/site-packages:/mnt/nvme/sliders/audio-core-pin-86fc4e0-20261017/packages/particle-sliders-core/src:/mnt/nvme/sliders/audio-adapters-pg09-20261017:/mnt/nvme/sliders/audio-adapters-pg09-20261017/scripts"
+    "PYTHONPATH": "/tmp/alz-pg09-domain-proposal:/mnt/nvme/sliders/audio-adapters-pg09-20261017/evidence/pg09-audio/native-runtime-card/pg090-wheel-metadata:/mnt/nvme/sliders/audio-core-pin-86fc4e0-20261017/packages/particle-sliders-core/src:/mnt/nvme/sliders/audio-adapters-pg09-20261017:/mnt/nvme/sliders/audio-adapters-pg09-20261017/scripts"
   },
   "after_smoke": "Separate renewed admission required to continue checkpoint to20updates or render audio",
   "cards": [
@@ -104,7 +104,7 @@
       ]
     }
   ],
-  "supersedes_commit": "90c17d0badac7e6835886071f81422b9097edefd",
+  "supersedes_commit": "27ae2cbd880fd98f05dc373209dccd1f0a306990",
   "external_guardian_requirements": [
     "both physical-card leases",
     "GPU UUID and resident admission",
@@ -113,5 +113,47 @@
     "900 seconds total and no retry"
   ],
   "admission_id_is_lease_proof": false,
-  "supervisor_process_group_policy": "subprocess.run children inherit parent PGID; external owner must establish required ownership or invoke three worker argument vectors directly"
+  "supervisor_process_group_policy": "External guardian starts one fixed supervisor with start_new_session=True; three sequential CUDAchildren inherit the owned PGID; guardian records observed CUDA PID+PGID and permits at most one owned CUDA child",
+  "dependency_policy": "Reviewed ALZ overlay supplies package code; exact original wheel supplies only four .dist-info files, no Python packages; native interpreter supplies Torch, Transformers and other dependencies; no whole site-packages injection",
+  "metadata_only_receipt": "evidence/pg09-audio/native-runtime-card/metadata-only-receipt.json",
+  "proposed_external_guardian": {
+    "target_gpu": 1,
+    "gpu_uuid_and_resident": "Guardian must bind actual GPU1 UUID and retained resident PID3196 before admission",
+    "both_card_leases": true,
+    "reject_unowned_cuda_pid": true,
+    "monitor_kernel_and_resources": true,
+    "maximum_compute_seconds": 720,
+    "termination": "SIGINT owned process group then up to180 seconds grace before kill",
+    "maximum_total_wall_seconds": 900,
+    "retry": false,
+    "continuation_to20_or_render": false
+  },
+  "runtime_origins": {
+    "yue2": {
+      "receipt": "evidence/pg09-audio/native-runtime-card/yue2-runtime-origins.json",
+      "sha256": "1a791ea98158752099a5f613409f031b9d820214bf51fac60ce2da173a875e82",
+      "expected": {
+        "sys_executable": "/ml2/sliders/.venv-yue2-retrain/bin/python",
+        "torch_version": "2.10.0+cu128",
+        "torch_file": "/ml2/sliders/.venv-yue2-retrain/lib/python3.11/site-packages/torch/__init__.py",
+        "transformers_version": "4.57.6",
+        "transformers_file": "/ml2/sliders/.venv-yue2-retrain/lib/python3.11/site-packages/transformers/__init__.py",
+        "particlegan_version": "0.9.0",
+        "particlegan_file": "/tmp/alz-pg09-domain-proposal/particlegan/__init__.py"
+      }
+    },
+    "music3": {
+      "receipt": "evidence/pg09-audio/native-runtime-card/music3-runtime-origins.json",
+      "sha256": "1af8a26d1087695e03b4be5a3b7d2a82d45d43d1f7a4267a433129ead05cd796",
+      "expected": {
+        "sys_executable": "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+        "torch_version": "2.11.0+cu128",
+        "torch_file": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/torch/__init__.py",
+        "transformers_version": "5.15.0",
+        "transformers_file": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/transformers/__init__.py",
+        "particlegan_version": "0.9.0",
+        "particlegan_file": "/tmp/alz-pg09-domain-proposal/particlegan/__init__.py"
+      }
+    }
+  }
 }

@@ -1,0 +1,247 @@
+Metadata-Version: 2.4
+Name: particlegan
+Version: 0.9.0
+Summary: Composable PyTorch primitives for learnable particle priors, GANs, and DDGAN
+Project-URL: Repository, https://github.com/255BITS/ParticleGAN
+Project-URL: Documentation, https://github.com/255BITS/ParticleGAN/blob/v0.9.0/docs/api.md
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: torch<3,>=2.6
+Requires-Dist: numpy<3,>=1.26
+Provides-Extra: mog
+Requires-Dist: scipy<2,>=1.10; extra == "mog"
+Provides-Extra: experiments
+Requires-Dist: numpy<3,>=1.26; extra == "experiments"
+Requires-Dist: matplotlib<4,>=3.8; extra == "experiments"
+Requires-Dist: PyYAML<7,>=6; extra == "experiments"
+Requires-Dist: POT<0.10,>=0.9.5; extra == "experiments"
+Requires-Dist: scipy<2,>=1.10; extra == "experiments"
+Requires-Dist: tomli<3,>=2; python_version < "3.11" and extra == "experiments"
+Provides-Extra: dev
+Requires-Dist: pytest<10,>=8; extra == "dev"
+Provides-Extra: gym
+Requires-Dist: gymnasium[box2d]==1.2.3; extra == "gym"
+Requires-Dist: numpy<3,>=1.26; extra == "gym"
+Provides-Extra: lunar
+Requires-Dist: gymnasium[box2d]==1.2.3; extra == "lunar"
+Requires-Dist: numpy<3,>=1.26; extra == "lunar"
+Requires-Dist: rich<15,>=13; extra == "lunar"
+Requires-Dist: Pillow<13,>=10; extra == "lunar"
+Requires-Dist: imageio<3,>=2; extra == "lunar"
+Provides-Extra: images
+Requires-Dist: torchvision<1,>=0.21; extra == "images"
+Requires-Dist: torch-fidelity==0.3.0; extra == "images"
+Requires-Dist: scipy<1.18,>=1.10; extra == "images"
+Requires-Dist: tqdm<5,>=4.60; extra == "images"
+
+# ParticleGAN
+
+[Research attempt catalog](reports/forge/research-catalog/README.md): source-bound results, reusable lessons, failures and publication links.
+
+**GANs with a learnable particle prior, for PyTorch.**
+
+**Running experiments / proposing ideas:** start with
+[ParticleGAN Forge — read before running ideas](EXPERIMENTATION.md).
+
+**Review the research:** [experiments by tier, goals and training GIFs](reports/forge/EXPERIMENTS_BY_TIER.md)
+and the [current solution leaderboard](reports/forge/technique-inventory.md).
+The [experiment memory](reports/forge/EXPERIMENT_MEMORY.md) explains the hypotheses,
+comparisons and recommendations behind the recorded results. These views are
+regenerated as experiments and candidate solutions change; release selection
+requires completed Forge qualification and review of the winner.
+
+[![Tests](https://github.com/255BITS/ParticleGAN/actions/workflows/tests.yml/badge.svg)](https://github.com/255BITS/ParticleGAN/actions/workflows/tests.yml)
+
+A GAN usually draws its latent code from a fixed Gaussian and leaves all of
+the work of covering the data to the generator; when it cannot, modes go
+missing. ParticleGAN replaces that noise with a table of learnable latent
+vectors (*particles*) that are optimized together with the generator, so the
+prior itself can move toward the data's modes. The default training recipe is
+the selected **optimized BISPF** leader: non-saturating loss, a Born-Infeld
+critic penalty, an SBNP prior regularizer, zero-momentum DualNorm and constant
+rates. Its quintic rule accelerates CUDA convolution kernels with more than
+32 channels per group; dense weights and smaller or CPU kernels retain native
+updates.
+[Recipe settings and evidence](docs/api.md#recipes-and-defaults) explain the
+configuration. You write an ordinary PyTorch GAN loop; the recipe builds the pieces.
+
+Future promotions change one line in [particlegan/recipes.py](particlegan/recipes.py):
+`DEFAULT_RECIPE = "bispf_optimized"`. All model-family factories inherit that trainer preset.
+Explicit presets such as `get_recipe("ka2")` remain available. This is the
+owner-selected research default; Forge calibration remains provisional.
+The [optimization readout](reports/forge/bispf-optimized/README.md) preserves
+19 passing and 11 failing task verdicts. The overview's 81/81 counts repeated
+view requirements across 18 distinct counted tests; held failures remain
+visible. These results do not establish natural-image convergence or a
+universal architecture guarantee.
+
+![100 Gaussians: historical K3P recipe converging with live weights](100gaussians.gif)
+
+Recorded with the historical 0.8.0 K3P recipe and its original random initialization, live weights, seed 1234:
+**100/100 modes, 98.9% within 3σ after 7,000 updates**, with all 100 modes first covered
+at update 1,430. [Reproduce this animation](reports/readme-100gaussians/README.md#readme-hero-gif).
+
+**Without a learning-rate schedule.** The [E22 configuration](docs/e22.md) has no schedule or training
+horizon, and no statistic of the raw data in its training control. It covers all 100 modes on three layouts,
+ending at 98.3–98.6% of samples within 3σ after 7,000 updates:
+
+![E22 on the grid, rotated and staggered 100-Gaussian problems](reports/e22-animation/e22-100gaussians.gif)
+
+[How this animation was made](reports/e22-animation/README.md).
+
+## Install
+
+Requires Python 3.10+, PyTorch, and NumPy (installed as dependencies).
+
+```bash
+python -m pip install particlegan           # the library (0.9.0)
+```
+
+For the examples, experiments and tests, install from source:
+
+```bash
+git clone https://github.com/255BITS/ParticleGAN.git
+cd ParticleGAN
+python -m pip install -e '.[experiments,dev]'  # plus examples, experiments and tests
+```
+
+## Train a GAN
+
+Version 0.9.0 makes the optimized BISPF preset the default and retains explicit
+historical presets and saved recipe restoration. See the [changelog](CHANGELOG.md)
+for the release and its compatibility limits.
+
+You supply ordinary PyTorch modules; `GANTrainer` binds the recipe's optimizers,
+critic penalty and prior regularizer:
+
+```python
+import torch
+from torch import nn
+from particlegan import GANTrainer, get_recipe, init
+
+def real_batch(n):  # replace with your DataLoader: 8 Gaussians on a ring
+    angle = torch.randint(8, (n, 1)) * torch.pi / 4
+    return torch.cat([angle.cos(), angle.sin()], 1) + 0.05 * torch.randn(n, 2)
+
+recipe = get_recipe(total_steps=2000)
+G = nn.Sequential(nn.Linear(recipe.z_dim, 128), nn.LeakyReLU(0.2), nn.Linear(128, 2))
+D = nn.Sequential(nn.Linear(2, 128), nn.LeakyReLU(0.2), nn.Linear(128, 1))
+init.deterministic_orthogonal_(G, seed=0)
+init.deterministic_orthogonal_(D, seed=1)
+prior = init.deterministic_orthogonal_(recipe.make_prior())
+trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)
+for _ in range(recipe.total_steps):
+    trainer.step(real_batch(recipe.batch_size))
+samples = trainer.sample(1024)
+```
+
+Without `prior=`, the trainer builds a randomly drawn particle table. Networks
+and device placement belong to the caller. The trainer does not reinitialize
+supplied modules, so load pretrained weights before constructing it and
+initialize only fresh parameters. Optimizers exclude frozen parameters while
+retaining gradients through frozen modules to trainable inputs.
+
+Caller-owned loops use the recipe's role-named factories, including
+`make_optimizers`, `make_critic_penalty` and `make_prior_regularizer`.
+Save the resolved `recipe.to_dict()` and the complete `trainer.state_dict()`
+for continuation; changing the current default does not migrate an old run.
+See the [API reference](docs/api.md#recipes-and-defaults) for component ownership
+and optimizer contracts.
+
+## Repeatable initialization
+
+The recipe never touches your weights: networks train from whatever they are
+built with. `particlegan.init` is optional tooling in the spirit of
+`torch.nn.init`, and the examples use it:
+
+```python
+from particlegan import init
+
+init.deterministic_orthogonal_(G, seed=0)   # G, D and an encoder get different seeds
+init.deterministic_orthogonal_(D, seed=1)
+prior = init.deterministic_orthogonal_(recipe.make_prior())
+```
+
+It writes orthogonal matrices at PyTorch's default scale, patterned biases and
+an evenly spread particle table, derived from `seed` alone: the same seed and
+architecture give the same weights, and no random state is used. Call it on
+fresh networks, before loading weights or building optimizers. A custom layer
+it does not know raises an error until you declare it with `init.register`.
+Values depend on each parameter's position in the module you pass, so
+initialize whole networks: a submodule initialized on its own gets different
+values. Projects with custom layers can guard this with a one-line test that
+`init.declarations(net)` has no `None` entries
+([example](docs/api.md#declarationsmodule)).
+See the [API reference](docs/api.md#initialization) and the
+[math and architecture guide](docs/initialization.md).
+
+## Model families
+
+`get_recipe(name)` selects a model family or an E22 policy preset.
+
+| Name | Model |
+| --- | --- |
+| `gan` (default) | GAN with a learnable particle prior |
+| `e22` | Scalar particle GAN with stationarity control, row evidence, birth/death, learned noise and served averages |
+| `e22_routed` | Conditional dense-bank adaptation with paired row evidence and guarded birth/death |
+| `mog` | GAN with a mixture-of-Gaussians particle prior |
+| `ddgan` | Denoising-diffusion GAN with a UCD (class-conditional) critic |
+| `ddgan_mog` | `ddgan` with a mixture-of-Gaussians prior |
+| `ae_gan` | Autoencoder GAN: an encoder routes data to particles |
+| `vae_gan` | Variational variant of `ae_gan` |
+| `ae_ddgan` | Autoencoder denoising-diffusion GAN |
+
+Any field can be overridden: `get_recipe("mog", total_steps=20_000)`.
+For E22, set the task's dimensions and output noise explicitly:
+`get_recipe("e22", num_particles=20_000, z_dim=2, batch_size=2048, output_noise_std=.029)`.
+[`E22Policy`](docs/e22.md) exposes the same controls used by `GANTrainer` for
+caller-owned backward passes and optimizer steps, with checkpointing and served snapshots.
+For conditional softmax blends, use `get_recipe("e22_routed", ...)` with the
+explicit [`RoutedRows` contract](docs/e22_routed.md). This adaptation measures
+the whole conditional forward and validates row moves on separate guard
+contexts. Frozen BF16 modules can accompany FP32 trainable parameters and tables.
+Multiple token routing sites can share one bank and controller through the
+[full-model routing contract](docs/e22_routed_sites.md). Candidate checks rerun
+the complete model, including downstream sites and the final paired output.
+`RoutedRows(probe_interval=20)` schedules expensive row probes separately from
+per-update gradient evidence and saves its clock in checkpoints. The optional
+`output_error_guard=True` bounds clean paired-output MSE on guard contexts;
+it does not establish repair of the noisy adversarial game. Split rows
+transport their parent's Adam history at half mass.
+
+## Learn more
+
+- [Optimized BISPF settings and measured behavior](reports/forge/bispf-optimized/README.md)
+- [Historical KA2 formulation](docs/ka2.md), including several critics and conditional critics
+- [E22](docs/e22.md): a schedule-free configuration for the native 100-Gaussian problems with no data-space statistics
+- [ParticleGAN Atlas](docs/atlas.md): illustrated E22 comparison, local population corrections and automatic backend selection
+- [Routed paired E22](docs/e22_routed.md): conditional row evidence, guarded moves and clean serving
+- [Shared-bank routing sites](docs/e22_routed_sites.md): sequential token routing and a matched spatial comparison
+- [Whole-model checkpoint replay](docs/e22_routed_sites.md#activation-checkpointed-whole-model-replay): per-site DV12 without repeated training draws or diagnostics
+- [Routed noisy-game qualification](docs/e22_routed_game.md): token penalty units, mass invariance and matched longer training
+- [Many-site synchronization](docs/e22_routed_readbacks.md): deferred DV12 diagnostics and batched routing validation
+- [API reference](docs/api.md) and a [minimal DDGAN + UCD loop](docs/api.md#a-minimal-ddgan--ucd-loop)
+- Examples: [`quickstart_gan.py`](examples/quickstart_gan.py) (GANTrainer with checkpoints),
+  [`e22_external_loop.py`](examples/e22_external_loop.py) (E22 in a caller-owned loop),
+  [`e22_routed_paired.py`](examples/e22_routed_paired.py) (source/time-conditioned paired-error training),
+  [`e22_routed_sites.py`](examples/e22_routed_sites.py) (sequential shared-bank routing and spatial ablations),
+  [`pytorch_loop.py`](examples/pytorch_loop.py) (the full update in your own loop),
+  [`100gaussians.py`](examples/100gaussians.py) (the benchmark above),
+  [`particle_autoencoder.py`](examples/particle_autoencoder.py) (AE/VAE-GAN),
+  [`fast_lander.py`](examples/fast_lander.py) (world model and controllers for Lunar Lander)
+- [Changelog](CHANGELOG.md) · [Releasing](docs/releasing.md)
+
+## Citation
+
+```bibtex
+@software{particlegan2025,
+  author = {Martyn Garcia},
+  title = {ParticleGAN: Learnable Priors for Stable GANs},
+  year = {2025},
+  url = {https://github.com/255BITS/ParticleGAN}
+}
+```
+
+## License
+
+MIT

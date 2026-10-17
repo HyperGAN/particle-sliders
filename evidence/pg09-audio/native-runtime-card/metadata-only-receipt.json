@@ -1,0 +1,13 @@
+{
+  "base_wheel_path": "/mnt/nvme/sliders/qualification/pg09-audit/particlegan-0.9.0-py3-none-any.whl",
+  "base_wheel_sha256": "41746614b135e5593fa9c66c2a6784c4f872a7957fce132ca59f95dc7963e1ab",
+  "metadata_only_directory": "/mnt/nvme/sliders/audio-adapters-pg09-20261017/evidence/pg09-audio/native-runtime-card/pg090-wheel-metadata",
+  "files": {
+    "particlegan-0.9.0.dist-info/METADATA": "e2588b17928aeef3a6518fd20de9e2cb5199886f90fab6301dd42a4db1ca50af",
+    "particlegan-0.9.0.dist-info/WHEEL": "61532836a2b3111b7ec23519c09df7c41180c27165fb872a6d8913b566b88ad1",
+    "particlegan-0.9.0.dist-info/top_level.txt": "23172681b82e6f735f86ba80cba82ed3348bb39c24d3931b7fc578091ad7e1ee",
+    "particlegan-0.9.0.dist-info/RECORD": "688fac72c50c18aab017abccf31c6dd1537b4d418ac3803f55cbd39846e39a5f"
+  },
+  "importable_python_files": [],
+  "installed_package_changes": false
+}

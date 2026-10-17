@@ -24,10 +24,14 @@ as 2.12/5.13; the actual module origins in these receipts supersede that message
 YuE2's runtime and product both use the package name `yue2`. The preflight
 imports the official installed runtime first, then adds the isolated product's
 directory for its nonconflicting backend/slider/defaults/prompts submodules.
-No installed package is edited. For this interpreter, only the PG0.9 package
-and its metadata are read from the isolated PG environment's site-packages;
-Torch and Transformers remain the native YuE2 versions. No ABI replacement
-or global environment write is used.
+No installed package is edited. For this interpreter, the reviewed ALZ overlay supplies ParticleGAN code;
+only the four `.dist-info` files from the exact verified PG0.9 wheel are
+retained in a separate metadata directory. No Python code or dependency
+packages live in that directory. The native environment contains older
+PG0.6 distribution metadata, so omitting the retained PG0.9 metadata fails the
+public core version gate before any model load. Torch and Transformers resolve
+from each interpreter's own native environment. No whole site-packages path,
+ABI replacement or global environment write is used.
 
 The four fixed metal training rows and two fixed heldout rows fit the 512-token
 cap without truncation: YuE2 maximum 180 tokens; Music3 maximum 167 tokens.
@@ -35,34 +39,31 @@ YuE2 can additionally use a fixed 16 semantic-token shared continuation history
 and remain within that cap. Music3 preserves its last-real-token
 `<|audio_start|>` boundary and does not substitute generated history for it.
 
-## Reproduce CPU-only preflight
+## Reproduce CPU-only runtime identity check
 
-Run from the isolated audio checkout. These commands use the released
-unchanged PG0.9 package for metadata inspection, not the pending overlay.
+Historical tokenizer/asset receipts remain in evidence. The corrected card
+removes the former whole PG090 site-packages injection. Its complete Python
+path is the reviewed ALZ source overlay, retained original wheel metadata,
+immutable core source, isolated adapter source and adapter scripts. Check it
+without loading model weights or initializing CUDA:
 
 ```bash
 export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1
 export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+export PYTHONPATH=/tmp/alz-pg09-domain-proposal:/mnt/nvme/sliders/audio-adapters-pg09-20261017/evidence/pg09-audio/native-runtime-card/pg090-wheel-metadata:/mnt/nvme/sliders/audio-core-pin-86fc4e0-20261017/packages/particle-sliders-core/src:/mnt/nvme/sliders/audio-adapters-pg09-20261017:/mnt/nvme/sliders/audio-adapters-pg09-20261017/scripts
 cd /mnt/nvme/sliders/audio-adapters-pg09-20261017
-
-PYTHONPATH=/mnt/nvme/sliders/qualification/envs/pg090/lib/python3.11/site-packages:. \
-/ml2/sliders/.venv-yue2-retrain/bin/python scripts/inspect_audio_pg09_assets.py \
-  --family yue2 --product /mnt/nvme/sliders/audio-yue2-source-20261017 \
-  --model-dir /mnt/nvme/ai/caches/huggingface/music/hub/models--m-a-p--YuE2-3B/snapshots/14fc6c6f146441b1dd6363fcb2e01e82a6914cb7 \
-  --manifest /mnt/nvme/sliders/qualification/models/yue2-cached/qualification-manifest.json \
-  --train-prompts conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml \
-  --heldout-prompts conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml \
-  --max-seq-len 512 --output /tmp/audio-yue2-assets-preflight.json
-
-PYTHONPATH=. /mnt/nvme/sliders/qualification/envs/pg090/bin/python \
-  scripts/inspect_audio_pg09_assets.py --family music3 \
-  --model-dir /mnt/nvme/sliders/qualification/models/music3-bd348f9 \
-  --manifest /mnt/nvme/sliders/qualification/models/music3-bd348f9/qualification-manifest.json \
-  --train-prompts conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml \
-  --heldout-prompts conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml \
-  --max-seq-len 512 --output /tmp/audio-music3-assets-preflight.json
+/ml2/sliders/.venv-yue2-retrain/bin/python \
+  evidence/pg09-audio/native-runtime-card/check_runtime.py --family yue2
+/mnt/nvme/sliders/qualification/envs/pg090/bin/python \
+  evidence/pg09-audio/native-runtime-card/check_runtime.py --family music3
 ```
+
+The two origin receipts include each actual executable, Torch/Transformers
+version and module file, the metadata directory, all 49 ParticleGAN source
+hashes, and the successful public domain-validator result. The metadata receipt
+binds all four files to base wheel SHA256
+`41746614b135e5593fa9c66c2a6784c4f872a7957fce132ca59f95dc7963e1ab`.
 
 ## Proposed bounded stages after host-profile QA and GPU admission
 
@@ -171,10 +172,15 @@ vectors, worker/supervisor/resource-guard hashes, core/profile pins and the
 proposed resource bounds. An admission ID is provenance, not lease proof.
 Core owner owns the external guardian: both physical-card leases, GPU UUID
 and resident admission, per-child process-group ownership, kernel telemetry,
-resource guards, a 900-second total and no retry. This supervisor's
-`subprocess.run` children inherit its process group; the external owner must
-establish the required ownership or invoke the three worker argument vectors
-directly. No alternate local lease mechanism is provided.
+resource guards, a 900-second total and no retry. The proposed root guardian starts one fixed supervisor with
+`start_new_session=True`; all three sequential children inherit its owned
+process group. It records each observed CUDA PID/PGID, permits at most one
+owned CUDA child, rejects unowned CUDA PIDs, and monitors GPU1's UUID,
+retained resident PID3196, kernel events and resources while holding both
+physical-card leases. Its compute cutoff is 720 seconds, reserving 180 seconds
+for SIGINT/grace/kill of only the owned group within the 900-second total.
+No continuation or render is admitted by this card. This is an external
+core-owner contract, not local lease implementation or granted admission.
 
 YuE2 requests at least 16 GiB fresh free memory; Music3 at least
 26 GiB. The existing runtime guard retains its 6 GiB free reserve, thermal and
@@ -188,3 +194,8 @@ It supersedes the worker in commit `90c17d0`. Final repair evidence is in
 checks, four native-width checks per runtime, six focused worker checks, and
 an exact serial supervisor CPU replay. These checks do not establish
 pretrained behavior or audio quality.
+
+The subsequent native-runtime card correction is recorded under
+`evidence/pg09-audio/native-runtime-card/`. Both full-width CPU suites were
+rerun with that exact environment and retained metadata, without the whole
+PG090 site-packages path. The worker and supervisor bytes remain unchanged.
