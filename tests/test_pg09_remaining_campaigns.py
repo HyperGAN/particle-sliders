@@ -245,3 +245,59 @@ def test_loaded_legacy_adapter_is_not_silently_used_as_gan_initialization(fixtur
     with pytest.raises(ValueError, match='fresh zero-up'):
         build_supra_campaign(runtime, rows, model_identity=dict(frozen_parameter_sha256='tiny CPU fixture'))
     assert torch.equal(runtime.loras[0].up.weight, original)
+
+
+class ContextCounterRuntime:
+    stored_unconditional = True
+    def __init__(self):
+        self.calls = []
+    def encode(self, prompt):
+        self.calls.append(prompt)
+        return torch.ones(1,2,8), torch.ones(1,2)
+
+
+def test_context_budget_rejects_before_first_encode_directory_or_file(tmp_path):
+    runtime = ContextCounterRuntime()
+    config = dict(rows=[], preservation=[f'prompt{i}' for i in range(20)], verification=[])
+    output = tmp_path/'not-created'/'contexts.safetensors'
+    with pytest.raises(ValueError, match='19|budget'):
+        export_admitted_supra_contexts(runtime, config, output,
+                                       runtime_identity=dict(model_revision='CPU counter', text_revision='CPU counter'))
+    assert runtime.calls == []
+    assert not output.parent.exists()
+    assert not torch.cuda.is_initialized()
+
+
+def test_generic_fixture_export_encodes_at_most19_unique_contexts(tmp_path):
+    runtime = ContextCounterRuntime()
+    config = dict(rows=[], preservation=[f'fixture{i}' for i in range(18)]*2, verification=[])
+    receipt = export_admitted_supra_contexts(runtime, config, tmp_path/'counter.safetensors',
+                                            runtime_identity=dict(model_revision='CPU counter', text_revision='CPU counter'))
+    assert len(runtime.calls) == len(set(runtime.calls)) == 19
+    assert receipt['unique_contexts'] == receipt['max_encode_calls'] == 19
+
+
+def test_live_wrapper_pins_exact_archived_config_and_model_t5_revisions_before_delegate(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+    from conceptmod.textsliders import pg09_remaining_campaigns as bridge
+    audit = json.loads((Path(__file__).resolve().parents[1]/'evidence/pg09-remaining-campaigns/audit.json').read_text())
+    config = audit['supra_final_boss']['config']
+    identity = dict(model_revision=bridge.SUPRA_MODEL_REVISION, text_revision=bridge.SUPRA_TEXT_REVISION)
+    assert bridge.validate_live_supra_context_preparation(config, identity)['unique_contexts'] == 19
+    calls = []
+    monkeypatch.setattr(bridge, 'export_admitted_supra_contexts', lambda *args, **kwargs: calls.append((args,kwargs)))
+    runtime = ContextCounterRuntime()
+    bridge.export_live_supra_contexts(runtime, config, tmp_path/'never-written', runtime_identity=identity)
+    assert len(calls) == 1 and runtime.calls == []  # Only a contract check; no actual context encoding.
+    for key in ('model_revision','text_revision'):
+        wrong = dict(identity, **{key:'incorrect'})
+        with pytest.raises(ValueError, match='revisions'):
+            bridge.export_live_supra_contexts(runtime, config, tmp_path/'never-written', runtime_identity=wrong)
+    altered = deepcopy(config)
+    altered['rows'][0]['positive'] += ' modified'
+    assert len(required_supra_prompts(altered)) == 19
+    with pytest.raises(ValueError, match='exact reviewed'):
+        bridge.export_live_supra_contexts(runtime, altered, tmp_path/'never-written', runtime_identity=identity)
+    assert len(calls) == 1 and runtime.calls == []
+    assert not (tmp_path/'never-written').exists()

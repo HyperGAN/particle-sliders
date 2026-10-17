@@ -1,0 +1,30 @@
+{
+  "schema": "supra-context-budget-repair-cpu-v1",
+  "supersedes_source_snapshot": "eef255c17de92d8eecfb8fca1980d55ead156765",
+  "tests": 13,
+  "failures": 0,
+  "skips": 0,
+  "checks": [
+    "max19unique preflight before encode or output",
+    "strict exact19 live config canonical SHA",
+    "strict expected model and T5 revisions",
+    "independent QA CounterRuntime regression",
+    "nine prior native fixture bridge gates"
+  ],
+  "live_context_encoding": false,
+  "gpu_actions": false,
+  "active_canonical_source_edits": false,
+  "source_sha256": {
+    "conceptmod/textsliders/pg09_remaining_campaigns.py": "fcf8dcb6a2016a4083f1319d30b7c1402bcd06cbd290dee37a3bdf264cb2bac9",
+    "scripts/propose_remaining_pg09.py": "9ef72a3ee16be7685f656ee2bbf6552508b8d40c5a82ad57c36221579a7dd336",
+    "tests/test_pg09_remaining_campaigns.py": "053afd84c889a42a55d3c112b82321a74e968d9a6780890bb30610d219113cb1",
+    "docs/pg09-remaining-campaigns.md": "9db1ef8969a876bf6ac4a6a859921fb57576f0ff28764e65b5ce8b9bafb29690",
+    "evidence/pg09-remaining-campaigns/proposals/supra_final_boss.proposal.json": "38c4515dec0e1a34a5b3e8659ede5d776c304556e6608cd4bec49fd7ca173443",
+    "evidence/pg09-remaining-campaigns/proposals/final_form.proposal.json": "89c97687c9ebcc8b994d83e85bba7b54f5421a5d7c13188d91e4cf1f5b39a7e5"
+  },
+  "pending": [
+    "resource-owner wrapper admission and actual native-source pin verification",
+    "actual19-context preparation/export",
+    "remaining full-model and campaign gates unchanged"
+  ]
+}

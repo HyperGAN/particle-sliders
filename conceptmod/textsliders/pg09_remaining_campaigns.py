@@ -18,6 +18,9 @@ from .pg09_moss_campaign import CampaignFieldCritic, build_campaign_run, canonic
 
 FINAL_FORM_SCALE = 0.2522578997899252
 SUPRA_SCALE = 0.32844100447280516
+SUPRA_MODEL_REVISION = '10dec6e4b4b5d1c44fd1d7d3fe5e50137333da5b'
+SUPRA_TEXT_REVISION = '7bcac572ce56db69c1ea7c8af255c5d7c9672fc2'
+SUPRA_CONFIG_SHA256 = 'd32639ad9084f60d13faea1ef0e4d92b4bfc2e0420bc0fd15f4992c6270edd5b'
 
 
 def tensor_identity(tensor):
@@ -42,6 +45,9 @@ def export_admitted_supra_contexts(runtime, config, destination, *, runtime_iden
     No implicit re-encoding is allowed by the training bridge below.
     """
     from safetensors.torch import save_file
+    prompts = required_supra_prompts(config)
+    if len(prompts) > 19:
+        raise ValueError('Supra preparation exceeds the19 unique-context encode budget')
     if not runtime_identity.get('model_revision') or not runtime_identity.get('text_revision'):
         raise ValueError('verified model and native T5 revision identity required')
     runtime_source = inspect.getsourcefile(type(runtime))
@@ -51,7 +57,7 @@ def export_admitted_supra_contexts(runtime, config, destination, *, runtime_iden
     if destination.exists() or destination.with_suffix('.json').exists():
         raise FileExistsError(destination)
     tensors, records = {}, []
-    for index, prompt in enumerate(required_supra_prompts(config)):
+    for index, prompt in enumerate(prompts):
         context, mask = runtime.encode(prompt)
         context, mask = context.detach().cpu().contiguous(), mask.detach().cpu().contiguous()
         if (context.ndim != 3 or context.shape[0] != 1 or mask.shape != context.shape[:2] or
@@ -62,12 +68,31 @@ def export_admitted_supra_contexts(runtime, config, destination, *, runtime_iden
     destination.parent.mkdir(parents=True, exist_ok=True)
     save_file(tensors, str(destination))
     receipt = dict(schema='supra-frozen-contexts-v1', sha256=file_digest(destination), records=records,
+                   config_sha256=canonical_digest(config), unique_contexts=len(prompts), max_encode_calls=19,
                    stored_unconditional=runtime.stored_unconditional, runtime_identity=deepcopy(runtime_identity),
                    runtime_source=str(Path(runtime_source).resolve()),
                    runtime_source_sha256=file_digest(runtime_source), torch_version=str(torch.__version__),
                    policy='native pinned T5 encoding; original stored unconditional retained')
     destination.with_suffix('.json').write_text(json.dumps(receipt, indent=2) + '\n')
     return receipt
+
+
+
+def validate_live_supra_context_preparation(config, runtime_identity):
+    """Strict reviewed live contract; no encoding, output or runtime creation."""
+    if len(required_supra_prompts(config)) != 19 or canonical_digest(config) != SUPRA_CONFIG_SHA256:
+        raise ValueError('live Supra preparation requires the exact reviewed19-context config')
+    if (runtime_identity.get('model_revision') != SUPRA_MODEL_REVISION or
+            runtime_identity.get('text_revision') != SUPRA_TEXT_REVISION):
+        raise ValueError('live Supra model/T5 revisions differ from reviewed preparation')
+    return dict(config_sha256=SUPRA_CONFIG_SHA256, unique_contexts=19,
+                model_revision=SUPRA_MODEL_REVISION, text_revision=SUPRA_TEXT_REVISION)
+
+
+def export_live_supra_contexts(runtime, config, destination, *, runtime_identity):
+    """Owner-admitted preparation only: exact config/revisions checked first."""
+    validate_live_supra_context_preparation(config, runtime_identity)
+    return export_admitted_supra_contexts(runtime, config, destination, runtime_identity=runtime_identity)
 
 
 def load_supra_contexts(path, expected_sha256, config):

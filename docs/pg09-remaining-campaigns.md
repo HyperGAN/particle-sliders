@@ -78,8 +78,11 @@ with the real768-wide encoder, no row ID.
 
 **Prerequisite:19 required contexts are not archived.** The owner must admit a
 bounded preparation phase on the actual native runtime. Call
-`export_admitted_supra_contexts(runtime, config, path, runtime_identity=...)` with
-verified model/T5 revisions. It calls native encode at most19 times (18 T5 calls
+`export_live_supra_contexts(runtime, config, path, runtime_identity=...)` with
+verified model/T5 revisions. This live wrapper checks the exact19-context config
+(canonical SHA d32639ad...) and exact model/T5 revisions before delegation. The
+generic exporter also rejects more than19 unique contexts before any encode or
+output. It calls native encode at most19 times (18 T5 calls
 when the stored unconditional is present), performs zero updates, and writes a
 new safetensors file plus actual runtime source hash, Torch version, revision
 identity and every embedding/mask tensor hash. There are no placeholder contexts
