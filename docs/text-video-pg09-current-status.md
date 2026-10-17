@@ -1,5 +1,10 @@
 # Text/video integration status after the admitted Bonsai CPU canary
 
+Follow-up: the full corrected1200-update comparison is prepared in
+[bonsai-pg09-1200-proposal.md](bonsai-pg09-1200-proposal.md), with an exact
+source-pinned recipe and separate final20-update replay. It is pending a new
+coordinator admission. The canary results below do not substitute for that run.
+
 Code is frozen in `/mnt/nvme/sliders/text-video-adapters-pg09-20261017`, branch
 `integration/text-video-pg09`. No shared core file was edited. The shared trainer
 is immutable core `3e94b13eb5d6cd1ceee3f018f019a68603f35696`, module SHA256

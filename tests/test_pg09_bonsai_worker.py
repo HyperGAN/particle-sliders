@@ -12,7 +12,8 @@ from scripts.caption_quality import HELDOUT, CANARIES
 
 
 @pytest.mark.parametrize('preset', ['bispf', 'bispf_optimized'])
-def test_cached_worker_complete_flow_with_synthetic_cache_only(tmp_path, preset, monkeypatch):
+@pytest.mark.parametrize('planned', [False, True])
+def test_cached_worker_complete_flow_with_synthetic_cache_only(tmp_path, preset, planned, monkeypatch):
     # This fixture never opens the official cache. It validates worker control,
     # safe serialization, diagnostics and replay using synthetic native readouts.
     identity = 'synthetic-native-5120-readouts-only'
@@ -35,6 +36,21 @@ def test_cached_worker_complete_flow_with_synthetic_cache_only(tmp_path, preset,
     args = argparse.Namespace(core=Path('/mnt/nvme/sliders/text-video-core-3e94b13-20261017'),
                               overlay=Path('/tmp/alz-pg09-domain-proposal'), output=tmp_path / preset,
                               mode='produce', preset=preset)
+    if planned:
+        from dataclasses import asdict
+        from particlegan import get_recipe
+        # Reduced six-update unit schedule exercises the exact same worker,
+        # checkpoints/evaluations and final replay on synthetic data only.
+        # The production CLI separately enforces exactly1200 in load_plan.
+        args.plan_sha256 = 'synthetic-test-plan'
+        args.plan_data = dict(training=dict(total_steps=6, batch_size=2, seed=7,
+            sigma=1., response_scale=1., sampling='balanced', checkpoint_every=2,
+            replay_start=4, evaluation_steps=[0, 2, 6]),
+            limits=dict(cpu_threads=1, interop_threads=1, rss_cap_gib=8,
+                        host_reserve_gib=0, nvme_reserve_gib=0,
+                        produce_seconds=1800, restore_seconds=180),
+            resolved_public_recipe=json.loads(json.dumps(asdict(get_recipe(preset,
+                      batch_size=2, total_steps=6, num_particles=128, z_dim=4)))))
     monkeypatch.setattr(torch.nn.functional, 'mse_loss', torch.nn.functional.mse_loss)
     worker.execute(args, receipt)
     args.mode = 'restore'
@@ -43,3 +59,29 @@ def test_cached_worker_complete_flow_with_synthetic_cache_only(tmp_path, preset,
     assert result['exact_full_state'] and result['exact_losses'] and result['exact_export_reload']
     assert result['quality_qualified'] is False and result['gpu_used'] is False
     assert not torch.cuda.is_initialized()
+    if planned:
+        produced = json.loads((args.output / 'produce-receipt.json').read_text())
+        assert produced['completed_steps'] == 6 and len(produced['metrics']) == 6
+        assert sorted(produced['evaluations']) == ['0', '2', '6']
+        assert len(list(args.output.glob('checkpoint-*.pt'))) == 3
+        assert result['replayed_updates'] == 2
+        assert (args.output / 'evaluation/step-000006/inference-export.pt').is_file()
+
+
+def test_long_plan_rejects_changed_budget_before_cache_or_torch(tmp_path):
+    from importlib.metadata import version
+    import sys
+    plan = tmp_path / 'plan.json'
+    plan.write_text(json.dumps(dict(training=dict(total_steps=4), runtime_versions=dict(
+        python=sys.version.split()[0], **{name: version(name) for name in
+        ('torch', 'numpy', 'transformers', 'diffusers', 'safetensors')}))))
+    args = argparse.Namespace(preset='bispf_optimized')
+    with pytest.raises(ValueError, match='1200-update'):
+        worker.load_plan(plan, args)
+
+
+def test_resource_limit_stops_before_payload_access(monkeypatch):
+    monkeypatch.setattr(worker.resource, 'getrusage', lambda *_: type('Usage', (), {'ru_maxrss': 9 * 1024**2})())
+    plan = dict(limits=dict(produce_seconds=1800, rss_cap_gib=8))
+    with pytest.raises(MemoryError, match='peak RSS'):
+        worker.check_limits(plan, worker.time.monotonic(), 'produce', startup=True)
