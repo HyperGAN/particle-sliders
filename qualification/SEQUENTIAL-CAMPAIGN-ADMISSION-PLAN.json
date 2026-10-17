@@ -47,7 +47,7 @@
       "implementation": "Existing reviewed original-runtime guardian evaluate mode; unchanged exactv2recipes.",
       "preferred_gpu": "Same card as completed training; other MOSS remains prioritized.",
       "command_template": [
-        "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+        "/mnt/nvme/sliders/moss-image-sliders/.venv/bin/python",
         "scripts/guarded_moss_original_pg09.py",
         "--recipe",
         "EXACT_V2_RECIPE",
