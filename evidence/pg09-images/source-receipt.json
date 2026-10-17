@@ -1,6 +1,10 @@
 {
-  "recorded_utc": "2026-10-17T16:15:05.775829+00:00",
-  "implementation_commit": "f599f14aaf318c09d46a7e4b5ddacc6b0fa6bee0",
+  "recorded_utc": "2026-10-17T16:19:37.722544+00:00",
+  "implementation_commit": "003bc6ff22c67e14e3f9fb17ae839d8049031b41",
+  "implementation_base": "f599f14aaf318c09d46a7e4b5ddacc6b0fa6bee0",
+  "qa_review": {
+    "conditioning_fix": "003bc6f independent original collision regression passed; source repair accepted; complete dataset gate required"
+  },
   "core_commit": "ec234e184676c46060ecbf6122df0e7b726f45a7",
   "checkpoint_dependency": {
     "upstream": "ec34e4ecc68aedc88bb5cd44a96d4bd78af99fa9",
@@ -8,9 +12,9 @@
     "canonical": "331c3ff"
   },
   "source_sha256": {
-    "conceptmod/textsliders/pg09_images.py": "f6a899ab2325c99107f1bdd7e58d3c7289c1563d0b8825763a9f04fdecd77146",
+    "conceptmod/textsliders/pg09_images.py": "3961e6d8509ab46a3a845a83472b2bfe79eebd77eec256f61b03ab85ad8bcb9d",
     "conceptmod/textsliders/pg09_backends.py": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
-    "tests/test_pg09_images.py": "ba3c2436b61610119def40316b9507b7e96f3164e605b1959ecda903c64c7d5c",
+    "tests/test_pg09_images.py": "aa6b06606efbfa5469db4151f525e4da7b096367ba663a837825c03ac129a0bf",
     "tests/test_pg09_qwen_image.py": "e8e51e09bf093aa3584193d7cdad3cedc919a2ad50c54364dec3278802627400",
     "scripts/qualify_image_responses_pg09_cpu.py": "13df199c51f5edcb21509fa92a39282721384c2f0d7f6ad7d5937c4c954f7281",
     "particle_sliders.pg09": "c1a889123833b34ba1dbf9cb72d2ec0babc61f2ca78834c7e40e490e0e3cd121"
@@ -42,7 +46,7 @@
     }
   },
   "tests": {
-    "native_images": 48,
+    "native_images": 50,
     "native_qwen": 2,
     "skipped": 0,
     "failed": 0,
