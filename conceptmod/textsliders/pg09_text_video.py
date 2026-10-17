@@ -22,11 +22,18 @@ class ResponseCompatibilityError(ValueError):
     pass
 
 
-def require_continuous_vector(width, family):
-    if not 0 < width < 170:
+def require_continuous_vector(width, family, *, pg_source_profile='release', penalty_input_domain='auto'):
+    # Source/profile validation belongs to the reviewed core; no local manifest
+    # copy, implicit profile selection, response reshape or installed patch.
+    if (pg_source_profile, penalty_input_domain) == ('release', 'auto') and not 0 < width < 170:
         raise ResponseCompatibilityError(
             f'{family}: released PG09 cannot admit flat continuous width {width}; '
             'no reshape, projection, categorical or MSE fallback is provided')
+    from particle_sliders.pg09 import validate_pg09_domain
+    validate_pg09_domain((1, width), response_domain='continuous_vector',
+                         pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain)
+    return dict(response_domain='continuous_vector', pg_source_profile=pg_source_profile,
+                penalty_input_domain=penalty_input_domain)
 
 
 @dataclass(frozen=True)
@@ -39,13 +46,15 @@ class TextResponseRow:
 class TinyQwenResponseAdapter:
     """Existing TinyParticleSlider and actual bank, native last-token vector.
 
-    The standard live 1024-wide Qwen3 readout is blocked. The 32-wide native
-    CPU fixture exercises the shared core without claiming live compatibility.
+    The standard live 1024-wide Qwen3 readout requires the exact reviewed
+    explicit continuous profile. Release-auto behavior remains blocked.
     """
-    def __init__(self, backend, slider, *, model_identity=None):
+    def __init__(self, backend, slider, *, model_identity=None,
+                 pg_source_profile='release', penalty_input_domain='auto'):
         config = backend.model.config
         width = int(config['hidden_size'] if isinstance(config, dict) else config.hidden_size)
-        require_continuous_vector(width, 'TinyQwen')
+        self.domain_options = require_continuous_vector(
+            width, 'TinyQwen', pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain)
         if not backend.dummy and not model_identity:
             raise ResponseCompatibilityError('verified staged-model identity required')
         from .tiny_llm_particle import _attention_targets
@@ -93,7 +102,68 @@ class TinyQwenResponseAdapter:
                     student_conditioning='neutral token ids', target_convention='frozen positive token ids',
                     time_coordinates='none; fixed text readout', scale_convention='unipolar +1',
                     adapter_names=list(self.network.names), adapter_dtype='float32',
-                    particles='actual TinyParticleSlider dense-routed bank', quality_qualified=False)
+                    particles='actual TinyParticleSlider dense-routed bank',
+                    domain_options=self.domain_options, quality_qualified=False)
+
+
+@dataclass(frozen=True)
+class BonsaiResponseRow:
+    neutral: str
+    positive: str
+    scale: float = 1.0
+
+
+class BonsaiReadoutResponseAdapter:
+    """Existing native routed residual head on immutable real GGUF readouts.
+
+    The backend may be the existing checksummed FrozenReadouts cache with no
+    server. No gradient through GGUF or autoregressive generation is claimed.
+    Released-auto defaults reject width5120 before reading any cached payload.
+    """
+    def __init__(self, backend, head, *, model_identity,
+                 pg_source_profile='release', penalty_input_domain='auto'):
+        self.domain_options = require_continuous_vector(
+            5120, 'Bonsai', pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain)
+        from .bonsai_gguf_particle import BonsaiParticleHead
+        if not isinstance(head, BonsaiParticleHead) or not model_identity:
+            raise ResponseCompatibilityError('existing native Bonsai head and verified model/readout identity required')
+        self.backend, self.adapter = backend, head
+        self.network = AdapterParameters(head.named_parameters(), head.scaled)
+        self.particles = head.particles
+        self.model_identity = deepcopy(model_identity)
+
+    def prepare(self, row):
+        row = deepcopy(row)
+        if row.scale != 1 or not row.neutral or not row.positive or row.neutral == row.positive:
+            raise ValueError('distinct neutral/positive captions and unipolar +1 required')
+        with torch.no_grad():
+            neutral = self.backend.hidden(self.backend.encode(row.neutral)).detach().clone()
+            target = self.backend.hidden(self.backend.encode(row.positive)).detach().clone()
+        for response in (neutral, target):
+            if (response.shape != (1, 5120) or response.dtype != torch.float32
+                    or not torch.isfinite(response).all()):
+                raise ResponseCompatibilityError('Bonsai requires finite native [1,5120] FP32 frozen readouts')
+        return PreparedResponse(row, target, neutral)
+
+    def generated(self, prepared):
+        with self.network.scaled(prepared.row.scale):
+            return self.adapter(prepared.neutral).float()
+
+    @torch.no_grad()
+    def render(self, row, *, scale=1.):
+        value = self.backend.hidden(self.backend.encode(row.neutral))
+        with self.network.scaled(scale):
+            return self.adapter(value).float().detach().clone()
+
+    def metadata(self):
+        return dict(protocol='bonsai-readout-shared-pg090-response-v1',
+                    model_identity=self.model_identity, response='native [1,5120] frozen last-token readout',
+                    adapter_placement='native torch-side routed residual head; no GGUF autograd',
+                    student_conditioning='neutral readout', target_convention='frozen positive readout',
+                    time_coordinates='none; fixed text readout', scale_convention='unipolar +1',
+                    adapter_names=list(self.network.names), adapter_dtype='float32',
+                    particles='actual BonsaiParticleHead dense-routed bank', domain_options=self.domain_options,
+                    quality_qualified=False)
 
 
 @contextmanager
