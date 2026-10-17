@@ -246,6 +246,8 @@ def main():
     p.add_argument("--model", choices=("tiny", "bonsai"), required=True)
     p.add_argument("--until", choices=(100, 1200), type=int, required=True)
     a = p.parse_args()
+    p.error('legacy native caption campaigns are retired; use the reviewed shared-package '
+            'ConditionalPG09 worker and a new source-bound cohort')
     run = ROOT / ("runs/" + a.model + "-caption-native-1200-20261017")
     recipe = json.loads((run / "recipe.json").read_text())
     actual = subprocess.check_output(

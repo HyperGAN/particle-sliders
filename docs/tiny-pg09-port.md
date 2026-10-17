@@ -1,5 +1,10 @@
 # TinyQwen shared PG 0.9 run
 
+Historical fe54d05 PG0.9.0 audit receipt. Current installed API0.6.0 / PG0.9.1
+cohort and public legacy CLI retirement are documented in
+[text-package-acceptance.md](text-package-acceptance.md). These older receipts
+are preserved and do not qualify the replacement package candidate.
+
 `tiny_llm_pg09.PG09TinyRun` now calls
 `particle_sliders.pg09.ConditionalPG09` for every optimizer update, sampler,
 training checkpoint and restore. It reuses `TinyQwenResponseAdapter`, the native

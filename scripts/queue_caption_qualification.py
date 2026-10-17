@@ -19,6 +19,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", choices=("tiny", "bonsai"), required=True)
     args = parser.parse_args()
+    parser.error('legacy native caption campaigns are retired; use the reviewed shared-package '
+                 'ConditionalPG09 worker and a new source-bound cohort')
     run = ROOT / ("runs/" + args.model + "-caption-native-1200-20261017")
     recipe = json.loads((run / "recipe.json").read_text())
     lock = (run / "queue.lock").open("a")

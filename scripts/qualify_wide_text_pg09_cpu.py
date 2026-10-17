@@ -1,4 +1,4 @@
-"""Bounded wide-text fixtures and actual cross-profile process rejection.
+"""Historical LTX connector fixture; Tiny/Bonsai routes are retired here.
 
 Uses the existing reviewed overlay via PYTHONPATH, never installs or patches.
 No pretrained assets are opened. ConditionalPG09 owns every optimizer update.
@@ -71,8 +71,15 @@ def main():
     parser.add_argument('--core', type=Path, required=True)
     parser.add_argument('--overlay', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--include-ltx', action='store_true', help='also qualify the proposed default connector protocol')
+    parser.add_argument('--include-ltx', action='store_true',
+                        help='historical flag; explicitly select --family ltx_connector')
+    parser.add_argument('--family', choices=('tiny', 'bonsai', 'ltx_connector'), default='tiny',
+                        help='LTX connector only here; Tiny/Bonsai use installed-package acceptance')
     args = parser.parse_args()
+    if args.family != 'ltx_connector':
+        parser.error('legacy Tiny/Bonsai source-checkout qualification is retired; use '
+                     'the pinned installed-package acceptance; select --family '
+                     'ltx_connector for the separately owned LTX harness')
     root = Path(__file__).resolve().parents[1]
     core_src = args.core.resolve() / 'packages/particle-sliders-core/src'
     module = core_src / 'particle_sliders/pg09.py'
@@ -95,19 +102,13 @@ def main():
             raise RuntimeError('selected core changed during qualification')
         return json.loads(result.stdout) if result.stdout else None
 
-    families = ['tiny', 'bonsai'] + (['ltx_connector'] if args.include_ltx else [])
+    families = ['ltx_connector']
     for family in families:
         for preset in ('bispf', 'bispf_optimized'):
             folder = args.output / f'{family}-{preset}'
             folder.mkdir(exist_ok=True)
             run(folder, family, preset, 'alz-continuous-v1', 'produce')
             cases.append(run(folder, family, preset, 'alz-continuous-v1', 'restore'))
-    for source, destination in [('release', 'alz-continuous-v1'), ('alz-continuous-v1', 'release')]:
-        folder = args.output / f'cross-{source}-to-{destination}'
-        folder.mkdir(exist_ok=True)
-        run(folder, 'tiny', 'bispf_optimized', source, 'cross-produce')
-        cross.append(dict(source=source, destination=destination,
-                          **run(folder, 'tiny', 'bispf_optimized', destination, 'cross-restore')))
     receipt = dict(qualification='synthetic native-width CPU software gates only; no pretrained model admission',
                    core_sha256=digest, cases=cases, cross_profile_cases=cross,
                    installed_package_modified=False, pretrained_assets_loaded=False)

@@ -10,7 +10,7 @@ import pytest
 import torch
 from particlegan import get_recipe
 
-from conceptmod.textsliders.tiny_llm_backend import TinyLLMBackend
+from particle_sliders.tiny_llm_backend import TinyLLMBackend
 from conceptmod.textsliders.tiny_llm_pg09 import PG09TinyRun, load_export
 from particle_sliders.pg09 import ConditionalPG09
 
@@ -57,7 +57,8 @@ def test_actual_neutral_callbacks_recipe_and_all_parameter_roles_update(monkeypa
     from conceptmod.textsliders.pg09_game import PairedPG09
     monkeypatch.setattr(torch.nn.functional, 'mse_loss', forbidden)
     monkeypatch.setattr(PairedPG09, 'step', forbidden)
-    expected=get_recipe('bispf_optimized',num_particles=128,z_dim=4,batch_size=4,total_steps=6)
+    expected=get_recipe('bispf_optimized',num_particles=128,z_dim=4,batch_size=4,total_steps=6,
+                        training_precision='float32')
     assert run.signature['recipe']==asdict(expected)
     base=deepcopy(run.backend.model.state_dict())
     before=deepcopy(run.network.state_dict())
@@ -197,17 +198,16 @@ def test_export_rejection_does_not_attach_or_change_tokenizer(tmp_path, corrupti
     assert torch.equal(rng,torch.get_rng_state())
 
 
-def test_cpu_cli_selects_shared_core_and_resumes_in_fresh_process(tmp_path):
+def test_cpu_cli_uses_installed_package_and_resumes_in_fresh_process(tmp_path):
     import particle_sliders.pg09 as shared_pg09
-    core=Path(shared_pg09.__file__).resolve().parents[4]
     script=Path(__file__).resolve().parents[1]/'scripts/qualify_tiny_pg09_cpu.py'
     env=dict(os.environ, CUDA_VISIBLE_DEVICES='', OMP_NUM_THREADS='1', MKL_NUM_THREADS='1',
              OPENBLAS_NUM_THREADS='1', HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1',
              PYTHONDONTWRITEBYTECODE='1')
     for folder, until in [('resumed',2),('resumed',4),('uninterrupted',4)]:
-        result=subprocess.run([sys.executable,str(script),'--core',str(core),
+        result=subprocess.run([sys.executable,str(script),
             '--output',str(tmp_path/folder),'--until',str(until)],env=env,
-            text=True,capture_output=True,timeout=40)
+            cwd=tmp_path,text=True,capture_output=True,timeout=40)
         assert result.returncode==0,result.stdout+result.stderr
     resumed=torch.load(tmp_path/'resumed/training.pt',weights_only=True)
     expected=torch.load(tmp_path/'uninterrupted/training.pt',weights_only=True)

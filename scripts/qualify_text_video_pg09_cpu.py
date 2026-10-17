@@ -1,4 +1,4 @@
-"""Bounded, offline, two-process continuation gates for the shared game."""
+"""Historical LTX continuation harness; Tiny uses installed-package acceptance."""
 import argparse
 import hashlib
 import json
@@ -47,7 +47,13 @@ def main():
     parser.add_argument('--core', required=True, type=Path,
                         help='verified core checkout, containing packages/particle-sliders-core')
     parser.add_argument('--output', required=True, type=Path)
+    parser.add_argument('--family', choices=('tiny', 'ltx'), default='tiny',
+                        help='LTX only here; Tiny uses installed-package acceptance')
     args = parser.parse_args()
+    if args.family != 'ltx':
+        parser.error('legacy Tiny source-checkout qualification is retired; use '
+                     'qualify_tiny_pg09_cpu.py with the pinned installed package; '
+                     'select --family ltx for the separately owned LTX harness')
     root = Path(__file__).resolve().parents[1]
     core_src = args.core.resolve() / 'packages/particle-sliders-core/src'
     core_module = core_src / 'particle_sliders/pg09.py'
@@ -59,7 +65,7 @@ def main():
                PYTHONPATH=os.pathsep.join(map(str, (core_src, root, root / 'tests'))))
     cases = []
     core_digest = hashlib.sha256(core_module.read_bytes()).hexdigest()
-    for family in ('tiny', 'ltx'):
+    for family in ('ltx',):
         for preset in ('bispf', 'bispf_optimized'):
             folder = args.output / f'{family}-{preset}'
             folder.mkdir(exist_ok=True)

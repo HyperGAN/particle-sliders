@@ -1,0 +1,47 @@
+{
+  "status": "superseded_candidate_not_final_acceptance",
+  "source_commit": "42a2e371c537180bd189fd4a288b640f9f1c98fc",
+  "reason": "parent reports replacement required after optimizer-state P1; receipts retained, no merge or active-environment retarget",
+  "wheels": {
+    "particle-sliders-core": "7418efe0d89782b2fd266c6a8e536539243d06dd42ff5d393e409bf4b0f2c872",
+    "particlegan": "b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec"
+  },
+  "tests": {
+    "native-qwen-and-wheel.xml": {
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "6.692"
+    },
+    "native1024.xml": {
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.245"
+    },
+    "source-free.xml": {
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.724"
+    },
+    "guard-diagnostics.xml": {
+      "tests": "47",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "17.851"
+    },
+    "entrypoints.xml": {
+      "tests": "90",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "2",
+      "time": "15.950"
+    }
+  },
+  "scope": "synthetic CPU, native random Qwen3, source-free software only; no pretrained model or quality claim"
+}

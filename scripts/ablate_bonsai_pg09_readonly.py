@@ -20,6 +20,11 @@ def main():
     parser.add_argument('--run', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
+    parser.error(
+        'archived source-bound Bonsai diagnostic retired here; use the original '
+        'immutable cohort source for historical reproduction; this is not new '
+        'package qualification'
+    )
     started = time.monotonic()
     code, run = args.code.resolve(), args.run.resolve()
     plan_path = code/'evidence/pg09-text-video/bonsai-1200-cpu-admission-proposal-v2.json'

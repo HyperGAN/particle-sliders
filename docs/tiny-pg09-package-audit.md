@@ -1,5 +1,10 @@
 # TinyQwen package integration audit — isolated proposal
 
+Historical fe54d05 PG0.9.0 audit receipt. Current installed API0.6.0 / PG0.9.1
+cohort and public legacy CLI retirement are documented in
+[text-package-acceptance.md](text-package-acceptance.md). These older receipts
+are preserved and do not qualify the replacement package candidate.
+
 Repository: `https://github.com/HyperGAN/particle-sliders.git`.
 TinyQwen/native LLM is an embedded backend, not a distinct public derivative
 repository. Source identity was verified before edits: clean

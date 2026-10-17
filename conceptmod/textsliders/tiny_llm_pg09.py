@@ -15,12 +15,19 @@ from pathlib import Path
 import torch
 from safetensors import safe_open
 
-from .pg09_readout_critic import ConditionalReadoutCritic
-from .pg09_text_video import TinyQwenResponseAdapter, TextResponseRow, require_continuous_vector
-from .tiny_llm_particle import TinyParticleSlider
+from particle_sliders.pg09 import PG_VERSION
+from particle_sliders.pg09_readout_critic import ConditionalReadoutCritic
+from particle_sliders.pg09_text_video import TinyQwenResponseAdapter, TextResponseRow, require_continuous_vector
+from particle_sliders.tiny_native import TinyParticleSlider
+from .text_package import require_text_package
 
-PROTOCOL = 'tiny-qwen-shared-pg090-neutral-v2'
+PROTOCOL = 'tiny-qwen-shared-package-v3'
 CRITIC = 'ConditionalReadoutCritic/MLP/raw_logits'
+
+
+def _portable_package_pin(identity):
+    return {key: identity[key] for key in ('manifest_sha256', 'core_source_commit',
+                                         'versions', 'wheel_sha256')}
 
 
 def tensor_digest(tensors):
@@ -39,8 +46,8 @@ def _vocab(backend):
 
 def _inference_sources(backend):
     from particle_sliders.reference import RoutedMLP
-    from .pg09_backends import AdapterParameters
-    from .tiny_llm_particle import TinyParticleProjection
+    from particle_sliders.pg09_backends import AdapterParameters
+    from particle_sliders.tiny_native import TinyParticleProjection
     classes = (type(backend), type(backend.model), TinyQwenResponseAdapter,
                AdapterParameters, TinyParticleSlider, TinyParticleProjection, RoutedMLP)
     return {cls.__module__: hashlib.sha256(Path(inspect.getsourcefile(cls)).read_bytes()).hexdigest()
@@ -68,6 +75,9 @@ class PG09TinyRun:
                  batch_size=8, model_fingerprint=None, preset='bispf_optimized',
                  pg_source_profile='release', penalty_input_domain='auto'):
         from particle_sliders.pg09 import ConditionalPG09
+
+        self.package_pin = _portable_package_pin(require_text_package(pg_source_profile=pg_source_profile))
+        self.pg_source_profile = pg_source_profile
 
         self.backend = backend
         self.rows = deepcopy(rows)
@@ -98,7 +108,8 @@ class PG09TinyRun:
         self.game = ConditionalPG09(self.adapter, self.fixed, self.critic,
             conditions=conditions, particles=self.network.particles, **self.adapter.domain_options,
             preset=preset, batch_size=batch_size, seed=seed, total_steps=total_steps)
-        self.signature = dict(protocol=PROTOCOL, pg_version='0.9.0', seed=seed,
+        self.signature = dict(protocol=PROTOCOL, pg_version=PG_VERSION, core_version='0.6.0', seed=seed,
+            package_pin=self.package_pin,
             source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             recipe=asdict(self.game.recipe), model_fingerprint=self.model_fingerprint,
             rows=self.rows, initial_tokenizer_vocab=self.initial_vocab,
@@ -134,7 +145,8 @@ class PG09TinyRun:
     def export(self, path):
         # Reuse the shared checkpoint guard; failed partial updates cannot export.
         self.game.state_dict()
-        self.network.save(path, dict(protocol=PROTOCOL, pg_version='0.9.0',
+        self.network.save(path, dict(protocol=PROTOCOL, pg_version=PG_VERSION, core_version='0.6.0',
+            package_pin=self.package_pin, pg_source_profile=self.pg_source_profile,
             resolved_recipe=asdict(self.game.recipe), model_fingerprint=self.model_fingerprint,
             student_conditioning='neutral', teacher_conditioning='positive',
             adapter_dtype='float32', critic=CRITIC,
@@ -144,12 +156,14 @@ class PG09TinyRun:
             completed_steps=self.game.completed_steps, quality_qualified=False))
 
 
-def load_export(backend, path):
+def load_export(backend, path, *, pg_source_profile='release'):
     """Validate before attaching; load FP32 leaves without host-dtype rounding."""
     path = Path(path)
+    package_pin = _portable_package_pin(require_text_package(pg_source_profile=pg_source_profile))
     with safe_open(str(path), framework='pt', device='cpu') as file:
         metadata = json.loads((file.metadata() or {}).get('conceptmod', '{}'))
-    expected = dict(protocol=PROTOCOL, pg_version='0.9.0', adapter_dtype='float32',
+    expected = dict(protocol=PROTOCOL, pg_version=PG_VERSION, core_version='0.6.0', adapter_dtype='float32',
+                    package_pin=package_pin, pg_source_profile=pg_source_profile,
                     student_conditioning='neutral', teacher_conditioning='positive', critic=CRITIC,
                     source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     if any(metadata.get(k) != v for k, v in expected.items()):
@@ -164,13 +178,15 @@ def load_export(backend, path):
         raise ValueError('inference implementation sources differ')
     from particlegan import get_recipe
     recipe = metadata.get('resolved_recipe')
-    if (version('particlegan') != '0.9.0' or not isinstance(recipe, dict)
+    if (version('particlegan') != PG_VERSION or version('particle-sliders-core') != '0.6.0'
+            or not isinstance(recipe, dict)
             or recipe.get('name') not in ('bispf', 'bispf_optimized')
             or type(recipe.get('batch_size')) is not int or not 2 <= recipe['batch_size'] <= 512
             or type(recipe.get('total_steps')) is not int or recipe['total_steps'] < 1):
         raise ValueError('invalid PG0.9 export recipe')
     expected_recipe = asdict(get_recipe(recipe['name'], num_particles=128, z_dim=4,
-                                       batch_size=recipe['batch_size'], total_steps=recipe['total_steps']))
+                                       batch_size=recipe['batch_size'], total_steps=recipe['total_steps'],
+                                       training_precision='float32'))
     if recipe != json.loads(json.dumps(expected_recipe)):
         raise ValueError('export recipe differs from the public preset')
     if (type(metadata.get('completed_steps')) is not int
