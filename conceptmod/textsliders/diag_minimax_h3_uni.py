@@ -1,20 +1,12 @@
 #!/usr/bin/env python3
-"""MiniMax-H3 UNI diagnostic: lighting / concept gap vs identity leak.
+"""MiniMax-H3 CPU architecture diagnostic; native execution is closed.
 
-No train loss. Frozen teachers + encoder hold + optional student LoRA
-forwards on the same packed t2va stack as ``train_lora_minimax_h3.py``.
+Frozen synthetic teachers and optional CPU fixture LoRA forwards inspect the
+small packed layout and embedding hold. This does not qualify native AV
+geometry, GAN training, rendering, semantic quality or hardware placement.
 
-``--dummy`` is the CI / CPU path (no Hub, no GPU, no MiniMax-H3 weights).
-Live: FL2VA / t2va, ``--device`` + optional ``--encoder_device``,
-``--load_h3_lora`` for an existing adapter.
-
-    PYTHONPATH=. python conceptmod/textsliders/diag_minimax_h3_uni.py --dummy \\
+    PYTHONPATH=. python conceptmod/textsliders/diag_minimax_h3_uni.py --dummy \
       --save_dir /tmp/h3-diag
-
-    CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/diag_minimax_h3_uni.py \\
-      --prompts_file conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \\
-      --load_h3_lora models/chiaroscuro-minimax-h3-uni-v5 \\
-      --device cuda:0 --save_dir models/chiaroscuro-minimax-h3-uni-v5/diag
 """
 
 from __future__ import annotations
@@ -25,11 +17,85 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import torch
-
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
+
+from conceptmod.textsliders.train_lora_minimax_h3 import (
+    DEFAULT_HOLD_MODE, DEFAULT_LORA_UP_INIT_STD, DEFAULT_MODEL, DEFAULT_VARIANT,
+    DEFAULT_WORKFLOW, HOLD_MODES, H3MigrationBlocked, require_h3_cpu_fixture,
+)
+
+def parse_diag_args(argv: list[str] | None = None) -> argparse.Namespace:
+    p = argparse.ArgumentParser(
+        description="MiniMax-H3 CPU architecture diagnostic; native execution closed"
+    )
+    p.add_argument("--name", type=str, default="minimax-h3-uni-diag")
+    p.add_argument("--model_id", type=str, default=DEFAULT_MODEL)
+    p.add_argument("--variant", type=str, default=DEFAULT_VARIANT, choices=["FL2VA", "Ref2VA"])
+    p.add_argument(
+        "--workflow",
+        type=str,
+        default=DEFAULT_WORKFLOW,
+        choices=["t2va", "fl2va", "ref2va"],
+    )
+    p.add_argument(
+        "--prompts_file",
+        type=str,
+        default=str(
+            Path(__file__).resolve().parent / "data" / "prompts-minimax-h3.yaml"
+        ),
+    )
+    p.add_argument("--attributes", type=str, default="")
+    p.add_argument("--rank", type=int, default=8)
+    p.add_argument("--alpha", type=float, default=8.0)
+    p.add_argument("--lora_up_init_std", type=float, default=DEFAULT_LORA_UP_INIT_STD)
+    p.add_argument("--seed", type=int, default=7)
+    p.add_argument("--device", type=str, default="cuda:0")
+    p.add_argument(
+        "--encoder_device",
+        type=str,
+        default=None,
+        help="Optional second GPU for Qwen3-VL-32B (same as train).",
+    )
+    p.add_argument("--short_side", type=int, default=768)
+    p.add_argument(
+        "--hold_mode",
+        type=str,
+        default=DEFAULT_HOLD_MODE,
+        choices=list(HOLD_MODES),
+    )
+    p.add_argument("--save_dir", type=str, default=None)
+    p.add_argument(
+        "--load_h3_lora",
+        type=str,
+        default=None,
+        help="CPU fixture adapter only; native inference and training resume are closed",
+    )
+    p.add_argument(
+        "--max_rows",
+        type=int,
+        default=None,
+        help="Cap slider rows (default: all, including attribute pins)",
+    )
+    p.add_argument(
+        "--dummy",
+        action="store_true",
+        help="CPU mock packed sequence; no Hub, no GPU, no MiniMax-H3 weights",
+    )
+    return p.parse_args(argv)
+
+
+# Parse and reject stale native commands before importing model dependencies.
+# This also keeps --help usable in a source-free, stdlib-only environment.
+if __name__ == "__main__":
+    try:
+        require_h3_cpu_fixture(parse_diag_args().dummy)
+    except H3MigrationBlocked as exc:
+        print(str(exc), file=sys.stderr)
+        raise SystemExit(2)
+
+import torch
 
 from conceptmod.textsliders.minimax_h3_backend import (
     DEFAULT_LORA_UP_INIT_STD,
@@ -124,64 +190,6 @@ STUDENT_KEYS = (
 COS_L2_KEYS = ("cos", "l2")
 
 
-def parse_diag_args(argv: list[str] | None = None) -> argparse.Namespace:
-    p = argparse.ArgumentParser(
-        description="MiniMax-H3 UNI lighting-gap vs identity-leak diagnostic (no train)"
-    )
-    p.add_argument("--name", type=str, default="minimax-h3-uni-diag")
-    p.add_argument("--model_id", type=str, default=DEFAULT_MODEL)
-    p.add_argument("--variant", type=str, default=DEFAULT_VARIANT, choices=["FL2VA", "Ref2VA"])
-    p.add_argument(
-        "--workflow",
-        type=str,
-        default=DEFAULT_WORKFLOW,
-        choices=["t2va", "fl2va", "ref2va"],
-    )
-    p.add_argument(
-        "--prompts_file",
-        type=str,
-        default=str(
-            Path(__file__).resolve().parent / "data" / "prompts-minimax-h3.yaml"
-        ),
-    )
-    p.add_argument("--attributes", type=str, default="")
-    p.add_argument("--rank", type=int, default=8)
-    p.add_argument("--alpha", type=float, default=8.0)
-    p.add_argument("--lora_up_init_std", type=float, default=DEFAULT_LORA_UP_INIT_STD)
-    p.add_argument("--seed", type=int, default=7)
-    p.add_argument("--device", type=str, default="cuda:0")
-    p.add_argument(
-        "--encoder_device",
-        type=str,
-        default=None,
-        help="Optional second GPU for Qwen3-VL-32B (same as train).",
-    )
-    p.add_argument("--short_side", type=int, default=768)
-    p.add_argument(
-        "--hold_mode",
-        type=str,
-        default=DEFAULT_HOLD_MODE,
-        choices=list(HOLD_MODES),
-    )
-    p.add_argument("--save_dir", type=str, default=None)
-    p.add_argument(
-        "--load_h3_lora",
-        type=str,
-        default=None,
-        help="Dir or .safetensors with custom lora_h3-* keys (not PEFT)",
-    )
-    p.add_argument(
-        "--max_rows",
-        type=int,
-        default=None,
-        help="Cap slider rows (default: all, including attribute pins)",
-    )
-    p.add_argument(
-        "--dummy",
-        action="store_true",
-        help="CPU mock packed sequence; no Hub, no GPU, no MiniMax-H3 weights",
-    )
-    return p.parse_args(argv)
 
 
 def _shared_latents(
@@ -214,7 +222,8 @@ def diagnose_row(
     seed: int,
     index: int,
 ) -> dict[str, Any]:
-    """One slider yaml row (after unused-attribute pin)."""
+    """One CPU fixture slider row; this does not qualify a native protocol."""
+    require_h3_cpu_fixture(getattr(backend, "dummy", False))
     tokenizer = backend.tokenizer
     plus_enc = backend.encode_text(row["positive"], frozen=True)
     neu_enc = backend.encode_text(row["neutral"], frozen=True)
@@ -392,7 +401,10 @@ def run_diag(
     args: argparse.Namespace,
     backend: MiniMaxH3Backend | None = None,
 ) -> dict[str, Any]:
-    """Run the diagnostic. Works with trainer args or ``parse_diag_args``."""
+    """Run only CPU architecture diagnostics, with no native execution."""
+    require_h3_cpu_fixture(getattr(args, "dummy", False))
+    if backend is not None:
+        require_h3_cpu_fixture(getattr(backend, "dummy", False))
     rows = load_slider_rows(args.prompts_file, getattr(args, "attributes", "") or "")
     cap = getattr(args, "max_rows", None)
     if cap is None:
