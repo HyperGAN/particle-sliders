@@ -210,8 +210,10 @@ def main():
     audit_path=CHECKOUT/'scripts/audit_image_checkpoint_rng_pg09.py'
     audit_sha=source_record(audit_path)['sha256']
     args.output_dir.mkdir(parents=True,exist_ok=True)
-    audit=dict(schema='image-known-checkpoint-rng-audit-proposal-v1',execution_admitted=False,
+    audit=dict(schema='image-known-checkpoint-rng-audit-proposal-v2',execution_admitted=False,
         audit_script_sha256=audit_sha,known_packets=result['known_packets'],
+        receipt_output_policy='fresh absent nonsymlink output in an existing nonsymlink directory, disjoint from all inputs before packet access; directory-fd-pinned fsynced temporary file plus atomic exclusive hard-link publication, never replace',
+        static_review_policy='strict same-plan static receipt only; completed v1 evidence is preserved and cannot qualify revised v2 RNG stage',
         caps=dict(threads=1,CUDA_VISIBLE_DEVICES='',wall_seconds=120,rss_max_gib=8,
                   address_space_hard_cap_gib=8,host_available_min_gib=16,packet_max_bytes=2*1024**3,
                   caveat='RLIMIT_AS is stronger than RSS cap and may reject Torch import; fail closed; owner must review/import-qualify before actual packet audit'),

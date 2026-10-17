@@ -108,3 +108,145 @@ def test_restricted_rng_schema_rejects_wrong_identity_and_rng_type(tmp_path):
     torch.save(packet,path)
     with pytest.raises(ValueError,match='uint8'):
         audit.rng_schema(path,identity='synthetic-only',step=0)
+
+
+@pytest.mark.parametrize('role', ['plan','reviewed-static','source','packet','sidecar'])
+def test_receipt_output_never_overwrites_any_protected_input(tmp_path,role):
+    path=tmp_path/role
+    path.write_bytes(b'preserved input')
+    with pytest.raises((ValueError,FileExistsError),match='protected|fresh'):
+        audit.FreshReceiptOutput(path,[path])
+    assert path.read_bytes()==b'preserved input'
+
+
+@pytest.mark.parametrize('kind', ['symlink','hardlink','dangling-symlink','parent-symlink'])
+def test_receipt_output_rejects_aliases_and_symlink_directories(tmp_path,kind):
+    import os
+    protected=tmp_path/'input'
+    protected.write_bytes(b'preserved input')
+    output=tmp_path/'output'
+    if kind=='symlink':
+        output.symlink_to(protected)
+    elif kind=='hardlink':
+        os.link(protected,output)
+    elif kind=='dangling-symlink':
+        output.symlink_to(tmp_path/'absent')
+    else:
+        directory=tmp_path/'real-directory'
+        directory.mkdir()
+        alias=tmp_path/'alias-directory'
+        alias.symlink_to(directory,target_is_directory=True)
+        output=alias/'output'
+    with pytest.raises((ValueError,FileExistsError),match='protected|fresh|symlink'):
+        audit.FreshReceiptOutput(output,[protected])
+    assert protected.read_bytes()==b'preserved input'
+
+
+def test_existing_output_is_rejected_before_any_packet_or_plan_read(tmp_path,monkeypatch):
+    import sys
+    output=tmp_path/'known-packet.pt'
+    output.write_bytes(b'preserved packet')
+    def forbidden_read(*_):
+        raise AssertionError('output guard ran after an audit content read')
+    monkeypatch.setattr(audit,'sha_file',forbidden_read)
+    monkeypatch.setattr(sys,'argv',['audit','--plan',str(tmp_path/'plan.json'),
+        '--plan-sha256','unused','--mode','static','--output',str(output)])
+    with pytest.raises(FileExistsError,match='fresh'):
+        audit.main()
+    assert output.read_bytes()==b'preserved packet'
+
+
+def test_absent_output_cannot_alias_a_declared_input_before_packet_reads(tmp_path,monkeypatch):
+    import sys
+    output=tmp_path/'absent-source.py'
+    packet=tmp_path/'never-opened.pt'
+    plan=tmp_path/'plan.json'
+    document=dict(audit_script_sha256=audit.sha_file(audit.__file__),
+        known_packets=[dict(path=str(packet),sidecar=dict(path=str(tmp_path/'sidecar.json')))],
+        source_bindings=[dict(path=str(output))])
+    plan.write_text(json.dumps(document))
+    argv=['audit','--plan',str(plan),'--plan-sha256',audit.sha_file(plan),
+          '--mode','static','--output',str(output)]
+    original=audit.sha_file
+    def guarded_sha(path):
+        assert Path(path)!=packet
+        return original(path)
+    monkeypatch.setattr(audit,'sha_file',guarded_sha)
+    monkeypatch.setattr(audit.resource,'setrlimit',lambda *_:None)
+    monkeypatch.setattr(audit.signal,'signal',lambda *_:None)
+    monkeypatch.setattr(audit.signal,'alarm',lambda *_:None)
+    for key,value in dict(CUDA_VISIBLE_DEVICES='',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1').items():
+        monkeypatch.setenv(key,value)
+    monkeypatch.setattr(sys,'argv',argv)
+    with pytest.raises(ValueError,match='protected'):
+        audit.main()
+    assert not output.exists()
+
+
+def test_receipt_publication_is_complete_and_cannot_be_repeated(tmp_path):
+    output=tmp_path/'receipt.json'
+    with audit.FreshReceiptOutput(output) as receipt:
+        receipt.publish_json(dict(completed=True))
+    original=output.read_bytes()
+    assert json.loads(original)==dict(completed=True)
+    with pytest.raises(FileExistsError,match='fresh'):
+        audit.FreshReceiptOutput(output)
+    assert output.read_bytes()==original
+    assert not list(tmp_path.glob('*.pending'))
+
+
+@pytest.mark.parametrize('kind',['file','symlink'])
+def test_final_publication_race_preserves_competing_file_or_input(tmp_path,monkeypatch,kind):
+    import os
+    output=tmp_path/'receipt.json'
+    protected=tmp_path/'input'
+    protected.write_bytes(b'protected input')
+    original_link=os.link
+    def race_link(source,destination,**kwargs):
+        if kind=='file':
+            fd=os.open(destination,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600,dir_fd=kwargs['dst_dir_fd'])
+            os.write(fd,b'competing receipt')
+            os.close(fd)
+        else:
+            os.symlink(protected,destination,dir_fd=kwargs['dst_dir_fd'])
+        return original_link(source,destination,**kwargs)
+    monkeypatch.setattr(audit.os,'link',race_link)
+    with audit.FreshReceiptOutput(output,[protected]) as receipt:
+        with pytest.raises(FileExistsError):
+            receipt.publish_json(dict(must_not_replace=True))
+    assert protected.read_bytes()==b'protected input'
+    assert output.read_bytes()==(b'competing receipt' if kind=='file' else b'protected input')
+    assert not list(tmp_path.glob('*.pending'))
+
+
+def test_failed_receipt_serialization_leaves_no_final_or_pending_output(tmp_path):
+    output=tmp_path/'receipt.json'
+    with audit.FreshReceiptOutput(output) as receipt:
+        with pytest.raises(TypeError):
+            receipt.publish_json({'unserializable':set()})
+    assert not output.exists()
+    assert not list(tmp_path.glob('*.pending'))
+
+
+def test_revised_plan_cannot_reuse_old_static_receipt_before_rng_load(tmp_path,monkeypatch):
+    import sys
+    plan=tmp_path/'plan.json'
+    static=tmp_path/'old-static.json'
+    output=tmp_path/'fresh-rng.json'
+    plan.write_text(json.dumps(dict(audit_script_sha256=audit.sha_file(audit.__file__),known_packets=[],source_bindings=[])))
+    static.write_text(json.dumps(dict(mode='static',plan_sha256='old-v1-plan',packets=[])))
+    monkeypatch.setattr(audit.resource,'setrlimit',lambda *_:None)
+    monkeypatch.setattr(audit.signal,'signal',lambda *_:None)
+    monkeypatch.setattr(audit.signal,'alarm',lambda *_:None)
+    for key,value in dict(CUDA_VISIBLE_DEVICES='',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1').items():
+        monkeypatch.setenv(key,value)
+    monkeypatch.setattr(sys,'argv',['audit','--plan',str(plan),'--plan-sha256',audit.sha_file(plan),
+        '--mode','rng','--reviewed-static-receipt',str(static),'--reviewed-static-sha256',audit.sha_file(static),
+        '--output',str(output)])
+    def forbidden_load(*_,**__):
+        raise AssertionError('RNG packet access before strict same-plan gate')
+    monkeypatch.setattr(audit,'rng_schema',forbidden_load)
+    with pytest.raises(ValueError,match='static receipt plan mismatch'):
+        audit.main()
+    assert not output.exists()
+    assert json.loads(static.read_text())['plan_sha256']=='old-v1-plan'

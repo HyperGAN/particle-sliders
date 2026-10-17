@@ -1,0 +1,66 @@
+{
+  "status": "output immutability repair; actual revised v2 packet stages unexecuted and unadmitted",
+  "original_defect": "existing output overwritten; aliases of plan/staticreceipt/source/packet/sidecar could overwrite input or preserved evidence after read",
+  "guard": "fresh disjoint nonsymlink output and nonsymlink existing directory before packet access; directory-fd-pinned fsynced temporary plus atomic exclusive hard-link publication; cleanup after errors/races",
+  "acceptance_scope": "52 CPU checks:22 offline guards (6 prior+16 new synthetic output/same-plan checks) plus30 campaign contract/independent regressions; no skips/failures and no real packet rerun",
+  "actual_packet_bodies_read_by_this_agent": 0,
+  "actual_restricted_rng_stage_executed": false,
+  "active_moss_or_shared_core_edits": false,
+  "preserved_v1": {
+    "implementation_commit": "ad47df321647b7758f7f096c2f9c8f05caba7eab",
+    "root_canonical_commit": "48076a5",
+    "audit_source_sha256": "ccb0b244150a4b63c53305126600e28cc5a559195758777b2eb1c693ca398c0e",
+    "plan": {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission/rng-audit-plan.json",
+      "bytes": 15827,
+      "sha256": "3d7a2696dbb31c8e301798c0d242ad5a9a2f5e602387c648bfeffd9ff472beb0"
+    },
+    "root_static_receipt": {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission-v2/prior-root-static-v1.json",
+      "bytes": 344742,
+      "sha256": "2f16338a6e9d2329a429b8ad3b2b34214a00ef1b13edfa063991bbdea96de6ad"
+    },
+    "root_static_origin": "/tmp/image-checkpoint-static-root-20261017.json",
+    "root_reported_scope": "static-only4 known packets, full checksums matched, noTorch/pickleexecution/GPU; root manually ensured fresh/disjoint output",
+    "root_reported_seconds": 2.081074230001832,
+    "root_reported_peak_rss_bytes": 21811200
+  },
+  "strict_static_gate": "v2 RNG rejects v1 static receipt plan SHA; root may separately admit new v2 static cohort to a fresh output after reviewing this repair, then separately review same-plan RNG stage",
+  "sources": [
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/audit_image_checkpoint_rng_pg09.py",
+      "bytes": 13441,
+      "sha256": "92abb56187a05b8f342b7d876f8db698c0440563caba0ae0f7d7672fd5a423a3"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/prepare_image_failure_admission_pg09.py",
+      "bytes": 19981,
+      "sha256": "4614e3229d4a2976341e2a1d4a2b266cb7e0a6fd5293cc831459f9b645b32afb"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/tests/test_image_failure_offline_admission_pg09.py",
+      "bytes": 11707,
+      "sha256": "852628d4ebebe9b7c88538e1e1cf08355a7300e8f257f9c289c549b89b45d734"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/docs/pg09-image-audit-output-repair.md",
+      "bytes": 3274,
+      "sha256": "cedc822364575ace008f3db387abf25d61ee30d2811888ab675cb665101d99dc"
+    }
+  ],
+  "new_plan": {
+    "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission-v2/rng-audit-plan.json",
+    "bytes": 16216,
+    "sha256": "77112107a6907bb2aed1e15dbeed517e0704b361edb7f752105efc4395881fe0"
+  },
+  "stage_commands": {
+    "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission-v2/stage-commands.json",
+    "bytes": 2639,
+    "sha256": "7153a74bd15a83b2dac1d329c104419c2244bea01e27a0fba87edacec73399cd"
+  },
+  "tests": {
+    "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission-v2/output-repair-combined-52-tests.xml",
+    "bytes": 8015,
+    "sha256": "e9c0e5ad59c7f7a6eacb72d40ed3ead787c38cb1834265a32389ec9a01cce4d3"
+  }
+}

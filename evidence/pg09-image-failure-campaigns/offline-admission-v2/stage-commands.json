@@ -1,0 +1,63 @@
+{
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "cwd": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017",
+  "metadata_validation": [
+    "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+    "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/prepare_image_failure_admission_pg09.py",
+    "--output-dir",
+    "evidence/pg09-image-failure-campaigns/offline-admission-v2"
+  ],
+  "unexecuted_static_audit": [
+    "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+    "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/audit_image_checkpoint_rng_pg09.py",
+    "--plan",
+    "evidence/pg09-image-failure-campaigns/offline-admission-v2/rng-audit-plan.json",
+    "--plan-sha256",
+    "77112107a6907bb2aed1e15dbeed517e0704b361edb7f752105efc4395881fe0",
+    "--mode",
+    "static",
+    "--output",
+    "evidence/pg09-image-failure-campaigns/offline-admission-v2/actual-static-audit.json"
+  ],
+  "unexecuted_rng_audit_template": [
+    "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+    "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/audit_image_checkpoint_rng_pg09.py",
+    "--plan",
+    "evidence/pg09-image-failure-campaigns/offline-admission-v2/rng-audit-plan.json",
+    "--plan-sha256",
+    "77112107a6907bb2aed1e15dbeed517e0704b361edb7f752105efc4395881fe0",
+    "--mode",
+    "rng",
+    "--reviewed-static-receipt",
+    "evidence/pg09-image-failure-campaigns/offline-admission-v2/actual-static-audit.json",
+    "--reviewed-static-sha256",
+    "<ROOT-REVIEWED-STATIC-RECEIPT-SHA256>",
+    "--output",
+    "evidence/pg09-image-failure-campaigns/offline-admission-v2/actual-rng-schema-audit.json"
+  ],
+  "actual_packet_commands_admitted": false,
+  "native_worker_commands_available": false,
+  "frozen_inputs": [
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/proposals.json",
+      "bytes": 51368,
+      "sha256": "884c97d59629a86871f4a371295e78a2db0295e4a01d45dc666b34fc46914e6a"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/audit_image_checkpoint_rng_pg09.py",
+      "bytes": 13441,
+      "sha256": "92abb56187a05b8f342b7d876f8db698c0440563caba0ae0f7d7672fd5a423a3"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/prepare_image_failure_admission_pg09.py",
+      "bytes": 19981,
+      "sha256": "4614e3229d4a2976341e2a1d4a2b266cb7e0a6fd5293cc831459f9b645b32afb"
+    }
+  ]
+}

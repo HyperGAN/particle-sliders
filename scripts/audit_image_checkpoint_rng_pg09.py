@@ -16,6 +16,7 @@ import resource
 import signal
 import time
 import zipfile
+import uuid
 
 FIELDS = {'identity', 'step', 'trainable', 'optimizer', 'torch_rng', 'python_rng', 'cuda_rng'}
 MAX_PACKET_BYTES = 2 * 1024**3
@@ -111,6 +112,75 @@ def rng_schema(path, *, identity, step):
     return result
 
 
+class FreshReceiptOutput:
+    """Pin an existing nonsymlink directory and publish without replacement."""
+    def __init__(self, path, protected=()):
+        self.path = Path(os.path.abspath(path))
+        self.fd = None
+        try:
+            for component in (self.path.parent, *self.path.parent.parents):
+                if component.is_symlink():
+                    raise ValueError('receipt output directory must not traverse symlinks')
+            self.fd = os.open(self.path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            self.directory_identity = os.fstat(self.fd)
+            self.protected = set()
+            self.protect(protected)
+            self.check()
+        except BaseException:
+            self.close()
+            raise
+
+    def protect(self, paths):
+        for path in paths:
+            self.protected.add(Path(path).absolute())
+            self.protected.add(Path(path).resolve())
+        self.check()
+
+    def check(self):
+        if self.path in self.protected or self.path.resolve() in self.protected:
+            raise ValueError('receipt output aliases protected audit input/source')
+        # lexists catches dangling symlinks as well as ordinary existing files.
+        if os.path.lexists(self.path):
+            raise FileExistsError('fresh receipt output required: '+str(self.path))
+        current = self.path.parent.stat()
+        if (current.st_dev, current.st_ino) != (self.directory_identity.st_dev, self.directory_identity.st_ino):
+            raise RuntimeError('receipt output directory changed')
+        for component in (self.path.parent, *self.path.parent.parents):
+            if component.is_symlink():
+                raise RuntimeError('receipt output directory changed to a symlink')
+
+    def publish_json(self, value):
+        self.check()
+        temporary = '.audit-receipt-'+uuid.uuid4().hex+'.pending'
+        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                     0o600, dir_fd=self.fd)
+        try:
+            with os.fdopen(fd, 'w') as stream:
+                json.dump(value, stream, indent=2)
+                stream.write('\n')
+                stream.flush()
+                os.fsync(stream.fileno())
+            self.check()
+            # link is atomic and fails if any file/symlink appeared meanwhile.
+            # The directory fd keeps both names anchored to the pinned directory.
+            os.link(temporary, self.path.name, src_dir_fd=self.fd,
+                    dst_dir_fd=self.fd, follow_symlinks=False)
+            os.fsync(self.fd)
+        finally:
+            os.unlink(temporary, dir_fd=self.fd)
+
+    def close(self):
+        if self.fd is not None:
+            os.close(self.fd)
+            self.fd = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--plan', type=Path, required=True)
@@ -120,64 +190,70 @@ def main():
     parser.add_argument('--reviewed-static-sha256')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    if os.environ.get('CUDA_VISIBLE_DEVICES') != '' or any(os.environ.get(k) != '1' for k in
-            ('OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS')):
-        raise RuntimeError('explicit CUDA-hidden single-thread environment required')
-    resource.setrlimit(resource.RLIMIT_AS, (MAX_ADDRESS_SPACE, MAX_ADDRESS_SPACE))
-    resource.setrlimit(resource.RLIMIT_CPU, (120, 120))
-    signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError('120s audit cap')))
-    signal.alarm(120)
-    start = time.monotonic()
-    if sha_file(args.plan) != args.plan_sha256:
-        raise ValueError('audit plan checksum mismatch')
-    plan = json.loads(args.plan.read_text())
-    if sha_file(__file__) != plan['audit_script_sha256']:
-        raise ValueError('audit script checksum mismatch')
-    for binding in plan['source_bindings']:
-        source = Path(binding['path'])
-        if source.suffix in {'.pt','.pth','.bin','.safetensors','.ckpt','.model','.npz','.npy'}:
-            raise ValueError('binary packet cannot be a source binding')
-        if source.stat().st_size != binding['bytes'] or sha_file(source) != binding['sha256']:
-            raise ValueError('audit source/input binding changed')
-    reviewed = None
-    if args.mode == 'rng':
-        if not args.reviewed_static_receipt or not args.reviewed_static_sha256:
-            raise ValueError('separately reviewed static receipt required before restricted tensor audit')
-        if sha_file(args.reviewed_static_receipt) != args.reviewed_static_sha256:
-            raise ValueError('static receipt checksum mismatch')
-        reviewed = json.loads(args.reviewed_static_receipt.read_text())
-        if reviewed['mode'] != 'static' or reviewed['plan_sha256'] != args.plan_sha256:
-            raise ValueError('static receipt plan mismatch')
-    if args.mode == 'rng':
-        import torch
-        torch.set_num_threads(1)
-        torch.set_num_interop_threads(1)
-    output = dict(mode=args.mode, plan_sha256=args.plan_sha256, packets=[],
-                  actual_historical_draw_replay_qualified=False)
-    for packet in plan['known_packets']:
-        if available_bytes() < MIN_AVAILABLE:
-            raise RuntimeError('at least16GiB MemAvailable required')
-        path, sidecar = Path(packet['path']), Path(packet['sidecar']['path'])
-        if (path.stat().st_size != packet['bytes'] or path.stat().st_size > MAX_PACKET_BYTES or
-                sha_file(sidecar) != packet['sidecar']['sha256'] or
-                sha_file(path) != packet['declared_sha256']):
-            raise ValueError('known checkpoint packet changed')
-        item = dict(path=str(path), sha256=packet['declared_sha256'], identity=packet['identity'], step=packet['step'])
-        if args.mode == 'static':
-            item['static'] = static_inventory(path)
-        else:
-            matching = [p for p in reviewed['packets'] if p['path'] == str(path) and p['sha256'] == packet['declared_sha256']]
-            if len(matching) != 1 or matching[0]['static']['stack_global_requires_review']:
-                raise ValueError('static packet review missing or unresolved STACK_GLOBAL')
-            item['rng_schema'] = rng_schema(path, identity=packet['identity'], step=packet['step'])
-        output['packets'].append(item)
-        if resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024 > MAX_ADDRESS_SPACE:
-            raise RuntimeError('8GiB RSS cap exceeded')
-    output.update(elapsed_seconds=time.monotonic()-start,
-                  peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(output, indent=2)+'\n')
-    print(json.dumps(dict(mode=args.mode, packets=len(output['packets']), output=str(args.output))))
+    with FreshReceiptOutput(args.output, [args.plan, __file__,
+            *([args.reviewed_static_receipt] if args.reviewed_static_receipt else [])]) as receipt:
+        if os.environ.get('CUDA_VISIBLE_DEVICES') != '' or any(os.environ.get(k) != '1' for k in
+                ('OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS')):
+            raise RuntimeError('explicit CUDA-hidden single-thread environment required')
+        resource.setrlimit(resource.RLIMIT_AS, (MAX_ADDRESS_SPACE, MAX_ADDRESS_SPACE))
+        resource.setrlimit(resource.RLIMIT_CPU, (120, 120))
+        signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError('120s audit cap')))
+        signal.alarm(120)
+        start = time.monotonic()
+        if sha_file(args.plan) != args.plan_sha256:
+            raise ValueError('audit plan checksum mismatch')
+        plan = json.loads(args.plan.read_text())
+        if sha_file(__file__) != plan['audit_script_sha256']:
+            raise ValueError('audit script checksum mismatch')
+        receipt.protect([args.plan, __file__, *([args.reviewed_static_receipt] if args.reviewed_static_receipt else []),
+            *[p['path'] for p in plan['known_packets']],
+            *[p['sidecar']['path'] for p in plan['known_packets']],
+            *[p['path'] for p in plan['source_bindings']]])
+        for binding in plan['source_bindings']:
+            source = Path(binding['path'])
+            if source.suffix in {'.pt','.pth','.bin','.safetensors','.ckpt','.model','.npz','.npy'}:
+                raise ValueError('binary packet cannot be a source binding')
+            if source.stat().st_size != binding['bytes'] or sha_file(source) != binding['sha256']:
+                raise ValueError('audit source/input binding changed')
+        reviewed = None
+        if args.mode == 'rng':
+            if not args.reviewed_static_receipt or not args.reviewed_static_sha256:
+                raise ValueError('separately reviewed static receipt required before restricted tensor audit')
+            if sha_file(args.reviewed_static_receipt) != args.reviewed_static_sha256:
+                raise ValueError('static receipt checksum mismatch')
+            reviewed = json.loads(args.reviewed_static_receipt.read_text())
+            if reviewed['mode'] != 'static' or reviewed['plan_sha256'] != args.plan_sha256:
+                raise ValueError('static receipt plan mismatch')
+        if args.mode == 'rng':
+            import torch
+            torch.set_num_threads(1)
+            torch.set_num_interop_threads(1)
+        output = dict(mode=args.mode, plan_sha256=args.plan_sha256, packets=[],
+                      actual_historical_draw_replay_qualified=False)
+        for packet in plan['known_packets']:
+            receipt.check()
+            if available_bytes() < MIN_AVAILABLE:
+                raise RuntimeError('at least16GiB MemAvailable required')
+            path, sidecar = Path(packet['path']), Path(packet['sidecar']['path'])
+            if (path.stat().st_size != packet['bytes'] or path.stat().st_size > MAX_PACKET_BYTES or
+                    sha_file(sidecar) != packet['sidecar']['sha256'] or
+                    sha_file(path) != packet['declared_sha256']):
+                raise ValueError('known checkpoint packet changed')
+            item = dict(path=str(path), sha256=packet['declared_sha256'], identity=packet['identity'], step=packet['step'])
+            if args.mode == 'static':
+                item['static'] = static_inventory(path)
+            else:
+                matching = [p for p in reviewed['packets'] if p['path'] == str(path) and p['sha256'] == packet['declared_sha256']]
+                if len(matching) != 1 or matching[0]['static']['stack_global_requires_review']:
+                    raise ValueError('static packet review missing or unresolved STACK_GLOBAL')
+                item['rng_schema'] = rng_schema(path, identity=packet['identity'], step=packet['step'])
+            output['packets'].append(item)
+            if resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024 > MAX_ADDRESS_SPACE:
+                raise RuntimeError('8GiB RSS cap exceeded')
+        output.update(elapsed_seconds=time.monotonic()-start,
+                      peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024)
+        receipt.publish_json(output)
+        print(json.dumps(dict(mode=args.mode, packets=len(output['packets']), output=str(args.output))))
 
 
 if __name__ == '__main__':

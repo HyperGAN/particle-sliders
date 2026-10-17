@@ -1,0 +1,897 @@
+{
+  "schema": "observed-image-offline-assets-v1",
+  "metadata_only": true,
+  "additional_source_bindings": [
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/conceptmod/textsliders/qualification_state.py",
+      "bytes": 3827,
+      "sha256": "7d0e3c9251b5337330e4790c6559f522563b16b28e2ffc34d5a43f7c39104d1d"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/qualification_state.py",
+      "bytes": 5236,
+      "sha256": "02ca08df1756e9df4d50c221ca86af0517270bf9ddf6a32fadc539aeeb255eb9"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/lora.py",
+      "bytes": 14672,
+      "sha256": "2bcf1a1267ca0369e0e2d4e2584db6821b2ab518c9cd3c535292d20a5e25d85d"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/scripts/sd3_qualification_images.py",
+      "bytes": 1655,
+      "sha256": "99605fb1df844ca332a27e61f0e2551c2b019410ce573ab45a2d5e19be1bf5b4"
+    }
+  ],
+  "verified_frozen_sources_and_inputs": [
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/scripts/qualify_sana.py",
+      "bytes": 19858,
+      "sha256": "de7bf1f737557fdd01aa156d1f25c961099b6b404b26b549557a837e290321b4"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/conceptmod/textsliders/train_lora_sana.py",
+      "bytes": 28399,
+      "sha256": "6f96c64971daa9b50d3b1451a2cbe626bf9e2c632615343c0d252c17064256a0"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/conceptmod/textsliders/slider_targets.py",
+      "bytes": 116293,
+      "sha256": "5db3a2cdc9635a0f15f6bc59c80f00700ef04d35241650b935b373f610a85412"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/scripts/qualify_sd3.py",
+      "bytes": 15301,
+      "sha256": "e43dfbe734e33463c762d649b4457cef28e1a6f1c8572788fe4e7abef85cd390"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/scripts/sd3_qualification_images.py",
+      "bytes": 1655,
+      "sha256": "99605fb1df844ca332a27e61f0e2551c2b019410ce573ab45a2d5e19be1bf5b4"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/train_lora_sd3.py",
+      "bytes": 19263,
+      "sha256": "ae4d6704f071091900e6392b9f33c8edfe48fb88378bb25a7b68bef1bbfc9a38"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/train_util.py",
+      "bytes": 38893,
+      "sha256": "3f74682481b6a796ded8c6f6929974c74dfa021bdc8c50633803d1b5f7db0995"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/prompt_util.py",
+      "bytes": 6270,
+      "sha256": "c47d2158b95cf1470aadc071270057c1f63eccc9fa49effdd4c7a31ae510b1f4"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/model_util.py",
+      "bytes": 14631,
+      "sha256": "04bc060609d2cc96a3bd19b8b0b23feddad41cd01a2ada53462f26c214ed8523"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/pipelines/sana/pipeline_sana.py",
+      "bytes": 46056,
+      "sha256": "0ef2c0bb6a9e90bbd2716dca88121cfece7f23b95820cb6ecdaf45754eb2cc6a"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/pipelines/stable_diffusion_3/pipeline_stable_diffusion_3.py",
+      "bytes": 56978,
+      "sha256": "b1299e0549145df66c98f9b2260545076d08038dc074b58480c65fc5793061c5"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+      "bytes": 26832,
+      "sha256": "1af27be5b2f92b7d139d3c50239be5ce3eafc4a7eddf59c2d30689f8ec31e93d"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/schedulers/scheduling_dpmsolver_multistep.py",
+      "bytes": 62211,
+      "sha256": "0dd5333bd7b900b117d34f151adfc4b181dbb2062ca860105658037a0fe5dc06"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-campaign-core-pin-3e94/packages/particle-sliders-core/src/particle_sliders/pg09.py",
+      "bytes": 34783,
+      "sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/recipe.json",
+      "bytes": 1456,
+      "sha256": "6b6809e4819c222d1f821925c588e6f5ac0478085a52b5b8b3212454154a3dde"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000000.json",
+      "bytes": 206,
+      "sha256": "bb03afd54116981398c07bef6f6b70af3e4c64fb4aebf25785c2db1ee19f0f7f"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/objective-disposition.json",
+      "bytes": 378,
+      "sha256": "919d7502a99d5b42f678dc23ae4227a7e2a41aac38ee0e585f075d18fcfc1160"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/progress.json",
+      "bytes": 1499,
+      "sha256": "dc84680d10dc8f5c0d1bd9f779e5105b52eed69f12aeb7cfcad5452e8ebc78d0"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/quality-review.json",
+      "bytes": 4829,
+      "sha256": "42da2de2e5997c333f6e2de4bd6e242eb3670637cea9ed9f2bec4d9f7a257488"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/real-baseline-validation.json",
+      "bytes": 2850,
+      "sha256": "2ef7e7733b5ecceef183c26238b4dbb36012c722d156188cf7adc978e41ee55a"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/implementation-repair-20261017.json",
+      "bytes": 1111,
+      "sha256": "2da09f2bc8846d568792aa6b797b3aa90ebf572c6d1cbbd2775d4dd5f4fc0c6c"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/model-manifest.json",
+      "bytes": 1386,
+      "sha256": "e172cb6330e49046ecbf70f28e18c2cda4da67c5dd90e35a863571b5d036c964"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-123-off.png",
+      "bytes": 339109,
+      "sha256": "693278a9761cb136fc64da4b824e6f9ae895625c03dc5f17b2483ba026382495"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-123-teacher.png",
+      "bytes": 385802,
+      "sha256": "4502be01d93f957f568c7cab2828b6aab318e1eecdb73ef2b7c1c4810abd198e"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-456-off.png",
+      "bytes": 335974,
+      "sha256": "8e09a9a75ac743353c96deac66a6fd703c1e5bb8e348b03e52e7928a3ed1859d"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-456-teacher.png",
+      "bytes": 342187,
+      "sha256": "c6a1312428711f49714931170db7ce3a682ea696b33d717d90f13bdee20f53ef"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-123-off.png",
+      "bytes": 361635,
+      "sha256": "c6ed68659484ee5d76444307c25b14ce2c1eba67a346150ac73b8b7e2c421ace"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-123-teacher.png",
+      "bytes": 362979,
+      "sha256": "7e3c03612e0e80b5b22f49b979dda2dff075a703b3b4c3099bc4629535116f7c"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-456-off.png",
+      "bytes": 349994,
+      "sha256": "eb0c6e7ce1900e64780418080486cf67a6f33d30361e9a738d3c6c3e7fa6c3be"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-456-teacher.png",
+      "bytes": 350801,
+      "sha256": "737c6e92af19138c101273e6f8044f51f366512d0566f45f26d3f82bd3d9e372"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-2-seed-789-off.png",
+      "bytes": 376598,
+      "sha256": "573cd71aef18da88cc7284e7fe5b4cbb991fcd1a54717eb8591397f70579667e"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/recipe.json",
+      "bytes": 4501,
+      "sha256": "75f8d744cc0fbe55f926ab047411032c4a7a80b7cc9737d5bd7b3b7d20fcd2b7"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000000.json",
+      "bytes": 206,
+      "sha256": "efa8b6be30ff9cf7c6eccce7d8c80bb8cc002c0ece5542a440709327eb1a99d9"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/objective-disposition.json",
+      "bytes": 378,
+      "sha256": "919d7502a99d5b42f678dc23ae4227a7e2a41aac38ee0e585f075d18fcfc1160"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/progress.json",
+      "bytes": 694,
+      "sha256": "da3520922bd5c1dc718b0ffd874f5682edd84ef9f91a0fc4cbc793f95752d562"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/models/sd3-ea42f8c/qualification-manifest.json",
+      "bytes": 3562,
+      "sha256": "a53d185fdd330aa5f019be93fc7972832270ab9e23f787f86588b47b18fcb838"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/receipts/full.json",
+      "bytes": 694,
+      "sha256": "da3520922bd5c1dc718b0ffd874f5682edd84ef9f91a0fc4cbc793f95752d562"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-0-Off.png",
+      "bytes": 410512,
+      "sha256": "b4c3f3e88c648d37d7b621c674499dbc8d6113bd5b6aaef7359cef2233453754"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-0-Frozen_positive_CFG3.png",
+      "bytes": 417399,
+      "sha256": "b11792b6932b47bfed37869fe94adf09f2ee4152f2aad60654958108cfb2db83"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-1-Off.png",
+      "bytes": 449034,
+      "sha256": "d1e6fbce5b4dff462ef02f2a56eb3a3a83a82a6ccd87c5e175d21e41c8799587"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-1-Frozen_positive_CFG3.png",
+      "bytes": 454075,
+      "sha256": "35de923cba832764875c409011938043e8fb6fc68d6d0354980ee0cef160e718"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-2-Off.png",
+      "bytes": 297877,
+      "sha256": "32443b82feb7ef3b9a9b5aa5ae73a05aea786eb5ddc10917a6e9a291dee8f941"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-2-Frozen_positive_CFG3.png",
+      "bytes": 297877,
+      "sha256": "32443b82feb7ef3b9a9b5aa5ae73a05aea786eb5ddc10917a6e9a291dee8f941"
+    }
+  ],
+  "cases": [
+    {
+      "id": "sana-happy-pg09-proposal",
+      "archive": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017",
+      "scanned_archive_files": 329,
+      "archive_name_scan_scope": "this exact run tree only; binary file bodies never opened",
+      "standalone_draw_or_condition_candidates": [],
+      "standalone_assets_found": false,
+      "cached_weights": [
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/text_encoder/model-00001-of-00002.safetensors",
+          "exists": true,
+          "content_read": false,
+          "bytes": 4988024144,
+          "resolved_path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/blobs/e909230aabafad02d097c7dc02f2ae062b4e6b0593477c1f07679d277e09ce71",
+          "declared_sha256": "e909230aabafad02d097c7dc02f2ae062b4e6b0593477c1f07679d277e09ce71",
+          "declared_bytes": 4988024144,
+          "fresh_payload_checksum_verified": false,
+          "size_matches_manifest": true
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/text_encoder/model-00002-of-00002.safetensors",
+          "exists": true,
+          "content_read": false,
+          "bytes": 240691624,
+          "resolved_path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/blobs/48e14f6b7a917e54cabc4ff2047ac2bfe0dae663e771eed3a8acf4ea27dcac18",
+          "declared_sha256": "48e14f6b7a917e54cabc4ff2047ac2bfe0dae663e771eed3a8acf4ea27dcac18",
+          "declared_bytes": 240691624,
+          "fresh_payload_checksum_verified": false,
+          "size_matches_manifest": true
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/transformer/diffusion_pytorch_model.safetensors",
+          "exists": true,
+          "content_read": false,
+          "bytes": 2367054536,
+          "resolved_path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/blobs/d8f492d7a2d6128bcbd8de7a00833a0d6a1fbcf8a8b84e65f3e783e9639a02d7",
+          "declared_sha256": "d8f492d7a2d6128bcbd8de7a00833a0d6a1fbcf8a8b84e65f3e783e9639a02d7",
+          "declared_bytes": 2367054536,
+          "fresh_payload_checksum_verified": false,
+          "size_matches_manifest": true
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/vae/diffusion_pytorch_model.safetensors",
+          "exists": true,
+          "content_read": false,
+          "bytes": 1249044836,
+          "resolved_path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/blobs/15a4b09e56d95b768a0ec9da50b702e21d920333fc9b3480d66bb5c7fad9d87f",
+          "declared_sha256": "15a4b09e56d95b768a0ec9da50b702e21d920333fc9b3480d66bb5c7fad9d87f",
+          "declared_bytes": 1249044836,
+          "fresh_payload_checksum_verified": false,
+          "size_matches_manifest": true
+        }
+      ],
+      "model_metadata_files": [
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/model_index.json",
+          "bytes": 401,
+          "sha256": "5692423f50e7908bec51264ad39e5a9b7566970600f6089a0a40759524f5569b"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/scheduler/scheduler_config.json",
+          "bytes": 840,
+          "sha256": "70e8603120cc387316aa3bc7f08cb2872f6b6eb6eff6f25df1b88b6b76389e81"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/text_encoder/config.json",
+          "bytes": 875,
+          "sha256": "cc0a98c67ff2b9460920fdd4400b214754b56a83dbe26f2ffe18f5bfe10c563a"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/text_encoder/model.safetensors.index.json",
+          "bytes": 22495,
+          "sha256": "92764588f700e36874c52f9f05bba143857e5069fc69b14450f907a1cdf879ed"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/tokenizer/special_tokens_map.json",
+          "bytes": 636,
+          "sha256": "baec30ea10906f16adb8c18af7a34023002c1746542612b8b41c9f09e1351351"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/tokenizer/tokenizer.json",
+          "bytes": 34362873,
+          "sha256": "5f7eee611703c5ce5d1eee32d9cdcfe465647b8aff0c1dfb3bed7ad7dbb05060"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/tokenizer/tokenizer_config.json",
+          "bytes": 46996,
+          "sha256": "cb32b7929c62608d46572e813112b3ad8a841fb98fdd6a4da8559e368a951c89"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/transformer/config.json",
+          "bytes": 495,
+          "sha256": "44dfc5f16b396035371d4b5a56ef3773a9be9e0c679337b0336b2b81b78be3b8"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/vae/config.json",
+          "bytes": 1280,
+          "sha256": "4e5669aa03caa77615b73b21c9347c384cb11124a9590683e32a510df0176eb4"
+        }
+      ],
+      "model_index": {
+        "_class_name": "SanaPipeline",
+        "_diffusers_version": "0.32.0.dev0",
+        "scheduler": [
+          "diffusers",
+          "DPMSolverMultistepScheduler"
+        ],
+        "text_encoder": [
+          "transformers",
+          "Gemma2Model"
+        ],
+        "tokenizer": [
+          "transformers",
+          "GemmaTokenizerFast"
+        ],
+        "transformer": [
+          "diffusers",
+          "SanaTransformer2DModel"
+        ],
+        "vae": [
+          "diffusers",
+          "AutoencoderDC"
+        ]
+      },
+      "scheduler_config": {
+        "_class_name": "DPMSolverMultistepScheduler",
+        "_diffusers_version": "0.32.0.dev0",
+        "algorithm_type": "dpmsolver++",
+        "beta_end": 0.02,
+        "beta_schedule": "linear",
+        "beta_start": 0.0001,
+        "dynamic_thresholding_ratio": 0.995,
+        "euler_at_final": false,
+        "final_sigmas_type": "zero",
+        "flow_shift": 3.0,
+        "lambda_min_clipped": -Infinity,
+        "lower_order_final": true,
+        "num_train_timesteps": 1000,
+        "prediction_type": "flow_prediction",
+        "rescale_betas_zero_snr": false,
+        "sample_max_value": 1.0,
+        "solver_order": 2,
+        "solver_type": "midpoint",
+        "steps_offset": 0,
+        "thresholding": false,
+        "timestep_spacing": "linspace",
+        "trained_betas": null,
+        "use_beta_sigmas": false,
+        "use_exponential_sigmas": false,
+        "use_flow_sigmas": true,
+        "use_karras_sigmas": false,
+        "use_lu_lambdas": false,
+        "variance_type": null
+      },
+      "tokenizer_binary": [
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d/tokenizer/tokenizer.model",
+          "exists": true,
+          "content_read": false,
+          "bytes": 4241003,
+          "resolved_path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/blobs/61a7b147390c64585d6c3543dd6fc636906c9af3865a5548f27f31aee1d4c8e2"
+        }
+      ],
+      "available": [
+        "exact prompt text/heldout/seed/grid recipe metadata",
+        "local native model/tokenizer/scheduler config files",
+        "declared prior model/initial-checkpoint checksums and present tensor-file sizes",
+        "frozen native baseline PNGs and archive source"
+      ],
+      "missing": [
+        "persisted initial-noise bytes/draw trace and selected-row checksum index",
+        "native numeric text embeddings/masks (Sana) or embeddings/pooled vectors (SD3)",
+        "complete fixed condition table and collision receipt",
+        "numeric training-only response_scale and frozen final calibrated recipe",
+        "production selected-row descriptor reader/worker, lease/guardian binding, staged native parity and resume harness"
+      ],
+      "historical_replay_qualified": false,
+      "caveat": "No standalone assets in audited tree does not rule out opaque RNG fields inside untouched packets; encodings/noise are not saved by source TrainingState schema.",
+      "observed_old_mse_timing": {
+        "mean_update_wall_seconds": 0.2851566140998481,
+        "projected_500_update_wall_hours": 0.039605085291645574,
+        "peak_allocated_bytes": 11366411776
+      },
+      "old_mse_cost_is_gan_bound": false
+    },
+    {
+      "id": "sd3-smile-pg09-proposal",
+      "archive": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017",
+      "scanned_archive_files": 308,
+      "archive_name_scan_scope": "this exact run tree only; binary file bodies never opened",
+      "standalone_draw_or_condition_candidates": [],
+      "standalone_assets_found": false,
+      "cached_weights": [
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/transformer/diffusion_pytorch_model.safetensors",
+          "exists": true,
+          "content_read": false,
+          "bytes": 4169981408,
+          "resolved_path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/blobs/8b0e357dd04755fbfb067c63f4a883ac1de2942dd4a3240069874a17022e5418",
+          "declared_sha256": "8b0e357dd04755fbfb067c63f4a883ac1de2942dd4a3240069874a17022e5418",
+          "declared_bytes": 4169981408,
+          "fresh_payload_checksum_verified": false,
+          "size_matches_manifest": true
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/vae/diffusion_pytorch_model.safetensors",
+          "exists": true,
+          "content_read": false,
+          "bytes": 167666654,
+          "resolved_path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/blobs/f9b67a279283625caee39d61eacb5324243848477b4eb535355eaaa8423d4e09",
+          "declared_sha256": "f9b67a279283625caee39d61eacb5324243848477b4eb535355eaaa8423d4e09",
+          "declared_bytes": 167666654,
+          "fresh_payload_checksum_verified": false,
+          "size_matches_manifest": true
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/text_encoder/model.safetensors",
+          "exists": true,
+          "content_read": false,
+          "bytes": 247323896,
+          "resolved_path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/blobs/71e183d11db0c6b6282a4d9e0abb74125edc8692393e89ed8ee5571005f35cb1",
+          "declared_sha256": "71e183d11db0c6b6282a4d9e0abb74125edc8692393e89ed8ee5571005f35cb1",
+          "declared_bytes": 247323896,
+          "fresh_payload_checksum_verified": false,
+          "size_matches_manifest": true
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/text_encoder_2/model.safetensors",
+          "exists": true,
+          "content_read": false,
+          "bytes": 1389382176,
+          "resolved_path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/blobs/ec310df2af79c318e24d20511b601a591ca8cd4f1fce1d8dff822a356bcdb1f4",
+          "declared_sha256": "ec310df2af79c318e24d20511b601a591ca8cd4f1fce1d8dff822a356bcdb1f4",
+          "declared_bytes": 1389382176,
+          "fresh_payload_checksum_verified": false,
+          "size_matches_manifest": true
+        }
+      ],
+      "model_metadata_files": [
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/model_index.json",
+          "bytes": 706,
+          "sha256": "f6b0490bd731d8467e7b478d7f7d13b447575d6fe8b0ae9948af526820823137"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/scheduler/scheduler_config.json",
+          "bytes": 141,
+          "sha256": "677e1ed36ca0de4ac8cc766ca58869e8649673d5f1d47eb8f8aef511a18ae8f7"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/text_encoder/config.json",
+          "bytes": 574,
+          "sha256": "3ae637e6409ed10c125e13b935461060d629ee069eea7cb8c3e9eee26b01ff1a"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/text_encoder_2/config.json",
+          "bytes": 570,
+          "sha256": "786ac791f8ae2168eca583978d89e97b704579e4873a2ca36e2d8b5af561f625"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/tokenizer/merges.txt",
+          "bytes": 524619,
+          "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/tokenizer/special_tokens_map.json",
+          "bytes": 588,
+          "sha256": "2cdb3b8331a60c92fc1e55a13e9fd61fd2293c5a51275fdcccd62b780052530e"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/tokenizer/tokenizer_config.json",
+          "bytes": 705,
+          "sha256": "6bdcee9ccce2a16ca2b4c0c5ed00b42c50ea225f4472a8c4c1e963a2902c2881"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/tokenizer/vocab.json",
+          "bytes": 1059962,
+          "sha256": "e089ad92ba36837a0d31433e555c8f45fe601ab5c221d4f607ded32d9f7a4349"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/tokenizer_2/merges.txt",
+          "bytes": 524619,
+          "sha256": "9fd691f7c8039210e0fced15865466c65820d09b63988b0174bfe25de299051a"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/tokenizer_2/special_tokens_map.json",
+          "bytes": 576,
+          "sha256": "c4dbb96da703fb38f10ccf0490df2fd476811c5a3e71b7e0189cffeed3224e25"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/tokenizer_2/tokenizer_config.json",
+          "bytes": 856,
+          "sha256": "e70eb3e2b85a508e32bb81c32c13fc3f2b015548ca469b94627c2f32e445cba1"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/tokenizer_2/vocab.json",
+          "bytes": 1059962,
+          "sha256": "e089ad92ba36837a0d31433e555c8f45fe601ab5c221d4f607ded32d9f7a4349"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/tokenizer_3/special_tokens_map.json",
+          "bytes": 2543,
+          "sha256": "7a1985a994c41886db38c719d2a3d2f40606663cc19d7c5d6a85d349320e06d2"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/tokenizer_3/tokenizer.json",
+          "bytes": 2424035,
+          "sha256": "652ffdfc379606bad8edfb653f92dcf28e2e5dbf1cdfe50d685d29b2cad12dd6"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/tokenizer_3/tokenizer_config.json",
+          "bytes": 20617,
+          "sha256": "83b3e7737eef754efca607d9f580798cc35457daa96052cc60179f095a375c14"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/transformer/config.json",
+          "bytes": 372,
+          "sha256": "11d5414a4f9667e99b87670b369d99c62259903bcd091e423156e97f75bc5722"
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671/vae/config.json",
+          "bytes": 739,
+          "sha256": "2b82cf4cf6728bb2b411199c437c16ce61a82265ebd8461d66600073c8470ee4"
+        }
+      ],
+      "model_index": {
+        "_class_name": "StableDiffusion3Pipeline",
+        "_diffusers_version": "0.29.0.dev0",
+        "scheduler": [
+          "diffusers",
+          "FlowMatchEulerDiscreteScheduler"
+        ],
+        "text_encoder": [
+          "transformers",
+          "CLIPTextModelWithProjection"
+        ],
+        "text_encoder_2": [
+          "transformers",
+          "CLIPTextModelWithProjection"
+        ],
+        "text_encoder_3": [
+          "transformers",
+          "T5EncoderModel"
+        ],
+        "tokenizer": [
+          "transformers",
+          "CLIPTokenizer"
+        ],
+        "tokenizer_2": [
+          "transformers",
+          "CLIPTokenizer"
+        ],
+        "tokenizer_3": [
+          "transformers",
+          "T5TokenizerFast"
+        ],
+        "transformer": [
+          "diffusers",
+          "SD3Transformer2DModel"
+        ],
+        "vae": [
+          "diffusers",
+          "AutoencoderKL"
+        ]
+      },
+      "scheduler_config": {
+        "_class_name": "FlowMatchEulerDiscreteScheduler",
+        "_diffusers_version": "0.29.0.dev0",
+        "num_train_timesteps": 1000,
+        "shift": 3.0
+      },
+      "tokenizer_binary": [],
+      "available": [
+        "exact prompt text/heldout/seed/grid recipe metadata",
+        "local native model/tokenizer/scheduler config files",
+        "declared prior model/initial-checkpoint checksums and present tensor-file sizes",
+        "frozen native baseline PNGs and archive source"
+      ],
+      "missing": [
+        "persisted initial-noise bytes/draw trace and selected-row checksum index",
+        "native numeric text embeddings/masks (Sana) or embeddings/pooled vectors (SD3)",
+        "complete fixed condition table and collision receipt",
+        "numeric training-only response_scale and frozen final calibrated recipe",
+        "production selected-row descriptor reader/worker, lease/guardian binding, staged native parity and resume harness"
+      ],
+      "historical_replay_qualified": false,
+      "caveat": "No standalone assets in audited tree does not rule out opaque RNG fields inside untouched packets; encodings/noise are not saved by source TrainingState schema.",
+      "observed_old_mse_timing": {
+        "projected_500_update_wall_hours": 0.4288144751351263,
+        "peak_allocated_bytes": 6835430400
+      },
+      "old_mse_cost_is_gan_bound": false
+    }
+  ],
+  "known_packets": [
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000000.pt",
+      "exists": true,
+      "content_read": false,
+      "bytes": 595139771,
+      "resolved_path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000000.pt",
+      "sidecar": {
+        "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000000.json",
+        "bytes": 206,
+        "sha256": "bb03afd54116981398c07bef6f6b70af3e4c64fb4aebf25785c2db1ee19f0f7f"
+      },
+      "declared_sha256": "a3109995761bf5956e0d2a59564db9f19e238ca2c4fb95ff6b78ea6c24bd9c00",
+      "identity": "99dfbdd7cbeda5d63b3a444b7a7472ff798e2556b96e4c74da5cc00aee1043bc",
+      "step": 0,
+      "checksum_refreshed": false,
+      "packet_opened": false
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000500.pt",
+      "exists": true,
+      "content_read": false,
+      "bytes": 1785438459,
+      "resolved_path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000500.pt",
+      "sidecar": {
+        "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000500.json",
+        "bytes": 208,
+        "sha256": "c7e838452f8563a3c94789bf282954e6c64ea0870091c1965409a29fd9cb7386"
+      },
+      "declared_sha256": "83c58be0d6f58c42b58e7a15c20a34f267da516f91ebf65e9cbef0c3c778636f",
+      "identity": "99dfbdd7cbeda5d63b3a444b7a7472ff798e2556b96e4c74da5cc00aee1043bc",
+      "step": 500,
+      "checksum_refreshed": false,
+      "packet_opened": false
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000000.pt",
+      "exists": true,
+      "content_read": false,
+      "bytes": 2434171,
+      "resolved_path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000000.pt",
+      "sidecar": {
+        "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000000.json",
+        "bytes": 206,
+        "sha256": "efa8b6be30ff9cf7c6eccce7d8c80bb8cc002c0ece5542a440709327eb1a99d9"
+      },
+      "declared_sha256": "8ccf414c1ec32a614690a70f290e2ed7582faf570049ccb5edf6a80dd4b7fe42",
+      "identity": "d1227dc772592aa4e29640464401367262228b6456e0bcc7cb7af1d85e7ba149",
+      "step": 0,
+      "checksum_refreshed": false,
+      "packet_opened": false
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000500.pt",
+      "exists": true,
+      "content_read": false,
+      "bytes": 7308923,
+      "resolved_path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000500.pt",
+      "sidecar": {
+        "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000500.json",
+        "bytes": 208,
+        "sha256": "17db889960022611f761ebb7b29aa31ca26501b5f4a31e99f4c1c04fba9f77c1"
+      },
+      "declared_sha256": "ce84161b379899cbb6ab2e31f7a02f4cbdd056af67d2bac46a57866cb3445a0b",
+      "identity": "d1227dc772592aa4e29640464401367262228b6456e0bcc7cb7af1d85e7ba149",
+      "step": 500,
+      "checksum_refreshed": false,
+      "packet_opened": false
+    }
+  ],
+  "runtime": {
+    "packages": {
+      "torch": {
+        "version": "2.11.0+cu128",
+        "distribution_path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/torch-2.11.0+cu128.dist-info",
+        "package_origin": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages",
+        "direct_url": null
+      },
+      "diffusers": {
+        "version": "0.40.0.dev0",
+        "distribution_path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers-0.40.0.dev0.dist-info",
+        "package_origin": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages",
+        "direct_url": {
+          "url": "https://github.com/huggingface/diffusers",
+          "vcs_info": {
+            "commit_id": "dafe3733fcfdbf3c48915fe77be3aef65b5d6a2d",
+            "requested_revision": "dafe3733fcfdbf3c48915fe77be3aef65b5d6a2d",
+            "vcs": "git"
+          }
+        }
+      },
+      "transformers": {
+        "version": "5.15.0",
+        "distribution_path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/transformers-5.15.0.dist-info",
+        "package_origin": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages",
+        "direct_url": null
+      },
+      "safetensors": {
+        "version": "0.8.0",
+        "distribution_path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/safetensors-0.8.0.dist-info",
+        "package_origin": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages",
+        "direct_url": null
+      },
+      "numpy": {
+        "version": "2.4.4",
+        "distribution_path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/numpy-2.4.4.dist-info",
+        "package_origin": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages",
+        "direct_url": null
+      },
+      "Pillow": {
+        "version": "12.2.0",
+        "distribution_path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/pillow-12.2.0.dist-info",
+        "package_origin": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages",
+        "direct_url": null
+      },
+      "tokenizers": {
+        "version": "0.22.2",
+        "distribution_path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/tokenizers-0.22.2.dist-info",
+        "package_origin": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages",
+        "direct_url": null
+      },
+      "accelerate": {
+        "version": "1.14.0",
+        "distribution_path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/accelerate-1.14.0.dist-info",
+        "package_origin": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages",
+        "direct_url": null
+      },
+      "peft": {
+        "version": "0.20.0",
+        "distribution_path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/peft-0.20.0.dist-info",
+        "package_origin": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages",
+        "direct_url": null
+      },
+      "particlegan": {
+        "version": "0.9.0",
+        "distribution_path": "/mnt/nvme/sliders/qualification/envs/pg090/lib/python3.11/site-packages/particlegan-0.9.0.dist-info",
+        "package_origin": "/mnt/nvme/sliders/qualification/envs/pg090/lib/python3.11/site-packages",
+        "direct_url": {
+          "archive_info": {
+            "hash": "sha256=41746614b135e5593fa9c66c2a6784c4f872a7957fce132ca59f95dc7963e1ab",
+            "hashes": {
+              "sha256": "41746614b135e5593fa9c66c2a6784c4f872a7957fce132ca59f95dc7963e1ab"
+            }
+          },
+          "url": "file:///mnt/nvme/sliders/qualification/pg09-audit/particlegan-0.9.0-py3-none-any.whl"
+        }
+      }
+    },
+    "native_module_sources": [
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/pipelines/sana/pipeline_sana.py",
+        "bytes": 46056,
+        "sha256": "0ef2c0bb6a9e90bbd2716dca88121cfece7f23b95820cb6ecdaf45754eb2cc6a"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/models/transformers/sana_transformer.py",
+        "bytes": 23486,
+        "sha256": "32cc5094a06ff448c03998aa7071f3350e64c7c1c80b2eba903817f2ab1d21fd"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/models/autoencoders/autoencoder_dc.py",
+        "bytes": 30773,
+        "sha256": "91441027f21dfc5375d6c111465b8be640f883cb0644dfb14446c928871a1f87"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/schedulers/scheduling_dpmsolver_multistep.py",
+        "bytes": 62211,
+        "sha256": "0dd5333bd7b900b117d34f151adfc4b181dbb2062ca860105658037a0fe5dc06"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/pipelines/stable_diffusion_3/pipeline_stable_diffusion_3.py",
+        "bytes": 56978,
+        "sha256": "b1299e0549145df66c98f9b2260545076d08038dc074b58480c65fc5793061c5"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/models/transformers/transformer_sd3.py",
+        "bytes": 15715,
+        "sha256": "0c9bcbf6c19c4eeb9c438332157d233f8191253125438e660054700e466c42d8"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/models/autoencoders/autoencoder_kl.py",
+        "bytes": 21575,
+        "sha256": "091d72ea9ae2f45f465e70f05142e04850d1153052dca520291ceb707bda8c98"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+        "bytes": 26832,
+        "sha256": "1af27be5b2f92b7d139d3c50239be5ce3eafc4a7eddf59c2d30689f8ec31e93d"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/transformers/models/gemma2/modeling_gemma2.py",
+        "bytes": 24104,
+        "sha256": "6c42f946e025ddb5021af6a031e4611146a9a1b1fabff1de0ac3a0fa1c32b68a"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/transformers/models/gemma/tokenization_gemma.py",
+        "bytes": 3868,
+        "sha256": "ff2481e06983015188575dc62bd2fa0e6f33ed2d01165d940efe77b80ee8d419"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/transformers/models/gemma/__init__.py",
+        "bytes": 1072,
+        "sha256": "2c7e0e978658864858332c2fd305ac62082b71b5f550eb00303fa9b069bc3fe7"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/transformers/tokenization_utils_tokenizers.py",
+        "bytes": 69842,
+        "sha256": "bf921a160f483c7a32973952ed82a08c7d8982f769726bd220933aae2df98de8"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/transformers/models/clip/modeling_clip.py",
+        "bytes": 39373,
+        "sha256": "25ba4890e6d174c510ddb854572986555bdaa147295c953ac66d5fa4854078d7"
+      },
+      {
+        "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/transformers/models/clip/tokenization_clip.py",
+        "bytes": 5202,
+        "sha256": "fb5338a0d928deb9470bc84d4932fb2d6456611f1ce14ff11408cc3ec6f01ef7"
+      }
+    ],
+    "archive_interpreter": "/mnt/nvme/sliders/qualification/envs/cpu/bin/python",
+    "pg_interpreter": "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+    "native_origins_shared": true,
+    "shared_origin_basis": "both --system-site-packages venv configs plus independent metadata probes; no native class imported",
+    "venv_configs": [
+      {
+        "path": "/mnt/nvme/sliders/qualification/envs/cpu/pyvenv.cfg",
+        "bytes": 333,
+        "sha256": "8c4f0acf9cbbd17cf1fb2ecd0dbd94cc96c5f7b18fceb9d3bf8b2c210344834e"
+      },
+      {
+        "path": "/mnt/nvme/sliders/qualification/envs/pg090/pyvenv.cfg",
+        "bytes": 327,
+        "sha256": "2137c1f2d412d6a0fc2e748169bf271fcc3937d321e8e5777592263ae59e7477"
+      }
+    ],
+    "archive_pg_absent": true,
+    "native_runtime_parity": "source/metadata only; actual import and numerical parity pending"
+  },
+  "active_moss_files_modified": false,
+  "gpu_queries_or_calls": 0,
+  "checkpoint_or_weight_bodies_opened": 0,
+  "native_model_imports_or_forwards": 0,
+  "archive_schema_source": "TrainingState.save: identity,step,trainable,optimizer,torch_rng,python_rng,cuda_rng; no descriptor/cache payload",
+  "source_save_timing": {
+    "sana": "step0 after model/optimizer setup+text/render encoding, before diagnostics/render; every20 after optimizer, before checkpoint diagnostics/render",
+    "sd3": "step0 after model/optimizer setup+training/heldout encoding+restore, before evaluate; later checkpoints after optimizer",
+    "limitation": "RNG hash presence alone does not establish draw replay. Baseline/render/source/runtime RNG consumption must be audited; CUDA RNG bytes cannot be replaced with CPU seed7."
+  },
+  "core": {
+    "commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
+    "module_sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+    "pg_source_profile": "release",
+    "penalty_input_domain": "auto",
+    "response_domain": "continuous_field",
+    "pg_math_changed": false,
+    "verified_pg_python_files": 49,
+    "pg_sources_sha256": "2eb837a727eee3a01d37e7c979c7d5b98bde6d061054bf12f6a226a5e59439b1"
+  }
+}
