@@ -13,7 +13,7 @@ import re
 import torch
 from torch import nn
 
-from .native_lora import LoRANetwork
+from .native_lora import LoRAModule, LoRANetwork, lora_target_plan
 from .reference import RoutedMLP
 
 DEFAULT_MODEL = Path("/ml2/music/models/MiniMax-Music3")
@@ -285,6 +285,36 @@ class ParticleNetwork(nn.Module):
         )
         path.with_suffix(".json").write_text(json.dumps(record, indent=2) + "\n")
 
+    @staticmethod
+    def _checkpoint_schema(targets):
+        """Derive exact native adapter shapes without attaching to the host.
+
+        Only metadata-sized modules are constructed on the meta device. The
+        same LoRAModule and RoutedMLP builders define the actual state keys;
+        no pretrained weights are copied or random streams consumed here.
+        """
+        schema = {"particles": (128, 4)}
+        with torch.device("meta"):
+            bridge = RoutedMLP(8, 8)
+            for name, host in targets:
+                kind = host.__class__.__name__
+                if "Linear" in kind:
+                    proxy = nn.Linear(host.in_features, host.out_features, bias=False)
+                elif kind == "Conv1d":
+                    proxy = nn.Conv1d(host.in_channels, host.out_channels,
+                                      host.kernel_size, host.stride, host.padding, bias=False)
+                else:
+                    proxy = nn.Conv2d(host.in_channels, host.out_channels,
+                                      host.kernel_size, host.stride, host.padding, bias=False)
+                adapter = LoRAModule(name, proxy, multiplier=0., lora_dim=8, alpha=8.)
+                adapter.apply_to()
+                schema.update({f"network.{name}.{key}": tuple(value.shape)
+                               for key, value in adapter.state_dict().items()})
+                key = name.replace(".", "-")
+                schema.update({f"bridges.{key}.{field}": tuple(value.shape)
+                               for field, value in bridge.state_dict().items()})
+        return schema
+
     @classmethod
     def load(cls, lm, path):
         from safetensors import safe_open
@@ -294,13 +324,44 @@ class ParticleNetwork(nn.Module):
             record = json.loads((handle.metadata() or {}).get("conceptmod", "{}"))
         sound_only(json.dumps(record, ensure_ascii=False))
         required = dict(
-            format=FORMAT, rank=8, alpha=8.0, particles=128, particle_dim=4, bridge_width=48, router_width=16
+            format=FORMAT, rank=8, alpha=8.0, particles=128, particle_dim=4,
+            bridge_width=48, router_width=16, target_replace=TARGET_REPLACE, prefix="lora_te",
         )
-        if any(record.get(key) != value for key, value in required.items()):
+        if not isinstance(record, dict) or any(record.get(key) != value for key, value in required.items()):
             raise ValueError("Incompatible Music 3 routed-particle checkpoint")
-        network = cls(lm)
+        targets = lora_target_plan(lm, TARGET_REPLACE, prefix="lora_te", delimiter="-",
+                                   train_method="full")
+        if not targets:
+            raise ValueError("Music 3 checkpoint host has no Qwen3Attention targets")
         state = load_file(str(path), device="cpu")
-        network.load_state_dict(state, strict=True)
+        schema = cls._checkpoint_schema(targets)
+        if state.keys() != schema.keys():
+            raise ValueError("Music 3 checkpoint tensor keys differ from native adapter")
+        for name, tensor in state.items():
+            if (not isinstance(tensor, torch.Tensor) or tensor.dtype != torch.float32
+                    or tuple(tensor.shape) != schema[name] or not torch.isfinite(tensor).all()):
+                raise ValueError("Invalid Music 3 checkpoint tensor: " + name)
+            if name.endswith(".alpha") and tensor.item() != 8.:
+                raise ValueError("Music 3 checkpoint alpha differs from native adapter")
+
+        # A qualified load constructs the native adapter exactly once. Preserve
+        # caller RNG, and restore the exact original forward attribute bindings
+        # if construction or the public state loader unexpectedly rejects it.
+        forwards = [(host, "forward" in host.__dict__, host.__dict__.get("forward"))
+                    for _, host in targets]
+        device = next(lm.parameters()).device
+        devices = [device.index if device.index is not None else torch.cuda.current_device()] if device.type == "cuda" else []
+        with torch.random.fork_rng(devices=devices):
+            try:
+                network = cls(lm)
+                network.load_state_dict(state, strict=True)
+            except Exception:
+                for host, owned, forward in forwards:
+                    if owned:
+                        host.forward = forward
+                    else:
+                        host.__dict__.pop("forward", None)
+                raise
         return network, record
 
 

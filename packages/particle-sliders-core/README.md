@@ -32,6 +32,8 @@ product/runtime dependencies. Imports never load weights or initialize CUDA.
 | `particle_sliders.pg09_remaining_campaigns` | Shared Supra/final-form cache bindings and teacher-parity gate |
 | `particle_sliders.music3_native`, `native_lora`, `supra_model` | Reusable native architectures with lazy explicit loaders |
 | `particle_sliders.tiny_llm_backend`, `tiny_native`, `bonsai_native`, `pg09_text_video` | Native Tiny/Bonsai architectures and text/video response bindings |
+| `particle_sliders.pg09_hndl` | Optional source-bound HNDL 0.8.2 conditional critic; install `[hndl]` |
+| `particle_sliders.hypergan_diagnostics` | Optional grouped response-diversity observations using reviewed HyperGAN develop |
 
 The repository compatibility paths re-export the same classes. The deprecated
 `concept_slider_core` import warns and re-exports the public root API;
@@ -74,6 +76,14 @@ Inference exports preserve completed steps and cannot become training packets.
 Evaluation preserves adapter buffers/modes and training RNG; frozen model eval
 mode remains the backend's responsibility. An AR hidden-state probe is not a
 waveform render or autoregressive token sampler.
+
+The optional [HNDL critic](../../docs/hndl-integration.md) builds a declarative
+raw-logit network through the released HNDL resolver and Torch builder. Its
+resolved graph and source identity are checkpoint-bound. Optional
+[HyperGAN observations](../../docs/hypergan-reuse.md) reuse the reviewed develop
+implementation for detached per-condition response variation; they do not add a
+loss or establish semantic quality. Both modules import without those optional
+dependencies; construction/use gives explicit setup instructions.
 
 ## Dependency and domain choices
 
