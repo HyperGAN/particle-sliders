@@ -34,8 +34,10 @@ def _released_sources():
     return _hash(actual)
 
 
-def _implementation_sources(backend, critic):
+def _implementation_sources(backend, critic, provider=None):
     objects = [backend, backend.network, critic]
+    if provider is not None:
+        objects.append(provider)
     seen = set()
     # Include wrapped native product adapters and their routed submodules.
     # Module traversal reads classes only; no pretrained parameter copies.
@@ -46,7 +48,7 @@ def _implementation_sources(backend, critic):
             seen.add(id(owner))
             for name in ('backend', 'runtime', 'model', 'transformer', 'slider', 'adapter'):
                 obj = getattr(owner, name, None)
-                if obj is not None:
+                if obj is not None and not isinstance(obj, (str, bytes, int, float, bool, complex)):
                     objects.append(obj)
             if isinstance(owner, nn.Module):
                 objects.extend(owner.modules())
@@ -74,7 +76,9 @@ def _architectures(backend, critic):
             visited.add(id(owner))
             if isinstance(owner, nn.Module):
                 result[name] = dict(
-                    tree=[(n, type(m).__module__ + '.' + type(m).__qualname__, m.extra_repr(), m.training)
+                    tree=[(n, type(m).__module__ + '.' + type(m).__qualname__, m.extra_repr(), m.training,
+                           {key: getattr(m, key) for key in ('backend', 'attention_backend', 'gradient_checkpointing')
+                            if isinstance(getattr(m, key, None), (str, int, float, bool))})
                           for n, m in owner.named_modules()],
                     parameters={n: (list(p.shape), str(p.dtype), p.requires_grad)
                                 for n, p in owner.named_parameters()},
@@ -84,7 +88,7 @@ def _architectures(backend, critic):
                     result[name]['config'] = _identity(config.to_dict())
             for attr in ('network', 'backend', 'runtime', 'model', 'transformer', 'slider', 'adapter'):
                 value = getattr(owner, attr, None)
-                if value is not None:
+                if value is not None and not isinstance(value, (str, bytes, int, float, bool, complex)):
                     following.append((name + '.' + attr, value))
         pending = following
     return result
@@ -100,7 +104,12 @@ def _identity(value):
         return {f.name: _identity(getattr(value, f.name)) for f in fields(value)}
     if isinstance(value, dict):
         if any(not isinstance(k, str) for k in value):
-            raise TypeError('conditioning dictionaries require string keys')
+            if any(not isinstance(k, (str, int, float, bool)) for k in value):
+                raise TypeError('conditioning dictionaries require scalar keys')
+            # Native Transformers configs include integer id2label keys. Keep
+            # key types explicit so integer 0 cannot alias the string "0".
+            return {'__typed_mapping__': [[type(k).__name__, k, _identity(v)]
+                    for k, v in sorted(value.items(), key=lambda item: (type(item[0]).__name__, str(item[0])))]}
         return {k: _identity(v) for k, v in sorted(value.items())}
     if isinstance(value, (tuple, list)):
         return [_identity(v) for v in value]
@@ -147,10 +156,10 @@ class ConditionalPG09:
     response residual. No squared-error/reconstruction loss is optimized.
     """
 
-    def __init__(self, backend, prepared_rows, critic, *, conditions, particles=None,
+    def __init__(self, backend, prepared_rows, critic, *, conditions=None, particles=None,
                  response_domain='continuous_field', response_scale=1.0,
                  preset='bispf_optimized', batch_size=2, seed=7, total_steps=100,
-                 sigma=1.0, recipe_overrides=None):
+                 sigma=1.0, recipe_overrides=None, sampling='balanced'):
         if version('particlegan') != PG_VERSION:
             raise RuntimeError('ConditionalPG09 requires released particlegan==0.9.0')
         pg_sources_sha256 = _released_sources()
@@ -164,6 +173,8 @@ class ConditionalPG09:
             raise ValueError('invalid seed')
         if any(not math.isfinite(v) or v <= 0 for v in (sigma, response_scale)):
             raise ValueError('sigma and response_scale must be finite and positive')
+        if sampling not in ('balanced', 'replacement'):
+            raise ValueError('sampling must be balanced or replacement')
         self.backend, self.network, self.critic = backend, backend.network, critic
         trainables = [p for p in self.network.parameters() if p.requires_grad]
         d_parameters = [p for p in critic.parameters() if p.requires_grad]
@@ -178,10 +189,12 @@ class ConditionalPG09:
             raise ValueError('backend.network must contain adapter trainables only')
         if getattr(critic, 'score_bound', 0) != 0:
             raise ValueError('critic must produce unbounded raw logits')
-        self.rows = tuple(deepcopy(tuple(prepared_rows)))
+        self.provider = prepared_rows if callable(getattr(prepared_rows, 'identity', None)) else None
+        self.rows = prepared_rows if self.provider is not None else tuple(deepcopy(tuple(prepared_rows)))
         if len(self.rows) < 2:
             raise ValueError('at least two frozen response rows required')
-        shape = tuple(self.rows[0].target.shape)
+        shape = tuple(self.provider.response_shape) if self.provider is not None else tuple(self.rows[0].target.shape)
+        self.response_shape = shape
         if not shape or shape[0] != 1 or min(shape) < 1:
             raise ValueError('each response must have leading singleton batch dimension')
         if response_domain == 'continuous_field':
@@ -192,17 +205,17 @@ class ConditionalPG09:
                 raise ValueError('released PG09 cannot admit flat continuous vectors with width >=170')
         else:
             raise ValueError('unsupported response_domain; categorical fallback is forbidden')
-        for row in self.rows:
-            for tensor in (row.target, row.neutral):
-                if (tuple(tensor.shape) != shape or tensor.requires_grad
-                        or not torch.isfinite(tensor).all()):
-                    raise ValueError('target and neutral must be frozen finite native responses of equal shape')
-        self.targets = torch.cat([r.target for r in self.rows]).detach().to(device=self.device, dtype=torch.float32)
-        if (not isinstance(conditions, torch.Tensor) or conditions.requires_grad
-                or conditions.ndim != 2 or conditions.shape[0] != len(self.rows)
-                or conditions.shape[1] < 1 or not torch.isfinite(conditions).all()):
-            raise ValueError('conditions must be frozen finite [rows,K>=1] numeric coordinates')
-        self.conditions = conditions.detach().to(device=self.device, dtype=torch.float32).clone()
+        self.targets = None
+        if self.provider is None:
+            for row in self.rows:
+                self._validate_response(row)
+            self.targets = torch.cat([r.target for r in self.rows]).detach().to(device=self.device, dtype=torch.float32)
+        self.conditions = None
+        if conditions is not None:
+            self._validate_conditions(conditions, len(self.rows))
+            self.conditions = conditions.detach().to(device=self.device, dtype=torch.float32).clone()
+        elif self.provider is None or not callable(getattr(self.provider, 'conditions', None)):
+            raise ValueError('conditions tensor or lazy provider.conditions(indices) is required')
         self.response_domain, self.response_scale = response_domain, float(response_scale)
         self.batch_size, self.sigma = batch_size, float(sigma)
         options = dict(batch_size=batch_size, total_steps=total_steps)
@@ -234,6 +247,10 @@ class ConditionalPG09:
         self.base_lrs = [[g['lr'] for g in opt.param_groups] for opt in (self.opt_g, self.opt_d)]
         self.streams = {name: torch.Generator().manual_seed(seed + offset)
                         for name, offset in (('d_rows', 10), ('d_noise', 20), ('g_rows', 30), ('g_noise', 40))}
+        self.sampling = sampling
+        self.row_orders = {phase: torch.empty(0, dtype=torch.int64) for phase in ('d', 'g')}
+        self.row_cursors = dict(d=0, g=0)
+        self.exposures = {phase: torch.zeros(len(self.rows), dtype=torch.int64) for phase in ('d', 'g')}
         self.model_cpu_rng = torch.Generator().manual_seed(seed + 80).get_state()
         self.model_cuda_rng = (torch.Generator(device=self.device).manual_seed(seed + 80).get_state()
                                if self.device.type == 'cuda' else None)
@@ -241,10 +258,12 @@ class ConditionalPG09:
         self._failed = False
         self._export_loaded = False
         self._signature = dict(pg_version=PG_VERSION, pg_release_wheel_sha256=PG_WHEEL_SHA256,
-            pg_sources_sha256=pg_sources_sha256, implementation_sources=_implementation_sources(backend, critic),
+            pg_sources_sha256=pg_sources_sha256, implementation_sources=_implementation_sources(backend, critic, self.provider),
             architectures=_architectures(backend, critic),
             recipe=asdict(self.recipe), backend=_identity(backend.metadata()),
-            rows_sha256=_hash(self.rows), conditions_sha256=_hash(self.conditions),
+            rows_sha256=_hash(self.provider.identity() if self.provider is not None else self.rows),
+            conditions_sha256=(_hash(self.conditions) if self.conditions is not None else 'bound-by-provider-identity'),
+            row_count=len(self.rows), sampling=sampling,
             response_domain=response_domain, resolved_penalty_domain=('image' if len(shape) >= 3 else 'continuous'),
             penalty_input_domain='auto', response_shape=list(shape[1:]),
             response_scale=self.response_scale, sigma=self.sigma,
@@ -258,16 +277,52 @@ class ConditionalPG09:
             if len(owned) != len(set(map(id, owned))) or set(map(id, owned)) != set(map(id, expected)):
                 raise ValueError('optimizer ownership differs from declared trainables')
 
-    def _batch(self, phase):
-        ids = torch.randint(len(self.rows), (self.batch_size,), generator=self.streams[phase + '_rows'])
-        noise = torch.randn((self.batch_size, *self.targets.shape[1:]),
-                            generator=self.streams[phase + '_noise']).to(self.targets) * self.sigma
-        device_ids = ids.to(self.device)
-        return ids, noise, self.conditions[device_ids], self.targets[device_ids]
+    def _validate_response(self, row):
+        for tensor in (row.target, row.neutral):
+            if (not isinstance(tensor, torch.Tensor) or tuple(tensor.shape) != self.response_shape
+                    or tensor.requires_grad or not torch.isfinite(tensor).all()):
+                raise ValueError('target and neutral must be frozen finite native responses of equal shape')
 
-    def _generated(self, ids):
-        values = {i: self.backend.generated(self.rows[i]) for i in sorted(set(ids.tolist()))}
-        shape = (1, *self.targets.shape[1:])
+    @staticmethod
+    def _validate_conditions(conditions, count):
+        if (not isinstance(conditions, torch.Tensor) or conditions.requires_grad
+                or conditions.ndim != 2 or conditions.shape[0] != count
+                or conditions.shape[1] < 1 or not torch.isfinite(conditions).all()):
+            raise ValueError('conditions must be frozen finite [rows,K>=1] numeric coordinates')
+
+    def _sample_ids(self, phase):
+        generator = self.streams[phase + '_rows']
+        if self.sampling == 'replacement':
+            return torch.randint(len(self.rows), (self.batch_size,), generator=generator)
+        pieces, remaining = [], self.batch_size
+        while remaining:
+            if self.row_cursors[phase] == len(self.row_orders[phase]):
+                self.row_orders[phase] = torch.randperm(len(self.rows), generator=generator)
+                self.row_cursors[phase] = 0
+            cursor = self.row_cursors[phase]
+            count = min(remaining, len(self.rows) - cursor)
+            pieces.append(self.row_orders[phase][cursor:cursor + count])
+            self.row_cursors[phase] += count
+            remaining -= count
+        return torch.cat(pieces)
+
+    def _batch(self, phase):
+        ids = self._sample_ids(phase)
+        selected = {i: self.rows[i] for i in sorted(set(ids.tolist()))}
+        for row in selected.values():
+            self._validate_response(row)
+        targets = torch.cat([selected[i].target for i in ids.tolist()]).detach().to(device=self.device, dtype=torch.float32)
+        conditions = (self.conditions[ids.to(self.device)] if self.conditions is not None
+                      else self.provider.conditions(ids))
+        self._validate_conditions(conditions, len(ids))
+        conditions = conditions.detach().to(device=self.device, dtype=torch.float32)
+        noise = torch.randn((self.batch_size, *self.response_shape[1:]),
+                            generator=self.streams[phase + '_noise']).to(device=self.device, dtype=torch.float32) * self.sigma
+        return ids, noise, conditions, targets, selected
+
+    def _generated(self, ids, selected):
+        values = {i: self.backend.generated(selected[i]) for i in sorted(set(ids.tolist()))}
+        shape = self.response_shape
         if any(v.shape != shape or v.device != self.device or not torch.isfinite(v).all() for v in values.values()):
             raise ValueError('generated response must preserve finite native shape and device')
         return torch.cat([values[i].float() for i in ids.tolist()])
@@ -302,8 +357,8 @@ class ConditionalPG09:
 
     def _step(self):
         # Check actual response graph BEFORE any D/optimizer update for every preset.
-        g_ids, g_real, g_condition, g_target = self._batch('g')
-        generated = self._generated(g_ids)
+        g_ids, g_real, g_condition, g_target, g_selected = self._batch('g')
+        generated = self._generated(g_ids, g_selected)
         parameters = [p for p in self.network.parameters() if p.requires_grad]
         if not generated.requires_grad:
             raise ValueError('detached generator response; adversarial path is inactive')
@@ -311,13 +366,13 @@ class ConditionalPG09:
         if any(gradient is None for gradient in connected):
             raise ValueError('generator trainable or routed bank is disconnected from response')
         scale_learning_rates(self.completed_steps, self.recipe, (self.opt_g, self.opt_d), self.base_lrs, self.prior)
-        d_ids, d_real, d_condition, d_target = self._batch('d')
+        d_ids, d_real, d_condition, d_target, d_selected = self._batch('d')
         self.opt_g.zero_grad(set_to_none=True)
         self.opt_d.zero_grad(set_to_none=True)
         flags = [p.requires_grad for p in self.critic.parameters()]
         try:
             with torch.no_grad():
-                d_fake = d_real + (self._generated(d_ids) - d_target) / self.response_scale
+                d_fake = d_real + (self._generated(d_ids, d_selected) - d_target) / self.response_scale
             d_adv = self.loss.d_loss(self.critic(d_real, d_condition), self.critic(d_fake, d_condition))
             d_pen = self.penalty(self.critic, d_real, d_fake, d_condition)
             d_total = d_adv + d_pen
@@ -345,10 +400,16 @@ class ConditionalPG09:
             for parameter, flag in zip(self.critic.parameters(), flags):
                 parameter.requires_grad_(flag)
         self.completed_steps += 1
+        for phase, ids in (('g', g_ids), ('d', d_ids)):
+            self.exposures[phase].index_add_(0, ids, torch.ones_like(ids))
         return dict(step=self.completed_steps, g_loss=float(g_total.detach()), g_adv=float(g_adv.detach()),
             prior_regularization=float(prior_loss.detach()), d_loss=float(d_total.detach()),
             d_adv=float(d_adv.detach()), d_pen=float(d_pen.detach()),
-            g_rows=g_ids.tolist(), d_rows=d_ids.tolist(), **self.penalty.diagnostics())
+            g_rows=g_ids.tolist(), d_rows=d_ids.tolist(),
+            g_unique_rows=int(torch.count_nonzero(self.exposures['g'])),
+            d_unique_rows=int(torch.count_nonzero(self.exposures['d'])),
+            g_row_exposures=int(self.exposures['g'].sum()),
+            d_row_exposures=int(self.exposures['d'].sum()), **self.penalty.diagnostics())
 
     @staticmethod
     def _require_finite_gradients(module):
@@ -364,6 +425,7 @@ class ConditionalPG09:
             opt_g=self.opt_g.state_dict(), opt_d=self.opt_d.state_dict(),
             spread=self.spread.state_dict() if self.spread else None,
             streams={k: v.get_state() for k, v in self.streams.items()},
+            row_orders=self.row_orders, row_cursors=self.row_cursors, exposures=self.exposures,
             model_cpu_rng=self.model_cpu_rng, model_cuda_rng=self.model_cuda_rng))
 
     def load_state_dict(self, state):
@@ -403,6 +465,36 @@ class ConditionalPG09:
             raise ValueError('checkpoint sampler streams differ')
         for rng in list(state['streams'].values()) + [state['model_cpu_rng']]:
             torch.Generator().set_state(rng.cpu())
+        expected_exposures = state['completed_steps'] * self.batch_size
+        for key in ('row_orders', 'row_cursors', 'exposures'):
+            if set(state[key]) != {'d', 'g'}:
+                raise ValueError('checkpoint sampler phases differ')
+        for phase in ('d', 'g'):
+            order, cursor, counts = state['row_orders'][phase], state['row_cursors'][phase], state['exposures'][phase]
+            if (not isinstance(order, torch.Tensor) or order.dtype != torch.int64 or order.ndim != 1
+                    or len(order) not in (0, len(self.rows)) or type(cursor) is not int
+                    or not 0 <= cursor <= len(order)):
+                raise ValueError('invalid checkpoint sampler order/cursor')
+            if len(order) and not torch.equal(order.cpu().sort().values, torch.arange(len(self.rows))):
+                raise ValueError('checkpoint sampler order is not a row permutation')
+            if (not isinstance(counts, torch.Tensor) or counts.dtype != torch.int64
+                    or counts.shape != (len(self.rows),) or (counts < 0).any()
+                    or int(counts.sum()) != expected_exposures):
+                raise ValueError('invalid checkpoint row exposures')
+            if self.sampling == 'balanced':
+                if not expected_exposures and (len(order) or cursor):
+                    raise ValueError('unstarted sampler cannot carry an advanced row order')
+                if expected_exposures and (len(order) == 0 or cursor != ((expected_exposures - 1) % len(self.rows)) + 1):
+                    raise ValueError('checkpoint cursor differs from completed-step coverage')
+                cycles = expected_exposures // len(self.rows)
+                expected_counts = torch.full((len(self.rows),), cycles, dtype=torch.int64)
+                remainder = expected_exposures % len(self.rows)
+                if remainder:
+                    expected_counts[order[:remainder].cpu()] += 1
+                if not torch.equal(counts.cpu(), expected_counts):
+                    raise ValueError('checkpoint exposures differ from balanced row order')
+            elif len(order) or cursor:
+                raise ValueError('replacement sampler must not carry shuffled order')
         if self.device.type == 'cuda':
             torch.Generator(device=self.device).set_state(state['model_cuda_rng'])
         elif state['model_cuda_rng'] is not None:
@@ -416,6 +508,9 @@ class ConditionalPG09:
         self.opt_d.load_state_dict(deepcopy(state['opt_d']))
         for name, generator in self.streams.items():
             generator.set_state(state['streams'][name].cpu())
+        self.row_orders = {k: v.cpu().clone() for k, v in state['row_orders'].items()}
+        self.row_cursors = dict(state['row_cursors'])
+        self.exposures = {k: v.cpu().clone() for k, v in state['exposures'].items()}
         self.model_cpu_rng = state['model_cpu_rng'].cpu().clone()
         self.model_cuda_rng = deepcopy(state['model_cuda_rng'])
         self.completed_steps, self._failed, self._export_loaded = state['completed_steps'], False, False

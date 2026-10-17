@@ -11,7 +11,7 @@ game = ConditionalPG09(
     conditions=conditions, particles=particles,
     response_domain="continuous_field", response_scale=1.0,
     preset="bispf_optimized", batch_size=2, seed=7,
-    total_steps=100, sigma=1.0, recipe_overrides=None,
+    total_steps=100, sigma=1.0, recipe_overrides=None, sampling="balanced",
 )
 metrics = game.step()
 state = game.state_dict()
@@ -25,6 +25,10 @@ Native continuous field shapes must remain `[1,C,H,W]` or `[1,C,T,H,W]` through 
 `particles` is either None (adapter GAN arm, explicitly no particle-bank claim) or the actual shared routed `nn.Parameter[N,Z]` used by `generated`. Mere registration of an otherwise unused bank does not qualify. Core validates optimizer ownership and recipe dimensions against this bank. Dense routing binds all participating bank rows through the public optimizer API. A reusable routed-bank module belongs in core; adapter owners must not invent a disconnected prior to satisfy the signature.
 
 The core owns independent D/G row and Gaussian-reference streams. Critic coordinates are real Gaussian reference and fake reference plus `(generated-target)/response_scale`; this paired residual is not an optimized MSE loss. Generator objective is solely the public recipe adversarial loss plus its required prior regularizer. Critic objective is the public adversarial loss plus public critic penalty. Optimized recipe uses public constraint-geometry backward and learning-rate policy. No MSE, reconstruction, distillation or separately invented auxiliary objective is admitted.
+
+Large caches use a lazy provider in place of an eager tuple. Its API is `len(provider)`, `provider.response_shape` including the leading1, `provider.identity()` returning a stable immutable cache/index/conditioning-policy descriptor, `provider[index] -> PreparedResponse`, and `provider.conditions(indices) -> detached [batch,K]`. Pass `conditions=None`; core reads no response rows during construction, retains the provider, and fetches only selected unique rows per phase. Native target tensors are never concatenated across the whole cache. Small CPU sampler metadata is O(number of rows); response memory is bounded by the active batch/provider cache. Provider source and identity are checkpoint-bound. Selected targets/neutral/conditions are validated before use; providers must checksum their immutable assets and supply generation inputs on the backend's device.
+
+Default `sampling="balanced"` independently shuffles complete D and G row cycles. Permutations, cursors, row exposures and four private row/noise RNG states are checkpointed and validated before live restore. Exact row counts/coverage are reported on each completed step. `sampling="replacement"` remains an explicit distinct bound policy. For MOSS,15360signedrows require1920updates at batch8 per complete G cycle; two cycles require3840updates. Actual admission must first measure model memory/runtime. Useful context, timestep, sign, strength and protocol coordinates belong in conditions; row IDs alone do not qualify held-out transfer.
 
 Checkpoints bind resolved recipe, verified PG version, model/protocol/conditioning/target digests, response domain and scale, network/critic/actual bank, both optimizer states, regularizer state, D/G row/noise and model RNG states and completed step. Restore must validate transactionally before mutating live state. Export includes adapter and actual routed bank plus metadata; frozen base weights are excluded. Evaluation/render RNG must not advance training streams. The pending game implementation must reject detached generator callbacks under every supported preset, including original `bispf`.
 

@@ -1,0 +1,16 @@
+{
+  "python": "3.11.15",
+  "packages": {
+    "torch": "2.11.0+cu128",
+    "particlegan": "0.9.0",
+    "diffusers": "0.40.0.dev0",
+    "transformers": "5.15.0",
+    "numpy": "2.4.4",
+    "peft": "0.20.0",
+    "safetensors": "0.8.0",
+    "pytest": "9.1.1"
+  },
+  "cuda_visible_devices_during_tests": "",
+  "gpu_initialized": false,
+  "pg_wheel_sha256": "41746614b135e5593fa9c66c2a6784c4f872a7957fce132ca59f95dc7963e1ab"
+}

@@ -222,6 +222,17 @@ def test_installed_pg_source_override_fails_closed(monkeypatch):
         fixture()
 
 
+def test_native_integer_config_keys_keep_types_and_primitive_backend_flags_are_not_objects():
+    from particle_sliders.pg09 import _hash, _implementation_sources, _architectures
+    game = fixture()
+    game.critic.backend = 'sdpa'
+    sources = _implementation_sources(game.backend, game.critic)
+    assert 'builtins' not in sources
+    assert _hash({0: 'label'}) != _hash({'0': 'label'})
+    assert _hash({'id2label': {0: 'LABEL_0', 1: 'LABEL_1'}})
+    assert _architectures(game.backend, game.critic)['critic']['tree'][0][-1]['backend'] == 'sdpa'
+
+
 def test_same_parameter_schema_with_different_activation_cannot_resume():
     game = fixture()
     game.step()
@@ -230,3 +241,92 @@ def test_same_parameter_schema_with_different_activation_cannot_resume():
     with pytest.raises(ValueError, match='mismatch'):
         changed.load_state_dict(game.state_dict())
     equal(before, changed.state_dict())
+
+
+class VirtualRows:
+    response_shape = (1, 2, 10, 10)
+
+    def __init__(self, count=10, identity='frozen-v1'):
+        self.count, self.token, self.reads = count, identity, []
+
+    def __len__(self):
+        return self.count
+
+    def __iter__(self):
+        raise AssertionError('provider must not be eagerly traversed')
+
+    def __deepcopy__(self, memo):
+        raise AssertionError('provider must not be eagerly copied')
+
+    def identity(self):
+        return dict(count=self.count, frozen_data_digest=self.token,
+                    conditions='context+signed-native-time-v1')
+
+    def __getitem__(self, index):
+        self.reads.append(index)
+        rng = torch.Generator().manual_seed(index)
+        neutral = torch.randn(self.response_shape, generator=rng)
+        row = dict(input=torch.randn(1, 2, generator=rng), sign=(-1. if index % 2 else 1.))
+        return Prepared(row, neutral + .2 * row['sign'], neutral)
+
+    def conditions(self, indices):
+        return torch.tensor([[i % 3, (-1. if i % 2 else 1.), 500.] for i in indices.tolist()])
+
+
+def lazy_fixture(count=10, identity='frozen-v1'):
+    base = fixture()
+    provider = VirtualRows(count, identity)
+    game = ConditionalPG09(base.backend, provider, base.critic, particles=base.network.particles,
+                          batch_size=4, total_steps=5)
+    return game, provider
+
+
+def test_lazy_native_fields_never_materialized_at_init_and_reads_bounded():
+    game, provider = lazy_fixture(50000)
+    assert game.rows is provider and game.targets is None and game.conditions is None
+    assert provider.reads == []
+    game.step()
+    assert len(provider.reads) <= 8
+    assert game._signature['row_count'] == 50000
+
+
+def test_balanced_independent_cycles_and_mid_cycle_exact_resume():
+    game, _ = lazy_fixture()
+    phases = {name: [] for name in ('d', 'g')}
+    first = game.step()
+    packet = game.state_dict()
+    other, _ = lazy_fixture()
+    other.load_state_dict(packet)
+    phases['d'] += first['d_rows']
+    phases['g'] += first['g_rows']
+    for _ in range(4):
+        actual = game.step()
+        assert actual == other.step()
+        equal(game.state_dict(), other.state_dict())
+        for phase in phases:
+            phases[phase] += actual[phase + '_rows']
+    for phase, indices in phases.items():
+        assert sorted(indices[:10]) == sorted(indices[10:]) == list(range(10))
+        assert torch.equal(game.exposures[phase], torch.full((10,), 2))
+    assert phases['d'] != phases['g']
+
+
+@pytest.mark.parametrize('change', ['provider', 'cursor', 'order', 'exposures'])
+def test_lazy_provider_and_balanced_sampler_corruption_rejected_atomically(change):
+    game, _ = lazy_fixture()
+    game.step()
+    packet = game.state_dict()
+    if change == 'provider':
+        receiver, _ = lazy_fixture(identity='changed-cache')
+    else:
+        receiver, _ = lazy_fixture()
+        if change == 'cursor':
+            packet['row_cursors']['g'] = 1
+        elif change == 'order':
+            packet['row_orders']['g'][0] = packet['row_orders']['g'][1]
+        else:
+            packet['exposures']['g'].zero_()
+    before = receiver.state_dict()
+    with pytest.raises(ValueError):
+        receiver.load_state_dict(packet)
+    equal(before, receiver.state_dict())
