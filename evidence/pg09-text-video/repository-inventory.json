@@ -1,0 +1,192 @@
+{
+  "recorded_at": "2026-10-17T16:08:03.864016+00:00",
+  "scope": "All public HyperGAN repositories containing particle-sliders; unauthenticated org API pagination, branch API exact heads",
+  "source": "https://api.github.com/orgs/HyperGAN/repos?per_page=100",
+  "repositories": [
+    {
+      "name": "particle-sliders",
+      "url": "https://github.com/HyperGAN/particle-sliders.git",
+      "default_branch": "main",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "archived": false,
+      "head": "20fdf98d25455582e7e7191eef8ef51cf73173ae",
+      "family": "shared/text/video",
+      "coverage": "owned here"
+    },
+    {
+      "name": "anima-particle-sliders",
+      "url": "https://github.com/HyperGAN/anima-particle-sliders.git",
+      "default_branch": "main",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "archived": false,
+      "head": "778ef38be9f1bec4e35cb02ade3a95e9c8dc8c14",
+      "family": "image",
+      "coverage": "existing adapter; image owner",
+      "pinned_readme_sha256": "02131c15954e1cd94d3af5f140a477b8a498cee00be31f202accb9d1082a9ad8"
+    },
+    {
+      "name": "supra-particle-sliders",
+      "url": "https://github.com/HyperGAN/supra-particle-sliders.git",
+      "default_branch": "main",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "archived": false,
+      "head": "a908cc8ace35e4019a19bd25c1af7fd7e9ec72b6",
+      "family": "image",
+      "coverage": "existing adapter; image owner",
+      "pinned_readme_sha256": "c16c46281928feb198f0829c44050272bf3c018eac97793b083c58005646c7c1"
+    },
+    {
+      "name": "krea2-particle-sliders",
+      "url": "https://github.com/HyperGAN/krea2-particle-sliders.git",
+      "default_branch": "main",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "archived": false,
+      "head": "0b489f63388b000f18242c5d401d8b7709c27dee",
+      "family": "image",
+      "coverage": "outside task; image ownership confirmation needed",
+      "pinned_readme_sha256": "783b52c297469e026c65ed3d396a103a483f1e5a117e42a6d391161b70b8cda1"
+    },
+    {
+      "name": "ming-particle-sliders",
+      "url": "https://github.com/HyperGAN/ming-particle-sliders.git",
+      "default_branch": "main",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "archived": false,
+      "head": "93cb5bfa9e6585da3dc0a89327fb56dc276e8cc5",
+      "family": "image decomposition scaffold",
+      "coverage": "outside task; image ownership confirmation needed",
+      "pinned_readme_sha256": "010042ea0d89071c2b3994ad2152e5ae0705061a675ab1b2b5941f715d08571a"
+    },
+    {
+      "name": "music3-particle-sliders",
+      "url": "https://github.com/HyperGAN/music3-particle-sliders.git",
+      "default_branch": "main",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "archived": false,
+      "head": "b40d2aa6fed745eda3043d3d3b11e362ec2f8dfe",
+      "family": "audio",
+      "coverage": "outside task",
+      "pinned_readme_sha256": "5ad4ad8a36e18c44e584498cff15afc9a6f234ad543ea2713b20d5a36b79fff6"
+    },
+    {
+      "name": "yue2-particle-sliders",
+      "url": "https://github.com/HyperGAN/yue2-particle-sliders.git",
+      "default_branch": "main",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "archived": false,
+      "head": "b33794d81b92c125891a011531f55554d65e2082",
+      "family": "audio",
+      "coverage": "outside task",
+      "pinned_readme_sha256": "1eee1a4eedc791909d5d504846a6332b9a8aa54bd38344992a89d21a8248d891"
+    },
+    {
+      "name": "iris-particle-sliders",
+      "url": "https://github.com/HyperGAN/iris-particle-sliders.git",
+      "default_branch": "main",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "archived": false,
+      "head": "6a226126623fb17c87fe22b86173fe2fcff4bf3e",
+      "family": "native pixel image",
+      "coverage": "outside task; image ownership confirmation needed",
+      "pinned_readme_sha256": "9d0c58c36d5640917160d44b3be44b409dbc0ce33449e4671c9b5d3c10aad75d"
+    },
+    {
+      "name": "qwen-image-particle-sliders",
+      "url": "https://github.com/HyperGAN/qwen-image-particle-sliders.git",
+      "default_branch": "main",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "archived": false,
+      "head": "b418ff5b709dd687fdc7d9fbb5498c592ec21a58",
+      "family": "image",
+      "coverage": "outside task; image ownership confirmation needed",
+      "pinned_readme_sha256": "db29a5f6402b47e5b394e83e134889e7ac90bdaca4a90fb62de332518bd840cf"
+    }
+  ],
+  "standalone_text_video_matches": [],
+  "embedded_families": [
+    "TinyQwen",
+    "Bonsai GGUF",
+    "LTX 2.5",
+    "MiniMax H3"
+  ],
+  "model_metadata_pins": {
+    "Qwen/Qwen3-0.6B-Base": {
+      "sha": "da87bfb608c14b7cf20ba1ce41287e8de496c0cd",
+      "license": "apache-2.0"
+    },
+    "prism-ml/Ternary-Bonsai-2-27B-gguf": {
+      "sha": "b072e1d3b35a0a630cece372c2127528e0994386",
+      "license": "apache-2.0"
+    },
+    "Lightricks/LTX-2.5-Diffusers": {
+      "sha": "da0b690960026eab794b8ceaf841233cf7064478",
+      "license": "ltx-2.x-community-license-agreement",
+      "config_fetch": "HTTP401; not downloaded"
+    },
+    "MiniMaxAI/MiniMax-H3": {
+      "sha": "42ed227ee7df40d41602854ae760620d6eb651fe",
+      "license": "minimax-h3-community-license-agreement"
+    }
+  },
+  "upstream_codec_source": {
+    "repo": "huggingface/diffusers",
+    "sha": "b800f828f3951c4d206e154411bcbfa693cd322e",
+    "path": "src/diffusers/pipelines/ltx2/pipeline_ltx2.py",
+    "sha256": "00a973e8f3629d8cd0aae06ef984c75317110e59e450dc2e45ea6ab73d9fbf6b"
+  },
+  "no_weights_downloaded": true
+}

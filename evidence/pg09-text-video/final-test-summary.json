@@ -1,0 +1,34 @@
+{
+  "core_commit": "ec234e184676c46060ecbf6122df0e7b726f45a7",
+  "adapter_base": "92f6e3f87328e4216b5462c5de0319d89289adac",
+  "common_checkpoint_dependency": "6e8ba6a",
+  "implementation_commit": "56c91a8",
+  "suite": {
+    "tests": "23",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "time": "4.105"
+  },
+  "two_process_cases": 4,
+  "all_replays_exact": true,
+  "cuda_initialized": false,
+  "core_module_sha256": "c1a889123833b34ba1dbf9cb72d2ec0babc61f2ca78834c7e40e490e0e3cd121",
+  "adapter_module_sha256": "4e03c66e670b6d8c89cb1be784c33ce6c730cb3dcf58765f800188eacc1101bf",
+  "gpu_admission": "not requested; owner-only; no GPU model run",
+  "live_blockers": {
+    "TinyQwen": "native1024 vector blocked by released PG09 >=170 domain",
+    "Bonsai": "native5120 vector blocked; frozen Prism fork readout only",
+    "LTX_default": "connector sequence unsupported native-field domain",
+    "LTX_velocity": "live gated config401, source/weights/FP32 staging and hardware/quality/AV rendering unqualified",
+    "H3": "native multimodal response geometry and protocol unreviewed; hardware/weights/community terms unqualified"
+  },
+  "parent_notification": {
+    "target": "01a10ecb-09b2-741c-82de-b44dd08060c4",
+    "action": "send useful inventory/progress message",
+    "outcome": "not sent: thread not found",
+    "core_owner_coordination": "succeeded"
+  },
+  "no_publish_or_merge": true,
+  "no_services_or_permissions_changed": true
+}
