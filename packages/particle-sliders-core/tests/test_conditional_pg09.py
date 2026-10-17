@@ -159,6 +159,19 @@ def test_exact_stochastic_resume_sampling_and_export_reload():
         loader.step()
 
 
+def test_training_packet_loads_with_weights_only_safe_loader():
+    import io
+    game = fixture()
+    game.step()
+    buffer = io.BytesIO()
+    torch.save(game.state_dict(), buffer)
+    buffer.seek(0)
+    packet = torch.load(buffer, weights_only=True)
+    other = fixture()
+    other.load_state_dict(packet)
+    equal(game.state_dict(), other.state_dict())
+
+
 @pytest.mark.parametrize('preset', ['bispf_optimized', 'bispf'])
 def test_detached_or_disconnected_bank_rejected_before_critic_update(preset):
     game = fixture(preset=preset)

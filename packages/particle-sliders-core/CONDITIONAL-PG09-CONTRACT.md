@@ -12,6 +12,7 @@ game = ConditionalPG09(
     response_domain="continuous_field", response_scale=1.0,
     preset="bispf_optimized", batch_size=2, seed=7,
     total_steps=100, sigma=1.0, recipe_overrides=None, sampling="balanced",
+    pg_source_profile="release", penalty_input_domain="auto",
 )
 metrics = game.step()
 state = game.state_dict()
@@ -32,7 +33,11 @@ Default `sampling="balanced"` independently shuffles complete D and G row cycles
 
 Checkpoints bind resolved recipe, verified PG version, model/protocol/conditioning/target digests, response domain and scale, network/critic/actual bank, both optimizer states, regularizer state, D/G row/noise and model RNG states and completed step. Restore must validate transactionally before mutating live state. Export includes adapter and actual routed bank plus metadata; frozen base weights are excluded. Evaluation/render RNG must not advance training streams. The pending game implementation must reject detached generator callbacks under every supported preset, including original `bispf`.
 
-The implementation verifies all 49 installed PG Python sources against the released wheel, and binds actual core/backend/critic/native-adapter submodule source hashes into checkpoints. Patched PG sources are rejected until a separate reviewed dependency is admitted. It supports unchanged-release native fields and continuous vectors below width170. ALZ's explicit-continuous proposal is not installed by this integration.
+The implementation verifies all 49 imported PG Python sources against an explicit profile, and binds actual core/backend/critic/native-adapter submodule source hashes, native architecture trees, Python/Torch/CUDA/numpy runtime and numeric flags into checkpoints. Default `pg_source_profile="release", penalty_input_domain="auto"` verifies the released wheel, supports native fields and continuous vectors below170, and rejects patched sources. No package is installed or modified by this integration.
+
+The separately qualified pair `pg_source_profile="alz-continuous-v1", penalty_input_domain="continuous"` accepts native rank-2 continuous vectors of any width ONLY when the imported sources exactly match `pg09_continuous_profile.json`. This manifest records the single ALZ patch SHA256 `c6531a21f62fa96682f5aece517a6a862bb849ab971aa2766b3946b9a7543571`, base released wheel and all49 modified-overlay Python hashes. The overlay changes the public penalty's input-domain declaration, not host loss math. The pair is rejected for image fields; the default profile never falls back. Independent CPU tests cover actual G/D/bank updates, positive continuous penalties, fresh-process optimizer/RNG continuation for both presets at1024/2048/4096/5120,42 default numeric parity comparisons, and real cross-profile checkpoint rejection before mutation.
+
+Thin backends can call `validate_pg09_domain(shape, response_domain=..., pg_source_profile=..., penalty_input_domain=...)` before their first model forward, then supply those same options to core. It validates actual sources and native shape and never reshapes data. Training checkpoints bind declared/resolved domains, profile, base and patch/source identities; cross-mode, cross-source and cross-runtime restores fail closed.
 
 `evaluate(index, seed=...)` preserves training RNG; `export_state_dict()` and `load_export_state_dict()` transfer adapter-only inference payloads. An inference export cannot resume training; use the full training checkpoint. Backend rendering remains on `backend.render` using its declared response loop.
 

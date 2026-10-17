@@ -21,7 +21,7 @@ test = ["pytest>=8"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json"]
+particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json", "pg09_continuous_profile.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

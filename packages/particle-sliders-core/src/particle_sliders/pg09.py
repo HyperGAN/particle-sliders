@@ -13,6 +13,7 @@ import inspect
 import json
 import math
 from pathlib import Path
+import platform
 
 import torch
 from torch import nn
@@ -23,15 +24,51 @@ PG_VERSION = '0.9.0'
 PG_WHEEL_SHA256 = '41746614b135e5593fa9c66c2a6784c4f872a7957fce132ca59f95dc7963e1ab'
 
 
-def _released_sources():
+def _released_sources(profile='release'):
     import particlegan
     root = Path(particlegan.__file__).resolve().parent
-    expected = json.loads(Path(__file__).with_name('pg09_release_sources.json').read_text())
+    if profile == 'release':
+        expected = json.loads(Path(__file__).with_name('pg09_release_sources.json').read_text())
+    elif profile == 'alz-continuous-v1':
+        document = json.loads(Path(__file__).with_name('pg09_continuous_profile.json').read_text())
+        expected = document['python_sources']
+    else:
+        raise ValueError('unknown PG source profile')
     actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob('*.py'))}
     if actual != expected:
-        raise RuntimeError('installed ParticleGAN sources differ from verified 0.9.0 wheel; domain patches require separate qualification')
+        raise RuntimeError('installed ParticleGAN sources differ from verified ' + profile + ' source profile')
     return _hash(actual)
+
+
+def validate_pg09_domain(response_shape, *, response_domain,
+                         pg_source_profile='release', penalty_input_domain='auto'):
+    """Pre-forward host gate for native shape + exact reviewed PG sources.
+
+    This never installs a package, applies a patch or reshapes a response.
+    Callers must declare actual native geometry, then pass the same domain
+    options into ConditionalPG09. The optional overlay is ALZ's single patch.
+    """
+    if version('particlegan') != PG_VERSION:
+        raise RuntimeError('ConditionalPG09 requires particlegan==0.9.0 base release')
+    if (pg_source_profile, penalty_input_domain) not in (('release', 'auto'), ('alz-continuous-v1', 'continuous')):
+        raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
+    sources = _released_sources(pg_source_profile)
+    shape = tuple(response_shape)
+    if not shape or shape[0] != 1 or any(type(v) is not int or v < 1 for v in shape):
+        raise ValueError('response requires positive native dimensions and leading singleton batch')
+    if response_domain == 'continuous_field':
+        if len(shape) not in (4, 5) or penalty_input_domain != 'auto':
+            raise ValueError('continuous_field requires genuine native 4D/5D shape on release auto profile')
+        resolved = 'image'
+    elif response_domain == 'continuous_vector':
+        if len(shape) != 2 or (shape[1] >= 170 and penalty_input_domain != 'continuous'):
+            raise ValueError('released PG09 cannot admit flat continuous vectors with width >=170')
+        resolved = 'continuous'
+    else:
+        raise ValueError('unsupported response_domain; categorical fallback is forbidden')
+    return dict(pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain,
+                pg_sources_sha256=sources, resolved_penalty_domain=resolved)
 
 
 def _implementation_sources(backend, critic, provider=None):
@@ -113,7 +150,9 @@ def _identity(value):
         return {k: _identity(v) for k, v in sorted(value.items())}
     if isinstance(value, (tuple, list)):
         return [_identity(v) for v in value]
-    if value is None or isinstance(value, (str, bool, int, float)):
+    if isinstance(value, str):
+        return str(value)
+    if value is None or isinstance(value, (bool, int, float)):
         return value
     raise TypeError('unsupported frozen conditioning identity: ' + type(value).__name__)
 
@@ -159,10 +198,12 @@ class ConditionalPG09:
     def __init__(self, backend, prepared_rows, critic, *, conditions=None, particles=None,
                  response_domain='continuous_field', response_scale=1.0,
                  preset='bispf_optimized', batch_size=2, seed=7, total_steps=100,
-                 sigma=1.0, recipe_overrides=None, sampling='balanced'):
+                 sigma=1.0, recipe_overrides=None, sampling='balanced',
+                 pg_source_profile='release', penalty_input_domain='auto'):
         if version('particlegan') != PG_VERSION:
             raise RuntimeError('ConditionalPG09 requires released particlegan==0.9.0')
-        pg_sources_sha256 = _released_sources()
+        if (pg_source_profile, penalty_input_domain) not in (('release', 'auto'), ('alz-continuous-v1', 'continuous')):
+            raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
         if preset not in ('bispf_optimized', 'bispf'):
             raise ValueError('only explicitly selected public BISPF presets are admitted')
         if type(batch_size) is not int or not 2 <= batch_size <= 512:
@@ -195,16 +236,9 @@ class ConditionalPG09:
             raise ValueError('at least two frozen response rows required')
         shape = tuple(self.provider.response_shape) if self.provider is not None else tuple(self.rows[0].target.shape)
         self.response_shape = shape
-        if not shape or shape[0] != 1 or min(shape) < 1:
-            raise ValueError('each response must have leading singleton batch dimension')
-        if response_domain == 'continuous_field':
-            if len(shape) not in (4, 5):
-                raise ValueError('continuous_field requires genuine native [1,C,H,W] or [1,C,T,H,W]')
-        elif response_domain == 'continuous_vector':
-            if len(shape) != 2 or shape[1] >= 170:
-                raise ValueError('released PG09 cannot admit flat continuous vectors with width >=170')
-        else:
-            raise ValueError('unsupported response_domain; categorical fallback is forbidden')
+        domain = validate_pg09_domain(shape, response_domain=response_domain,
+            pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain)
+        pg_sources_sha256 = domain['pg_sources_sha256']
         self.targets = None
         if self.provider is None:
             for row in self.rows:
@@ -241,7 +275,8 @@ class ConditionalPG09:
         self.recipe = get_recipe(preset, **options)
         self.opt_g, self.opt_d = self.recipe.make_optimizers(self.network, critic, self.prior)
         self.loss = self.recipe.make_loss()
-        self.penalty = self.recipe.make_critic_penalty(self.opt_d, collect_stats=True)
+        penalty_options = {'input_domain': 'continuous'} if penalty_input_domain == 'continuous' else {}
+        self.penalty = self.recipe.make_critic_penalty(self.opt_d, collect_stats=True, **penalty_options)
         self.spread = self.recipe.make_prior_regularizer(prior=self.prior) if self.prior else None
         self._check_optimizer_ownership(trainables, d_parameters)
         self.base_lrs = [[g['lr'] for g in opt.param_groups] for opt in (self.opt_g, self.opt_d)]
@@ -259,13 +294,19 @@ class ConditionalPG09:
         self._export_loaded = False
         self._signature = dict(pg_version=PG_VERSION, pg_release_wheel_sha256=PG_WHEEL_SHA256,
             pg_sources_sha256=pg_sources_sha256, implementation_sources=_implementation_sources(backend, critic, self.provider),
+            pg_source_profile=pg_source_profile,
+            pg_patch_sha256=(json.loads(Path(__file__).with_name('pg09_continuous_profile.json').read_text())['patch_sha256']
+                             if pg_source_profile == 'alz-continuous-v1' else None),
+            runtime=dict(python=platform.python_version(), torch=str(torch.__version__), cuda=torch.version.cuda,
+                         numpy=version('numpy'), deterministic=torch.are_deterministic_algorithms_enabled(),
+                         tf32_matmul=torch.backends.cuda.matmul.allow_tf32),
             architectures=_architectures(backend, critic),
             recipe=asdict(self.recipe), backend=_identity(backend.metadata()),
             rows_sha256=_hash(self.provider.identity() if self.provider is not None else self.rows),
             conditions_sha256=(_hash(self.conditions) if self.conditions is not None else 'bound-by-provider-identity'),
             row_count=len(self.rows), sampling=sampling,
             response_domain=response_domain, resolved_penalty_domain=('image' if len(shape) >= 3 else 'continuous'),
-            penalty_input_domain='auto', response_shape=list(shape[1:]),
+            penalty_input_domain=penalty_input_domain, response_shape=list(shape[1:]),
             response_scale=self.response_scale, sigma=self.sigma,
             generator_arm='routed_particle_gan' if self.prior else 'adapter_gan',
             objective='g_adv+public_prior;d_adv+public_penalty',
