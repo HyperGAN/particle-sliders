@@ -9,7 +9,7 @@ from particle_sliders.pg09 import ConditionalPG09
 from conceptmod.textsliders import ltx25_backend as native_mod
 from conceptmod.textsliders import ltx25_uni
 from conceptmod.textsliders.pg09_ltx_embed import LTX25ConnectorResponseAdapter, LTXEmbedRow
-from conceptmod.textsliders.pg09_text_video import ResponseCompatibilityError
+from particle_sliders.pg09_text_video import ResponseCompatibilityError
 from test_pg09_text_video import Critic, equal
 
 
