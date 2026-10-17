@@ -7,15 +7,16 @@ wheel hashes and critical native implementation hashes are recorded in
 `conceptmod/textsliders/text_package_pin.json`; Ada review status is explicit.
 Candidate qualification does not claim review approval or a merge.
 
-The frozen candidate is `4be0b5b29d2e2c741431f468d71ba8a7c884b724`.
+The final frozen candidate is `cdfb80a76b882b4b73861b12f555263bd64ffeb7`.
 Its core wheel SHA256 is
-`2e7621c370e790f65702acf76cfa2f428b393cd3f863245aa26d8a76ff096ada`;
+`4abc83988fdeb6d7478de830e7ee8ec5d9bd99c20d52f89e4ce594d50dfd39a3`;
 the official PG wheel SHA256 is
 `b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec`.
 The consumer pin manifest SHA256 is
-`d6b4b8a3cb22d29d4e3577797625b13aeddf7c5fd28f8313b0d987f76aa9a45e`.
+`d4733bb038c78c049274ffca8aaffdd8aa94ce4e47eda0c559300c07a186e104`.
 The earlier `42a2e371` receipts are retained under `superseded-42a/` and do not
-constitute acceptance of this replacement.
+constitute acceptance of this replacement. The `replacement-4be/` receipts remain
+scoped to that exact earlier wheel; they are not silently rebound to CDF.
 
 ## Installation and runtime identity
 
@@ -99,7 +100,7 @@ failed rather than completed.
 
 ## Acceptance boundary
 
-Receipts in `evidence/text-package-acceptance/` cover installation from hashed
+Prior 4be receipts in `evidence/text-package-acceptance/replacement-4be/` cover installation from hashed
 wheels, actual imported package paths, source-free shared GAN execution, fresh
 process continuation, exact FP32 reload on a BF16 frozen host, signed/zero scale,
 transactional invalid-load rejection, meta-device placement, source/profile
@@ -118,7 +119,19 @@ The source-free subprocess blocks repository and native runtime imports while
 executing two real shared GAN updates against a dummy native model.
 Eleven additional subprocess regressions confirm retirement before source,
 artifact, output or process access, including preservation of existing reports.
-The combined replacement acceptance is 238 passed, two expected skips.
+The combined 4be acceptance was 238 passed, two expected skips.
+
+Final CDF receipts in `evidence/text-package-acceptance/final-cdf/` record a narrow
+29-test installed-wheel acceptance with no failures or skips: 14 consumer cases,
+14 focused optimizer cases and one explicit native-width 1024 case. These verify
+the exact new pin/import origins, source-shadow rejection, source-free actual
+GAN updates, fresh-process continuation, FP32 reload, Bonsai selected-weight
+inference and native signed export/reload. A native Tiny regression rejects zero
+and future G/D Adam clocks atomically, then resumes the valid snapshot to the
+exact next update. Shared tests retain valid initial empty, never-used and
+partially-used critic histories. All fixtures are freshly constructed under CDF.
+The earlier checkpoints and running cohorts remain source-bound to their own
+packages. No unrelated native/Qwen broad suite was rerun for this narrow adoption.
 
 Bonsai's previous 1200-update held-out failure remains unchanged: 0/3 successful
 cases, mean relative-edit MSE1.9433580629, `quality_qualified=false`. No extension,

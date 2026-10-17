@@ -18,12 +18,12 @@ ROWS=[dict(neutral='a quiet song',positive='an intense metal song'),
       dict(neutral='a calm melody',positive='an aggressive metal melody')]
 
 
-def make(dtype=torch.float32):
+def make(dtype=torch.float32, *, preset='bispf_optimized'):
     torch.set_num_threads(1)
     torch.manual_seed(91)
     backend=TinyLLMBackend(dummy=True)
     backend.model.to(dtype=dtype)
-    return PG09TinyRun(backend,ROWS,total_steps=6,batch_size=4)
+    return PG09TinyRun(backend,ROWS,total_steps=6,batch_size=4,preset=preset)
 
 
 def equal(a,b):
@@ -104,6 +104,26 @@ def test_resume_all_state_and_sampling_are_exact_and_legacy_rejected():
     with pytest.raises(ValueError,match='protocol'):
         restored.load_state_dict({'network':live.network.state_dict(),'g_optimizer':{}})
     equal(restored.state_dict(),before)
+
+
+@pytest.mark.parametrize('optimizer', ['opt_g', 'opt_d'])
+@pytest.mark.parametrize('clock', [0, 2])
+def test_original_adam_native_resume_rejects_invalid_clock_atomically(optimizer, clock):
+    source = make(preset='bispf')
+    source.step()
+    valid = source.state_dict()
+    invalid = deepcopy(valid)
+    key = invalid['game'][optimizer]['param_groups'][0]['params'][0]
+    invalid['game'][optimizer]['state'][key]['step'].fill_(clock)
+    receiver = make(preset='bispf')
+    before = receiver.state_dict()
+    with pytest.raises(ValueError, match='Adam step count differs'):
+        receiver.load_state_dict(invalid)
+    equal(before, receiver.state_dict())
+    receiver.load_state_dict(valid)
+    assert receiver.step() == source.step()
+    equal(source.state_dict(), receiver.state_dict())
+    assert not torch.cuda.is_initialized()
 
 
 def test_resume_retains_inference_vocabulary_and_rejects_corruption_transactionally():
