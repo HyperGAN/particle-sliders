@@ -1,0 +1,1268 @@
+{
+  "schema": "observed-image-failure-pg09-campaign-proposals-v1",
+  "status": "CPU-prepared proposals; no live admission",
+  "dispatch_allowed": false,
+  "scope": [
+    "sana-happy-20261017",
+    "sd3-smile-20261017"
+  ],
+  "core": {
+    "commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
+    "module_sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+    "pg_source_profile": "release",
+    "penalty_input_domain": "auto",
+    "response_domain": "continuous_field",
+    "pg_math_changed": false,
+    "verified_pg_python_files": 49,
+    "pg_sources_sha256": "2eb837a727eee3a01d37e7c979c7d5b98bde6d061054bf12f6a226a5e59439b1"
+  },
+  "campaigns": [
+    {
+      "id": "sana-happy-pg09-proposal",
+      "archived_run": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017",
+      "archive_bindings": [
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/recipe.json",
+          "bytes": 1456,
+          "sha256": "6b6809e4819c222d1f821925c588e6f5ac0478085a52b5b8b3212454154a3dde"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000000.json",
+          "bytes": 206,
+          "sha256": "bb03afd54116981398c07bef6f6b70af3e4c64fb4aebf25785c2db1ee19f0f7f"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/objective-disposition.json",
+          "bytes": 378,
+          "sha256": "919d7502a99d5b42f678dc23ae4227a7e2a41aac38ee0e585f075d18fcfc1160"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/progress.json",
+          "bytes": 1499,
+          "sha256": "dc84680d10dc8f5c0d1bd9f779e5105b52eed69f12aeb7cfcad5452e8ebc78d0"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/quality-review.json",
+          "bytes": 4829,
+          "sha256": "42da2de2e5997c333f6e2de4bd6e242eb3670637cea9ed9f2bec4d9f7a257488"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/real-baseline-validation.json",
+          "bytes": 2850,
+          "sha256": "2ef7e7733b5ecceef183c26238b4dbb36012c722d156188cf7adc978e41ee55a"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/implementation-repair-20261017.json",
+          "bytes": 1111,
+          "sha256": "2da09f2bc8846d568792aa6b797b3aa90ebf572c6d1cbbd2775d4dd5f4fc0c6c"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/model-manifest.json",
+          "bytes": 1386,
+          "sha256": "e172cb6330e49046ecbf70f28e18c2cda4da67c5dd90e35a863571b5d036c964"
+        }
+      ],
+      "frozen_baseline_assets": [
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-123-off.png",
+          "bytes": 339109,
+          "sha256": "693278a9761cb136fc64da4b824e6f9ae895625c03dc5f17b2483ba026382495"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-123-teacher.png",
+          "bytes": 385802,
+          "sha256": "4502be01d93f957f568c7cab2828b6aab318e1eecdb73ef2b7c1c4810abd198e"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-456-off.png",
+          "bytes": 335974,
+          "sha256": "8e09a9a75ac743353c96deac66a6fd703c1e5bb8e348b03e52e7928a3ed1859d"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-456-teacher.png",
+          "bytes": 342187,
+          "sha256": "c6a1312428711f49714931170db7ce3a682ea696b33d717d90f13bdee20f53ef"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-123-off.png",
+          "bytes": 361635,
+          "sha256": "c6ed68659484ee5d76444307c25b14ce2c1eba67a346150ac73b8b7e2c421ace"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-123-teacher.png",
+          "bytes": 362979,
+          "sha256": "7e3c03612e0e80b5b22f49b979dda2dff075a703b3b4c3099bc4629535116f7c"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-456-off.png",
+          "bytes": 349994,
+          "sha256": "eb0c6e7ce1900e64780418080486cf67a6f33d30361e9a738d3c6c3e7fa6c3be"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-456-teacher.png",
+          "bytes": 350801,
+          "sha256": "737c6e92af19138c101273e6f8044f51f366512d0566f45f26d3f82bd3d9e372"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-2-seed-789-off.png",
+          "bytes": 376598,
+          "sha256": "573cd71aef18da88cc7284e7fe5b4cbb991fcd1a54717eb8591397f70579667e"
+        }
+      ],
+      "model": {
+        "id": "Efficient-Large-Model/Sana_600M_512px_diffusers",
+        "revision": "83d7a190bfd1fd070570a793d2dab5c7a3231b9d",
+        "directory": "/mnt/nvme/ai/caches/huggingface/main/hub/models--Efficient-Large-Model--Sana_600M_512px_diffusers/snapshots/83d7a190bfd1fd070570a793d2dab5c7a3231b9d",
+        "weight_content_read": false,
+        "manifest_hashes_retained": true
+      },
+      "initial_checkpoint_metadata": {
+        "identity": "99dfbdd7cbeda5d63b3a444b7a7472ff798e2556b96e4c74da5cc00aee1043bc",
+        "step": 0,
+        "sha256": "a3109995761bf5956e0d2a59564db9f19e238ca2c4fb95ff6b78ea6c24bd9c00",
+        "file": "step-000000.pt"
+      },
+      "checkpoint_content_loaded": false,
+      "training_prompts": {
+        "plus_label": "Happy",
+        "minus_label": "Sad",
+        "recommended_range": [
+          0.0,
+          2.0
+        ],
+        "concept_words": "smiling, happy, joyful, smile",
+        "control_prompt": "a bowl of fruit on a table",
+        "rows": [
+          {
+            "target": "a person",
+            "positive": "a person smiling, happy expression",
+            "negative": "a sad person",
+            "neutral": "a person",
+            "attributes": [
+              "male",
+              "female"
+            ],
+            "action": "enhance",
+            "guidance_scale": 4.5,
+            "resolution": 512,
+            "batch_size": 1
+          },
+          {
+            "target": "a portrait of a person",
+            "positive": "a portrait of a person smiling, happy expression",
+            "negative": "a portrait of a sad person",
+            "neutral": "a portrait of a person",
+            "attributes": [
+              "male",
+              "female"
+            ],
+            "action": "enhance",
+            "guidance_scale": 4.5,
+            "resolution": 512,
+            "batch_size": 1
+          }
+        ]
+      },
+      "heldout": [
+        {
+          "neutral": "a portrait photograph of an adult woman with a neutral expression, plain background",
+          "positive": "a portrait photograph of an adult woman smiling, happy expression, plain background",
+          "seeds": [
+            123,
+            456
+          ]
+        },
+        {
+          "neutral": "a portrait photograph of an adult man with a neutral expression, plain background",
+          "positive": "a portrait photograph of an adult man smiling, happy expression, plain background",
+          "seeds": [
+            123,
+            456
+          ]
+        },
+        {
+          "neutral": "a bowl of fruit on a table",
+          "positive": "a bowl of fruit on a table",
+          "seeds": [
+            789
+          ],
+          "control": true
+        }
+      ],
+      "evaluation": {
+        "resolution": 512,
+        "steps": 20,
+        "cfg": 4.5,
+        "strength_grid": [
+          0.0,
+          0.5,
+          1.0
+        ],
+        "frozen_positive_teacher": true,
+        "fruit_is_evaluation_only": true,
+        "sampler": "original native pipeline, original cached conditioning, explicit empty negative",
+        "adapted_cfg_branches": "both, matching archive",
+        "generator": "CPU torch.Generator with per-case fixed seed"
+      },
+      "training_protocol": {
+        "seed": 7,
+        "initial_noise": "original device-RNG descriptor plan; exact tensor checksums required after root admission",
+        "source_rng_extraction": "not done; no checkpoint loaded",
+        "selected_times": "fixed raw t500",
+        "state": "raw initial noise",
+        "target": "frozen empty +4.5*(frozen positive-empty)",
+        "student": "raw neutral at CFG1",
+        "native_response_shape": [
+          1,
+          32,
+          16,
+          16
+        ],
+        "adapter": "same complete attn2 parameter set; frozen W + FP32delta",
+        "precision_delta_from_archive": null,
+        "original_training_updates": 500,
+        "original_training_batch": 1,
+        "fruit_training_added": false,
+        "conditioning": "full numeric tensor fixed source-bound projection + global descriptor collision gate"
+      },
+      "critic": {
+        "class_name": "ImageFailureCritic",
+        "native_shape": [
+          1,
+          32,
+          16,
+          16
+        ],
+        "hidden_sizes": [
+          256,
+          128
+        ],
+        "conditioning_dim": 106,
+        "raw_logits": true,
+        "all_native_coordinates": true,
+        "flatten_only_inside_critic": true
+      },
+      "arms": [
+        {
+          "preset": "bispf",
+          "resolved_public_recipe": {
+            "name": "bispf",
+            "critic_formulation": "bispf",
+            "model": "gan",
+            "z_dim": 2,
+            "num_particles": 20000,
+            "prior_kind": "particles",
+            "sigma_rel": 0.0,
+            "standardize": true,
+            "num_classes": null,
+            "conditioning": "scalar",
+            "ucd_target": "class",
+            "ucd_weight": 0.02,
+            "alpha_bar": [
+              1.0,
+              0.9,
+              0.5,
+              0.05,
+              0.0001
+            ],
+            "batch_size": 2,
+            "total_steps": 1000,
+            "continuous_policy": null,
+            "lr": 2e-05,
+            "d_lr_mult": 1.0,
+            "prior_lr_mult": 2.0,
+            "betas": [
+              0.0,
+              0.999
+            ],
+            "prior_betas": null,
+            "reg_arm": null,
+            "reg_coeff": 1.0,
+            "reg_kappa": 1.0,
+            "reg_every": 1,
+            "critic_step_mode": "none",
+            "prior_reg": 0.05,
+            "prior_update": "learned",
+            "prior_regularizer": "sbnp",
+            "prior_reg_target_std": 1.0,
+            "prior_reg_eps": 0.0001,
+            "prior_l2": 0.0,
+            "prior_proximal_strength": 0.0,
+            "prior_coulomb_softening": 0.1,
+            "prior_coulomb_confinement": 0.35,
+            "prior_coulomb_neighbors": 8,
+            "prior_sigreg_projections": 32,
+            "prior_sigreg_knots": 17,
+            "ema_decay": 0.0,
+            "lr_anneal_start": 0.6,
+            "lr_floor": 1.0,
+            "network_lr_floor": 1.0,
+            "network_lr_horizon_cap": null,
+            "reg_anchor_min_decay": 0.9,
+            "reg_anchor_weight": 0.0,
+            "direct_particle_gain": false,
+            "d_guard_ratio": 0.0,
+            "d_guard_min_steps": 200,
+            "latent_damping_max_rate": 0.0,
+            "direct_particle_betas": [
+              0.0,
+              0.9
+            ],
+            "input_noise_std": 0.0,
+            "input_noise_anneal_end": 0.1,
+            "output_noise_std": 0.0,
+            "output_noise_warmup": 0.0,
+            "encoder_mode": "none",
+            "routing_temperature": 0.25,
+            "distance_reduction": "sum",
+            "observation_sigma": 0.03,
+            "reconstruction_weight": 1.0,
+            "kinetic_transport_weight": 0.0,
+            "kinetic_transport_local_weight": 0.0,
+            "kinetic_transport_projections": 32,
+            "amsgrad": false,
+            "critic_r1_real": true,
+            "critic_payoff_damping": true,
+            "output_noise_mode": "fixed",
+            "lr_control": "mobility",
+            "particle_birth_death": false,
+            "row_evidence_gate": false,
+            "table_release_rule": "any",
+            "row_evidence_hot": true,
+            "row_evidence_exclude": true,
+            "row_evidence_hold": true,
+            "birth_death_space": "data",
+            "serve_average": 0.0,
+            "reopen_signal": "data",
+            "reopen_anchor": "hold",
+            "reopen_guard": null,
+            "row_evidence_null": "theory",
+            "birth_death_isolation": false,
+            "birth_death_feature_scale": "none",
+            "birth_death_backend": "knn",
+            "birth_death_cells": 64,
+            "birth_death_metric_rank": 8,
+            "birth_death_chunk": 256,
+            "birth_death_parent_policy": "real_anchor",
+            "row_policy": "independent",
+            "optimizer_family": "formulation",
+            "optimizer_momentum": 0.0,
+            "optimizer_smoothing": 0.0,
+            "optimizer_convolution": "none",
+            "optimizer_convolution_rule": "polar",
+            "optimizer_svd_backend": "native",
+            "constraint_geometry_mode": "none",
+            "optimizer_adam_lr": null,
+            "eps": 1e-08,
+            "beta2_end": null,
+            "beta2_anneal_end": 0.2,
+            "reg_coeff_end": null,
+            "reg_coeff_anneal_end": 0.2,
+            "loss": "relativistic",
+            "d_betas": null,
+            "d_eps": null,
+            "prior_eps": null,
+            "loss_labels": [
+              0.0,
+              1.0,
+              1.0
+            ],
+            "adam_variant": "pytorch",
+            "lr_schedule": "constant",
+            "lr_decay_rate": 0.96,
+            "lr_decay_steps": 50000,
+            "lr_decay_staircase": false
+          },
+          "generator_objective": "public adversarial loss only; no prior without a participating bank",
+          "critic_objective": "public adversarial loss + public critic penalty",
+          "particles": null,
+          "arm": "adapter GAN; no disconnected particle-bank claim",
+          "g_updates": 1000,
+          "batch_size": 2,
+          "descriptor_count": 500,
+          "full_g_cycles": 4,
+          "full_d_cycles": 4,
+          "g_exposures": 2000,
+          "d_exposures": 2000,
+          "budget_basis": "historical500-update floor plus4complete independent balanced cycles of500descriptors; proposal not convergence proof",
+          "evaluation_updates": [
+            0,
+            20,
+            250,
+            500,
+            750,
+            1000
+          ],
+          "stopping": "full authorized horizon; invariant/nonfinite/resource failure may stop; no canary substitutes for trained quality"
+        },
+        {
+          "preset": "bispf_optimized",
+          "resolved_public_recipe": {
+            "name": "bispf_optimized",
+            "critic_formulation": "bispf",
+            "model": "gan",
+            "z_dim": 2,
+            "num_particles": 20000,
+            "prior_kind": "particles",
+            "sigma_rel": 0.0,
+            "standardize": true,
+            "num_classes": null,
+            "conditioning": "scalar",
+            "ucd_target": "class",
+            "ucd_weight": 0.02,
+            "alpha_bar": [
+              1.0,
+              0.9,
+              0.5,
+              0.05,
+              0.0001
+            ],
+            "batch_size": 2,
+            "total_steps": 1000,
+            "continuous_policy": null,
+            "lr": 2e-05,
+            "d_lr_mult": 1.5,
+            "prior_lr_mult": 2.5,
+            "betas": [
+              0.0,
+              0.999
+            ],
+            "prior_betas": null,
+            "reg_arm": null,
+            "reg_coeff": 1.0,
+            "reg_kappa": 1.0,
+            "reg_every": 1,
+            "critic_step_mode": "none",
+            "prior_reg": 0.01,
+            "prior_update": "learned",
+            "prior_regularizer": "sbnp",
+            "prior_reg_target_std": 1.0,
+            "prior_reg_eps": 0.0001,
+            "prior_l2": 0.0,
+            "prior_proximal_strength": 0.0,
+            "prior_coulomb_softening": 0.1,
+            "prior_coulomb_confinement": 0.35,
+            "prior_coulomb_neighbors": 8,
+            "prior_sigreg_projections": 32,
+            "prior_sigreg_knots": 17,
+            "ema_decay": 0.0,
+            "lr_anneal_start": 0.6,
+            "lr_floor": 1.0,
+            "network_lr_floor": 1.0,
+            "network_lr_horizon_cap": null,
+            "reg_anchor_min_decay": 0.9,
+            "reg_anchor_weight": 0.0,
+            "direct_particle_gain": false,
+            "d_guard_ratio": 0.0,
+            "d_guard_min_steps": 200,
+            "latent_damping_max_rate": 0.0,
+            "direct_particle_betas": [
+              0.0,
+              0.9
+            ],
+            "input_noise_std": 0.0,
+            "input_noise_anneal_end": 0.1,
+            "output_noise_std": 0.0,
+            "output_noise_warmup": 0.0,
+            "encoder_mode": "none",
+            "routing_temperature": 0.25,
+            "distance_reduction": "sum",
+            "observation_sigma": 0.03,
+            "reconstruction_weight": 1.0,
+            "kinetic_transport_weight": 0.0,
+            "kinetic_transport_local_weight": 0.0,
+            "kinetic_transport_projections": 32,
+            "amsgrad": false,
+            "critic_r1_real": true,
+            "critic_payoff_damping": true,
+            "output_noise_mode": "fixed",
+            "lr_control": "mobility",
+            "particle_birth_death": false,
+            "row_evidence_gate": false,
+            "table_release_rule": "any",
+            "row_evidence_hot": true,
+            "row_evidence_exclude": true,
+            "row_evidence_hold": true,
+            "birth_death_space": "data",
+            "serve_average": 0.0,
+            "reopen_signal": "data",
+            "reopen_anchor": "hold",
+            "reopen_guard": null,
+            "row_evidence_null": "theory",
+            "birth_death_isolation": false,
+            "birth_death_feature_scale": "none",
+            "birth_death_backend": "knn",
+            "birth_death_cells": 64,
+            "birth_death_metric_rank": 8,
+            "birth_death_chunk": 256,
+            "birth_death_parent_policy": "real_anchor",
+            "row_policy": "independent",
+            "optimizer_family": "dualnorm",
+            "optimizer_momentum": 0.0,
+            "optimizer_smoothing": 0.001,
+            "optimizer_convolution": "per_offset",
+            "optimizer_convolution_rule": "quintic",
+            "optimizer_svd_backend": "native",
+            "constraint_geometry_mode": "direction_blend",
+            "optimizer_adam_lr": null,
+            "eps": 1e-08,
+            "beta2_end": null,
+            "beta2_anneal_end": 0.2,
+            "reg_coeff_end": null,
+            "reg_coeff_anneal_end": 0.2,
+            "loss": "non_saturating",
+            "d_betas": null,
+            "d_eps": null,
+            "prior_eps": null,
+            "loss_labels": [
+              0.0,
+              1.0,
+              1.0
+            ],
+            "adam_variant": "pytorch",
+            "lr_schedule": "cosine",
+            "lr_decay_rate": 0.96,
+            "lr_decay_steps": 50000,
+            "lr_decay_staircase": false
+          },
+          "generator_objective": "public adversarial loss only; no prior without a participating bank",
+          "critic_objective": "public adversarial loss + public critic penalty",
+          "particles": null,
+          "arm": "adapter GAN; no disconnected particle-bank claim",
+          "g_updates": 1000,
+          "batch_size": 2,
+          "descriptor_count": 500,
+          "full_g_cycles": 4,
+          "full_d_cycles": 4,
+          "g_exposures": 2000,
+          "d_exposures": 2000,
+          "budget_basis": "historical500-update floor plus4complete independent balanced cycles of500descriptors; proposal not convergence proof",
+          "evaluation_updates": [
+            0,
+            20,
+            250,
+            500,
+            750,
+            1000
+          ],
+          "stopping": "full authorized horizon; invariant/nonfinite/resource failure may stop; no canary substitutes for trained quality"
+        }
+      ],
+      "response_coordinates": {
+        "domain": "continuous_field",
+        "shape": [
+          1,
+          32,
+          16,
+          16
+        ],
+        "response_scale": {
+          "value": null,
+          "rule": "freeze one finite positive RMS(target-neutral) scalar from training-only scale0 calibration",
+          "heldout_used": false,
+          "optimized_loss": false
+        },
+        "sigma": 1.0,
+        "wide_vector_overlay": false
+      },
+      "online_provider": {
+        "protocol": "online-current-adapter-snapshot-proposal-v1",
+        "immutable": "descriptor/noise/context/time/guidance/source/condition-index identities",
+        "dynamic": "prefix and paired targets regenerated from actual start-of-step G",
+        "selected_row_receipt": [
+          "logical_step",
+          "G_state_sha256",
+          "descriptor_sha256",
+          "initial_noise_sha256",
+          "prefix_sha256",
+          "target_sha256",
+          "neutral_sha256"
+        ],
+        "same_G_version": "physical parameter version guard across preflight/G/D fetches; full adapter-state digest at step start",
+        "memory": "selected unique D/G union only; no full response target concatenation",
+        "state_hash_cost": "full FP32 generator adapter-state readback/hash per logical step; Sana148M leaves cost unmeasured and must enter runtime admission budget",
+        "resume": "load coreG+completedstep, re-arm and deterministically regenerate selected rows; no provider RNG",
+        "semantic_review": "accepted for CPU contract prototype only; not old immutable-cache qualification"
+      },
+      "pending_admission_gates": [
+        "root GPU/process admission (MOSS currently owns actual model slots)",
+        "exact initial-noise/selected-time descriptor asset manifest and global condition collision audit",
+        "source/runtime/model-manifest revalidation without downloads",
+        "native no-update frozen teacher/Off pixel replay, masks/CFG/sampler and true512decode parity",
+        "online provider independent review and selected-row/G-version provenance audit",
+        "actual model gradient and GPU memory/runtime measurement",
+        "separate-process file-backed GPU checkpoint resume with exact next row/state/loss",
+        "full authorized1000-update run and matched heldout/fruit panels before any quality claim"
+      ],
+      "alternatives": [
+        {
+          "name": "frozen-prefix cache",
+          "selected": false,
+          "tradeoff": "changes SD3 original CURRENT-adapter state distribution; requires explicit separate protocol/approval"
+        },
+        {
+          "name": "raw velocity for SD3 or conditional-only CFG rendering",
+          "selected": false,
+          "tradeoff": "changes archived endpoint teacher or rendering; not silently substituted"
+        }
+      ]
+    },
+    {
+      "id": "sd3-smile-pg09-proposal",
+      "archived_run": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017",
+      "archive_bindings": [
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/recipe.json",
+          "bytes": 4501,
+          "sha256": "75f8d744cc0fbe55f926ab047411032c4a7a80b7cc9737d5bd7b3b7d20fcd2b7"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000000.json",
+          "bytes": 206,
+          "sha256": "efa8b6be30ff9cf7c6eccce7d8c80bb8cc002c0ece5542a440709327eb1a99d9"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/objective-disposition.json",
+          "bytes": 378,
+          "sha256": "919d7502a99d5b42f678dc23ae4227a7e2a41aac38ee0e585f075d18fcfc1160"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/progress.json",
+          "bytes": 694,
+          "sha256": "da3520922bd5c1dc718b0ffd874f5682edd84ef9f91a0fc4cbc793f95752d562"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/sd3-ea42f8c/qualification-manifest.json",
+          "bytes": 3562,
+          "sha256": "a53d185fdd330aa5f019be93fc7972832270ab9e23f787f86588b47b18fcb838"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/receipts/full.json",
+          "bytes": 694,
+          "sha256": "da3520922bd5c1dc718b0ffd874f5682edd84ef9f91a0fc4cbc793f95752d562"
+        }
+      ],
+      "frozen_baseline_assets": [
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-0-Off.png",
+          "bytes": 410512,
+          "sha256": "b4c3f3e88c648d37d7b621c674499dbc8d6113bd5b6aaef7359cef2233453754"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-0-Frozen_positive_CFG3.png",
+          "bytes": 417399,
+          "sha256": "b11792b6932b47bfed37869fe94adf09f2ee4152f2aad60654958108cfb2db83"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-1-Off.png",
+          "bytes": 449034,
+          "sha256": "d1e6fbce5b4dff462ef02f2a56eb3a3a83a82a6ccd87c5e175d21e41c8799587"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-1-Frozen_positive_CFG3.png",
+          "bytes": 454075,
+          "sha256": "35de923cba832764875c409011938043e8fb6fc68d6d0354980ee0cef160e718"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-2-Off.png",
+          "bytes": 297877,
+          "sha256": "32443b82feb7ef3b9a9b5aa5ae73a05aea786eb5ddc10917a6e9a291dee8f941"
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-2-Frozen_positive_CFG3.png",
+          "bytes": 297877,
+          "sha256": "32443b82feb7ef3b9a9b5aa5ae73a05aea786eb5ddc10917a6e9a291dee8f941"
+        }
+      ],
+      "model": {
+        "id": "stabilityai/stable-diffusion-3-medium-diffusers",
+        "revision": "ea42f8cef0f178587cf766dc8129abd379c90671",
+        "directory": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--stable-diffusion-3-medium-diffusers/snapshots/ea42f8cef0f178587cf766dc8129abd379c90671",
+        "weight_content_read": false,
+        "manifest_hashes_retained": true
+      },
+      "initial_checkpoint_metadata": {
+        "identity": "d1227dc772592aa4e29640464401367262228b6456e0bcc7cb7af1d85e7ba149",
+        "step": 0,
+        "sha256": "8ccf414c1ec32a614690a70f290e2ed7582faf570049ccb5edf6a80dd4b7fe42",
+        "file": "step-000000.pt"
+      },
+      "checkpoint_content_loaded": false,
+      "training_prompts": [
+        {
+          "target": "a studio portrait of an adult woman in a green sweater, neutral expression",
+          "neutral": "a studio portrait of an adult woman in a green sweater, neutral expression",
+          "positive": "a studio portrait of an adult woman in a green sweater, smiling happily",
+          "negative": "a studio portrait of an adult woman in a green sweater, neutral expression",
+          "unconditional": "",
+          "action": "enhance",
+          "guidance_scale": 1.0,
+          "resolution": 512,
+          "dynamic_resolution": false,
+          "batch_size": 1
+        },
+        {
+          "target": "an outdoor portrait of an adult man wearing a gray jacket, neutral expression",
+          "neutral": "an outdoor portrait of an adult man wearing a gray jacket, neutral expression",
+          "positive": "an outdoor portrait of an adult man wearing a gray jacket, smiling happily",
+          "negative": "an outdoor portrait of an adult man wearing a gray jacket, neutral expression",
+          "unconditional": "",
+          "action": "enhance",
+          "guidance_scale": 1.0,
+          "resolution": 512,
+          "dynamic_resolution": false,
+          "batch_size": 1
+        },
+        {
+          "target": "a photograph of an adult woman beside a cafe window, neutral expression",
+          "neutral": "a photograph of an adult woman beside a cafe window, neutral expression",
+          "positive": "a photograph of an adult woman beside a cafe window, smiling happily",
+          "negative": "a photograph of an adult woman beside a cafe window, neutral expression",
+          "unconditional": "",
+          "action": "enhance",
+          "guidance_scale": 1.0,
+          "resolution": 512,
+          "dynamic_resolution": false,
+          "batch_size": 1
+        },
+        {
+          "target": "a photograph of an adult man seated in a red chair, neutral expression",
+          "neutral": "a photograph of an adult man seated in a red chair, neutral expression",
+          "positive": "a photograph of an adult man seated in a red chair, smiling happily",
+          "negative": "a photograph of an adult man seated in a red chair, neutral expression",
+          "unconditional": "",
+          "action": "enhance",
+          "guidance_scale": 1.0,
+          "resolution": 512,
+          "dynamic_resolution": false,
+          "batch_size": 1
+        }
+      ],
+      "heldout": [
+        {
+          "neutral": "a portrait photograph of an adult woman wearing a blue coat, neutral expression, brick wall background",
+          "positive": "a portrait photograph of an adult woman wearing a blue coat, smiling happily, brick wall background",
+          "seeds": [
+            123
+          ],
+          "control": false
+        },
+        {
+          "neutral": "a photograph of an adult man with short dark hair, neutral expression, standing beside a wooden bookcase",
+          "positive": "a photograph of an adult man with short dark hair, smiling happily, standing beside a wooden bookcase",
+          "seeds": [
+            124
+          ],
+          "control": false
+        },
+        {
+          "neutral": "a ceramic bowl of fruit on a wooden table",
+          "positive": "a ceramic bowl of fruit on a wooden table",
+          "seeds": [
+            125
+          ],
+          "control": true
+        }
+      ],
+      "evaluation": {
+        "resolution": 512,
+        "steps": 28,
+        "cfg": 3.0,
+        "strength_grid": [
+          0.0,
+          -1.0,
+          0.5,
+          1.0
+        ],
+        "frozen_positive_teacher": true,
+        "fruit_is_evaluation_only": true,
+        "sampler": "original native pipeline, original cached conditioning, explicit empty negative",
+        "adapted_cfg_branches": "both, matching archive",
+        "generator": "CPU torch.Generator with per-case fixed seed"
+      },
+      "training_protocol": {
+        "seed": 7,
+        "initial_noise": "original device-RNG descriptor plan; exact tensor checksums required after root admission",
+        "source_rng_extraction": "not done; no checkpoint loaded",
+        "selected_times": "recorded index1..49 of original50-step scheduler",
+        "state": "CURRENT-adapter native no-grad prefix, detached before endpoint",
+        "target": "native BF16 neutral_endpoint + (positive_endpoint-negative_endpoint)",
+        "student": "native neutral BF16 scheduler-step endpoint at CFG1",
+        "native_response_shape": [
+          1,
+          16,
+          64,
+          64
+        ],
+        "adapter": "same Attention/full rank4 alpha1 LoRA; FP32 trainables required by PG, BF16 frozen host",
+        "precision_delta_from_archive": "old LoRA leaves BF16; PG requires FP32 leaves, explicitly declared",
+        "original_training_updates": 500,
+        "original_training_batch": 1,
+        "fruit_training_added": false,
+        "conditioning": "full numeric tensor fixed source-bound projection + global descriptor collision gate"
+      },
+      "critic": {
+        "class_name": "ImageFailureCritic",
+        "native_shape": [
+          1,
+          16,
+          64,
+          64
+        ],
+        "hidden_sizes": [
+          256,
+          128
+        ],
+        "conditioning_dim": 106,
+        "raw_logits": true,
+        "all_native_coordinates": true,
+        "flatten_only_inside_critic": true
+      },
+      "arms": [
+        {
+          "preset": "bispf",
+          "resolved_public_recipe": {
+            "name": "bispf",
+            "critic_formulation": "bispf",
+            "model": "gan",
+            "z_dim": 2,
+            "num_particles": 20000,
+            "prior_kind": "particles",
+            "sigma_rel": 0.0,
+            "standardize": true,
+            "num_classes": null,
+            "conditioning": "scalar",
+            "ucd_target": "class",
+            "ucd_weight": 0.02,
+            "alpha_bar": [
+              1.0,
+              0.9,
+              0.5,
+              0.05,
+              0.0001
+            ],
+            "batch_size": 2,
+            "total_steps": 1000,
+            "continuous_policy": null,
+            "lr": 0.0001,
+            "d_lr_mult": 1.0,
+            "prior_lr_mult": 2.0,
+            "betas": [
+              0.0,
+              0.999
+            ],
+            "prior_betas": null,
+            "reg_arm": null,
+            "reg_coeff": 1.0,
+            "reg_kappa": 1.0,
+            "reg_every": 1,
+            "critic_step_mode": "none",
+            "prior_reg": 0.05,
+            "prior_update": "learned",
+            "prior_regularizer": "sbnp",
+            "prior_reg_target_std": 1.0,
+            "prior_reg_eps": 0.0001,
+            "prior_l2": 0.0,
+            "prior_proximal_strength": 0.0,
+            "prior_coulomb_softening": 0.1,
+            "prior_coulomb_confinement": 0.35,
+            "prior_coulomb_neighbors": 8,
+            "prior_sigreg_projections": 32,
+            "prior_sigreg_knots": 17,
+            "ema_decay": 0.0,
+            "lr_anneal_start": 0.6,
+            "lr_floor": 1.0,
+            "network_lr_floor": 1.0,
+            "network_lr_horizon_cap": null,
+            "reg_anchor_min_decay": 0.9,
+            "reg_anchor_weight": 0.0,
+            "direct_particle_gain": false,
+            "d_guard_ratio": 0.0,
+            "d_guard_min_steps": 200,
+            "latent_damping_max_rate": 0.0,
+            "direct_particle_betas": [
+              0.0,
+              0.9
+            ],
+            "input_noise_std": 0.0,
+            "input_noise_anneal_end": 0.1,
+            "output_noise_std": 0.0,
+            "output_noise_warmup": 0.0,
+            "encoder_mode": "none",
+            "routing_temperature": 0.25,
+            "distance_reduction": "sum",
+            "observation_sigma": 0.03,
+            "reconstruction_weight": 1.0,
+            "kinetic_transport_weight": 0.0,
+            "kinetic_transport_local_weight": 0.0,
+            "kinetic_transport_projections": 32,
+            "amsgrad": false,
+            "critic_r1_real": true,
+            "critic_payoff_damping": true,
+            "output_noise_mode": "fixed",
+            "lr_control": "mobility",
+            "particle_birth_death": false,
+            "row_evidence_gate": false,
+            "table_release_rule": "any",
+            "row_evidence_hot": true,
+            "row_evidence_exclude": true,
+            "row_evidence_hold": true,
+            "birth_death_space": "data",
+            "serve_average": 0.0,
+            "reopen_signal": "data",
+            "reopen_anchor": "hold",
+            "reopen_guard": null,
+            "row_evidence_null": "theory",
+            "birth_death_isolation": false,
+            "birth_death_feature_scale": "none",
+            "birth_death_backend": "knn",
+            "birth_death_cells": 64,
+            "birth_death_metric_rank": 8,
+            "birth_death_chunk": 256,
+            "birth_death_parent_policy": "real_anchor",
+            "row_policy": "independent",
+            "optimizer_family": "formulation",
+            "optimizer_momentum": 0.0,
+            "optimizer_smoothing": 0.0,
+            "optimizer_convolution": "none",
+            "optimizer_convolution_rule": "polar",
+            "optimizer_svd_backend": "native",
+            "constraint_geometry_mode": "none",
+            "optimizer_adam_lr": null,
+            "eps": 1e-08,
+            "beta2_end": null,
+            "beta2_anneal_end": 0.2,
+            "reg_coeff_end": null,
+            "reg_coeff_anneal_end": 0.2,
+            "loss": "relativistic",
+            "d_betas": null,
+            "d_eps": null,
+            "prior_eps": null,
+            "loss_labels": [
+              0.0,
+              1.0,
+              1.0
+            ],
+            "adam_variant": "pytorch",
+            "lr_schedule": "constant",
+            "lr_decay_rate": 0.96,
+            "lr_decay_steps": 50000,
+            "lr_decay_staircase": false
+          },
+          "generator_objective": "public adversarial loss only; no prior without a participating bank",
+          "critic_objective": "public adversarial loss + public critic penalty",
+          "particles": null,
+          "arm": "adapter GAN; no disconnected particle-bank claim",
+          "g_updates": 1000,
+          "batch_size": 2,
+          "descriptor_count": 500,
+          "full_g_cycles": 4,
+          "full_d_cycles": 4,
+          "g_exposures": 2000,
+          "d_exposures": 2000,
+          "budget_basis": "historical500-update floor plus4complete independent balanced cycles of500descriptors; proposal not convergence proof",
+          "evaluation_updates": [
+            0,
+            20,
+            250,
+            500,
+            750,
+            1000
+          ],
+          "stopping": "full authorized horizon; invariant/nonfinite/resource failure may stop; no canary substitutes for trained quality"
+        },
+        {
+          "preset": "bispf_optimized",
+          "resolved_public_recipe": {
+            "name": "bispf_optimized",
+            "critic_formulation": "bispf",
+            "model": "gan",
+            "z_dim": 2,
+            "num_particles": 20000,
+            "prior_kind": "particles",
+            "sigma_rel": 0.0,
+            "standardize": true,
+            "num_classes": null,
+            "conditioning": "scalar",
+            "ucd_target": "class",
+            "ucd_weight": 0.02,
+            "alpha_bar": [
+              1.0,
+              0.9,
+              0.5,
+              0.05,
+              0.0001
+            ],
+            "batch_size": 2,
+            "total_steps": 1000,
+            "continuous_policy": null,
+            "lr": 0.0001,
+            "d_lr_mult": 1.5,
+            "prior_lr_mult": 2.5,
+            "betas": [
+              0.0,
+              0.999
+            ],
+            "prior_betas": null,
+            "reg_arm": null,
+            "reg_coeff": 1.0,
+            "reg_kappa": 1.0,
+            "reg_every": 1,
+            "critic_step_mode": "none",
+            "prior_reg": 0.01,
+            "prior_update": "learned",
+            "prior_regularizer": "sbnp",
+            "prior_reg_target_std": 1.0,
+            "prior_reg_eps": 0.0001,
+            "prior_l2": 0.0,
+            "prior_proximal_strength": 0.0,
+            "prior_coulomb_softening": 0.1,
+            "prior_coulomb_confinement": 0.35,
+            "prior_coulomb_neighbors": 8,
+            "prior_sigreg_projections": 32,
+            "prior_sigreg_knots": 17,
+            "ema_decay": 0.0,
+            "lr_anneal_start": 0.6,
+            "lr_floor": 1.0,
+            "network_lr_floor": 1.0,
+            "network_lr_horizon_cap": null,
+            "reg_anchor_min_decay": 0.9,
+            "reg_anchor_weight": 0.0,
+            "direct_particle_gain": false,
+            "d_guard_ratio": 0.0,
+            "d_guard_min_steps": 200,
+            "latent_damping_max_rate": 0.0,
+            "direct_particle_betas": [
+              0.0,
+              0.9
+            ],
+            "input_noise_std": 0.0,
+            "input_noise_anneal_end": 0.1,
+            "output_noise_std": 0.0,
+            "output_noise_warmup": 0.0,
+            "encoder_mode": "none",
+            "routing_temperature": 0.25,
+            "distance_reduction": "sum",
+            "observation_sigma": 0.03,
+            "reconstruction_weight": 1.0,
+            "kinetic_transport_weight": 0.0,
+            "kinetic_transport_local_weight": 0.0,
+            "kinetic_transport_projections": 32,
+            "amsgrad": false,
+            "critic_r1_real": true,
+            "critic_payoff_damping": true,
+            "output_noise_mode": "fixed",
+            "lr_control": "mobility",
+            "particle_birth_death": false,
+            "row_evidence_gate": false,
+            "table_release_rule": "any",
+            "row_evidence_hot": true,
+            "row_evidence_exclude": true,
+            "row_evidence_hold": true,
+            "birth_death_space": "data",
+            "serve_average": 0.0,
+            "reopen_signal": "data",
+            "reopen_anchor": "hold",
+            "reopen_guard": null,
+            "row_evidence_null": "theory",
+            "birth_death_isolation": false,
+            "birth_death_feature_scale": "none",
+            "birth_death_backend": "knn",
+            "birth_death_cells": 64,
+            "birth_death_metric_rank": 8,
+            "birth_death_chunk": 256,
+            "birth_death_parent_policy": "real_anchor",
+            "row_policy": "independent",
+            "optimizer_family": "dualnorm",
+            "optimizer_momentum": 0.0,
+            "optimizer_smoothing": 0.001,
+            "optimizer_convolution": "per_offset",
+            "optimizer_convolution_rule": "quintic",
+            "optimizer_svd_backend": "native",
+            "constraint_geometry_mode": "direction_blend",
+            "optimizer_adam_lr": null,
+            "eps": 1e-08,
+            "beta2_end": null,
+            "beta2_anneal_end": 0.2,
+            "reg_coeff_end": null,
+            "reg_coeff_anneal_end": 0.2,
+            "loss": "non_saturating",
+            "d_betas": null,
+            "d_eps": null,
+            "prior_eps": null,
+            "loss_labels": [
+              0.0,
+              1.0,
+              1.0
+            ],
+            "adam_variant": "pytorch",
+            "lr_schedule": "cosine",
+            "lr_decay_rate": 0.96,
+            "lr_decay_steps": 50000,
+            "lr_decay_staircase": false
+          },
+          "generator_objective": "public adversarial loss only; no prior without a participating bank",
+          "critic_objective": "public adversarial loss + public critic penalty",
+          "particles": null,
+          "arm": "adapter GAN; no disconnected particle-bank claim",
+          "g_updates": 1000,
+          "batch_size": 2,
+          "descriptor_count": 500,
+          "full_g_cycles": 4,
+          "full_d_cycles": 4,
+          "g_exposures": 2000,
+          "d_exposures": 2000,
+          "budget_basis": "historical500-update floor plus4complete independent balanced cycles of500descriptors; proposal not convergence proof",
+          "evaluation_updates": [
+            0,
+            20,
+            250,
+            500,
+            750,
+            1000
+          ],
+          "stopping": "full authorized horizon; invariant/nonfinite/resource failure may stop; no canary substitutes for trained quality"
+        }
+      ],
+      "response_coordinates": {
+        "domain": "continuous_field",
+        "shape": [
+          1,
+          16,
+          64,
+          64
+        ],
+        "response_scale": {
+          "value": null,
+          "rule": "freeze one finite positive RMS(target-neutral) scalar from training-only scale0 calibration",
+          "heldout_used": false,
+          "optimized_loss": false
+        },
+        "sigma": 1.0,
+        "wide_vector_overlay": false
+      },
+      "online_provider": {
+        "protocol": "online-current-adapter-snapshot-proposal-v1",
+        "immutable": "descriptor/noise/context/time/guidance/source/condition-index identities",
+        "dynamic": "prefix and paired targets regenerated from actual start-of-step G",
+        "selected_row_receipt": [
+          "logical_step",
+          "G_state_sha256",
+          "descriptor_sha256",
+          "initial_noise_sha256",
+          "prefix_sha256",
+          "target_sha256",
+          "neutral_sha256"
+        ],
+        "same_G_version": "physical parameter version guard across preflight/G/D fetches; full adapter-state digest at step start",
+        "memory": "selected unique D/G union only; no full response target concatenation",
+        "state_hash_cost": "full FP32 generator adapter-state readback/hash per logical step; Sana148M leaves cost unmeasured and must enter runtime admission budget",
+        "resume": "load coreG+completedstep, re-arm and deterministically regenerate selected rows; no provider RNG",
+        "semantic_review": "accepted for CPU contract prototype only; not old immutable-cache qualification"
+      },
+      "pending_admission_gates": [
+        "root GPU/process admission (MOSS currently owns actual model slots)",
+        "exact initial-noise/selected-time descriptor asset manifest and global condition collision audit",
+        "source/runtime/model-manifest revalidation without downloads",
+        "native no-update frozen teacher/Off pixel replay, masks/CFG/sampler and true512decode parity",
+        "online provider independent review and selected-row/G-version provenance audit",
+        "actual model gradient and GPU memory/runtime measurement",
+        "separate-process file-backed GPU checkpoint resume with exact next row/state/loss",
+        "full authorized1000-update run and matched heldout/fruit panels before any quality claim"
+      ],
+      "alternatives": [
+        {
+          "name": "frozen-prefix cache",
+          "selected": false,
+          "tradeoff": "changes SD3 original CURRENT-adapter state distribution; requires explicit separate protocol/approval"
+        },
+        {
+          "name": "raw velocity for SD3 or conditional-only CFG rendering",
+          "selected": false,
+          "tradeoff": "changes archived endpoint teacher or rendering; not silently substituted"
+        }
+      ]
+    }
+  ],
+  "source_bindings": [
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/scripts/qualify_sana.py",
+      "bytes": 19858,
+      "sha256": "de7bf1f737557fdd01aa156d1f25c961099b6b404b26b549557a837e290321b4"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/conceptmod/textsliders/train_lora_sana.py",
+      "bytes": 28399,
+      "sha256": "6f96c64971daa9b50d3b1451a2cbe626bf9e2c632615343c0d252c17064256a0"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/conceptmod/textsliders/slider_targets.py",
+      "bytes": 116293,
+      "sha256": "5db3a2cdc9635a0f15f6bc59c80f00700ef04d35241650b935b373f610a85412"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/scripts/qualify_sd3.py",
+      "bytes": 15301,
+      "sha256": "e43dfbe734e33463c762d649b4457cef28e1a6f1c8572788fe4e7abef85cd390"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/scripts/sd3_qualification_images.py",
+      "bytes": 1655,
+      "sha256": "99605fb1df844ca332a27e61f0e2551c2b019410ce573ab45a2d5e19be1bf5b4"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/train_lora_sd3.py",
+      "bytes": 19263,
+      "sha256": "ae4d6704f071091900e6392b9f33c8edfe48fb88378bb25a7b68bef1bbfc9a38"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/train_util.py",
+      "bytes": 38893,
+      "sha256": "3f74682481b6a796ded8c6f6929974c74dfa021bdc8c50633803d1b5f7db0995"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/prompt_util.py",
+      "bytes": 6270,
+      "sha256": "c47d2158b95cf1470aadc071270057c1f63eccc9fa49effdd4c7a31ae510b1f4"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/model_util.py",
+      "bytes": 14631,
+      "sha256": "04bc060609d2cc96a3bd19b8b0b23feddad41cd01a2ada53462f26c214ed8523"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/pipelines/sana/pipeline_sana.py",
+      "bytes": 46056,
+      "sha256": "0ef2c0bb6a9e90bbd2716dca88121cfece7f23b95820cb6ecdaf45754eb2cc6a"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/pipelines/stable_diffusion_3/pipeline_stable_diffusion_3.py",
+      "bytes": 56978,
+      "sha256": "b1299e0549145df66c98f9b2260545076d08038dc074b58480c65fc5793061c5"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+      "bytes": 26832,
+      "sha256": "1af27be5b2f92b7d139d3c50239be5ce3eafc4a7eddf59c2d30689f8ec31e93d"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/schedulers/scheduling_dpmsolver_multistep.py",
+      "bytes": 62211,
+      "sha256": "0dd5333bd7b900b117d34f151adfc4b181dbb2062ca860105658037a0fe5dc06"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-campaign-core-pin-3e94/packages/particle-sliders-core/src/particle_sliders/pg09.py",
+      "bytes": 34783,
+      "sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256"
+    }
+  ],
+  "runtime_versions": {
+    "torch": "2.11.0+cu128",
+    "diffusers": "0.40.0.dev0",
+    "transformers": "5.15.0",
+    "particlegan": "0.9.0",
+    "safetensors": "0.8.0",
+    "numpy": "2.4.4",
+    "Pillow": "12.2.0"
+  }
+}
