@@ -326,3 +326,37 @@ def test_native_checkpoint_replays_shared_protected_gradients(family):
         game.step()
     assert any(not torch.equal(a, b) for a, b in zip(before, adapter.network.parameters()))
     assert adapter.network.scale == 1.
+
+
+def test_full_conditioning_projection_distinguishes_equal_moment_permutations():
+    from conceptmod.textsliders.pg09_backends import PreparedResponse
+    pattern = torch.tensor([1., -1., 2., -2.]).reshape(1, 1, 4)
+    swapped = pattern[..., [2, 3, 0, 1]]
+    assert torch.equal(pattern.mean(), swapped.mean())
+    assert torch.equal(pattern.square().mean(), swapped.square().mean())
+    a = dict(embeds=pattern, mask=torch.ones(1, 1, dtype=torch.bool))
+    b = dict(embeds=swapped, mask=a['mask'])
+    latent = torch.zeros(1, 1, 2, 2)
+    row = ResponseRow(a, a, a, latent, timestep=torch.tensor(500.))
+    other = replace(row, neutral=b)
+    items = [PreparedResponse(r, latent, latent) for r in (row, other)]
+    values = image_condition_features(items)
+    assert not torch.equal(values[0], values[1])
+    # Non-embedding conditioning is part of the critic distinction too.
+    pooled = replace(row, neutral={**a, 'pooled': torch.tensor([1., -1.])})
+    assert not torch.equal(values[0], image_condition_features([PreparedResponse(pooled, latent, latent)])[0])
+
+
+def test_conditioning_collision_gate_rejects_before_game(monkeypatch):
+    from conceptmod.textsliders.pg09_backends import PreparedResponse
+    from conceptmod.textsliders import pg09_images
+    latent = torch.zeros(1, 1, 2, 2)
+    a = dict(embeds=torch.tensor([[[1., -1.]]]))
+    row = ResponseRow(a, a, a, latent, timestep=torch.tensor(500.))
+    other = replace(row, neutral=dict(embeds=-a['embeds']))
+    monkeypatch.setattr(pg09_images, '_condition_projection', lambda c: torch.zeros(34))
+    with pytest.raises(ValueError, match='conditioning collision'):
+        image_condition_features([PreparedResponse(r, latent, latent) for r in (row, other)])
+    # Same context at a different sampled latent is valid.
+    same = replace(row, latent=latent+1)
+    assert image_condition_features([PreparedResponse(r, latent, latent) for r in (row, same)]).shape == (2, 106)
