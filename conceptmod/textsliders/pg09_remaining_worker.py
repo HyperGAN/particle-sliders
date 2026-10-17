@@ -463,6 +463,12 @@ def verify_disk_proof(recipe,output,previous,base):
     if sha(path)!=previous.get('fresh_disk_proof_sha256'):
         raise ValueError('fresh-process proof checksum differs')
     proof=json.loads(path.read_text())
+    if (proof.get('schema')!='remaining-gan-fresh-disk-proof-v1' or
+            type(proof.get('replayed_from_step')) is not int or proof['replayed_from_step']!=2 or
+            type(proof.get('verified_step')) is not int or proof['verified_step']!=3 or
+            any(type(proof.get(k)) is not int or not 0<proof[k]<=2**31-1 for k in ('probe_pid','resume_pid')) or
+            proof['probe_pid']==proof['resume_pid']):
+        raise ValueError('separate-process disk proof protocol/schema/step/PID fields are invalid')
     verify_checkpoint(Path(output)/'checkpoints/step-000003',recipe)
     if (proof.get('recipe_sha256')!=recipe.identity or proof.get('frozen_base')!=base or
             proof.get('probe_pid')==proof.get('resume_pid') or proof.get('checkpoint_advanced') is not False or

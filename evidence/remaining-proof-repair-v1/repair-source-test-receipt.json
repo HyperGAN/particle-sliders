@@ -1,0 +1,49 @@
+{
+  "schema": "remaining-proof-protocol-repair-v1",
+  "status": "CPU_QUALIFIED_NOT_ADMITTED",
+  "repaired_target": "77b5ca9e3c62f263dc4afb2d07b19bee99a27ddb",
+  "independent_qa": "93455ba8eac0cdb2301e7b2db889958476b1e6b0",
+  "utc": "2026-10-17T18:30:03.862912+00:00",
+  "defects": [
+    "Wrong proof schema accepted",
+    "Wrong replayed_from_step accepted",
+    "Wrong verified_step accepted"
+  ],
+  "repair": "Exact schema; strict int replay2/verified3; distinct positive signed31-bit integer PIDs; all before checkpoint access",
+  "failing_qa_receipt": "remaining-disk-proof-77b5ca9-regression.xml",
+  "tests": {
+    "count": 59,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 7.165,
+    "includes": [
+      "25 original worker/bridge checks",
+      "30 pure JSON/checksum protocol cases",
+      "4 original independent QA cases"
+    ],
+    "command": "CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /mnt/nvme/sliders/qualification/envs/pg090/bin/python -m pytest tests/test_pg09_remaining_worker.py tests/test_pg09_remaining_campaigns.py tests/test_pg09_remaining_disk_proof.py /ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/test_remaining_disk_proof_review.py -q -p no:cacheprovider -o pythonpath=''"
+  },
+  "source_and_evidence_sha256": {
+    "conceptmod/textsliders/pg09_remaining_worker.py": "bbbea675b751158dbe804f8d02e9fd2a38d6b9d85707c78c800901009525e36e",
+    "tests/test_pg09_remaining_worker.py": "0cc3aa879084d1a702733caab711c809e767dd5d1a649a5164b8cc802d72f704",
+    "tests/test_pg09_remaining_disk_proof.py": "630faca4da478cfeb6b22c4de31e26cd71eabe8f11a8de96d96e13f710c89537",
+    "docs/pg09-remaining-sequential-admission.md": "f760e9012423f7c0321120d05e80d7488491fb6065318f6a8459805b0ae5a970",
+    "evidence/remaining-proof-repair-v1/repaired-cpu-tests.xml": "b0e8f99f3dd9cfa46314ec961759897dc64ad873dfc3c1dcfb0af786c063b3c1",
+    "evidence/remaining-proof-repair-v1/remaining-disk-proof-77b5ca9-regression.xml": "546f2a36eea3c156cbecafd046f9c8d5b786c7e49163edf3b2cb03d1882f8b0c",
+    "evidence/remaining-proof-repair-v1/test_remaining_disk_proof_review.py": "8cc29d83d2628f8eb064366f5a24b2685255d4f65f57c214321abed0cb5ea458",
+    "evidence/remaining-proof-repair-v1/admission-final/supra-contexts.draft.json": "153cd4c723faf1e1a4dd2d69ff83f1f904c02017c1a703b1e753ffb252df617f",
+    "evidence/remaining-proof-repair-v1/admission-final/final-form.draft.json": "5b31658dc2fa159ad950f17acb84c1d3c7e975d91241680dc9407c9d9189706a",
+    "evidence/remaining-proof-repair-v1/admission-final/supra-final-boss.draft.json": "c120db673ba815874faffd5ac9012c8e1652e59fb5a36f5c917175235f08cd57",
+    "evidence/remaining-proof-repair-v1/admission-final/sequential-plan.json": "015f3034314ab0cf07931af7e123bdf1295284ac6240c39efb094b7da5e7116a"
+  },
+  "ruff": "E9,F pass --no-cache",
+  "regenerated_drafts": "admission-final; old77b5ca9 evidence retained unchanged for history",
+  "active_moss_source_pin_sets": "2/2 matched after repair",
+  "core_sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+  "no_active_source_edits": true,
+  "no_model_or_native_forward": true,
+  "no_T5_encode": true,
+  "no_gpu_or_live_dispatch": true,
+  "admission": "Still pending owner priority/capacity/guardian/source/recipe review; Supra19-context preparation and both native/GPU gates remain unattempted"
+}

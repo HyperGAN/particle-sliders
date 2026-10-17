@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="4" time="0.063" timestamp="2026-10-17T12:27:34.000466-06:00" hostname="pop-os"><testcase classname="qa_pg09.test_remaining_disk_proof_review" name="test_exact_synthetic_proof_is_accepted" time="0.002" /><testcase classname="qa_pg09.test_remaining_disk_proof_review" name="test_wrong_proof_protocol_is_rejected[schema-unrelated-proof]" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/tmp/pytest-of-mikkel/pytest-246/test_wrong_proof_protocol_is_r0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x722fdea9aa10&gt;
+field = 'schema', value = 'unrelated-proof'
+
+    @pytest.mark.parametrize('field,value', [('schema','unrelated-proof'),
+        ('replayed_from_step',0), ('verified_step',99)])
+    def test_wrong_proof_protocol_is_rejected(tmp_path, monkeypatch, field, value):
+        recipe, base, proof = fixture(tmp_path, monkeypatch)
+        proof[field] = value
+&gt;       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE ValueError
+
+qa_pg09/test_remaining_disk_proof_review.py:42: Failed</failure></testcase><testcase classname="qa_pg09.test_remaining_disk_proof_review" name="test_wrong_proof_protocol_is_rejected[replayed_from_step-0]" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/tmp/pytest-of-mikkel/pytest-246/test_wrong_proof_protocol_is_r1')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x722fdea45310&gt;
+field = 'replayed_from_step', value = 0
+
+    @pytest.mark.parametrize('field,value', [('schema','unrelated-proof'),
+        ('replayed_from_step',0), ('verified_step',99)])
+    def test_wrong_proof_protocol_is_rejected(tmp_path, monkeypatch, field, value):
+        recipe, base, proof = fixture(tmp_path, monkeypatch)
+        proof[field] = value
+&gt;       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE ValueError
+
+qa_pg09/test_remaining_disk_proof_review.py:42: Failed</failure></testcase><testcase classname="qa_pg09.test_remaining_disk_proof_review" name="test_wrong_proof_protocol_is_rejected[verified_step-99]" time="0.001"><failure message="Failed: DID NOT RAISE ValueError">tmp_path = PosixPath('/tmp/pytest-of-mikkel/pytest-246/test_wrong_proof_protocol_is_r2')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x722fdeac5f50&gt;
+field = 'verified_step', value = 99
+
+    @pytest.mark.parametrize('field,value', [('schema','unrelated-proof'),
+        ('replayed_from_step',0), ('verified_step',99)])
+    def test_wrong_proof_protocol_is_rejected(tmp_path, monkeypatch, field, value):
+        recipe, base, proof = fixture(tmp_path, monkeypatch)
+        proof[field] = value
+&gt;       with pytest.raises(ValueError):
+E       Failed: DID NOT RAISE ValueError
+
+qa_pg09/test_remaining_disk_proof_review.py:42: Failed</failure></testcase></testsuite></testsuites>

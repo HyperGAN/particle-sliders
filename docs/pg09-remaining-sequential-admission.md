@@ -7,6 +7,12 @@ guardian dispatch, service change or automation was performed by this session.
 Existing active MOSS/common/core files are unchanged. All nine live command
 vectors below remain unexecuted and their recipes say `DRAFT_NOT_ADMITTED`.
 
+The original `77b5ca9` proof validator accepted malformed schema/step fields.
+The repair adds exact `remaining-gan-fresh-disk-proof-v1`, integer replay2/verified3
+and distinct positive integer PID validation before checkpoint access. Original
+failing QA XML is preserved in `evidence/remaining-proof-repair-v1/`; that directory
+also contains the repaired CPU/source receipt and regenerated proposal pins.
+
 ## Completed offline validation
 
 `evidence/remaining-sequential-v1/offline-review.json` is the immutable CPU audit.
@@ -82,7 +88,7 @@ run is not automatically admitted by these phase cards.
 
 ## Sequential phases and bounds
 
-`evidence/remaining-sequential-v1/admission-final/sequential-plan.json` contains
+`evidence/remaining-proof-repair-v1/admission-final/sequential-plan.json` contains
 the exact interpreter, argv and environment for every phase. Physical card0 and
 FD placeholders are proposal bindings, not grants. The owner binds the available
 card, both lease targets/FDs, reviewed admission and priority receipt consistently
@@ -166,6 +172,7 @@ From the isolated checkout, with `PYTHONPATH` including this root, canonical
 CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
   /mnt/nvme/sliders/qualification/envs/pg090/bin/python -m pytest \
   tests/test_pg09_remaining_worker.py tests/test_pg09_remaining_campaigns.py \
+  tests/test_pg09_remaining_disk_proof.py \
   -q -p no:cacheprovider -o pythonpath=''
 ```
 

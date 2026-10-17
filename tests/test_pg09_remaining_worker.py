@@ -20,7 +20,7 @@ from conceptmod.textsliders import pg09_remaining_worker as worker
 from conceptmod.textsliders.pg09_remaining_offline import safe_header
 
 ROOT=Path(__file__).resolve().parents[1]
-DRAFTS=ROOT/'evidence/remaining-sequential-v1/admission-final'
+DRAFTS=ROOT/'evidence/remaining-proof-repair-v1/admission-final'
 
 
 class ToyNetwork(nn.Module):
