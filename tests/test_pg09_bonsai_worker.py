@@ -43,7 +43,10 @@ def test_cached_worker_complete_flow_with_synthetic_cache_only(tmp_path, preset,
         # checkpoints/evaluations and final replay on synthetic data only.
         # The production CLI separately enforces exactly1200 in load_plan.
         args.plan_sha256 = 'synthetic-test-plan'
-        args.plan_data = dict(training=dict(total_steps=6, batch_size=2, seed=7,
+        fs = worker.inspect_output_filesystem(args.output)
+        args.plan_data = dict(output=str(args.output),
+            output_filesystem={k: fs[k] for k in ('device', 'mountpoint')},
+            training=dict(total_steps=6, batch_size=2, seed=7,
             sigma=1., response_scale=1., sampling='balanced', checkpoint_every=2,
             replay_start=4, evaluation_steps=[0, 2, 6]),
             limits=dict(cpu_threads=1, interop_threads=1, rss_cap_gib=8,
@@ -85,3 +88,35 @@ def test_resource_limit_stops_before_payload_access(monkeypatch):
     plan = dict(limits=dict(produce_seconds=1800, rss_cap_gib=8))
     with pytest.raises(MemoryError, match='peak RSS'):
         worker.check_limits(plan, worker.time.monotonic(), 'produce', startup=True)
+
+
+@pytest.mark.parametrize('symlink', [False, True])
+def test_disk_guard_resolves_output_parent_and_retains_reserve(tmp_path, monkeypatch, symlink):
+    parent = tmp_path / 'volume'
+    parent.mkdir()
+    path = parent
+    if symlink:
+        path = tmp_path / 'volume-link'
+        path.symlink_to(parent, target_is_directory=True)
+    output = path / 'not-created' / 'preset'
+    actual = worker.inspect_output_filesystem(output)
+    assert actual['existing_parent'] == str(parent)
+    seen = []
+
+    def usage(path):
+        seen.append(path)
+        return type('Usage', (), {'free': 101 * 1024**3})()
+
+    monkeypatch.setattr(worker.shutil, 'disk_usage', usage)
+    plan = dict(output=str(output), output_filesystem={k: actual[k] for k in ('device', 'mountpoint')},
+                limits=dict(produce_seconds=1800, rss_cap_gib=8, host_reserve_gib=0, nvme_reserve_gib=100))
+    worker.check_limits(plan, worker.time.monotonic(), 'produce', startup=True)
+    assert seen == [parent] and not output.exists()
+    monkeypatch.setattr(worker.shutil, 'disk_usage', lambda _: type('Usage', (), {'free': 99 * 1024**3})())
+    with pytest.raises(OSError, match='reserve unavailable'):
+        worker.check_limits(plan, worker.time.monotonic(), 'produce')
+    # A large-enough fallback filesystem cannot satisfy the admitted device.
+    monkeypatch.setattr(worker.shutil, 'disk_usage', usage)
+    plan['output_filesystem']['device'] = '/dev/not-the-admitted-device'
+    with pytest.raises(OSError, match='device/mount differs'):
+        worker.check_limits(plan, worker.time.monotonic(), 'produce')

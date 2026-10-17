@@ -1,0 +1,50 @@
+{
+  "worker_sha256": "a83774aeeb3a17c117ccd4febac35b24d62b2914256d66f3fc1c8f214b464ed6",
+  "core_sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+  "assets_manifest_sha256": "74521990968a62419b87194cc9f14033400c427876ffc3996a1a2783a181f11f",
+  "readout_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+  "frozen_readout_identity": {
+    "weight_sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+    "model_revision": "b072e1d3b35a0a630cece372c2127528e0994386",
+    "runtime_commit": "7dffb158de30ebb8ef9d64f33c6b0b2d7c1e6313",
+    "runtime_archive_sha256": "a1fd3a575e70532567845815a042428831771661b857e80f06422fb08904cb7f",
+    "pooling": "last",
+    "embd_normalize": 2,
+    "context": 512,
+    "server_threads": 4,
+    "cpu_only": true
+  },
+  "preparation_sha256": "8fa17d12981677d5ff9c7c34be47674697977fc0a0284d8332ea6f67def3a644",
+  "archived_recipe_sha256": "8b92d23f0a373b7e629f706bf9cdb7b68b14113a875445ffd1915e68957277b6",
+  "cache": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017",
+  "cached_readouts": 15,
+  "model_loaded": false,
+  "tensor_payload_loaded": false,
+  "gpu_used": false,
+  "permitted_scope": "pending new owner admission: fixed 1200-update CPU cached head",
+  "long_run_recipe_sha256": "3c49f2c4c8c7f628dd2cf23b56d50022428349cc635a76c0cc9c314181b051aa",
+  "plan_validated_before_tensor_payload": true,
+  "resource_preflight": {
+    "output_filesystem": {
+      "output": "/mnt/nvme/sliders/qualification/runs/bonsai-pg09-gan-1200-20261017-v2/bispf_optimized",
+      "existing_parent": "/mnt/nvme/sliders/qualification/runs",
+      "mountpoint": "/mnt/nvme",
+      "device": "/dev/nvme0n1p2",
+      "major_minor": "259:2",
+      "free_bytes": 2120171184128
+    },
+    "host_available_bytes": 32328605696,
+    "peak_rss_gib": 0.022052764892578125,
+    "startup": true,
+    "limits": {
+      "cpu_threads": 1,
+      "interop_threads": 1,
+      "rss_cap_gib": 8,
+      "host_reserve_gib": 8,
+      "nvme_reserve_gib": 100,
+      "produce_seconds": 1800,
+      "restore_seconds": 180
+    }
+  },
+  "torch_imported": false
+}

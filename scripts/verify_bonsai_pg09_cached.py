@@ -116,7 +116,41 @@ def load_plan(path, args):
                              host_reserve_gib=8, nvme_reserve_gib=100,
                              produce_seconds=1800, restore_seconds=180):
         raise ValueError('long-run resource budget differs')
+    if (plan['schema'] != 'bonsai-pg09-cached-cpu-longrun-v2'
+            or plan['output_filesystem'] != dict(device='/dev/nvme0n1p2', mountpoint='/mnt/nvme')):
+        raise ValueError('long-run output requires the reviewed NVMe device/mount; no filesystem fallback')
     return plan
+
+
+def inspect_output_filesystem(output):
+    """Find the actual mount/device of a possibly not-yet-created output."""
+    output = Path(output).resolve()
+    parent = output
+    while not parent.exists():
+        parent = parent.parent
+    if not parent.is_dir():
+        raise ValueError('existing output ancestor must be a directory')
+    actual_device = parent.stat().st_dev
+
+    def unescape(value):
+        for escaped, decoded in (('\\040', ' '), ('\\011', '\t'), ('\\012', '\n'), ('\\134', '\\')):
+            value = value.replace(escaped, decoded)
+        return value
+
+    mounts = []
+    for line in Path('/proc/self/mountinfo').read_text().splitlines():
+        fields = line.split()
+        separator = fields.index('-')
+        mount = Path(unescape(fields[4]))
+        major, minor = map(int, fields[2].split(':'))
+        if parent.is_relative_to(mount) and os.makedev(major, minor) == actual_device:
+            mounts.append((len(mount.parts), mount, unescape(fields[separator + 2]), fields[2]))
+    if not mounts:
+        raise OSError('cannot verify actual output filesystem; no fallback')
+    _, mount, device, major_minor = max(mounts, key=lambda item: item[0])
+    return dict(output=str(output), existing_parent=str(parent), mountpoint=str(mount),
+                device=device, major_minor=major_minor,
+                free_bytes=shutil.disk_usage(parent).free)
 
 
 def check_limits(plan, started, mode, *, startup=False):
@@ -134,8 +168,14 @@ def check_limits(plan, started, mode, *, startup=False):
     needed = limits['host_reserve_gib'] + (limits['rss_cap_gib'] if startup else 0)
     if available < needed * 1024**3:
         raise MemoryError('host memory reserve unavailable')
-    if shutil.disk_usage('/tmp').free < limits['nvme_reserve_gib'] * 1024**3:
+    filesystem = inspect_output_filesystem(plan['output'])
+    if {key: filesystem[key] for key in ('device', 'mountpoint')} != plan['output_filesystem']:
+        raise OSError('output filesystem device/mount differs; no filesystem fallback')
+    if filesystem['free_bytes'] < limits['nvme_reserve_gib'] * 1024**3:
         raise OSError('output filesystem reserve unavailable')
+    return dict(output_filesystem=filesystem, host_available_bytes=available,
+                peak_rss_gib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024**2,
+                startup=startup, limits=limits)
 
 
 def execute(args, receipt):
@@ -323,6 +363,11 @@ def main():
                        plan_validated_before_tensor_payload=True,
                        permitted_scope='pending new owner admission: fixed 1200-update CPU cached head')
     if args.mode == 'preflight':
+        if args.plan:
+            receipt['resource_preflight'] = check_limits(args.plan_data, time.monotonic(),
+                                                         'produce', startup=True)
+        assert 'torch' not in sys.modules
+        receipt['torch_imported'] = False
         print(json.dumps(receipt, indent=2))
         return
     execute(args, receipt)
