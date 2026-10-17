@@ -227,8 +227,8 @@ def test_ltx_reversible_scale_and_coordinate_order():
 def test_source_and_coordinate_signature_bound(family):
     adapter, fixed, game = make(family)
     sources = game.state_dict()['config']['implementation_sources']
-    assert 'conceptmod.textsliders.pg09_text_video' in sources
-    assert ('conceptmod.textsliders.tiny_llm_particle' if family == 'tiny'
+    assert 'particle_sliders.pg09_text_video' in sources
+    assert ('particle_sliders.tiny_native' if family == 'tiny'
             else 'conceptmod.textsliders.ltx25_backend') in sources
     state = game.state_dict()
     state['config']['conditions_sha256'] = 'wrong'

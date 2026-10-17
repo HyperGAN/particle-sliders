@@ -1,4 +1,4 @@
-"""Conditional native-response GAN using released ParticleGAN 0.9 components.
+"""Conditional native-response GAN using released ParticleGAN 0.9.1 components.
 
 Backends own frozen conditioning and differentiable response generation. This
 module owns the adversarial game, optimizer lifecycle, sampling and checkpoint
@@ -20,8 +20,8 @@ from torch import nn
 from particlegan import get_recipe, scale_learning_rates
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 
-PG_VERSION = '0.9.0'
-PG_WHEEL_SHA256 = '41746614b135e5593fa9c66c2a6784c4f872a7957fce132ca59f95dc7963e1ab'
+PG_VERSION = '0.9.1'
+PG_WHEEL_SHA256 = 'b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec'
 
 
 def _released_sources(profile='release'):
@@ -50,7 +50,7 @@ def validate_pg09_domain(response_shape, *, response_domain,
     options into ConditionalPG09. The optional overlay is ALZ's single patch.
     """
     if version('particlegan') != PG_VERSION:
-        raise RuntimeError('ConditionalPG09 requires particlegan==0.9.0 base release')
+        raise RuntimeError('ConditionalPG09 requires particlegan==' + PG_VERSION + ' base release')
     if (pg_source_profile, penalty_input_domain) not in (('release', 'auto'), ('alz-continuous-v1', 'continuous')):
         raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
     sources = _released_sources(pg_source_profile)
@@ -177,12 +177,53 @@ def _finite_tree(value):
     if isinstance(value, torch.Tensor):
         if not torch.isfinite(value).all():
             raise ValueError('checkpoint contains nonfinite optimizer or regularizer state')
+    elif isinstance(value, float) and not math.isfinite(value):
+        raise ValueError('checkpoint contains nonfinite optimizer or regularizer state')
     elif isinstance(value, dict):
         for v in value.values():
             _finite_tree(v)
     elif isinstance(value, (tuple, list)):
         for v in value:
             _finite_tree(v)
+
+
+def _validate_optimizer(optimizer, packet):
+    """Bind loaded update laws to the recipe before public optimizer restore.
+
+    Native Adam restores group settings without validating them. The recipe
+    owns every setting except the scheduled learning rate; reject changed
+    settings even when Adam would accept them or fail only on the next step.
+    """
+    if (not isinstance(packet, dict) or not isinstance(packet.get('param_groups'), list)
+            or not isinstance(packet.get('state'), dict)
+            or len(packet['param_groups']) != len(optimizer.param_groups)):
+        raise ValueError('checkpoint optimizer groups differ')
+    identifiers = set()
+    for saved, live in zip(packet['param_groups'], optimizer.param_groups):
+        if not isinstance(saved, dict) or saved.keys() != live.keys():
+            raise ValueError('checkpoint optimizer group fields differ')
+        if not isinstance(saved['params'], list) or len(saved['params']) != len(live['params']):
+            raise ValueError('checkpoint optimizer parameter count differs')
+        for name in live.keys() - {'params', 'lr'}:
+            if saved[name] != live[name]:
+                raise ValueError('checkpoint optimizer setting differs: ' + name)
+        rate = saved['lr']
+        if isinstance(rate, bool) or not isinstance(rate, (int, float)) or not math.isfinite(rate) or rate <= 0:
+            raise ValueError('invalid checkpoint optimizer learning rate')
+        for key, parameter in zip(saved['params'], live['params']):
+            if type(key) is not int or key in identifiers:
+                raise ValueError('invalid checkpoint optimizer parameter IDs')
+            identifiers.add(key)
+            slots = packet['state'].get(key, {})
+            if not isinstance(slots, dict):
+                raise ValueError('invalid checkpoint optimizer history')
+            for name in ('exp_avg', 'exp_avg_sq', 'max_exp_avg_sq', 'momentum_buffer'):
+                if name in slots and (not isinstance(slots[name], torch.Tensor)
+                                      or slots[name].shape != parameter.shape
+                                      or slots[name].dtype != parameter.dtype):
+                    raise ValueError('checkpoint optimizer tensor schema differs')
+    if not packet['state'].keys() <= identifiers:
+        raise ValueError('unknown checkpoint optimizer parameter history')
 
 
 class ConditionalPG09:
@@ -201,7 +242,7 @@ class ConditionalPG09:
                  sigma=1.0, recipe_overrides=None, sampling='balanced',
                  pg_source_profile='release', penalty_input_domain='auto'):
         if version('particlegan') != PG_VERSION:
-            raise RuntimeError('ConditionalPG09 requires released particlegan==0.9.0')
+            raise RuntimeError('ConditionalPG09 requires released particlegan==' + PG_VERSION)
         if (pg_source_profile, penalty_input_domain) not in (('release', 'auto'), ('alz-continuous-v1', 'continuous')):
             raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
         if preset not in ('bispf_optimized', 'bispf'):
@@ -252,7 +293,10 @@ class ConditionalPG09:
             raise ValueError('conditions tensor or lazy provider.conditions(indices) is required')
         self.response_domain, self.response_scale = response_domain, float(response_scale)
         self.batch_size, self.sigma = batch_size, float(sigma)
-        options = dict(batch_size=batch_size, total_steps=total_steps)
+        # This caller-owned native-response loop does not execute GANTrainer's
+        # CUDA convolution autocast policy. Bind the actual host precision even
+        # though the released optimized recipe now defaults to BF16 training.
+        options = dict(batch_size=batch_size, total_steps=total_steps, training_precision='float32')
         self.prior = None
         if particles is not None:
             if (not isinstance(particles, nn.Parameter) or particles.ndim != 2
@@ -268,7 +312,7 @@ class ConditionalPG09:
                 raise ValueError('recipe override contradicts actual ' + name)
         # Alternative objectives/optimizer laws require a separately reviewed arm.
         allowed = {'num_particles', 'z_dim', 'batch_size', 'total_steps', 'lr',
-                   'd_lr_mult', 'prior_lr_mult'}
+                   'd_lr_mult', 'prior_lr_mult', 'training_precision'}
         if set(overrides) - allowed:
             raise ValueError('unsupported recipe overrides: ' + str(sorted(set(overrides) - allowed)))
         options.update(overrides)
@@ -458,7 +502,9 @@ class ConditionalPG09:
             raise FloatingPointError('nonfinite gradients')
 
     def state_dict(self):
-        if self._failed or self._export_loaded:
+        if self._export_loaded:
+            raise RuntimeError('inference export is not a resumable training checkpoint')
+        if self._failed:
             raise RuntimeError('cannot checkpoint an incomplete failed update')
         return deepcopy(dict(schema='conditional-pg09-v1', config=self._signature,
             completed_steps=self.completed_steps, network=self.network.state_dict(),
@@ -484,24 +530,8 @@ class ConditionalPG09:
         elif state['prior'] is not None or state['spread'] is not None:
             raise ValueError('unexpected particle state in adapter-only arm')
         _finite_tree((state['opt_g'], state['opt_d'], state['spread']))
-        # Public optimizer restore on isolated copies validates BEFORE live mutation.
-        # Copies contain adapter/critic parameters only, never a pretrained backend.
-        shadow_g, shadow_d, shadow_spread = deepcopy((self.opt_g, self.opt_d, self.spread))
-        for optimizer, packet in ((shadow_g, state['opt_g']), (shadow_d, state['opt_d'])):
-            if len(packet['param_groups']) != len(optimizer.param_groups):
-                raise ValueError('checkpoint optimizer groups differ')
-            for saved, live in zip(packet['param_groups'], optimizer.param_groups):
-                if len(saved['params']) != len(live['params']):
-                    raise ValueError('checkpoint optimizer parameter count differs')
-                for key, parameter in zip(saved['params'], live['params']):
-                    slots = packet['state'].get(key, {})
-                    for name in ('exp_avg', 'exp_avg_sq', 'max_exp_avg_sq', 'momentum_buffer'):
-                        if name in slots and slots[name].shape != parameter.shape:
-                            raise ValueError('checkpoint optimizer tensor shape differs')
-        shadow_g.load_state_dict(deepcopy(state['opt_g']))
-        shadow_d.load_state_dict(deepcopy(state['opt_d']))
-        if shadow_spread:
-            shadow_spread.load_state_dict(deepcopy(state['spread']))
+        for optimizer, packet in ((self.opt_g, state['opt_g']), (self.opt_d, state['opt_d'])):
+            _validate_optimizer(optimizer, packet)
         if state['streams'].keys() != self.streams.keys():
             raise ValueError('checkpoint sampler streams differ')
         for rng in list(state['streams'].values()) + [state['model_cpu_rng']]:
@@ -540,6 +570,15 @@ class ConditionalPG09:
             torch.Generator(device=self.device).set_state(state['model_cuda_rng'])
         elif state['model_cuda_rng'] is not None:
             raise ValueError('CUDA checkpoint cannot silently resume on CPU')
+        # Public optimizer restore on isolated copies validates BEFORE live mutation.
+        # Copies contain adapter/critic parameters only, never a pretrained backend.
+        # PG critic restore also publishes per-device thermal state: make it the
+        # final preflight after every sampler and other state can no longer reject.
+        shadow_g, shadow_d, shadow_spread = deepcopy((self.opt_g, self.opt_d, self.spread))
+        shadow_g.load_state_dict(deepcopy(state['opt_g']))
+        if shadow_spread:
+            shadow_spread.load_state_dict(deepcopy(state['spread']))
+        shadow_d.load_state_dict(deepcopy(state['opt_d']))
         self.network.load_state_dict(state['network'], strict=True)
         self.critic.load_state_dict(state['critic'], strict=True)
         if self.prior:
@@ -558,22 +597,38 @@ class ConditionalPG09:
 
     @torch.no_grad()
     def evaluate(self, index, *, seed=0):
-        """Deterministic response without consuming model or training RNG streams."""
+        """Evaluate adapter modules without changing their modes or RNG streams.
+
+        The backend owns evaluation mode for its frozen native model. This
+        context owns only ``network`` and restores even mixed adapter modes.
+        """
         devices = [self.device.index or 0] if self.device.type == 'cuda' else []
-        with torch.random.fork_rng(devices=devices):
-            torch.set_rng_state(torch.Generator().manual_seed(seed).get_state())
-            if devices:
-                torch.cuda.set_rng_state(torch.Generator(device=self.device).manual_seed(seed).get_state(), self.device)
-            return self.backend.generated(self.rows[index]).detach().clone()
+        modes = [(module, module.training) for module in self.network.modules()]
+        try:
+            self.network.eval()
+            with torch.random.fork_rng(devices=devices):
+                torch.set_rng_state(torch.Generator().manual_seed(seed).get_state())
+                if devices:
+                    torch.cuda.set_rng_state(torch.Generator(device=self.device).manual_seed(seed).get_state(), self.device)
+                return self.backend.generated(self.rows[index]).detach().clone()
+        finally:
+            for module, training in modes:
+                module.training = training
 
     def export_state_dict(self):
         """Adapter-only payload, including the actual bank through network ownership."""
+        if self._failed:
+            raise RuntimeError('cannot export an incomplete failed update')
         return deepcopy(dict(schema='conditional-pg09-adapter-v1', config=self._signature,
                              network=self.network.state_dict(), completed_steps=self.completed_steps))
 
     def load_export_state_dict(self, state):
         if state.get('schema') != 'conditional-pg09-adapter-v1' or state.get('config') != self._signature:
             raise ValueError('adapter export protocol differs')
+        if type(state['completed_steps']) is not int or not 0 <= state['completed_steps'] <= self.recipe.total_steps:
+            raise ValueError('invalid adapter export step')
         _validate_module(self.network, state['network'])
         self.network.load_state_dict(state['network'], strict=True)
+        self.completed_steps = state['completed_steps']
+        self._failed = False
         self._export_loaded = True

@@ -96,7 +96,8 @@ def test_adversarial_core_owns_updates_only_adapter_and_frozen_base(family, monk
     owned = {id(p) for p in adapter.network.parameters()}
     base = {n: p.detach().clone() for n, p in model.named_parameters() if id(p) not in owned}
     before = deepcopy(adapter.network.state_dict())
-    assert asdict(game.recipe) == asdict(get_recipe('bispf_optimized', total_steps=4, batch_size=4))
+    assert asdict(game.recipe) == asdict(get_recipe('bispf_optimized', total_steps=4, batch_size=4,
+                                                  training_precision='float32'))
     assert {id(p) for group in game.opt_g.param_groups for p in group['params']} == owned
     assert all(not r.target.requires_grad and not r.neutral.requires_grad for r in fixed)
     def forbidden(*a, **kw):

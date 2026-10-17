@@ -43,7 +43,7 @@ class Network(nn.Module):
         return out
 
 
-def fixture(seed=0, **kwargs):
+def fixture(seed=0, frozen_critic=False, **kwargs):
     data = torch.Generator().manual_seed(144)
     neutral = torch.randn(7, 3, generator=data)
     targets = neutral + torch.randn(7, 3, generator=data)
@@ -51,6 +51,8 @@ def fixture(seed=0, **kwargs):
         torch.manual_seed(seed)
         network = Network()
         critic = GlobalMixErrorCritic(targets, neutrals=neutral, tokens=2, width=8, heads=2, score_bound=0.)
+        if frozen_critic:
+            critic.mix.weight.requires_grad_(False)
     game = BISPFGame(network, critic, targets, seed=seed, batch_size=4, **kwargs)
     def predict(i, phase):
         assert network.active, "both D and G must see the active adapter"
@@ -167,6 +169,53 @@ def test_nonreentrant_model_checkpoint_replay_keeps_adapter_scale():
     actual = other.step(1, checkpointed)
     assert_equal(actual, expected)
     assert_equal(other.state_dict(), game.state_dict())
+
+
+@pytest.mark.parametrize("disconnection", ["detached", "bank"])
+def test_disconnected_native_gan_path_rejected_before_any_optimizer_update(disconnection):
+    game, predict = fixture()
+    before = deepcopy((game.network.state_dict(), game.critic.state_dict(),
+                       game.opt_g.state_dict(), game.opt_d.state_dict()))
+    seen = []
+
+    def broken_predict(i, phase):
+        seen.append(phase)
+        if disconnection == "detached":
+            return predict(i, phase).detach()
+        # The bridge is live, but its native route reads a detached particle
+        # bank. SBNP alone must not make this qualify as a particle GAN step.
+        return game.network.bridge(torch.ones(1, 3) * (i + 1),
+                                   game.network.particles.detach())
+
+    with pytest.raises(ValueError, match="detached generator|routed bank is disconnected"):
+        game.step(1, broken_predict)
+    assert seen and set(seen) == {"g"}
+    assert game.completed_steps == 0
+    assert_equal(before, (game.network.state_dict(), game.critic.state_dict(),
+                         game.opt_g.state_dict(), game.opt_d.state_dict()))
+    assert all(p.requires_grad for p in game.critic.parameters())
+    assert not game.network.active
+
+
+def test_frozen_critic_parameters_and_phase_flags_survive_success_and_failure():
+    game, predict = fixture(frozen_critic=True)
+    frozen = game.critic.mix.weight
+    before = frozen.detach().clone()
+    flags = [p.requires_grad for p in game.critic.parameters()]
+    assert not any(p is frozen for group in game.opt_d.param_groups for p in group["params"])
+    game.step(1, predict)
+    assert torch.equal(before, frozen)
+    assert [p.requires_grad for p in game.critic.parameters()] == flags
+
+    def fail_g_loss(*args):
+        raise RuntimeError("injected generator failure")
+
+    game.loss.g_loss = fail_g_loss
+    with pytest.raises(RuntimeError, match="injected generator failure"):
+        game.step(2, predict)
+    assert [p.requires_grad for p in game.critic.parameters()] == flags
+    assert torch.equal(before, frozen)
+    assert not game.network.active
 
 
 def test_reject_mismatch_before_update():

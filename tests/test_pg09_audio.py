@@ -41,7 +41,8 @@ def test_shared_objective_native_bank_conditioning_and_frozen_base(family, prese
     assert adapter.particles.shape == (128, 4)
     assert sum(p is adapter.particles for g in game.opt_g.param_groups for p in g['params']) == 1
     assert asdict(game.recipe) == asdict(get_recipe(
-        preset, total_steps=4, batch_size=2, num_particles=128, z_dim=4))
+        preset, total_steps=4, batch_size=2, num_particles=128, z_dim=4,
+        training_precision='float32'))
     assert audio_conditions(fixed).shape == (2, 36)
     assert torch.equal(audio_conditions(fixed)[0, :32], fixed[0].neutral[0])
     assert audio_conditions(fixed)[0, -2:].tolist() == [2., 1.]
