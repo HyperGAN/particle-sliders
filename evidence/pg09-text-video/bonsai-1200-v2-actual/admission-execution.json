@@ -1,0 +1,52 @@
+{
+  "admission_id": "bonsai-gan-1200-nvme-cpu-20261017-v2",
+  "source_commit": "1865a07ae9e147f2bb3a1178a0dcf7587036cd0e",
+  "proposal_sha256": "3c49f2c4c8c7f628dd2cf23b56d50022428349cc635a76c0cc9c314181b051aa",
+  "status": "passed",
+  "commands": [
+    {
+      "argv": [
+        "timeout",
+        "1800",
+        "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+        "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/scripts/verify_bonsai_pg09_cached.py",
+        "--core",
+        "/mnt/nvme/sliders/text-video-core-3e94b13-20261017",
+        "--overlay",
+        "/tmp/alz-pg09-domain-proposal",
+        "--preset",
+        "bispf_optimized",
+        "--output",
+        "/mnt/nvme/sliders/qualification/runs/bonsai-pg09-gan-1200-20261017-v2/bispf_optimized",
+        "--plan",
+        "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/evidence/pg09-text-video/bonsai-1200-cpu-admission-proposal-v2.json",
+        "--mode",
+        "produce"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 22.012
+    },
+    {
+      "argv": [
+        "timeout",
+        "180",
+        "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+        "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/scripts/verify_bonsai_pg09_cached.py",
+        "--core",
+        "/mnt/nvme/sliders/text-video-core-3e94b13-20261017",
+        "--overlay",
+        "/tmp/alz-pg09-domain-proposal",
+        "--preset",
+        "bispf_optimized",
+        "--output",
+        "/mnt/nvme/sliders/qualification/runs/bonsai-pg09-gan-1200-20261017-v2/bispf_optimized",
+        "--plan",
+        "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/evidence/pg09-text-video/bonsai-1200-cpu-admission-proposal-v2.json",
+        "--mode",
+        "restore"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.552
+    }
+  ]
+}

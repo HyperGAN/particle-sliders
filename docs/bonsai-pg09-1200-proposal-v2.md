@@ -1,4 +1,9 @@
-# Bonsai1200 NVMe v2 proposal — pending new admission
+# Bonsai1200 NVMe v2 proposal — executed; transfer failed
+
+Historical proposal: root subsequently admitted and completed its exact commands.
+All 1200 updates and the separate 20-update replay passed execution checks;
+held-out transfer failed. See [bonsai-pg09-1200-result-v2.md](bonsai-pg09-1200-result-v2.md).
+This consumed admission does not authorize any repeat or extension.
 
 The failed v1 attempt is preserved in commit
 `192696a69dd6e113e701782f7a98425eac4de94f`: zero updates, no Torch or tensor

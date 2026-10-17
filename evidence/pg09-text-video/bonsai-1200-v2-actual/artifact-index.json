@@ -1,0 +1,531 @@
+{
+  "artifact_root": "/mnt/nvme/sliders/qualification/runs/bonsai-pg09-gan-1200-20261017-v2",
+  "admission_id": "bonsai-gan-1200-nvme-cpu-20261017-v2",
+  "source_commit": "1865a07ae9e147f2bb3a1178a0dcf7587036cd0e",
+  "total_bytes": 71023140,
+  "files": [
+    {
+      "path": "admission-execution.json",
+      "bytes": 1819,
+      "sha256": "5c93143b67e7b367bd3105d3488b940321690b3b871f76b72ff3ca51935eff4c",
+      "copied_to_code_evidence": true
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000020.pt",
+      "bytes": 1068116,
+      "sha256": "b93823655a7319dbc532d5d8e38dd5be1f04acf061b14097ad2a393e0c274b23",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000040.pt",
+      "bytes": 1068116,
+      "sha256": "4250462fefae8300019d99b313a849ae206e56c5685b3478d7be99d070874fc4",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000060.pt",
+      "bytes": 1068116,
+      "sha256": "29485feb740a16e5ebdb0470bdf7918f208e68de536165740f06e0466a940b69",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000080.pt",
+      "bytes": 1068116,
+      "sha256": "7faa1b1b15b32dd5665ea5d1a13d96a462bba012a6c68ed8149d4782bc2d460e",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000100.pt",
+      "bytes": 1068116,
+      "sha256": "4dbb40474733242ac23d2b42312e560bf5dc4df0af953e5681d862d13269362d",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000120.pt",
+      "bytes": 1068116,
+      "sha256": "dce6eb03e24f0683d713838a5b01c516b791ca01e6a6417212ff1c774d9202a1",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000140.pt",
+      "bytes": 1068116,
+      "sha256": "f1ff55874099fa2e3a10a8ef7d00219aed04f2bd67cfbcf58055840ed8dc5990",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000160.pt",
+      "bytes": 1068116,
+      "sha256": "5322ea210cfcf930947bdc5cf9f85f691020fb4676eada23b3256dd07ff2b8c8",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000180.pt",
+      "bytes": 1068116,
+      "sha256": "504dcdd66d53c7a707c7ed82bef8f8135560b0a3a256c99b5eedf255b0cab722",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000200.pt",
+      "bytes": 1068116,
+      "sha256": "95b569d685a9e3ac017c6b9c0dc757e6fc86a7fa98e05604a638aad9c80eff4a",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000220.pt",
+      "bytes": 1068116,
+      "sha256": "e09ad07458bb58b956dbb7275a043884fce125cb6f2ffae5d05fa0f298598e10",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000240.pt",
+      "bytes": 1068116,
+      "sha256": "87cb5d730d181b80d5555da9023d6fa8fa5592f3534d8924e550bcb5c8341bb0",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000260.pt",
+      "bytes": 1068180,
+      "sha256": "c8607682c25db59e17f108ecb795b41863b51c0631431f6b78dfb8d7b6e62036",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000280.pt",
+      "bytes": 1068180,
+      "sha256": "8ac01f125160e670e42efb6aee1dd5a0c7b743a6fa51f20e77e3c3246b0faa8b",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000300.pt",
+      "bytes": 1068180,
+      "sha256": "edcf528457d49a8525c8fdb7a7cecc8f670e2aa39fd3c7213291c728bc3c4e67",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000320.pt",
+      "bytes": 1068180,
+      "sha256": "45716b32c3594041ae1073eaacac14400fe79eb9f30c0b5f986f1e098b451846",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000340.pt",
+      "bytes": 1068180,
+      "sha256": "0112b4ac8b15e322db4dea12c7a598f8e3d868aeda98c1650ea8e7ba3f94789a",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000360.pt",
+      "bytes": 1068180,
+      "sha256": "ec4c3d5bf049be7c0382306b535be177225e83641d715ec807d78a883508a2df",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000380.pt",
+      "bytes": 1068180,
+      "sha256": "2c5508bb0eea8effe600723423fd7d7a101952ea1655c308aa0de9013964734c",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000400.pt",
+      "bytes": 1068180,
+      "sha256": "6a0751f151bd06991c14bc93f5e2ce3b07907478c4f8411609615c1b46ad2d14",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000420.pt",
+      "bytes": 1068180,
+      "sha256": "9c731f0b4dfe4125d0e772fdf7190021cfcb6df7dbaf4e5bd2b2c97213bcb8ef",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000440.pt",
+      "bytes": 1068180,
+      "sha256": "c6a86ad138665ced4f309a6270b77e92d7abc41bf27460c928969914fbce6571",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000460.pt",
+      "bytes": 1068180,
+      "sha256": "242c1ea1fad1d8f26bcfeeef505ba36e4f49881143a7e6c7459cdcb16d9b2577",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000480.pt",
+      "bytes": 1068180,
+      "sha256": "f5de6dde0abe94e352d104ba82b7931c6916d2a36dac81ae3086591f39e18234",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000500.pt",
+      "bytes": 1068180,
+      "sha256": "32d35b99f4af6b7f4930079cdce1dec13fb67a934336175d1b3d913bdd1d9f77",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000520.pt",
+      "bytes": 1068180,
+      "sha256": "7501264d7d45c394953d693c7aad48253a72e7dc1a9244add97ea067b45ef15d",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000540.pt",
+      "bytes": 1068180,
+      "sha256": "bcb513fa9672d7756e9c3c576b3c12c1c57b2fd17099fa8d80a75414344a623a",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000560.pt",
+      "bytes": 1068180,
+      "sha256": "d37dd99865d4f25bbc55ad26513f74b79467e80ff7de88de9e97f941e481221b",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000580.pt",
+      "bytes": 1068180,
+      "sha256": "747283080d8bcd9e00b3f2e56d97146ab34f6359520d89c93813c5d0a43716e1",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000600.pt",
+      "bytes": 1068180,
+      "sha256": "c9bf57d575d6d3559058e6b22724e2f400fd17c7b1665f338a25440568814d33",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000620.pt",
+      "bytes": 1068180,
+      "sha256": "843156b74b545361659054868180943c68d22eea8b5e5692eddcacfe84744637",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000640.pt",
+      "bytes": 1068180,
+      "sha256": "bf7b15d261579891ad7b2cadfd8ebfa61efd5e16a090eb8b577b54be0efb24f9",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000660.pt",
+      "bytes": 1068180,
+      "sha256": "f225f8ce72416978f1a1a4756076abc654975456ab503aed790e4d1cff2f9b63",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000680.pt",
+      "bytes": 1068180,
+      "sha256": "f9b04c5f6c5761993992ff45b3af278914b924aa122165233c3e854c6f5c3e7a",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000700.pt",
+      "bytes": 1068180,
+      "sha256": "797d2f95edd3d2c0d6235edb2b92ff7c8e3adef69a0b05cf214fb49aa043ad29",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000720.pt",
+      "bytes": 1068180,
+      "sha256": "0697e106a29485b173770c36bff88350fc8a7ed6dfcad4bf7d3cd124b2930208",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000740.pt",
+      "bytes": 1068180,
+      "sha256": "5756c84c09758a6d8853871fb8b7e4a12e354caff4a8184c89a48c134702126c",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000760.pt",
+      "bytes": 1068180,
+      "sha256": "ad1d09d40165871cdb5fca34540ed747b05e88e0543f56d1c496939ce6fa2dba",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000780.pt",
+      "bytes": 1068180,
+      "sha256": "73c991867cde6794722fe40a4b9a9473a7104b24e53bc67e2fa1c9c2303229ef",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000800.pt",
+      "bytes": 1068180,
+      "sha256": "052c7da98bae024c473929c40416f2501672aa72775451208d71154ac9722e0d",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000820.pt",
+      "bytes": 1068180,
+      "sha256": "840b5725490e5535cac7830b48f251b21b090044effad35e43fd16d7c7af3f43",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000840.pt",
+      "bytes": 1068180,
+      "sha256": "8259e1f891d04234f78a5e23f618f524c1f88b0917627917b64f737a7959b982",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000860.pt",
+      "bytes": 1068180,
+      "sha256": "8bebe4938721f3139647a3ac6e9e19c761fe5e186d0408a802b91f15a076eaa0",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000880.pt",
+      "bytes": 1068180,
+      "sha256": "0e91f73729e8e161cf5a2bc7a080396faf1100062d586328b48e0d9e044191b7",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000900.pt",
+      "bytes": 1068180,
+      "sha256": "fc0b247dc5b7e1f06c5298e7c2b711d56ffb9d8151e8b9facce9b0d81f56cccc",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000920.pt",
+      "bytes": 1068180,
+      "sha256": "4167bf4ce84bc92148bf409378264ba18632d7033468d3375beaa5601f3f2c80",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000940.pt",
+      "bytes": 1068180,
+      "sha256": "be488fda06fb169205d70a3ce0070074f8168f2126885ff059428e6e1c94152a",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000960.pt",
+      "bytes": 1068180,
+      "sha256": "d7f0d739ad70a27b1ed52618f3ceeecd40ac3f8ae4534185c5afc203b280e0a8",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-000980.pt",
+      "bytes": 1068180,
+      "sha256": "7863d251e7831e76c99dfa2a9c4b5d0874c98390285317cd3954dd10ef314ce3",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-001000.pt",
+      "bytes": 1068180,
+      "sha256": "f5726285f335f7401caaadf6351d9ad72f0be6723387cd7e6b20f4cf99d66731",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-001020.pt",
+      "bytes": 1068180,
+      "sha256": "b6dd3dfa741aa7f78db8eeae2d050421daed761a0754699a7e40f70d6ed58ccf",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-001040.pt",
+      "bytes": 1068180,
+      "sha256": "e698030571453e0f16ed7491e029d2e993f9119e7ffca8ca7e3d3f6b24385955",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-001060.pt",
+      "bytes": 1068180,
+      "sha256": "d7ca04ac5f9083addbb9acdae9f42940db9152c8c9d6d7dd91001276798b8269",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-001080.pt",
+      "bytes": 1068180,
+      "sha256": "c9590cf542e90281f47cc0a3e40704e24c03ff3382b4291c685df8fb701de631",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-001100.pt",
+      "bytes": 1068180,
+      "sha256": "1ef041164c9c6888dfb8020dcbba9062475b63e32884085ac9ec614147fd17ef",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-001120.pt",
+      "bytes": 1068180,
+      "sha256": "640c9fb1f5549652a16bd03d9c3457b592ed55bc79bf13d2296a255bd505a135",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-001140.pt",
+      "bytes": 1068180,
+      "sha256": "4ae2acdfe06bd238a9a25de2bbf04fa9ae605d9b73c47bdc6e3b3626473b5563",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-001160.pt",
+      "bytes": 1068180,
+      "sha256": "7dae13520e719eeffaf1db4bf78a77f0446ee7953314d74f9bf7e7e70f836709",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-001180.pt",
+      "bytes": 1068180,
+      "sha256": "636d76e69b4ec4a2d9b3b5a9de26bfc219832392d84b8cf52a6b24445266bd5b",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint-001200.pt",
+      "bytes": 1068180,
+      "sha256": "fc5d25497819912ac09946bab87a1c2379f6e8f026809aefc024dd34e277eaa8",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/checkpoint.pt",
+      "bytes": 1067829,
+      "sha256": "07f7479b90d534453575d135b778eb3a90137a5218fed0f44577462d2982d3c3",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000000/inference-export.pt",
+      "bytes": 379467,
+      "sha256": "dab2e08723ab3c33065ba22e68bcc6c9b9caf7161a70cd1c6d1cc60e76de449c",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000000/metrics.json",
+      "bytes": 2600,
+      "sha256": "a1ca5ea4942dca0b354d9c2261bbc2833679ec650609c4292c35738b19d9d7fc",
+      "copied_to_code_evidence": true
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000000/vectors.pt",
+      "bytes": 125397,
+      "sha256": "ddf68339cf98683a2947076e87b296db8e7b61b5c11a971d0119129bc152d7d8",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000020/inference-export.pt",
+      "bytes": 379467,
+      "sha256": "0a50f5bf614e40d2b2a281dd2818c258120f56b2b7e94a78dc54517bb82e4c1f",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000020/metrics.json",
+      "bytes": 2904,
+      "sha256": "2ba1174b032599c02067a72866f2c1d4ee843c64395556245324ab5c35d5d5c1",
+      "copied_to_code_evidence": true
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000020/vectors.pt",
+      "bytes": 125397,
+      "sha256": "0bd623b0b979d2b2e167d476226ec7d0bce98bfe1ecf875ccc34896c9699c664",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000100/inference-export.pt",
+      "bytes": 379467,
+      "sha256": "2a5a7c700f4e2d0ee5f851751dbf7fcddcaeee07c7ac65d05e454f0ede9d637f",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000100/metrics.json",
+      "bytes": 2901,
+      "sha256": "75cdcf977f9248717e4ce43f45cf33205658d5eef8aa9a15f27ba362eae2eada",
+      "copied_to_code_evidence": true
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000100/vectors.pt",
+      "bytes": 125397,
+      "sha256": "9f17fc3ac1529a74b0c5f5bf38f1adb90c60513ff4617e45b150e428b60c7f8f",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000400/inference-export.pt",
+      "bytes": 379467,
+      "sha256": "43d0bf4c012f34508e0866dabe8cae7a6bf877c7e456b61e1b531d8ea8845061",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000400/metrics.json",
+      "bytes": 2906,
+      "sha256": "cd9067dcf000fb13eeaf55f78ee013dfee1584e6fb172010d935a8ef22ee5b23",
+      "copied_to_code_evidence": true
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000400/vectors.pt",
+      "bytes": 125397,
+      "sha256": "bce9c99e4d611c7efe561c480bbda264aa670ba56b7790f866d7ad0b0f9c1e29",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000800/inference-export.pt",
+      "bytes": 379467,
+      "sha256": "293a4207b07c6305c395c3748531c08378cbe93111300e4f147628001871e390",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000800/metrics.json",
+      "bytes": 2905,
+      "sha256": "b829d111acfa9fd116c47a812c467b4af77d857e5fc066390930e793c6dbd618",
+      "copied_to_code_evidence": true
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-000800/vectors.pt",
+      "bytes": 125397,
+      "sha256": "4e1b8d29148ba0a0c30b01ceefeb2ba657b2de913e42ade12445a4a85ce78a20",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-001200/inference-export.pt",
+      "bytes": 379467,
+      "sha256": "e0651e41c35357796d8c7a1fd8defc908c605257709387f667da62bccda6230e",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-001200/metrics.json",
+      "bytes": 2901,
+      "sha256": "59c600c06f4bbf1ccb11a26f4271a938c591db5eda11f563915c8602a3d790c4",
+      "copied_to_code_evidence": true
+    },
+    {
+      "path": "bispf_optimized/evaluation/step-001200/vectors.pt",
+      "bytes": 125397,
+      "sha256": "4e21831244d03a63366c172bf975f3852a1dc048d8f14989f84d41a28668aa98",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/expected.pt",
+      "bytes": 1197271,
+      "sha256": "b3b6957cac1bfdb0532ce86cac833f2af934cbe5d2282b804222a6477a93089d",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/inference-export.pt",
+      "bytes": 379467,
+      "sha256": "e0651e41c35357796d8c7a1fd8defc908c605257709387f667da62bccda6230e",
+      "copied_to_code_evidence": false
+    },
+    {
+      "path": "bispf_optimized/metrics.jsonl",
+      "bytes": 512305,
+      "sha256": "656ab3630fff430abda107ad8127f355a8749661452db82c82a7af884240e7e4",
+      "copied_to_code_evidence": true
+    },
+    {
+      "path": "bispf_optimized/produce-receipt.json",
+      "bytes": 725535,
+      "sha256": "75f907d966c0d3f4732d999f0bab46b0610bd59990845f9774bd596f103b1300",
+      "copied_to_code_evidence": true
+    },
+    {
+      "path": "bispf_optimized/restore-receipt.json",
+      "bytes": 1977,
+      "sha256": "8a1342acc20dc7059d9477782af4f1e915e10526116f36f42ae81021e6268759",
+      "copied_to_code_evidence": true
+    },
+    {
+      "path": "command-1.log",
+      "bytes": 412,
+      "sha256": "02fc4c9d35c1afe8a3be87fecd0b734c9195c58ac2fad5e9733576255bbe6067",
+      "copied_to_code_evidence": true
+    },
+    {
+      "path": "command-2.log",
+      "bytes": 192,
+      "sha256": "e3d84a7a0ec29602d52db66a37ad381d556ddc5b74fe910e6ab0575889f2389e",
+      "copied_to_code_evidence": true
+    }
+  ],
+  "tensor_checkpoints_retained_on_nvme": true
+}

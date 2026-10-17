@@ -1,0 +1,240 @@
+{
+  "admission_id": "bonsai-gan-1200-nvme-cpu-20261017-v2",
+  "source_commit": "1865a07ae9e147f2bb3a1178a0dcf7587036cd0e",
+  "recipe_sha256": "3c49f2c4c8c7f628dd2cf23b56d50022428349cc635a76c0cc9c314181b051aa",
+  "completed_training_updates": 1200,
+  "replay_updates": 20,
+  "checkpoints_every20": 60,
+  "all96_sources_unchanged_after_run": true,
+  "process_wall_seconds": [
+    22.012,
+    2.552
+  ],
+  "process_peak_rss_gib": [
+    0.619232177734375,
+    0.6129379272460938
+  ],
+  "adapter_changed": true,
+  "critic_changed": true,
+  "bank_changed": true,
+  "frozen_readouts_unchanged": true,
+  "minimum_positive_d_penalty": 1.317479736417937e-10,
+  "all_losses_finite": true,
+  "replay": {
+    "exact_full_state": true,
+    "exact_losses": true,
+    "exact_heldout_vectors": true,
+    "exact_export_reload": true
+  },
+  "evaluations": {
+    "0": {
+      "strength1_relative_edit_mse": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "strength1_edit_cosine": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean_relative_edit_mse": 1.0,
+      "successful_cases": 0,
+      "canary_relative_rms": 0.0,
+      "positive_input_identity_relative_mse": 0.0,
+      "zero_exact": true,
+      "readout_transfer_gate_passed": false,
+      "individual_gates": {
+        "mean_relative_edit_mse_max_0_9": false,
+        "successful_cases_min_2": false,
+        "canary_relative_rms_max_0_25": true,
+        "positive_input_identity_relative_mse_max_0_01": true,
+        "zero_exact": true
+      }
+    },
+    "20": {
+      "strength1_relative_edit_mse": [
+        363.8506708683628,
+        232.62486175221306,
+        248.82949247403994
+      ],
+      "strength1_edit_cosine": [
+        0.05878870714990979,
+        -0.012047815789744853,
+        0.021326504260023516
+      ],
+      "mean_relative_edit_mse": 281.76834169820523,
+      "successful_cases": 0,
+      "canary_relative_rms": 16.459875372271483,
+      "positive_input_identity_relative_mse": 39.723968198936454,
+      "zero_exact": true,
+      "readout_transfer_gate_passed": false,
+      "individual_gates": {
+        "mean_relative_edit_mse_max_0_9": false,
+        "successful_cases_min_2": false,
+        "canary_relative_rms_max_0_25": false,
+        "positive_input_identity_relative_mse_max_0_01": false,
+        "zero_exact": true
+      }
+    },
+    "100": {
+      "strength1_relative_edit_mse": [
+        300.55105246472,
+        190.65041037764126,
+        204.62089647349993
+      ],
+      "strength1_edit_cosine": [
+        0.042836958437231225,
+        0.03773779657138585,
+        0.04067561464612165
+      ],
+      "mean_relative_edit_mse": 231.9407864386204,
+      "successful_cases": 0,
+      "canary_relative_rms": 14.947489735857967,
+      "positive_input_identity_relative_mse": 32.743273387619915,
+      "zero_exact": true,
+      "readout_transfer_gate_passed": false,
+      "individual_gates": {
+        "mean_relative_edit_mse_max_0_9": false,
+        "successful_cases_min_2": false,
+        "canary_relative_rms_max_0_25": false,
+        "positive_input_identity_relative_mse_max_0_01": false,
+        "zero_exact": true
+      }
+    },
+    "400": {
+      "strength1_relative_edit_mse": [
+        2.6241345427095966,
+        2.017564006661958,
+        2.0266904287229934
+      ],
+      "strength1_edit_cosine": [
+        -0.0796408379708763,
+        -0.05813428523706666,
+        -0.03745899731130684
+      ],
+      "mean_relative_edit_mse": 2.222796326031516,
+      "successful_cases": 0,
+      "canary_relative_rms": 1.03309439757279,
+      "positive_input_identity_relative_mse": 0.15632495656311685,
+      "zero_exact": true,
+      "readout_transfer_gate_passed": false,
+      "individual_gates": {
+        "mean_relative_edit_mse_max_0_9": false,
+        "successful_cases_min_2": false,
+        "canary_relative_rms_max_0_25": false,
+        "positive_input_identity_relative_mse_max_0_01": false,
+        "zero_exact": true
+      }
+    },
+    "800": {
+      "strength1_relative_edit_mse": [
+        1.541561854369324,
+        1.451070752458921,
+        1.3636830588954196
+      ],
+      "strength1_edit_cosine": [
+        0.24977960143422703,
+        0.13269093663346812,
+        0.21352538775209473
+      ],
+      "mean_relative_edit_mse": 1.4521052219078883,
+      "successful_cases": 0,
+      "canary_relative_rms": 0.8838817098255987,
+      "positive_input_identity_relative_mse": 0.11447146576756374,
+      "zero_exact": true,
+      "readout_transfer_gate_passed": false,
+      "individual_gates": {
+        "mean_relative_edit_mse_max_0_9": false,
+        "successful_cases_min_2": false,
+        "canary_relative_rms_max_0_25": false,
+        "positive_input_identity_relative_mse_max_0_01": false,
+        "zero_exact": true
+      }
+    },
+    "1200": {
+      "strength1_relative_edit_mse": [
+        2.10820322196879,
+        1.944979248713959,
+        1.7768917180968964
+      ],
+      "strength1_edit_cosine": [
+        0.36744745312569205,
+        0.18766088004216083,
+        0.2911237052077043
+      ],
+      "mean_relative_edit_mse": 1.9433580629265486,
+      "successful_cases": 0,
+      "canary_relative_rms": 1.2763404631871011,
+      "positive_input_identity_relative_mse": 0.2383564566232182,
+      "zero_exact": true,
+      "readout_transfer_gate_passed": false,
+      "individual_gates": {
+        "mean_relative_edit_mse_max_0_9": false,
+        "successful_cases_min_2": false,
+        "canary_relative_rms_max_0_25": false,
+        "positive_input_identity_relative_mse_max_0_01": false,
+        "zero_exact": true
+      }
+    }
+  },
+  "final": {
+    "strength1_relative_edit_mse": [
+      2.10820322196879,
+      1.944979248713959,
+      1.7768917180968964
+    ],
+    "strength1_edit_cosine": [
+      0.36744745312569205,
+      0.18766088004216083,
+      0.2911237052077043
+    ],
+    "mean_relative_edit_mse": 1.9433580629265486,
+    "successful_cases": 0,
+    "canary_relative_rms": 1.2763404631871011,
+    "positive_input_identity_relative_mse": 0.2383564566232182,
+    "zero_exact": true,
+    "readout_transfer_gate_passed": false,
+    "individual_gates": {
+      "mean_relative_edit_mse_max_0_9": false,
+      "successful_cases_min_2": false,
+      "canary_relative_rms_max_0_25": false,
+      "positive_input_identity_relative_mse_max_0_01": false,
+      "zero_exact": true
+    }
+  },
+  "archived1200": {
+    "strength1_relative_edit_mse": [
+      1.0000534439083228,
+      1.0000938303911424,
+      1.000467836519745
+    ],
+    "strength1_edit_cosine": [
+      0.0008826822486193869,
+      -0.003817868980221853,
+      -0.02708212876619988
+    ],
+    "mean_relative_edit_mse": 1.0002050369397368,
+    "successful_cases": 0,
+    "canary_relative_rms": 0.00639421634123007,
+    "positive_input_identity_relative_mse": 4.948296343299232e-06,
+    "zero_exact": true,
+    "readout_transfer_gate_passed": false,
+    "individual_gates": {
+      "mean_relative_edit_mse_max_0_9": false,
+      "successful_cases_min_2": false,
+      "canary_relative_rms_max_0_25": true,
+      "positive_input_identity_relative_mse_max_0_01": true,
+      "zero_exact": true
+    }
+  },
+  "quality_qualified": false,
+  "generation_qualified": false,
+  "student_input_correction": "neutral caption student against frozen positive teacher; archived failure used positive student inputs",
+  "causality": "Student-input protocol and GAN/public recipe both changed; not isolated GAN-vs-MSE causal evidence.",
+  "no_retry_or_extension": true,
+  "gpu_used": false,
+  "gguf_or_model_weights_loaded": false,
+  "server_started": false,
+  "installed_package_modified": false
+}
