@@ -193,6 +193,7 @@ def worker(directory, descriptors):
     model, backend, rows, game = make()
     frozen = deepcopy(model.state_dict())
     before = deepcopy(backend.network.state_dict())
+    critic_before = deepcopy(game.critic.state_dict())
     metrics = [game.step(), game.step()]
     packet = game.state_dict()
     torch.save(packet, directory / 'checkpoint.pt')
@@ -204,6 +205,10 @@ def worker(directory, descriptors):
     assert equal(expected, actual) and equal(expected_state, restored.state_dict())
     assert all(torch.equal(frozen[name], value) for name, value in model.state_dict().items())
     assert any(not torch.equal(before[name], value) for name, value in backend.network.state_dict().items())
+    critic_delta_squared = sum((value - critic_before[name]).double().square().sum()
+                               for name, value in game.critic.state_dict().items())
+    critic_delta_rms = float((critic_delta_squared / sum(value.numel() for value in critic_before.values())).sqrt())
+    assert critic_delta_rms > 0
     exported = game.export_state_dict()
     restored.load_export_state_dict(exported)
     assert all(torch.equal(backend.generated(row), other.generated(other_row)) for row, other_row in zip(rows, other_rows))
@@ -214,6 +219,8 @@ def worker(directory, descriptors):
         response_shape=list(rows[0].target.shape), signed_checkpoint_replay=True,
         metrics=metrics + [expected], exact_resume=True, exact_export_reload=True,
         frozen_base_unchanged=True, peak_cuda_bytes=torch.cuda.max_memory_allocated(),
+        critic_delta_rms=critic_delta_rms, critic_updated=True,
+        runtime=dict(torch=torch.__version__, cuda=torch.version.cuda),
         elapsed_seconds=time.monotonic() - started, dtype='bfloat16 frozen base / float32 adapters+critic',
         core_signature=game._signature, quality_qualified=False)
     write(directory / 'result.json', result)
