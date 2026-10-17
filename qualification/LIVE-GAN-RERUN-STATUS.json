@@ -200,7 +200,7 @@
     "supra_final_boss": "CPU-only proposal:270trainingcache rows,19nativeT5/unconditional contexts absent; source-bound encoding must be admitted first",
     "sana_happy": "CPU-only case-specific rawt500/CFG4.5 teacher port proposal; fruitcontrols required",
     "sd3_smile": "CPU-only native endpoint/current-adapter no-grad prefix port proposal; preserve online algorithm,fruitcontrols; no frozenprefix substitution",
-    "bonsai": "four-step realcached canary software passed but heldout transfer FAILED; adequate1200step CPU proposal requested, no extension admitted",
+    "bonsai": "Adequate1200-update CPU-only rerun+separate1180to1200 replay ADMITTED under frozen1d289731/source f775c857; exacttwo commands/1800+180sec/oneCPUthread/RSS8GiB/noGPU/sweep/retry. Actualresults pending; priorfoursteptransferFAIL retained.",
     "h3": "native packedAV protocol/license/hardware gates unqualified",
     "ming": "repository scaffold has no native forward/runtime"
   },
@@ -215,5 +215,12 @@
     "new_corrective_artifacts_published": false,
     "original_project": "https://github.com/HyperGAN/moss-image-sliders"
   },
-  "legacy_mse_hold": "/mnt/nvme/sliders/qualification/MSE-DISPATCH-HOLD.json"
+  "legacy_mse_hold": "/mnt/nvme/sliders/qualification/MSE-DISPATCH-HOLD.json",
+  "bonsai_1200_admission": {
+    "admission_id": "bonsai-gan-1200-cpu-20261017-v1",
+    "proposal": "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/evidence/pg09-text-video/bonsai-1200-cpu-admission-proposal.json",
+    "proposal_sha256": "7854859e3ae028f8e91326846b85eac66819a34d77c7ce516c100b83c2c4be1e",
+    "output": "/tmp/pg09-bonsai-gan-1200-20261017/bispf_optimized",
+    "status": "admitted_execution_pending_receipts"
+  }
 }
