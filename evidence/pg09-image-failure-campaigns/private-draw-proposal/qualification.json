@@ -130,7 +130,6 @@
   "historical_draw_replay_qualified": false,
   "no_global_rng_restoration_in_private_engine": true,
   "actual_cuda_noise_or_text_encoding": false,
-  "no_model_optimizer_scheduler_native_gpu_worker_or_automation": true,
   "old_core_audit_active_moss_files_edited": false,
   "remaining": [
     "root source/plan review and newCPUcohort admission",
@@ -139,5 +138,8 @@
     "separate tinyGPU CUDA-noise admission and native text conditions",
     "actual source-bound collision gate and scale calibration; native worker/guardian wiring",
     "native parity/resource/GPU diskresume/full1000arms+heldout quality"
-  ]
+  ],
+  "actual_model_weight_loads_or_native_gpu_workers_started": false,
+  "actual_replay_driver_model_optimizer_scheduler_instantiation": false,
+  "cpu_fixture_optimizer_scope": "Only unchanged ConditionalPG09 constructs optimizers for explicitly synthetic reader/provider regression games; no actual native training/cohort ran"
 }
