@@ -1,0 +1,131 @@
+{
+  "qualification": "CPU software continuation only; no pretrained quality or GPU admission",
+  "core_sha256": "c1a889123833b34ba1dbf9cb72d2ec0babc61f2ca78834c7e40e490e0e3cd121",
+  "adapter_sha256": "4e03c66e670b6d8c89cb1be784c33ce6c730cb3dcf58765f800188eacc1101bf",
+  "cases": [
+    {
+      "family": "tiny",
+      "preset": "bispf",
+      "completed_steps": 4,
+      "exact_losses": true,
+      "exact_full_state": true,
+      "exact_sample": true,
+      "evaluation_preserves_training_rng": true,
+      "cuda_initialized": false,
+      "response_shape": [
+        1,
+        32
+      ],
+      "generator_arm": "routed_particle_gan",
+      "implementation_sources": {
+        "particle_sliders.pg09": "c1a889123833b34ba1dbf9cb72d2ec0babc61f2ca78834c7e40e490e0e3cd121",
+        "conceptmod.textsliders.pg09_text_video": "4e03c66e670b6d8c89cb1be784c33ce6c730cb3dcf58765f800188eacc1101bf",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "test_pg09_text_video": "ae8d15742913eca5a7fd209c16a58e560479e9aee03674649893b60d5126dfa9",
+        "conceptmod.textsliders.tiny_llm_backend": "1462e04af8e037654a4ece6e5b1db7491ae5aa272f43dcb568447e13ef5acdf4",
+        "conceptmod.textsliders.tiny_llm_particle": "1482f554621f32ba3abe3c4d708a4773385b627922ce4a9f134b3834041b796f",
+        "torch.nn.modules.container": "2caff8043d111843e301e5b7086c303ed0e861780fced92a1eb3808461334cc5",
+        "torch.nn.modules.linear": "45aa464d373ca22cc2f063e25df64ed78f37bbf3ba4203e8220bd545920c45dd",
+        "torch.nn.modules.activation": "8b8076c9383f8faea0800e5312e6df32b0829a6fd9a149ae4dc9620d2d6885fd",
+        "conceptmod.textsliders.particle_bridge_gan": "738d50200ea5de9a9c4943b34474f862b06a9321cd78e6838196ef9b9d6993f0",
+        "torch.nn.modules.module": "0758af0e6a4214bc36707739c3e730d69c82fdec790eee6fb63e7eeb7518c492",
+        "torch.nn.modules.sparse": "4897b5402c35e49c830edaee1eacc1b1c3f802ddc8e7ddf4112a71c78bea81f5",
+        "torch.nn.modules.normalization": "fe394c3aea142534b8d93dbae3784c9183cd44ae2e83d70d8c6a15245aed061b"
+      },
+      "pg_sources_sha256": "2eb837a727eee3a01d37e7c979c7d5b98bde6d061054bf12f6a226a5e59439b1",
+      "conditions_sha256": "3b9108a0c80d7613b240fff609accb40e2d4122d9b4005e2dc5d5e103c57bd90"
+    },
+    {
+      "family": "tiny",
+      "preset": "bispf_optimized",
+      "completed_steps": 4,
+      "exact_losses": true,
+      "exact_full_state": true,
+      "exact_sample": true,
+      "evaluation_preserves_training_rng": true,
+      "cuda_initialized": false,
+      "response_shape": [
+        1,
+        32
+      ],
+      "generator_arm": "routed_particle_gan",
+      "implementation_sources": {
+        "particle_sliders.pg09": "c1a889123833b34ba1dbf9cb72d2ec0babc61f2ca78834c7e40e490e0e3cd121",
+        "conceptmod.textsliders.pg09_text_video": "4e03c66e670b6d8c89cb1be784c33ce6c730cb3dcf58765f800188eacc1101bf",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "test_pg09_text_video": "ae8d15742913eca5a7fd209c16a58e560479e9aee03674649893b60d5126dfa9",
+        "conceptmod.textsliders.tiny_llm_backend": "1462e04af8e037654a4ece6e5b1db7491ae5aa272f43dcb568447e13ef5acdf4",
+        "conceptmod.textsliders.tiny_llm_particle": "1482f554621f32ba3abe3c4d708a4773385b627922ce4a9f134b3834041b796f",
+        "torch.nn.modules.container": "2caff8043d111843e301e5b7086c303ed0e861780fced92a1eb3808461334cc5",
+        "torch.nn.modules.linear": "45aa464d373ca22cc2f063e25df64ed78f37bbf3ba4203e8220bd545920c45dd",
+        "torch.nn.modules.activation": "8b8076c9383f8faea0800e5312e6df32b0829a6fd9a149ae4dc9620d2d6885fd",
+        "conceptmod.textsliders.particle_bridge_gan": "738d50200ea5de9a9c4943b34474f862b06a9321cd78e6838196ef9b9d6993f0",
+        "torch.nn.modules.module": "0758af0e6a4214bc36707739c3e730d69c82fdec790eee6fb63e7eeb7518c492",
+        "torch.nn.modules.sparse": "4897b5402c35e49c830edaee1eacc1b1c3f802ddc8e7ddf4112a71c78bea81f5",
+        "torch.nn.modules.normalization": "fe394c3aea142534b8d93dbae3784c9183cd44ae2e83d70d8c6a15245aed061b"
+      },
+      "pg_sources_sha256": "2eb837a727eee3a01d37e7c979c7d5b98bde6d061054bf12f6a226a5e59439b1",
+      "conditions_sha256": "3b9108a0c80d7613b240fff609accb40e2d4122d9b4005e2dc5d5e103c57bd90"
+    },
+    {
+      "family": "ltx",
+      "preset": "bispf",
+      "completed_steps": 4,
+      "exact_losses": true,
+      "exact_full_state": true,
+      "exact_sample": true,
+      "evaluation_preserves_training_rng": true,
+      "cuda_initialized": false,
+      "response_shape": [
+        1,
+        128,
+        2,
+        2,
+        2
+      ],
+      "generator_arm": "adapter_gan",
+      "implementation_sources": {
+        "particle_sliders.pg09": "c1a889123833b34ba1dbf9cb72d2ec0babc61f2ca78834c7e40e490e0e3cd121",
+        "conceptmod.textsliders.pg09_text_video": "4e03c66e670b6d8c89cb1be784c33ce6c730cb3dcf58765f800188eacc1101bf",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "test_pg09_text_video": "ae8d15742913eca5a7fd209c16a58e560479e9aee03674649893b60d5126dfa9",
+        "conceptmod.textsliders.ltx25_backend": "863fdf0aa352507f7cf139c0f70e0df53949452b2714a7cecef86c8b755088d2",
+        "torch.nn.modules.container": "2caff8043d111843e301e5b7086c303ed0e861780fced92a1eb3808461334cc5",
+        "torch.nn.modules.linear": "45aa464d373ca22cc2f063e25df64ed78f37bbf3ba4203e8220bd545920c45dd",
+        "torch.nn.modules.activation": "8b8076c9383f8faea0800e5312e6df32b0829a6fd9a149ae4dc9620d2d6885fd"
+      },
+      "pg_sources_sha256": "2eb837a727eee3a01d37e7c979c7d5b98bde6d061054bf12f6a226a5e59439b1",
+      "conditions_sha256": "b38961ea981636c00f754ae40112413f586c04c0bd4bdcf829c2ae2a3136a2c9"
+    },
+    {
+      "family": "ltx",
+      "preset": "bispf_optimized",
+      "completed_steps": 4,
+      "exact_losses": true,
+      "exact_full_state": true,
+      "exact_sample": true,
+      "evaluation_preserves_training_rng": true,
+      "cuda_initialized": false,
+      "response_shape": [
+        1,
+        128,
+        2,
+        2,
+        2
+      ],
+      "generator_arm": "adapter_gan",
+      "implementation_sources": {
+        "particle_sliders.pg09": "c1a889123833b34ba1dbf9cb72d2ec0babc61f2ca78834c7e40e490e0e3cd121",
+        "conceptmod.textsliders.pg09_text_video": "4e03c66e670b6d8c89cb1be784c33ce6c730cb3dcf58765f800188eacc1101bf",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "test_pg09_text_video": "ae8d15742913eca5a7fd209c16a58e560479e9aee03674649893b60d5126dfa9",
+        "conceptmod.textsliders.ltx25_backend": "863fdf0aa352507f7cf139c0f70e0df53949452b2714a7cecef86c8b755088d2",
+        "torch.nn.modules.container": "2caff8043d111843e301e5b7086c303ed0e861780fced92a1eb3808461334cc5",
+        "torch.nn.modules.linear": "45aa464d373ca22cc2f063e25df64ed78f37bbf3ba4203e8220bd545920c45dd",
+        "torch.nn.modules.activation": "8b8076c9383f8faea0800e5312e6df32b0829a6fd9a149ae4dc9620d2d6885fd"
+      },
+      "pg_sources_sha256": "2eb837a727eee3a01d37e7c979c7d5b98bde6d061054bf12f6a226a5e59439b1",
+      "conditions_sha256": "b38961ea981636c00f754ae40112413f586c04c0bd4bdcf829c2ae2a3136a2c9"
+    }
+  ]
+}
