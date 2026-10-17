@@ -1,0 +1,56 @@
+{
+  "root": "/mnt/nvme/sliders/qualification/runs/bonsai-pg09-gan-1200-20261017-v2/bispf_optimized",
+  "recipe_sha256": "3c49f2c4c8c7f628dd2cf23b56d50022428349cc635a76c0cc9c314181b051aa",
+  "completed_shared_updates": 1200,
+  "separate_replay_updates": 20,
+  "all1200_metrics_and60_checkpoints_present": true,
+  "producer_final_checkpoint_equals_full_expected_packet": true,
+  "producer_export_network_matches_final_checkpoint": true,
+  "worker_separate_process_restore_asserts_all_exact": true,
+  "restore_evidence_limit": "Reviewedworker compared actualrestore state/loss/vectors/export before receipt; no separate restoredfullpacket saved for independent tensor comparison; no optimizer replay by QA",
+  "exact_balanced_final_exposures_each": [
+    800,
+    800,
+    800
+  ],
+  "actual_bank_step1180to1200_delta_l2": 0.02919253706932068,
+  "evaluations": [
+    0,
+    20,
+    100,
+    400,
+    800,
+    1200
+  ],
+  "all_evaluation_transfer_gates_failed": true,
+  "recomputed_heldout_scale1": [
+    {
+      "case": 0,
+      "relative_edit_mse": 2.10820322196879,
+      "edit_cosine": 0.36744745312569205,
+      "edit_rms_ratio": 1.482445624108577
+    },
+    {
+      "case": 1,
+      "relative_edit_mse": 1.944979248713959,
+      "edit_cosine": 0.18766088004216083,
+      "edit_rms_ratio": 1.1777092244638712
+    },
+    {
+      "case": 2,
+      "relative_edit_mse": 1.7768917180968964,
+      "edit_cosine": 0.2911237052077043,
+      "edit_rms_ratio": 1.2193719100703686
+    }
+  ],
+  "mean_relative_edit_mse": 1.9433580629265486,
+  "canary_relative_rms": 1.2763404631871011,
+  "positive_identity_relative_mse": 0.2383564566232182,
+  "raw_metric_limit": "HeldoutMSE/cosine/RMS recomputed from6immutablecachedteacher tensors plus savedoutputs; canary/identity floats checked against reviewedworker receipts, their rawvectors were not persisted",
+  "zero_exact": true,
+  "transfer_gate": "FAIL",
+  "causality": "Neutralstudent input bug and public GAN/optimizer/schedule changed together; not an isolated objective comparison",
+  "generation_or_human_quality_qualified": false,
+  "additional_optimizer_updates_by_qa": 0,
+  "model_or_gpu_execution_by_qa": false
+}
