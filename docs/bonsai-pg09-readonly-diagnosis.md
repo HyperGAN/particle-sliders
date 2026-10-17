@@ -73,7 +73,8 @@ ablation on the saved final head**: compare each neutral-input edit with its
 zero-input edit and record route distributions. This can localize the common
 offset to bias/shared-bank versus input-dependent paths before proposing any new
 training arm. It requires no held-outs, optimizer or additional training budget.
-It has not been executed as part of this frozen diagnosis.
+It was subsequently parent-authorized and completed in the separately frozen
+[bias/routing ablation](bonsai-pg09-bias-routing-ablation.md); no training ran.
 
 The archived run fed positive students; this corrected run feeds neutral students
 and also changes the public optimizer/objective/schedule. Preserve that confound:
