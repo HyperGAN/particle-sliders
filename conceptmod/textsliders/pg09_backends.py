@@ -569,6 +569,8 @@ def moss_pipeline_decoder(pipe, *, output_type='pil'):
         raise ValueError('a staged FLUX.2 VAE is required')
 
     def decode(latent):
+        if not torch.isfinite(latent).all():
+            raise FloatingPointError('nonfinite MOSS latent before VAE decode')
         vae = pipe.vae
         z = latent.to(device=vae.device, dtype=vae.dtype)
         bn = vae.bn
@@ -577,6 +579,9 @@ def moss_pipeline_decoder(pipe, *, output_type='pil'):
         batch, channels, height, width = z.shape
         z = (z.reshape(batch, channels // 4, 2, 2, height, width)
              .permute(0, 1, 4, 2, 5, 3).reshape(batch, channels // 4, height * 2, width * 2))
-        images = vae.decode(z, return_dict=False)[0].clamp(-1, 1)
+        images = vae.decode(z, return_dict=False)[0]
+        if not torch.isfinite(images).all():
+            raise FloatingPointError('nonfinite MOSS VAE float output before clamp/postprocess')
+        images = images.clamp(-1, 1)
         return pipe.image_processor.postprocess(images, output_type=output_type)
     return decode

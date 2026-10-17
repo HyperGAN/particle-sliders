@@ -1,0 +1,23 @@
+{
+  "schema": "moss-pg09-worker-cpu-v1",
+  "tests": 106,
+  "failures": 0,
+  "skips": 0,
+  "core_profile_commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
+  "cuda_visible_devices": "",
+  "pretrained_weights_loaded": false,
+  "gpu_actions": false,
+  "source_sha256": {
+    "conceptmod/textsliders/pg09_moss_worker.py": "06fee71f7dcd1dfbc3319c9552e8d39538c99fc016f2b8c9adb9335dbf62cdcd",
+    "conceptmod/textsliders/pg09_moss_campaign.py": "32f8f042d3a76af531b566e07c4048ec2557acb31cadcc8988ee0518dbc3d565",
+    "conceptmod/textsliders/pg09_backends.py": "e540d77bf56810e2e2411fb5d0122de2a025cccfa8757671d9ea577c4d07e1fe",
+    "tests/test_pg09_moss_worker.py": "5dc29c13d8aed8bf1f92fb8dfd524c618312cc7919c712a88ab779c03a640334",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src/particle_sliders/pg09.py": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256"
+  },
+  "remaining": [
+    "Guardian recipe review and resource admission",
+    "Full local-model three-update probe",
+    "3840-update GAN training for each case",
+    "Matched heldout GAN versus old MSE common-protocol visual review"
+  ]
+}
