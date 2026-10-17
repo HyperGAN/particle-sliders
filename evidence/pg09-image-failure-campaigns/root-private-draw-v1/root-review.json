@@ -1,0 +1,87 @@
+{
+  "schema": "root-image-private-draw-qualification-v1",
+  "recorded_utc": "2026-10-17T18:38:50.335675+00:00",
+  "admission": "qualification/image-private-cpu-draw-admission-v1.json",
+  "admission_commit": "623306cd",
+  "status": "COMPLETED_SOURCE_ONLY_CPU_ENDPOINTS_MATCH",
+  "exit_code": 0,
+  "receipt_sha256": "89d450ea2e14fb299b222e2882b6e38504bb319d29097e5a63d86fd90d962ecc",
+  "plan_sha256": "48a3035da4dc229a63f872eacd4fae1e4c7eec0d6d84c0a18999467ea7a60122",
+  "source_commits": [
+    "bebcc1fb1732729b29824a1f2086081756b1b360",
+    "541bbadd87745f53899f5c70f40b49b287b29e1e"
+  ],
+  "canonical_commits": [
+    "9d4b27fc",
+    "4139ee51"
+  ],
+  "root_fixture_tests": 18,
+  "root_fixture_seconds": 1.16,
+  "independent_fixture_tests": 18,
+  "independent_proposal_qa_commit": "955fc72a725222c1d5fb5b6756d323c77cd7d0d0",
+  "independent_actual_receipt_qa_commit": "c58b082da20ab1d5c5ce1fc24fef82e33aef5470",
+  "elapsed_seconds": 2.5168347920043743,
+  "peak_rss_bytes": 538439680,
+  "cases": [
+    {
+      "case": "sana",
+      "updates": 500,
+      "schedule_sha256": "96ee2fa02effeeea973f24dc7b97b912e973d07cebfca3d888ed04d305bf7fd9",
+      "initial_cpu_sha256": "2b9c0b62adfb81346000f1bd1fb3fb08ae2311aeaa0e9ee1f889a6ce2cfa9929",
+      "produced_final_cpu_sha256": "2b9c0b62adfb81346000f1bd1fb3fb08ae2311aeaa0e9ee1f889a6ce2cfa9929",
+      "archived_final_cpu_sha256": "2b9c0b62adfb81346000f1bd1fb3fb08ae2311aeaa0e9ee1f889a6ce2cfa9929",
+      "cpu_end_state_exact": true,
+      "initial_python_sha256": "1830f2b9d84c43b9fa6f322135febfee8fa8743449332548392698a8ed6defce",
+      "produced_final_python_sha256": "1830f2b9d84c43b9fa6f322135febfee8fa8743449332548392698a8ed6defce",
+      "archived_final_python_sha256": "1830f2b9d84c43b9fa6f322135febfee8fa8743449332548392698a8ed6defce",
+      "python_end_state_exact": true,
+      "cpu_substream_status": "source-only end-state match",
+      "schedule_candidate_usable": true,
+      "cuda_noise_generated": false,
+      "numeric_text_conditions_reconstructed": false,
+      "historical_draw_replay_qualified": false,
+      "limits": [
+        "CPU/Python endpoint agreement is not proof of every intermediate draw or absence of compensating consumers",
+        "all CUDA noise/timestep native values/conditions/prefixes remain separately unqualified",
+        "checkpoint observer render/diagnostic consumption and resume timing require separate review"
+      ]
+    },
+    {
+      "case": "sd3",
+      "updates": 500,
+      "schedule_sha256": "8e53550bfcb96346b070a11d88107f0ce8f3b84ba2cd0bd1ea0fa706aeccd249",
+      "initial_cpu_sha256": "a06c710135eb69da75f962b519ffa78e457c871b82a8c925483ef890f51a88b0",
+      "produced_final_cpu_sha256": "7f8faeb946fbd9c6ad37ea7f6378e4685afa1462d0f4e1a523567459bb74c78b",
+      "archived_final_cpu_sha256": "7f8faeb946fbd9c6ad37ea7f6378e4685afa1462d0f4e1a523567459bb74c78b",
+      "cpu_end_state_exact": true,
+      "initial_python_sha256": "e9c954504f0ab33be368c2fd7e814a91a5324d67e695f4a74d12fbe3c072b5d2",
+      "produced_final_python_sha256": "e9c954504f0ab33be368c2fd7e814a91a5324d67e695f4a74d12fbe3c072b5d2",
+      "archived_final_python_sha256": "e9c954504f0ab33be368c2fd7e814a91a5324d67e695f4a74d12fbe3c072b5d2",
+      "python_end_state_exact": true,
+      "cpu_substream_status": "source-only end-state match",
+      "schedule_candidate_usable": true,
+      "cuda_noise_generated": false,
+      "numeric_text_conditions_reconstructed": false,
+      "historical_draw_replay_qualified": false,
+      "limits": [
+        "CPU/Python endpoint agreement is not proof of every intermediate draw or absence of compensating consumers",
+        "all CUDA noise/timestep native values/conditions/prefixes remain separately unqualified",
+        "checkpoint observer render/diagnostic consumption and resume timing require separate review"
+      ]
+    }
+  ],
+  "global_rng_unchanged": true,
+  "global_rng_restored": false,
+  "optimizer_updates": 0,
+  "model_or_native_forward": false,
+  "gpu_actions": false,
+  "historical_draw_replay_qualified": false,
+  "automatic_retry": false,
+  "remaining": [
+    "Private CUDAnoise/progression proposal and separate root resource admission after MOSSpriority",
+    "Native text/masks/pooled conditions and complete collision gate",
+    "Native SD3 current-adapter prefix and teacher/sampler/decoder parity",
+    "Production reader/worker/guardian/calibration, resources and separate-processGPUdiskresume",
+    "Full1000/preset arms and matchedheldoutfruit quality"
+  ]
+}

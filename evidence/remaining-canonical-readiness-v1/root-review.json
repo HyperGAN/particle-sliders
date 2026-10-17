@@ -56,5 +56,14 @@
   "independent_canonical_review_commit": "92c7a6865525f687d0062b35a88dda5a7567cd12",
   "independent_canonical_source_pins_verified": 33,
   "independent_canonical_phase_vectors_verified": 9,
-  "independent_canonical_import_attestation": "Actual stdlib worker/admission/binder import origins verified under heavy-module import blocker; core/backends source specs only. Live native import attestation pending."
+  "independent_canonical_import_attestation": "Actual stdlib worker/admission/binder import origins verified under heavy-module import blocker; core/backends source specs only. Live native import attestation pending.",
+  "original_moss_native_runtime_cpu_tests": {
+    "passed": 59,
+    "skipped": 0,
+    "seconds": 7.81,
+    "interpreter": "/mnt/nvme/sliders/moss-image-sliders/.venv/bin/python",
+    "torch": "2.9.1+cu128",
+    "pg_source": "/mnt/nvme/sliders/qualification/pg09-audit/wheel",
+    "scope": "SyntheticCPU bridge/proof/file replay fixtures only; no pretrained native load or GPU. No whole-site package overlay."
+  }
 }

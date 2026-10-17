@@ -1,0 +1,55 @@
+{
+  "recorded_utc": "2026-10-17T18:37:12.908730+00:00",
+  "status": "PASS_ACTUAL_ROOT_RECEIPT_METADATA_HASHES_ONLY",
+  "root_admitted_cohort": "623306cd",
+  "receipt_path": "/tmp/image-private-cpu-draw-root-v1-20261017.json",
+  "receipt_sha256": "89d450ea2e14fb299b222e2882b6e38504bb319d29097e5a63d86fd90d962ecc",
+  "plan_sha256": "48a3035da4dc229a63f872eacd4fae1e4c7eec0d6d84c0a18999467ea7a60122",
+  "driver_sha256": "509e6460cf210732747eef15b24865993d541b3ff5140e88702bb6615796ff75",
+  "module_sha256": "3181eb360d6bac149d4d023dc1f85a8f0d6a653e367e981ad4743ac8eb91b737",
+  "elapsed_seconds": 2.5168347920043743,
+  "peak_rss_bytes": 538439680,
+  "cases": [
+    {
+      "case": "sana",
+      "updates": 500,
+      "schedule_sha256": "96ee2fa02effeeea973f24dc7b97b912e973d07cebfca3d888ed04d305bf7fd9",
+      "cpu_endpoint_sha256": "2b9c0b62adfb81346000f1bd1fb3fb08ae2311aeaa0e9ee1f889a6ce2cfa9929",
+      "python_endpoint_sha256": "1830f2b9d84c43b9fa6f322135febfee8fa8743449332548392698a8ed6defce",
+      "cpu_and_python_endpoints_match_prior_v3_hashes": true,
+      "prompt_counts": {
+        "0": 250,
+        "1": 250
+      }
+    },
+    {
+      "case": "sd3",
+      "updates": 500,
+      "schedule_sha256": "8e53550bfcb96346b070a11d88107f0ce8f3b84ba2cd0bd1ea0fa706aeccd249",
+      "cpu_endpoint_sha256": "7f8faeb946fbd9c6ad37ea7f6378e4685afa1462d0f4e1a523567459bb74c78b",
+      "python_endpoint_sha256": "e9c954504f0ab33be368c2fd7e814a91a5324d67e695f4a74d12fbe3c072b5d2",
+      "cpu_and_python_endpoints_match_prior_v3_hashes": true,
+      "prompt_counts": {
+        "1": 122,
+        "2": 126,
+        "0": 120,
+        "3": 132
+      },
+      "prefix_min": 1,
+      "prefix_max": 49,
+      "distinct_prefixes": 49
+    }
+  ],
+  "reported_global_rng_unchanged": true,
+  "reported_global_rng_restored": false,
+  "historical_draw_replay_qualified": false,
+  "independent_scope": "JSONreceipt/1000savedindices/digests/bounds and priorv3 endpointmetadata/hash comparison; no duplicateexecution or privatearchivedstate assignment",
+  "qa_archive_packet_loads": 0,
+  "qa_private_archived_state_assignments": 0,
+  "qa_native_model_optimizer_or_gpu": false,
+  "limitations": [
+    "ExactCPU/Python endpoints support thissource-onlycandidate; do not prove every historicalintermediatedraw/absenceofcompensatingconsumers",
+    "No CUDAnoise/native text/mask/pooledvectors/prefix parity qualified",
+    "Actual nativecondition schema/globalcollisionaudit/calibration/productionreader/resourcecost/GPUdiskresume/full1000updates/matchedquality pending"
+  ]
+}
