@@ -249,7 +249,7 @@ def emit_report(
     return records
 
 
-def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) -> dict:
+def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None, observer=None) -> dict:
     if args.recipe != "particle_bridge":
         raise ValueError("bonsai-gguf only runs --recipe particle_bridge")
     rows = load_slider_rows(args.prompts_file)
@@ -268,9 +268,17 @@ def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) ->
     sampler = shared.BridgeSampler(len(rows), int(args.seed))
     ema = shared.initialize_ema(network)
 
+    context = dict(args=args, backend=backend, network=network, critic=critic,
+                   g=g, d=d, fixed=fixed, sampler=sampler, ema=ema)
+    start = observer.ready(context) if observer is not None else 0
+    if type(start) is not int or not 0 <= start <= int(args.steps):
+        raise ValueError("Invalid caption observer resume boundary")
     history = []
-    for update_index in range(int(args.steps)):
+    completed = start
+    for update_index in range(start, int(args.steps)):
         step = update_index + 1  # noise anneal is 1-indexed like the YuE2 loop
+        if observer is not None:
+            observer.before_step(step)
         metrics = update(
             backend, network, critic, g, d, fixed,
             sampler=sampler, step=step,
@@ -278,6 +286,7 @@ def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) ->
         shared.update_ema(ema, network)
         rec = dict(metrics, step=step)
         history.append(rec)
+        completed = step
         if step == 1 or step % 10 == 0 or step == int(args.steps):
             print(
                 f"bonsai-gguf particle step {step}: "
@@ -285,6 +294,9 @@ def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) ->
                 f"d_loss={rec['d_loss']:.4f} cos_pos={rec['cos_pos']:.4f} "
                 f"sigma={rec['noise_std']:.4f}"
             )
+
+        if observer is not None and not observer.after_step(step, rec):
+            break
 
     ref = shared.REFERENCE
     sidecar = {
@@ -326,7 +338,8 @@ def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) ->
         "noise_floor": ref["noise_floor"],
         "noise_decay_steps": ref["noise_decay_steps"],
         "propose_only": True,
-        "steps": args.steps,
+        "steps": completed,
+        "planned_steps": int(args.steps),
         "seed": args.seed,
         "device": args.device if not args.dummy else "cpu",
         "load_head": loaded_head,
@@ -336,7 +349,7 @@ def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) ->
     save_dir = Path(args.save_dir or f"models/{args.name}")
     save_dir.mkdir(parents=True, exist_ok=True)
     sidecar_path = save_dir / f"{args.name}_last.json"
-    record = dict(sidecar, step=int(args.steps))
+    record = dict(sidecar, step=completed)
     _save_state_as(network, ema, save_dir / f"{args.name}_last.safetensors", record)
     network.save(save_dir / f"{args.name}_live_last.safetensors",
                  dict(record, weights_kind="live"))
@@ -350,6 +363,8 @@ def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) ->
         }
     sidecar_path.write_text(json.dumps(sidecar, indent=2))
     print(f"wrote {sidecar_path}")
+    if observer is not None:
+        observer.finished(sidecar)
     return sidecar
 
 
