@@ -1,0 +1,55 @@
+{
+  "recorded_utc": "2026-10-17T17:56:12.084118+00:00",
+  "status": "PASS immutable source/algebra/hash review of both preserved executions",
+  "script": "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/evidence/pg09-text-video/bonsai-bias-routing-initial-executed.py",
+  "script_sha256": "0003c91da9c82c959901198ab0e2786bfa4375b91f0f98d796ec68e47d16f1c4",
+  "report": "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/evidence/pg09-text-video/bonsai-bias-routing-initial-output.json",
+  "report_sha256": "5196be4c0698e464aed58c5d11c1fb0674d52af63227a2922d947ba4d3e21b68",
+  "independent_source_hashes_verified": 96,
+  "independent_saved_artifact_hashes_verified": 7,
+  "qa_forward_executions": 0,
+  "qa_optimizer_executions": 0,
+  "qa_gpu_actions": 0,
+  "native_loss": "non_saturating; softplus(-fake) matches fixed public recipe",
+  "final_bias_identity": "up(decoder_final_bias)*scale is additive because finaldecoder and up are linear and up has no bias",
+  "final_bias_removed_norms": [
+    0.2139727771282196,
+    0.213592067360878,
+    0.21396465599536896
+  ],
+  "all_decoder_biases_removed_norms": [
+    0.059974126517772675,
+    0.06007757782936096,
+    0.05819569155573845
+  ],
+  "algebra_predicted_final_bias_removed_norm": 0.2138418511791975,
+  "interpretation_limits": [
+    "Projection coefficient.986 is not additive causal attribution; multiple paths cancel",
+    "Routing sensitivity applies to three fixed training rows and frozen model copies",
+    "Learned up-subspace projection errors do not prove hard nominal rank8 capacity deficiency",
+    "Frozen critic preference is a snapshot diagnostic; neither causal history nor PG formula defect is established",
+    "No deployment scale/checkpoint selected from heldouts; no additional training recommended or admitted"
+  ],
+  "review_conclusion": "Both immutable executions preserved; all common measurements exactly equal. Source/algebra review PASS; no QA forwards/optimizer/GPU executed",
+  "bias_projection_caveat": "Coefficient.986 is dot(bias,mean_delta)/norm(mean_delta)^2; cancellation between bias and other decoder paths prevents additive causal percentages",
+  "zero_input_caveat": "Zero_input alters residual-head input only and applies that counterfactual residual to original neutral base for training metrics",
+  "critic_metric_caveat": "softplus(-fake) matches this frozen non_saturating recipe, not arbitrary PG presets; critic preferences use common256Gaussian draws, same frozen context and response_scale=sigma=1",
+  "owner_commit": "c20315493e580c1bb2a6fa1f52ff754bb593160f",
+  "initial_script": "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/evidence/pg09-text-video/bonsai-bias-routing-initial-executed.py",
+  "initial_report": "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/evidence/pg09-text-video/bonsai-bias-routing-initial-output.json",
+  "final_script": "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/scripts/ablate_bonsai_pg09_readonly.py",
+  "final_script_sha256": "301ed3477a81cff357d72c7ac83457e608a373a085f6bbd8cd91f7993891ba8f",
+  "final_report": "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/evidence/pg09-text-video/bonsai-bias-routing-ablation.json",
+  "final_report_sha256": "f71425b74adb343796c70e99c78edbb4c472fcc2a054402ecabdb5b924fbae92",
+  "only_changed_common_report_keys": [
+    "elapsed_seconds",
+    "script_sha256"
+  ],
+  "added_final_report_fields": [
+    "critic_loss",
+    "reference_sigma",
+    "response_scale"
+  ],
+  "executed_initial_staging_script": "/ml2/codex-storage/future-workspaces/2026-10-17/task-6/ablate_bonsai_pg09_readonly.py",
+  "executed_initial_staging_report": "/tmp/bonsai1200-bias-routing-ablation.json"
+}
