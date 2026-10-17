@@ -236,6 +236,11 @@ class FrozenResponseAdapter:
             raise ValueError("finite single-example latent required")
         if (row.timestep is None) == (row.schedule is None):
             raise ValueError("choose one velocity timestep or a trajectory schedule")
+        if row.schedule is not None:
+            if self.family.startswith('supra') and any(d <= 0 for d in row.schedule.deltas):
+                raise ValueError("Supra trajectory uses increasing flow time with positive Euler intervals")
+            if not self.family.startswith('supra') and any(d >= 0 for d in row.schedule.deltas):
+                raise ValueError("Anima/MOSS trajectories use descending sigma intervals")
         if row.timestep is not None and not torch.isfinite(row.timestep).all():
             raise ValueError("finite timestep required")
         def snapshot(value):
@@ -311,6 +316,9 @@ class AnimaResponseAdapter(FrozenResponseAdapter):
                 seen.add(id(root))
 
     def _velocity(self, condition, latent, timestep):
+        maximum = getattr(self.backend, "num_train_timesteps", 1000)
+        if torch.any((timestep < 0) | (timestep > maximum)):
+            raise ValueError("Anima time must be a raw scheduler timestep")
         # No scale argument: the outer reversible context must survive backward.
         # Encoding is live, so conditioner LoRA is never replaced by frozen embeds.
         return self.backend.predict_v(condition, latent, timestep)
@@ -344,12 +352,19 @@ class MossResponseAdapter(FrozenResponseAdapter):
 
     def __init__(self, transformer, slider, *, decoder=None, model_identity=None):
         self.transformer, self.slider = transformer, slider
+        for block in getattr(transformer, "layers", ()):
+            code = getattr(block.forward, "__code__", None)
+            if (code is not None and "checkpoint" in (code.co_names + code.co_freevars) and
+                    not getattr(block, "_pg09_scale_checkpoint", False)):
+                raise ValueError("replace legacy checkpoint wrappers with checkpoint_with_adapter_scale")
         named = list(slider.named_parameters())
         if any(p.requires_grad for p in transformer.parameters()):
             raise ValueError("MOSS base transformer must be frozen")
         super().__init__(AdapterParameters(named, slider.at), decoder=decoder, model_identity=model_identity)
 
     def _velocity(self, condition, latent, timestep):
+        if torch.any((timestep < 0) | (timestep > 1000)):
+            raise ValueError("MOSS time must be the raw scheduler timestep in [0,1000]")
         embeds, mask = condition
         return self.transformer(latent, timestep, embeds, mask).sample.float()
 
@@ -477,10 +492,11 @@ class AnimaRuntimeResponseAdapter(FrozenResponseAdapter):
         return self.runtime.predict(latent, timestep, embedding)
 
     def _advance(self, latent, velocity, delta):
-        # Match TurboRuntime.step: scheduler arithmetic in float32 with the
-        # official bf16 model-output rounding both before and after Euler.
+        # Match TurboRuntime.step exactly: FP32 tensor scalar times BF16
+        # model output, FP32 sample addition, then BF16 output cast.
         velocity = velocity.to(self.runtime.dtype)
-        return (latent.float() + delta * velocity.float()).to(self.runtime.dtype)
+        dt = torch.as_tensor(delta, device=latent.device, dtype=torch.float32)
+        return (latent.float() + dt * velocity).to(self.runtime.dtype)
 
     def metadata(self):
         return dict(super().metadata(), model_identity=self.runtime.identity,
@@ -488,15 +504,26 @@ class AnimaRuntimeResponseAdapter(FrozenResponseAdapter):
                     trajectory_rounding=str(self.runtime.dtype))
 
 
+class _SupraRuntimeBackend:
+    """Inspectable runtime view; reuses the product's actual model and text cache."""
+    def __init__(self, runtime):
+        self.runtime = runtime
+        self.transformer, self.device = runtime.model, runtime.device
+
+    def trainable_parameters(self):
+        return self.runtime.parameters()
+
+    def _context(self, condition):
+        return self.runtime.encode(condition)
+
+
 class SupraRuntimeResponseAdapter(SupraResponseAdapter):
     """Reuse supra.runtime.SupraRuntime's frozen text cache, DiT, LoRA and VAE."""
     family = "supra_runtime"
 
     def __init__(self, runtime, *, model_identity=None):
-        from types import SimpleNamespace
         self.runtime = runtime
-        backend = SimpleNamespace(transformer=runtime.model, device=runtime.device,
-                                  trainable_parameters=runtime.parameters, _context=runtime.encode)
+        backend = _SupraRuntimeBackend(runtime)
         super().__init__(backend, decoder=self._decode, model_identity=model_identity)
 
     def _velocity(self, condition, latent, timestep):
@@ -514,3 +541,22 @@ class SupraRuntimeResponseAdapter(SupraResponseAdapter):
                    if self.runtime.device.type == 'cuda' else nullcontext())
         with context:
             return self.runtime.vae.decode(latent / .18215).sample
+
+
+def moss_pipeline_decoder(pipe, *, output_type='pil'):
+    """Bind official MOSS FLUX.2 normalization/latent unpacking to the renderer."""
+    if getattr(pipe, 'vae', None) is None:
+        raise ValueError('a staged FLUX.2 VAE is required')
+
+    def decode(latent):
+        vae = pipe.vae
+        z = latent.to(device=vae.device, dtype=vae.dtype)
+        bn = vae.bn
+        z = (z * (bn.running_var + vae.config.batch_norm_eps).sqrt().to(z).view(1, -1, 1, 1)
+             + bn.running_mean.to(z).view(1, -1, 1, 1))
+        batch, channels, height, width = z.shape
+        z = (z.reshape(batch, channels // 4, 2, 2, height, width)
+             .permute(0, 1, 4, 2, 5, 3).reshape(batch, channels // 4, height * 2, width * 2))
+        images = vae.decode(z, return_dict=False)[0].clamp(-1, 1)
+        return pipe.image_processor.postprocess(images, output_type=output_type)
+    return decode
