@@ -1,0 +1,268 @@
+{
+  "schema": "moss-interim-fixed-validation-panel-v1",
+  "status": "FROZEN_PREDECLARATION_NOT_GPU_ADMISSION",
+  "concepts": {
+    "bad-intent": {
+      "archived_recipe": "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/bad-intent/recipe.json",
+      "archived_recipe_sha256": "62dbcfdba7008a3ca4db93e8e45b13ee528d3d3faac426273cd9d1c1ccbcdc20",
+      "rows": [
+        {
+          "id": "bad-intent-interim-v1-00",
+          "split": "interim_validation_not_final_holdout",
+          "neutral": "masterpiece, best quality, safe, solo, anime illustration of an adult woman with dark brown bobbed hair and green eyes, wearing a mustard-yellow raincoat and dark trousers, standing beside a wooden counter in a quiet bookshop, neutral expression, closed mouth, relaxed hands, three-quarter upper-body view, eye-level camera",
+          "positive": "masterpiece, best quality, safe, solo, anime illustration of an adult woman with dark brown bobbed hair and green eyes, wearing a mustard-yellow raincoat and dark trousers, beside a wooden counter in a quiet bookshop, an eager smile that is slightly too broad and cold unblinking eyes, leaning toward the viewer with chin lowered, tight low-angle portrait, psychological horror, unsettling anticipation, oppressive intimacy, stark chiaroscuro, narrow light across the eyes, deep shadows around the face, ordinary surroundings falling into darkness",
+          "neutral_prompt_sha256": "e3c327e041b114d5c9fb9589b93ad4fd36ca0485f32e72c1f0a02accbb31f4e8",
+          "positive_prompt_sha256": "91594bc1a06d09b78c04431215d7aadc249fedc15d4e011842a2da487679d215",
+          "seed": 31019,
+          "edit_scope": "expression_pose_framing_atmosphere",
+          "changed_fields": [
+            "character.expression",
+            "pose",
+            "framing",
+            "atmosphere"
+          ],
+          "identity_preservation": false
+        },
+        {
+          "id": "bad-intent-interim-v1-01",
+          "split": "interim_validation_not_final_holdout",
+          "neutral": "masterpiece, best quality, safe, solo, anime illustration of an adult man with shoulder-length black hair and gray eyes, wearing a dark green jacket and beige trousers, seated on a metal bench on a covered railway platform, neutral expression, closed mouth, hands resting on his knees, full-body view, eye-level camera",
+          "positive": "masterpiece, best quality, safe, solo, anime illustration of an adult man with shoulder-length black hair and gray eyes, wearing a dark green jacket and beige trousers, on a covered railway platform beside a metal bench, a warmly welcoming smile paired with fixed unblinking eyes and inappropriate delight, head tilted and body unnaturally still, tight asymmetric head-and-shoulders framing, intense psychological horror, emotional mismatch, uncanny stillness, deep charcoal shadows, a small hard light on the face, the darkness behind the figure feels impossibly deep",
+          "neutral_prompt_sha256": "2c3eb9020dc686fcf6c32b0f99b578946555d7398b175529fbf53d8a95869d67",
+          "positive_prompt_sha256": "d0138ee1501611d7d41ac9f471b35249f538cb5234235043dd5182360d93736c",
+          "seed": 31073,
+          "edit_scope": "expression_pose_framing_atmosphere",
+          "changed_fields": [
+            "character.expression",
+            "pose",
+            "framing",
+            "atmosphere"
+          ],
+          "identity_preservation": false
+        }
+      ]
+    },
+    "afterimage": {
+      "archived_recipe": "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/afterimage/recipe.json",
+      "archived_recipe_sha256": "da15b691ce7c881d6774d54015aa82adbbd7465ec33e3c5d146250e955ebe90d",
+      "rows": [
+        {
+          "id": "afterimage-interim-v1-00",
+          "split": "interim_validation_not_final_holdout",
+          "neutral": "masterpiece, best quality, safe, solo, anime illustration of an adult woman with dark brown bobbed hair and green eyes, wearing a mustard-yellow raincoat and dark trousers, standing beside a wooden counter in a quiet bookshop, neutral expression, closed mouth, relaxed hands, three-quarter upper-body view, eye-level camera",
+          "positive": "masterpiece, best quality, safe, solo, anime illustration of an adult woman with dark brown bobbed hair and green eyes, wearing a mustard-yellow raincoat and dark trousers, beside a wooden counter in a quiet bookshop, turning her head sharply while her shoulders twist in the opposite direction, close upper-body composition with space around the moving silhouette, surreal temporal afterimage, one solid central character with multiple translucent offset impressions of the same face and shoulders, successive moments layered together, cyan and magenta edge separation, luminous motion trails",
+          "neutral_prompt_sha256": "e3c327e041b114d5c9fb9589b93ad4fd36ca0485f32e72c1f0a02accbb31f4e8",
+          "positive_prompt_sha256": "5bf54a61b9d68acc80203b262ae246571468f71e99ff00a194899f608b8ed900",
+          "seed": 31019,
+          "edit_scope": "expression_pose_framing_temporal_effects",
+          "changed_fields": [
+            "character.expression",
+            "pose",
+            "framing",
+            "atmosphere"
+          ],
+          "identity_preservation": false
+        },
+        {
+          "id": "afterimage-interim-v1-01",
+          "split": "interim_validation_not_final_holdout",
+          "neutral": "masterpiece, best quality, safe, solo, anime illustration of an adult man with shoulder-length black hair and gray eyes, wearing a dark green jacket and beige trousers, seated on a metal bench on a covered railway platform, neutral expression, closed mouth, hands resting on his knees, full-body view, eye-level camera",
+          "positive": "masterpiece, best quality, safe, solo, anime illustration of an adult man with shoulder-length black hair and gray eyes, wearing a dark green jacket and beige trousers, beside a metal bench on a covered railway platform, sweeping one arm across his body while turning toward the viewer, dynamic three-quarter figure with diagonal movement across the frame, fractured time, a readable central figure surrounded by fading spectral repetitions of the same gesture, overlapping hand and face afterimages, long-exposure light smears, colored silhouettes receding through space",
+          "neutral_prompt_sha256": "2c3eb9020dc686fcf6c32b0f99b578946555d7398b175529fbf53d8a95869d67",
+          "positive_prompt_sha256": "64326ae1f4271de7c67f9517a2f062b80995938e39c93279af75c3b2b615c8eb",
+          "seed": 31073,
+          "edit_scope": "expression_pose_framing_temporal_effects",
+          "changed_fields": [
+            "character.expression",
+            "pose",
+            "framing",
+            "atmosphere"
+          ],
+          "identity_preservation": false
+        }
+      ]
+    }
+  },
+  "excluded_prompt_hashes": {
+    "bad-intent": {
+      "training_prompt_hashes": [
+        "06acb0458aed327c1dcb6c4695d64070be85d822b779627cdbbaef840dddf5c3",
+        "0a531a5f30b21896d20206bdaeb2c21d40fa7705c8dac72ea0469bc6b24a4317",
+        "0ffdb4b8076a699351641e9583666ad1cbe589d79a27900813956d1bc9bca613",
+        "125146f350d7ab8f7b779ff717dc163354324f818bf133bf1927c02fcbb7cd1c",
+        "1aed14dc94d93d0b1832460b89990b4c7c4f626f58b8416a3d7c0e9a03cf8247",
+        "1cc3a050c1b1a48580ba8e9c31259d5be9de057d5ce3984d2abd659fda78d3f1",
+        "22b329bfef909372b9c8de47b743c72144148b5dcb7e7fe9a193038bb38debcd",
+        "28b40418647bee95de57ca806c09932c801a7bba31e63270925ddf2171020421",
+        "2eb23fc5a74034ff2247f9dea5882b9b08b6f0e16eced46abb5d68fddcac2fdf",
+        "2fe64e63468c074412d8f23c26fa9250a9927c85b3ec5ac13f7e8dfcf61fbe1c",
+        "30a6baf43b41d912567bcf4aa739ca1e67355987a99e801038e7b2c7d89f3757",
+        "30c0ed1e8b9cbb26b29ab147f24c632cd8891601e66999661a4eb5cc073fdcc8",
+        "34cee2ebd45f490c790561694121721e4e0b593c37b5d89417dd7be0b2edcf86",
+        "423e08c0ade60218ae26ab291da5095dba03fddab5bb1046f3f30d18119746a1",
+        "433dd55b9773de62f101e7d778b3872811c930ceb38850759f5ab0745796ce9e",
+        "435a47c410f196d8d674719525e7b20bda9f6e35c04e61bbe6e36b840807a9e8",
+        "4404b798a6740992c0131d82dd5f641155f9af990183aa09a192e8eadd589e09",
+        "46f2398bbf14af0674d966e446a6dac5d2f1995900fae93f3041e63b64106b18",
+        "48542c4194e75021bed233cb233dbc79fbd802813fa641b38afd4bcacedb0ccd",
+        "520afd7331ea2403ed2faf96f0ada9379388ad3f2979f689f50b50af3b15b8dd",
+        "597d2e7b78b6978fa5c93bc4036e6a9927ba41e62c4cb9d794397e68410f8b5a",
+        "5c857cde63c6004616cf645e9136d5ee5d7c4382aec3702ba03b0014f21dad81",
+        "5fae0435a47dbd1cd1cef18b8e2b17bf683ac2f2ed9376fcb820afe07064c60a",
+        "7162b15e1cd59261ee9579040f7556c434ac9ec18f37a4df8926c24f9cb0c174",
+        "7b5f89ad42c4e9cfaf613b12fe9513188812623d355b77773ea412f377e64ef9",
+        "8de1ff451e7fab76669bba36a1a7feaaa430879e94fa1c314d99edb48d4e2c0b",
+        "8ee8fffce7137252cf5e82021263f6e6398e76359dd3f6df94478279d611b96f",
+        "94e7679c51983a63a9cebab736d35b4ee9b5b77cfdc43241b1b21dc5651d3f0c",
+        "9dda9a5074273d33988e6f62b6cafb0f87eaf7cb48e2e629b3a88dedb363bc56",
+        "a454791e00530e67ba822da01007791d37a6f49967344aa02c0267f6b87d0879",
+        "acb9efc5f77c6b7d3792317255c602c440ce71c8027fbbc5c7667c0063a529a5",
+        "aea8c4d39959727fe6db52fcb03b6f7fe2a69be89ff0700c675951197d508905",
+        "aff77d651a85a3b305740e0f72f9f2b366b250826a661c740494ee10b5b2d981",
+        "b81bd88cc5c005e158a8922c70819ada78c3987c533287688f1036c4d9d21b72",
+        "ca6f927d3592bcb04008c7ef2ce0ddd03cf72139197e19c030d1280e378b5a3b",
+        "cb7305d23c789def9546e9c3df81b0c3c4ffa119900eb7b997819d04d4304253",
+        "ce27505eb16d3115953ffe14f64c7465a4099714c79eb7e2e5d7129da33c1e60",
+        "d6e18db8233ee9be140dffe4a07bae2f4e380ba5e46ca1b9a6f510218029270b",
+        "dbe57e4011e562a1711b7473e9218289fd2cd0299d4e37ef90a52dd5c43ef699",
+        "ddf582fdfad7ee0930cc65802de2f2daa29e5ca82aa939f4871f86e45bf1fb32",
+        "e7914a2bd231a4de5b2440e08f1db163b2857652226308400dc1ed699fef1f12",
+        "f44db560619aecac6a418000ddcf83749859ba81ea843145fb52a38f4955ba7d",
+        "f7d53494803cda10caa76a8d3926a7ae4cb1dc1400e5e1e70351c441727ecdbe",
+        "f92acdc6453591bb97645c3561e410e002a0dbe588c95038a43f0bcb2cf9f342",
+        "fb4045041e3cdc5c1a8a69282fab8628f7f520548d37ef4f6eda51e5c434db9f",
+        "fc0de832127259451869e02a7bf7879766cb0b0d8a9e077c0a2e60de8a2aac8a",
+        "fe5697a73cf93bda76b87a63fd58053026b2f0ed33fdf0e49f51249d43b193ce",
+        "fee90fafcd48cc1edeaef4bb2bf0e9b566f449636b67f9685b82562708940396"
+      ],
+      "final_holdout_prompt_hashes": [
+        "4a7840720d5a6f4db2d32a657b4128d4b228da0a3839cd022cfb1e0028b87875",
+        "57b4f52593746c123972f4d0e74155430cc6eda204a984215a8cced0ab974918",
+        "679a830bfe406c35c28db35fae3533d3edb50d2aa66cc06604b782f3c9e21dd9",
+        "b8213fc0c48371827447a9659a45e5f9bc1f8fed72c563e87df1c0ed9045ecd6"
+      ]
+    },
+    "afterimage": {
+      "training_prompt_hashes": [
+        "06acb0458aed327c1dcb6c4695d64070be85d822b779627cdbbaef840dddf5c3",
+        "0ffdb4b8076a699351641e9583666ad1cbe589d79a27900813956d1bc9bca613",
+        "125c283aa06c3749a34ea84c7ee82abd2afbb90f58d741aae7aef8d7cbfa7044",
+        "15d7d0f48b92e019986d97d080921b165896ca37e6c27743c7f24669557efb71",
+        "19223ae2b190716f0929de3585555f08c01c8ff80be6a7c84390ff6182ba3e55",
+        "1aed14dc94d93d0b1832460b89990b4c7c4f626f58b8416a3d7c0e9a03cf8247",
+        "1cc3a050c1b1a48580ba8e9c31259d5be9de057d5ce3984d2abd659fda78d3f1",
+        "1efb2668ba043b9299dcec8923be751de4bdb9c073046c3da8b3716ce461fc55",
+        "2139acd0def949d9213d581b029f6330f80afdc4d6e327f90aeb8e2cbe1ab63e",
+        "2eb23fc5a74034ff2247f9dea5882b9b08b6f0e16eced46abb5d68fddcac2fdf",
+        "2fe64e63468c074412d8f23c26fa9250a9927c85b3ec5ac13f7e8dfcf61fbe1c",
+        "30c0ed1e8b9cbb26b29ab147f24c632cd8891601e66999661a4eb5cc073fdcc8",
+        "3728bdb9e541372e330d5cee531483bf880a9337634db98ef3a975080d94899f",
+        "3bf13964d3f7dd8df9825e315475109fc18c3184af29f74c8d0307f7502b762e",
+        "46f2398bbf14af0674d966e446a6dac5d2f1995900fae93f3041e63b64106b18",
+        "48542c4194e75021bed233cb233dbc79fbd802813fa641b38afd4bcacedb0ccd",
+        "4ba4bf764e75e33314856b599da355f7d4d1ed6976c4b9a25b8e4e80cdc3ca93",
+        "520afd7331ea2403ed2faf96f0ada9379388ad3f2979f689f50b50af3b15b8dd",
+        "52a7c4052bbf5dbef5953e692867466880c829f9398c6fc67fa1e168ea8197b6",
+        "5c857cde63c6004616cf645e9136d5ee5d7c4382aec3702ba03b0014f21dad81",
+        "5fae0435a47dbd1cd1cef18b8e2b17bf683ac2f2ed9376fcb820afe07064c60a",
+        "60fe8a296c1f07bda75e2793df6964fc6a3ca5e399578d7b01d95647a36518dc",
+        "7162b15e1cd59261ee9579040f7556c434ac9ec18f37a4df8926c24f9cb0c174",
+        "8de1ff451e7fab76669bba36a1a7feaaa430879e94fa1c314d99edb48d4e2c0b",
+        "8df49912b62394905511764829f3257e2e41fb1e5ac2c56914fc167de427687d",
+        "8ee8fffce7137252cf5e82021263f6e6398e76359dd3f6df94478279d611b96f",
+        "8f01fc9f0609ef284d4b9f9ce57df96586d8f85c35d4af80868a08356820a541",
+        "948f9c64db8caa81d8cac58829fa0f46a9cab3f94149f168b935fb36c71286a3",
+        "98c7889d517d246dd4e65b069946ac0a995ce6a3ac7178be7cc5d310f44975c4",
+        "a83f6bd802de95cd737b0e62e0b90b4b772e3f0cfaecc59df92e93b81ea3e6e1",
+        "acb9efc5f77c6b7d3792317255c602c440ce71c8027fbbc5c7667c0063a529a5",
+        "aff77d651a85a3b305740e0f72f9f2b366b250826a661c740494ee10b5b2d981",
+        "b2c78c2904783c7b203dc27a52ce81b517de110b4e3f0598acf7034c5546b152",
+        "b2dd7a01ed9244c2f2814a98ed03b4548e0c38d5dc40eb2c341d0f16a88791db",
+        "b3e1349a16aa19c658be94e5bec374865fbd9befdbef2feb81b8e624ba85a79b",
+        "b81bd88cc5c005e158a8922c70819ada78c3987c533287688f1036c4d9d21b72",
+        "c056e8a2172e45fa6ec9d5dc0ab66008de644fc81e13460dfcd9701cd435aac3",
+        "ca6772dad83c2e1f880d33856a970b88b9e033688db840a5c79677bf78c0af09",
+        "ca6f927d3592bcb04008c7ef2ce0ddd03cf72139197e19c030d1280e378b5a3b",
+        "cfc4a164dbc8c2c01ab745cf7e22f62100d74d8c2ac037b90d87a8cfc3c94e10",
+        "d6e18db8233ee9be140dffe4a07bae2f4e380ba5e46ca1b9a6f510218029270b",
+        "e3c75b90cc6ec140bd025422536169a0bed8629bd41bc9c9acf8a484860d754a",
+        "e4e26a108bf1aad67b27c2eddd2d1547994eebb330e7328893d4fcbd930cfdbc",
+        "f1e1b9b70d2c6621896bf14827f8a8a714ec3ac8ed25842095e5fa4f39602986",
+        "f44db560619aecac6a418000ddcf83749859ba81ea843145fb52a38f4955ba7d",
+        "f7d53494803cda10caa76a8d3926a7ae4cb1dc1400e5e1e70351c441727ecdbe",
+        "fc0de832127259451869e02a7bf7879766cb0b0d8a9e077c0a2e60de8a2aac8a",
+        "fee90fafcd48cc1edeaef4bb2bf0e9b566f449636b67f9685b82562708940396"
+      ],
+      "final_holdout_prompt_hashes": [
+        "45412931843fe92f5e89a4658318451d3d68dd24cc2f4411273cb3f5baf77584",
+        "57b4f52593746c123972f4d0e74155430cc6eda204a984215a8cced0ab974918",
+        "85050b417f4c30f8aec3f0c5733fbb724d573da27d8dc352648022efb72136b6",
+        "b8213fc0c48371827447a9659a45e5f9bc1f8fed72c563e87df1c0ed9045ecd6"
+      ]
+    }
+  },
+  "variants": [
+    {
+      "label": "clean",
+      "prompt": "neutral",
+      "scale": 0.0,
+      "mode": "unattached_frozen_native_base_before_adapter_attachment"
+    },
+    {
+      "label": "off",
+      "prompt": "neutral",
+      "scale": 0.0,
+      "mode": "trained_adapter_attached"
+    },
+    {
+      "label": "minus",
+      "prompt": "neutral",
+      "scale": -1.0,
+      "mode": "trained_adapter_attached"
+    },
+    {
+      "label": "half",
+      "prompt": "neutral",
+      "scale": 0.5,
+      "mode": "trained_adapter_attached"
+    },
+    {
+      "label": "plus",
+      "prompt": "neutral",
+      "scale": 1.0,
+      "mode": "trained_adapter_attached"
+    },
+    {
+      "label": "teacher",
+      "prompt": "positive",
+      "scale": 0.0,
+      "mode": "frozen_base_positive_prompt"
+    }
+  ],
+  "images_per_concept_per_panel": 12,
+  "protocol": {
+    "resolution": 512,
+    "steps": 50,
+    "guidance": 3.0,
+    "negative_prompt": "",
+    "adapter_negative_scale": 0.0,
+    "adapter_cfg_branch": "conditional_only",
+    "skip_layers": false,
+    "noise_generator": "original CPU MOSS seed; exact same initial latent per row/variant",
+    "native_runtime": "moss-cache-producer-v1; original Torch2.9.1/Diffusers0.38/Transformers5.3"
+  },
+  "asset_gate": {
+    "status": "MISSING_UNTIL_OWNER_REVIEWED_QWEN_EXPORT",
+    "unique_nonempty_prompts": 6,
+    "empty_negative_required": true,
+    "preconditions": [
+      "Exact panel JSON SHA and prompt UTF8 hashes bound before encoding",
+      "Native Qwen model/tokenizer revision, input files, imported source and runtime/dtype/preprocessing bound to original cache producer",
+      "Full token IDs/counts/attention mask with max512 and truncation=False; reject overflow without edits",
+      "All6 new prompts plus exact empty-negative context present; no placeholders or nearest/existing-caption substitution",
+      "Native embedding/mask shape/dtype/finite checks, SHA of source prompts/token IDs/numeric tensors and exclusive output receipt",
+      "No new text assets added to training rows/calibration; encoder process exits and releases device before DiT preview"
+    ]
+  },
+  "reuse_policy": "Same exact captions/seeds/variants on every interim decision; no prompt/seed/checkpoint cherry-picking; final2 archived dev captions untouched until selected checkpoint final review"
+}

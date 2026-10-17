@@ -110,5 +110,21 @@
   "first_candidate": {
     "bad_intent": 260,
     "afterimage": "latestimmutablecheckpoint atpaneladmission; otherGPUmaycontinuetraining"
+  },
+  "frozen_panel": {
+    "path": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/qualification/moss-interim-validation-panel-v1.json",
+    "sha256": "502d0e96c68c6614858cb99dee1bc4efbb6ef48e9242e9f095cc233a9516d2d2"
+  },
+  "independent_stop_policy": {
+    "path": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/qualification/moss-interim-stop-policy-v1.json",
+    "sha256": "b59adf4287b921089d4a99e8b15fc3d29db9ebda37dd288ca5cf799ec6654855"
+  },
+  "attachment_route": {
+    "status": "SUPPORTED_TOOL_ROUTE_DISCOVERED_NOT_YET_UPLOADED",
+    "tool": "mcp__codex_apps__library_create_library_file",
+    "arguments": "files=[absolute finalized labeled PNG paths], library_artifact_type=image",
+    "verification": "Use returned library_file_id with library_read(mode=image_file) before returning persistent IDs to parent; do not fabricate IDs or expose originals/unrelated files",
+    "scope": "User explicitly requests sharing intermediate slider images; retain privately in userLibrary, no publicpublishing",
+    "generated_interim_images": 0
   }
 }

@@ -1,0 +1,48 @@
+{
+  "schema": "moss-interim-early-stop-policy-v1",
+  "status": "FROZEN_PREDECLARATION_NOT_EXECUTION_ADMISSION",
+  "panel_sha256": "502d0e96c68c6614858cb99dee1bc4efbb6ef48e9242e9f095cc233a9516d2d2",
+  "maximum_training_steps": 3840,
+  "3840_is_completion_requirement": false,
+  "training_recipe_total_steps_remains": 3840,
+  "stop_policy": "Select and stop at the first independently reviewed checkpoint whose COMPLETE fixed interim panel passes for that concept. Concepts can stop separately. Do not train to3840 after a pass merely to reach a count.",
+  "cadence": {
+    "first_panel": "First source/checksum/frozen-base-qualified immutable checkpoint available after owner-reviewed full stop; a regular320 boundary is not required",
+    "subsequent_panel_spacing_updates": 320,
+    "rule": "If FAIL_CONTINUE, next planned validation at min(last reviewed step+320,3840), using a safely committed checkpoint. No panels at every update or retrospective best-checkpoint search.",
+    "budget_cap_outcome": "If3840 reached without PASS, report criterion not met or inconclusive; no extension, sweep or automatic retry."
+  },
+  "pass_requires_all": [
+    "Both predeclared rows have all6 variants, exact source/checkpoint/export/panel/asset/protocol hashes and complete sidecars.",
+    "Trained adapter-off0 denoised latent exactly equals the independently rendered unattached native clean latent, with identical initial noise, prompt tensors, scheduler and decoder; off0 image must also exactly replay clean under the fixed deterministic protocol.",
+    "For BOTH rows, plus1 introduces a clear intended concept change relative to off0: Bad Intent psychological unease/uncanny expression or threatening intimacy; Afterimage visible translucent offset temporal impressions/trails around a readable solid central subject.",
+    "For BOTH rows, half0.5 shows a visibly moderated version of the same plus1 effect: reviewer can order off0 < half0.5 < plus1 in intended effect strength, with concrete visible evidence. No required linear pixel trajectory or fixed pose/framing.",
+    "Minus-1 does not increase the intended positive effect relative to off0 and remains coherent; an already absent off effect can remain at its floor. Do not demand nonexistent negative afterimages.",
+    "Half/plus/minus do not introduce materially worse unintended artifacts than off/clean: no collapsed central subject, incoherent face/body, destructive texture/noise or unreadable composition. Deliberate uncanny expression and translucent afterimage repetitions are assessed as intended effects, not automatically called defects.",
+    "Original edit_scope applies: expression, pose, framing and atmosphere/temporal effects may change; identity_preservation=False. Pixel identity, exact face, pose and crop are not pass requirements. Subject and scene must remain coherent and visually acceptable.",
+    "Teacher-positive frozen0 is a diagnostic reference for the intended effect and base limitations; no requirement to reproduce its pixels or beat a numeric loss."
+  ],
+  "decision_actions": {
+    "PASS_STOP": "Both rows satisfy every semantic/control/artifact gate; owner records selected checkpoint and keeps training stopped, then separately admits final held-out review.",
+    "FAIL_CONTINUE": "Software/control gates pass but one or both rows miss effect/control/artifact criterion; reviewer records evidence, owner may explicitly resume unchanged recipe to next coarse checkpoint within maximum.",
+    "INCONCLUSIVE_HOLD": "Missing/broken assets, nonexact off, source/protocol mismatch, failed stop/resource proof, unusable base controls or ambiguous visual evidence; hold execution for owner review. Do not compensate by changing prompts/seeds/scales or reading final dev images."
+  },
+  "review_record_required": [
+    "Concept, actual selected step, immutable checkpoint/meta/export SHA, panel SHA, condition-asset receipt SHA, preview guardian/phase receipt SHA",
+    "All image/latent/sidecar hashes and the clean/off exactness proof",
+    "Per row plus-effect observation, off/half/plus ordering evidence, minus behavior, subject/composition readability, material artifact assessment and teacher comparison",
+    "Independent reviewer identity, PASS/FAIL/INCONCLUSIVE for each row, aggregate action, prior panel count and previous decisions preserved"
+  ],
+  "validation_separation": "Interim panel is used for early stopping and is not an untouched generalization estimate. Freeze captions/seeds/variants/rubric now; no editing, row dropping, seed retries, hyperparameter sweeps or final-heldout tuning. After selection, evaluate the original two final dev captions once under separately admitted matched GAN/old-MSE protocol and report any failure honestly; final failure is not permission to tune on that set.",
+  "pause_and_resume_requirements": [
+    "Resource/process owner only: no QA signals or GPU actions. Never run a preview/encoder beside the existing training guardian merely because VRAM appears free.",
+    "Before preview prove owned worker AND guardian exited, both inherited lease holders gone/released, immutable actual completed-step checkpoint/LATEST/meta/recipe hashes consistent, worker frozen base before/after exact, and old receipts preserved. Reacquire both original per-card leases and perform fresh UUID/resident/kernel/temperature/power/host/VRAM/disk checks.",
+    "Distinguish planned pause from resource/unowned-process abort. Original guardian expects trained, so a graceful stopped worker can have a failed_no_retry guardian receipt. Preserve the exact cause. A missing prior owner-intent cannot be fabricated. Unexpected/resource stops require explicit owner incident review and new phase admission; never automatic restart or blind acceptance as planned stop.",
+    "New files/cards only; do not edit active bound sources, worker recipes, PG source/runtime profile or historical receipts. Bind actual paused step S and exact state/meta/recipe/frozen-base hashes; never rename/rebind it as3 or3840.",
+    "Preview new process uses original native runtime, reviewed source/config/conditions/decoder, independently clean base before adapter attachment, and exact public export/reload; no optimization in rendering.",
+    "Before continuation, qualify full disk state at arbitrary S in two fresh owner-admitted processes: exact S-to-S+1 loss/full-state/sample witness, CPU-map RNG bytes, unchanged checkpointS, rollback toS after witness, and cumulative logical-step/row coverage with no duplicate committed update. Any optimized witness is a separate bounded admitted phase, not hidden rendering work.",
+    "New continuation guardian/card binds pause/candidate/proof SHA, fresh safety admission and actual resume cursor. Restore complete G/D/optimizer/row orders/exposures/private+model RNG with total_steps3840 unchanged; begin next real update atS+1. Preserve cumulative case wall cap and earlier events; no reset/sweep/automatic retry.",
+    "After a passing early checkpoint, final matched renderer/auditor must explicitly support selectedS. Legacy3840-only evaluate path must not be bypassed by relabeling checkpoints or forging trained status."
+  ],
+  "authority": "Only root/process owner may admit phases, stop/resume processes, encode assets, render or train. This policy grants none of those actions."
+}
