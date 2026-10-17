@@ -1,0 +1,19 @@
+{
+  "train": [
+    {"neutral": "a garden at dawn", "positive": "a blooming rose garden at dawn"},
+    {"neutral": "a sea under soft light", "positive": "a calm turquoise sea under soft light"},
+    {"neutral": "a street with lamps", "positive": "a cozy rainy street with warm lamps"}
+  ],
+  "validation": [
+    {"neutral": "a garden beside a stone wall", "positive": "a blooming rose garden beside a stone wall"},
+    {"neutral": "a sea beside a fishing boat", "positive": "a calm turquoise sea beside a fishing boat"},
+    {"neutral": "a street with lamps beside a bakery", "positive": "a cozy rainy street with warm lamps beside a bakery"}
+  ],
+  "final_holdout": [
+    {"neutral": "a garden beyond the school gate", "positive": "a blooming rose garden beyond the school gate"},
+    {"neutral": "a sea outside the harbor", "positive": "a calm turquoise sea outside the harbor"},
+    {"neutral": "a street with lamps near the station", "positive": "a cozy rainy street with warm lamps near the station"}
+  ],
+  "canaries": ["a parking lot at dawn", "a concrete stairwell under soft light", "an empty warehouse with lamps"],
+  "fluency": ["The purpose of a library is"]
+}

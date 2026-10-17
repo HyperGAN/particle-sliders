@@ -1,0 +1,94 @@
+{
+  "resource_preflight": {
+    "output_filesystem": {
+      "output": "/mnt/nvme/sliders/qualification/runs/tiny-qwen-native-pg09-cpu-smoke-20261017-v1/bispf_optimized",
+      "existing_parent": "/mnt/nvme/sliders/qualification/runs",
+      "mountpoint": "/mnt/nvme",
+      "device": "/dev/nvme0n1p2",
+      "major_minor": "259:2",
+      "free_bytes": 2119940071424
+    },
+    "host_available_bytes": 48279343104,
+    "peak_rss_gib": 0.027851104736328125,
+    "startup": true,
+    "limits": {
+      "cpu_threads": 1,
+      "interop_threads": 1,
+      "rss_cap_gib": 8,
+      "host_reserve_gib": 8,
+      "nvme_reserve_gib": 100,
+      "produce_seconds": 900,
+      "restore_seconds": 600
+    }
+  },
+  "assets": {
+    "directory": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb",
+    "manifest_sha256": "4962affb04b7d1d07573428676d516f78dd7969d8a358691058fa35f16e59d4d",
+    "revision": "da87bfb608c14b7cf20ba1ce41287e8de496c0cd",
+    "files": [
+      {
+        "file": "config.json",
+        "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/43c79dcb3766612b23cbed17d0a56ce63efe4e74",
+        "bytes": 727,
+        "sha256": "504a6b58c4271583724e66584b6b7698aea18450209df6b2f7582df0e89cee59",
+        "hash_evidence": "fresh metadata hash"
+      },
+      {
+        "file": "generation_config.json",
+        "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/cbbb3133034e192527e5321b4c679154e4819ab8",
+        "bytes": 138,
+        "sha256": "8c970692323e3ea0e9b8b0a4dca79388d31226e41f83c9fd6014804280ebf6e8",
+        "hash_evidence": "fresh metadata hash"
+      },
+      {
+        "file": "tokenizer.json",
+        "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/443909a61d429dff23010e5bddd28ff530edda00",
+        "bytes": 7031645,
+        "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+        "hash_evidence": "fresh metadata hash"
+      },
+      {
+        "file": "tokenizer_config.json",
+        "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/6a3829ee9491f36113e64df37573be81df0366f5",
+        "bytes": 9678,
+        "sha256": "3c04ed3ca964ea2f6b2b5faf0dc4d31aec1cb1e8b4bcf63f402d295046b422b5",
+        "hash_evidence": "fresh metadata hash"
+      },
+      {
+        "file": "merges.txt",
+        "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/31349551d90c7606f325fe0f11bbb8bd5fa0d7c7",
+        "bytes": 1671853,
+        "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+        "hash_evidence": "fresh metadata hash"
+      },
+      {
+        "file": "vocab.json",
+        "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/4783fe10ac3adce15ac8f358ef5462739852c569",
+        "bytes": 2776833,
+        "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+        "hash_evidence": "fresh metadata hash"
+      },
+      {
+        "file": "LICENSE",
+        "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/6634c8cc3133b3848ec74b9f275acaaa1ea618ab",
+        "bytes": 11343,
+        "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+        "hash_evidence": "fresh metadata hash"
+      },
+      {
+        "file": "model.safetensors",
+        "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/cd2a512003e2f9f3cd3c32a9c3573f820bb28c940f73c57b1ddaa983d9223eba",
+        "bytes": 1192135096,
+        "sha256": "cd2a512003e2f9f3cd3c32a9c3573f820bb28c940f73c57b1ddaa983d9223eba",
+        "hash_evidence": "prior manifest attestation; stat only"
+      }
+    ],
+    "fresh_large_weight_hash_verification": false,
+    "new_agreements_accepted": false,
+    "model_loaded": false
+  },
+  "torch_imported": false,
+  "model_loaded": false,
+  "gpu_used": false,
+  "final_holdout_forwarded": false
+}
