@@ -1,5 +1,6 @@
 """Native geometry, teacher parity and rejected campaign construction gates."""
 from contextlib import contextmanager
+import random
 from types import ModuleType, SimpleNamespace
 import sys
 
@@ -9,8 +10,8 @@ from torch import nn
 
 from particle_sliders.pg09 import ConditionalPG09
 from particle_sliders.pg09_moss_campaign import CampaignFieldCritic, build_campaign_run
-from particle_sliders.pg09_remaining_campaigns import teacher_parity
-from test_conditional_pg09 import Backend, Prepared, fixture
+from particle_sliders.pg09_remaining_campaigns import build_supra_campaign, teacher_parity
+from test_conditional_pg09 import Backend, Prepared, equal, fixture
 
 
 @pytest.fixture(autouse=True)
@@ -128,6 +129,22 @@ class BuilderTransformer(nn.Module):
         self.layers = nn.ModuleList([nn.Identity(), nn.Identity()])
 
 
+class BuilderProvider:
+    def __init__(self):
+        self.split, self.device = 'train', 'unassigned'
+        self.response_shape, self.condition_width = (1, 2, 2, 2), 3
+        self.recipe = dict(model_revision='fixture-v1', settings=dict(seed=7, rank=2, alpha=2))
+
+    def __len__(self):
+        return 2
+
+    def identity(self):
+        return {'fixture': 'bounded CPU cache'}
+
+    def conditions(self, indices):
+        return torch.zeros(len(indices), self.condition_width)
+
+
 @pytest.fixture
 def builder_inputs(monkeypatch):
     class TrackingSlider(nn.Module):
@@ -151,9 +168,7 @@ def builder_inputs(monkeypatch):
     monkeypatch.setitem(sys.modules, 'moss_sliders', native)
     monkeypatch.setitem(sys.modules, 'moss_sliders.lora', lora)
     transformer = BuilderTransformer()
-    provider = SimpleNamespace(split='train', response_shape=(1, 2, 2, 2), condition_width=3,
-        device='unassigned', identity=lambda: {'fixture': 'bounded CPU cache'},
-        recipe=dict(model_revision='fixture-v1', settings=dict(seed=7, rank=2, alpha=2)))
+    provider = BuilderProvider()
     identity = dict(model='bounded CPU MOSS construction fixture', revision='fixture-v1')
     return transformer, provider, identity
 
@@ -222,3 +237,65 @@ def test_failed_checkpoint_install_restores_existing_forwards_and_markers(builde
     assert not transformer._forward_hooks
     assert [parameter.requires_grad for parameter in transformer.parameters()] == flags
     assert provider.device == 'unassigned'
+
+
+def test_cpu_moss_builder_never_seeds_cuda_and_preserves_ambient_rng(builder_inputs, monkeypatch):
+    transformer, provider, identity = builder_inputs
+    cuda_seeds = []
+    monkeypatch.setattr(torch.cuda, 'manual_seed_all', cuda_seeds.append)
+    cpu_state, python_state = torch.get_rng_state().clone(), random.getstate()
+    first = build_campaign_run(transformer, provider, model_identity=identity,
+                               response_scale=1., total_steps=2, batch_size=2, critic_width=4)
+    second = build_campaign_run(BuilderTransformer(), BuilderProvider(), model_identity=identity,
+                                response_scale=1., total_steps=2, batch_size=2, critic_width=4)
+    assert isinstance(first.game, ConditionalPG09)
+    equal(first.backend.network.state_dict(), second.backend.network.state_dict())
+    equal(first.game.critic.state_dict(), second.game.critic.state_dict())
+    assert torch.equal(cpu_state, torch.get_rng_state())
+    assert python_state == random.getstate()
+    assert cuda_seeds == [] and not torch.cuda.is_initialized()
+
+
+class SupraBuilderRuntime:
+    def __init__(self):
+        from particle_sliders.supra_model import SupraDiT, attach_supra_lora
+
+        self.device = torch.device('cpu')
+        with torch.random.fork_rng(devices=[]):
+            torch.default_generator.manual_seed(71)
+            self.model = SupraDiT(d_model=16, depth=1, n_heads=4, ctx_dim=8,
+                                  mlp_ratio=2, num_tokens=4, patch=2)
+            self.loras = attach_supra_lora(self.model, rank=2, alpha=2, targets=('ctx_proj',))
+            self.cache = {'': (torch.randn(1, 3, 8), torch.ones(1, 3, dtype=torch.bool))}
+        self.vae = SimpleNamespace(decode=lambda value: SimpleNamespace(sample=value))
+
+    def parameters(self):
+        return [parameter for parameter in self.model.parameters() if parameter.requires_grad]
+
+
+class SupraBuilderProvider(BuilderProvider):
+    def __init__(self, runtime):
+        super().__init__()
+        self.response_shape, self.contexts = (1, 4, 4, 4), runtime.cache
+
+    def response_scale(self):
+        return 1.
+
+
+def test_cpu_supra_builder_never_seeds_cuda_and_preserves_ambient_rng(monkeypatch):
+    runtime = SupraBuilderRuntime()
+    cuda_seeds = []
+    monkeypatch.setattr(torch.cuda, 'manual_seed_all', cuda_seeds.append)
+    cpu_state, python_state = torch.get_rng_state().clone(), random.getstate()
+    identity = dict(frozen_parameter_sha256='bounded CPU fixture')
+    first = build_supra_campaign(runtime, SupraBuilderProvider(runtime), model_identity=identity,
+                                total_steps=2, critic_width=4)
+    other = SupraBuilderRuntime()
+    second = build_supra_campaign(other, SupraBuilderProvider(other), model_identity=identity,
+                                 total_steps=2, critic_width=4)
+    assert isinstance(first.game, ConditionalPG09)
+    equal(first.backend.network.state_dict(), second.backend.network.state_dict())
+    equal(first.game.critic.state_dict(), second.game.critic.state_dict())
+    assert torch.equal(cpu_state, torch.get_rng_state())
+    assert python_state == random.getstate()
+    assert cuda_seeds == [] and not torch.cuda.is_initialized()

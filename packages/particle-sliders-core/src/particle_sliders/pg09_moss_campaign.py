@@ -34,6 +34,15 @@ def file_digest(path):
     return result.hexdigest()
 
 
+def _seed_initialization_rng(seed, cuda_devices):
+    """Seed only generators covered by the caller's active ``fork_rng`` scope."""
+    torch.default_generator.manual_seed(seed)
+    for index in cuda_devices:
+        device = torch.device('cuda', index)
+        state = torch.Generator(device=device).manual_seed(seed).get_state()
+        torch.cuda.set_rng_state(state, device)
+
+
 @dataclass(frozen=True)
 class CampaignAddress:
     bundle: int
@@ -392,7 +401,7 @@ def build_campaign_run(transformer, provider, *, model_identity, response_scale,
         raise ValueError('coordinator-verified model identity must match the frozen cache revision')
     from moss_sliders.lora import Slider
     resolved_seed = settings['seed'] if seed is None else seed
-    devices = [device.index or 0] if device.type == 'cuda' else []
+    devices = [device.index if device.index is not None else torch.cuda.current_device()] if device.type == 'cuda' else []
     missing = object()
     previous_device = getattr(provider, 'device', missing)
     parameter_flags = [(parameter, parameter.requires_grad) for parameter in transformer.parameters()]
@@ -400,7 +409,7 @@ def build_campaign_run(transformer, provider, *, model_identity, response_scale,
     try:
         provider.device = device
         with torch.random.fork_rng(devices=devices):
-            torch.manual_seed(resolved_seed)
+            _seed_initialization_rng(resolved_seed, devices)
             slider = Slider(transformer, rank=settings['rank'], alpha=settings['alpha'])
             backend = MossCampaignBackend(transformer, slider, provider, model_identity=model_identity)
             critic = CampaignFieldCritic(provider.response_shape[1], provider.condition_width, critic_width).to(device)

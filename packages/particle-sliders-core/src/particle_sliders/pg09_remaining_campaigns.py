@@ -14,7 +14,9 @@ from pathlib import Path
 import torch
 
 from .pg09_backends import FlowSchedule, PreparedResponse, ResponseRow, SupraRuntimeResponseAdapter
-from .pg09_moss_campaign import CampaignFieldCritic, build_campaign_run, canonical_digest, file_digest
+from .pg09_moss_campaign import (
+    CampaignFieldCritic, build_campaign_run, canonical_digest, file_digest, _seed_initialization_rng,
+)
 
 FINAL_FORM_SCALE = 0.2522578997899252
 SUPRA_SCALE = 0.32844100447280516
@@ -296,8 +298,9 @@ def build_supra_campaign(runtime, rows, *, model_identity, total_steps=28800, ba
     backend.decoder = checked_decode
     rows.device = torch.device(runtime.device)
     device = rows.device
-    with torch.random.fork_rng(devices=[device.index or 0] if device.type == 'cuda' else []):
-        torch.manual_seed(seed)
+    devices = [device.index if device.index is not None else torch.cuda.current_device()] if device.type == 'cuda' else []
+    with torch.random.fork_rng(devices=devices):
+        _seed_initialization_rng(seed, devices)
         critic = CampaignFieldCritic(4, rows.condition_width, critic_width).to(device)
     game = ConditionalPG09(backend, rows, critic, conditions=None, particles=None,
                           response_domain='continuous_field', response_scale=calibrated_scale,
