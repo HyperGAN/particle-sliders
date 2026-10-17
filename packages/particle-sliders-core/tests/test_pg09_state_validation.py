@@ -6,7 +6,7 @@ import torch
 from torch import nn
 
 from particle_sliders.pg09 import ConditionalPG09
-from test_conditional_pg09 import Backend, equal, fixture
+from test_conditional_pg09 import Backend, Critic, equal, fixture
 
 
 @pytest.fixture(autouse=True)
@@ -117,6 +117,83 @@ def test_initial_empty_optimizer_history_remains_resumable(preset):
     receiver = fixture(preset=preset)
     receiver.load_state_dict(packet)
     assert receiver.step() == source.step()
+    equal(receiver.state_dict(), source.state_dict())
+
+
+@pytest.mark.parametrize('preset', ['bispf', 'bispf_optimized'])
+@pytest.mark.parametrize('optimizer', ['opt_g', 'opt_d'])
+@pytest.mark.parametrize('change', ['absent', 'empty'])
+def test_started_optimizer_history_cannot_be_dropped_or_emptied(preset, optimizer, change):
+    source = fixture(preset=preset)
+    source.step()
+    packet = source.state_dict()
+    key = packet[optimizer]['param_groups'][0]['params'][0]
+    assert packet[optimizer]['state'][key]
+    if change == 'absent':
+        del packet[optimizer]['state'][key]
+    else:
+        packet[optimizer]['state'][key] = {}
+    receiver = fixture(preset=preset)
+    before = receiver.state_dict()
+    with pytest.raises(ValueError, match='history|histories'):
+        receiver.load_state_dict(packet)
+    equal(before, receiver.state_dict())
+
+
+@pytest.mark.parametrize('preset', ['bispf', 'bispf_optimized'])
+def test_started_generator_cannot_reset_all_history_even_with_changed_schema(preset):
+    source = fixture(preset=preset)
+    source.step()
+    packet = source.state_dict()
+    packet['opt_g']['state'] = {}
+    packet['optimizer_history_schema']['g'] = {
+        key: None for group in packet['opt_g']['param_groups'] for key in group['params']}
+    receiver = fixture(preset=preset)
+    before = receiver.state_dict()
+    with pytest.raises(ValueError, match='started generator'):
+        receiver.load_state_dict(packet)
+    equal(before, receiver.state_dict())
+
+
+def test_optimizer_history_presence_record_is_mandatory():
+    source = fixture()
+    packet = source.state_dict()
+    del packet['optimizer_history_schema']
+    receiver = fixture()
+    before = receiver.state_dict()
+    with pytest.raises(ValueError, match='history presence'):
+        receiver.load_state_dict(packet)
+    equal(before, receiver.state_dict())
+
+
+class SparseCritic(Critic):
+    def __init__(self):
+        super().__init__()
+        self.unused = nn.Parameter(torch.ones(2))
+
+
+def sparse_critic_fixture(preset):
+    base = fixture(preset=preset)
+    with torch.random.fork_rng():
+        torch.manual_seed(123)
+        critic = SparseCritic()
+    return ConditionalPG09(base.backend, base.rows, critic, conditions=base.conditions,
+                          particles=base.network.particles, preset=preset, batch_size=4, total_steps=5)
+
+
+@pytest.mark.parametrize('preset', ['bispf', 'bispf_optimized'])
+def test_never_used_critic_parameter_preserves_absent_history_and_exact_resume(preset):
+    source = sparse_critic_fixture(preset)
+    source.step()
+    packet = source.state_dict()
+    unused = next(key for saved, actual in zip(packet['opt_d']['param_groups'], source.opt_d.param_groups)
+                  for key, parameter in zip(saved['params'], actual['params']) if parameter is source.critic.unused)
+    assert unused not in packet['opt_d']['state']
+    assert packet['optimizer_history_schema']['d'][unused] is None
+    expected = source.step()
+    receiver = sparse_critic_fixture(preset)
+    receiver.load_state_dict(packet)
+    assert receiver.step() == expected
     equal(receiver.state_dict(), source.state_dict())
 
 

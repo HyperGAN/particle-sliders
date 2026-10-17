@@ -96,7 +96,7 @@ class NoRepositoryOrNativeImports(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
         if fullname.split('.')[0] in {
             'conceptmod', 'diffusers', 'peft', 'transformers', 'safetensors',
-            'qwen_image_sliders', 'lumen_studio', 'moss_sliders', 'supra',
+            'qwen_image_sliders', 'lumen_studio', 'moss_sliders', 'supra', 'hndl', 'hypergan',
         }:
             raise AssertionError(f'core import depends on optional repository/native package: {fullname}')
 sys.meta_path.insert(0, NoRepositoryOrNativeImports())
@@ -106,7 +106,7 @@ from particle_sliders import pg09
 for name in ('pg09_backends', 'pg09_audio', 'pg09_images', 'pg09_readout_critic',
              'pg09_moss_campaign', 'pg09_remaining_campaigns', 'supra_model',
              'native_lora', 'music3_native', 'tiny_llm_backend', 'tiny_native',
-             'bonsai_native', 'pg09_text_video'):
+             'bonsai_native', 'pg09_text_video', 'pg09_hndl', 'hypergan_diagnostics'):
     backend = importlib.import_module(f'particle_sliders.{name}')
     assert Path(backend.__file__).resolve().is_relative_to(Path.cwd() / 'installed')
 assert 'conceptmod' not in sys.modules

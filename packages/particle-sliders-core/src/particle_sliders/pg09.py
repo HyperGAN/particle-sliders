@@ -187,7 +187,22 @@ def _finite_tree(value):
             _finite_tree(v)
 
 
-def _validate_optimizer(optimizer, packet):
+def _optimizer_history_schema(packet):
+    """Record absent histories separately from present, possibly empty slots."""
+    result = {}
+    for group in packet['param_groups']:
+        for key in group['params']:
+            if key not in packet['state']:
+                result[key] = None
+                continue
+            slots = packet['state'][key]
+            if any(not isinstance(name, str) for name in slots):
+                raise ValueError('invalid checkpoint optimizer history fields')
+            result[key] = sorted(slots)
+    return result
+
+
+def _validate_optimizer(optimizer, packet, *, require_history=False):
     """Bind loaded update laws to the recipe before public optimizer restore.
 
     Native Adam restores group settings without validating them. The recipe
@@ -217,6 +232,8 @@ def _validate_optimizer(optimizer, packet):
             slots = packet['state'].get(key, {})
             if not isinstance(slots, dict):
                 raise ValueError('invalid checkpoint optimizer history')
+            if require_history and not slots:
+                raise ValueError('started generator optimizer requires every parameter history')
             for name in ('exp_avg', 'exp_avg_sq', 'max_exp_avg_sq', 'momentum_buffer'):
                 if name in slots and (not isinstance(slots[name], torch.Tensor)
                                       or slots[name].shape != parameter.shape
@@ -531,10 +548,13 @@ class ConditionalPG09:
             raise RuntimeError('inference export is not a resumable training checkpoint')
         if self._failed:
             raise RuntimeError('cannot checkpoint an incomplete failed update')
+        opt_g, opt_d = self.opt_g.state_dict(), self.opt_d.state_dict()
         return deepcopy(dict(schema='conditional-pg09-v1', config=self._signature,
             completed_steps=self.completed_steps, network=self.network.state_dict(),
             critic=self.critic.state_dict(), prior=self.prior.state_dict() if self.prior else None,
-            opt_g=self.opt_g.state_dict(), opt_d=self.opt_d.state_dict(),
+            opt_g=opt_g, opt_d=opt_d,
+            optimizer_history_schema={phase: _optimizer_history_schema(packet)
+                                      for phase, packet in (('g', opt_g), ('d', opt_d))},
             spread=self.spread.state_dict() if self.spread else None,
             streams={k: v.get_state() for k, v in self.streams.items()},
             row_orders=self.row_orders, row_cursors=self.row_cursors, exposures=self.exposures,
@@ -555,8 +575,11 @@ class ConditionalPG09:
         elif state['prior'] is not None or state['spread'] is not None:
             raise ValueError('unexpected particle state in adapter-only arm')
         _finite_tree((state['opt_g'], state['opt_d'], state['spread']))
-        for optimizer, packet in ((self.opt_g, state['opt_g']), (self.opt_d, state['opt_d'])):
-            _validate_optimizer(optimizer, packet)
+        _validate_optimizer(self.opt_g, state['opt_g'], require_history=state['completed_steps'] > 0)
+        _validate_optimizer(self.opt_d, state['opt_d'])
+        history_schema = {phase: _optimizer_history_schema(state['opt_' + phase]) for phase in ('g', 'd')}
+        if state.get('optimizer_history_schema') != history_schema:
+            raise ValueError('checkpoint optimizer history presence or fields differ')
         if state['streams'].keys() != self.streams.keys():
             raise ValueError('checkpoint sampler streams differ')
         for rng in list(state['streams'].values()) + [state['model_cpu_rng']]:
