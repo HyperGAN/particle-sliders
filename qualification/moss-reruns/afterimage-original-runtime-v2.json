@@ -46,7 +46,7 @@
   ],
   "physical_gpu": 1,
   "admission": "REVIEWED_GAN_RECIPE",
-  "integration_commit": "8ad0b4a8",
+  "integration_commit": "c053b33a6b84b35c52f9860455942f60da95b3a6",
   "numeric_policy": {
     "deterministic_algorithms": true,
     "cudnn_benchmark": false,
