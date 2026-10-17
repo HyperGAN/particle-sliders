@@ -1,0 +1,575 @@
+{
+  "status": "metadata_preparation_complete_execution_stopped",
+  "integrated_source_commits": [
+    "e985db9",
+    "b40d6e6"
+  ],
+  "current_reviewed_core": "ec234e184676c46060ecbf6122df0e7b726f45a7",
+  "domain_candidate_patch_sha256": "c6531a21f62fa96682f5aece517a6a862bb849ab971aa2766b3946b9a7543571",
+  "domain_candidate_status": "overlay optimizer QA passed; host profile/domain admission pending",
+  "assets": {
+    "tiny": {
+      "directory": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb",
+      "manifest_sha256": "4962affb04b7d1d07573428676d516f78dd7969d8a358691058fa35f16e59d4d",
+      "revision": "da87bfb608c14b7cf20ba1ce41287e8de496c0cd",
+      "files": [
+        {
+          "file": "config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/43c79dcb3766612b23cbed17d0a56ce63efe4e74",
+          "bytes": 727,
+          "sha256": "504a6b58c4271583724e66584b6b7698aea18450209df6b2f7582df0e89cee59",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "generation_config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/cbbb3133034e192527e5321b4c679154e4819ab8",
+          "bytes": 138,
+          "sha256": "8c970692323e3ea0e9b8b0a4dca79388d31226e41f83c9fd6014804280ebf6e8",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "tokenizer.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/443909a61d429dff23010e5bddd28ff530edda00",
+          "bytes": 7031645,
+          "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "tokenizer_config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/6a3829ee9491f36113e64df37573be81df0366f5",
+          "bytes": 9678,
+          "sha256": "3c04ed3ca964ea2f6b2b5faf0dc4d31aec1cb1e8b4bcf63f402d295046b422b5",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "merges.txt",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/31349551d90c7606f325fe0f11bbb8bd5fa0d7c7",
+          "bytes": 1671853,
+          "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "vocab.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/4783fe10ac3adce15ac8f358ef5462739852c569",
+          "bytes": 2776833,
+          "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "LICENSE",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/6634c8cc3133b3848ec74b9f275acaaa1ea618ab",
+          "bytes": 11343,
+          "sha256": "832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "model.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/tiny-qwen-da87bfb/cache/models--Qwen--Qwen3-0.6B-Base/blobs/cd2a512003e2f9f3cd3c32a9c3573f820bb28c940f73c57b1ddaa983d9223eba",
+          "bytes": 1192135096,
+          "sha256": "cd2a512003e2f9f3cd3c32a9c3573f820bb28c940f73c57b1ddaa983d9223eba",
+          "hash_evidence": "prior manifest attestation; stat only"
+        }
+      ],
+      "fresh_large_weight_hash_verification": false,
+      "new_agreements_accepted": false,
+      "model_loaded": false
+    },
+    "bonsai": {
+      "directory": "/mnt/nvme/sliders/qualification/models/bonsai-b072e1d",
+      "manifest_sha256": "74521990968a62419b87194cc9f14033400c427876ffc3996a1a2783a181f11f",
+      "revision": "b072e1d3b35a0a630cece372c2127528e0994386",
+      "files": [
+        {
+          "file": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/bonsai-b072e1d/cache/models--prism-ml--Ternary-Bonsai-2-27B-gguf/blobs/53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+          "bytes": 5946648928,
+          "sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+          "hash_evidence": "prior manifest attestation; stat only"
+        }
+      ],
+      "fresh_large_weight_hash_verification": false,
+      "new_agreements_accepted": false,
+      "model_loaded": false
+    },
+    "ltx": {
+      "directory": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690",
+      "manifest_sha256": "5e2280fdcd6994e31217a14c2a4ce6b73593fac0fa4ff97b31fea028f6be4d35",
+      "revision": "da0b690960026eab794b8ceaf841233cf7064478",
+      "files": [
+        {
+          "file": "README.md",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/2062ede56ae88a4cc90ba6a94fa5c9e7ef320b1b",
+          "bytes": 29971,
+          "sha256": "d9c48d66826f753a418cc3546ed82afea99273e4053862cc10b0e9c971a9ce8f",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "audio_vae/config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/6759c3aa9ed4772ccd7c9c8dba1378f7b3ac7aba",
+          "bytes": 505,
+          "sha256": "9994583546bf9bc08d69dafb31f24dbaacecbb7920e5cb7189c818ef188b1372",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "connectors/config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/08705b2df36d92f4cea9667706842736beb8735d",
+          "bytes": 817,
+          "sha256": "7f4aa822c3352db1d07850da713d1943157601c8769b555cb9243f1c6dfb4e61",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "connectors/diffusion_pytorch_model.safetensors.index.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/777aac3f995533ed007d65935e332dbef42aea71",
+          "bytes": 30629,
+          "sha256": "6c78508c56116c3357ece4b350d054bddb2b6251a08e8ab828108ac8af234bc1",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "model_index.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/842fa93a0c00e655023608f5bd70e2b362496b3d",
+          "bytes": 971,
+          "sha256": "37202d586ae6a3527b9862fa299d33550676367bce6116be0221991b1f327a0c",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "scheduler/scheduler_config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/9a49212d7fca810c841cd8a904fd72a417598615",
+          "bytes": 489,
+          "sha256": "2c2d045e04ab0aabd32b5bc4219fe36fdf457e6d5453e02686058c57a710b1a3",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "text_encoder/config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/ba2bf78a30003ce2db4f66ddacf3343d99277c75",
+          "bytes": 4594,
+          "sha256": "39c1f22c524988e91b2fee08226279a664e76a9e844a3795929aed0366bf7302",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "text_encoder/generation_config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/7f13545d4e30f9c4c734b6e514811fee21d83c54",
+          "bytes": 255,
+          "sha256": "0f809910f55b332e334eebf13dc415730e316d187c38d1367dc5b4cd5e27fc25",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "text_encoder/model.safetensors.index.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/752efb73998ce28a90eb0a1ce0e9a1891e55ec79",
+          "bytes": 66306,
+          "sha256": "4f17e017d5f0059a68ab38ee17f31d06e890aa6c87434fe635262b3a21459be7",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "tokenizer/tokenizer.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/cc8d3a0ce36466ccc1278bf987df5f71db1719b9ca6b4118264f45cb627bfe0f",
+          "bytes": 32169626,
+          "sha256": "cc8d3a0ce36466ccc1278bf987df5f71db1719b9ca6b4118264f45cb627bfe0f",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "tokenizer/tokenizer_config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/fc4e01046a064f77d52f60f0022b6716c35c7695",
+          "bytes": 3735,
+          "sha256": "437a59ae3f93ae415eed009fabba9a8bf7c2024ff359a712e766ee7f09809a5a",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "transformer/config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/253d0bbc8f714bbcb292cf7888113dc13a162361",
+          "bytes": 1440,
+          "sha256": "93a96ad2f29e403ba5fd04689a99460d156b43db164e139fcdf20331a7b1639d",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "transformer/diffusion_pytorch_model.safetensors.index.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/2333a52194b3e9c6643859589e6dac8ceba144b1",
+          "bytes": 446505,
+          "sha256": "1e46ad848737563a2cada7512c923e2f0bbf6983a189a8e7ef3fdbcd6825da5f",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "vae/config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/fe1005547671f8ad17fc63277a9ced588bb89622",
+          "bytes": 1480,
+          "sha256": "89c617661a3508476b43860a618c83121a9c6d0f6f110b575830586a871cf7c2",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "vocoder/config.json",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-metadata-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/3ff9ad1403bff5fe970dcb2522239be462663203",
+          "bytes": 1478,
+          "sha256": "e9591852ba98f22ad8db9b9e2163dead5cafe1850dcdc13dcac8070ac5f31a8c",
+          "hash_evidence": "fresh metadata hash"
+        },
+        {
+          "file": "audio_vae/diffusion_pytorch_model.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/45dcb1c3cffc8c8b7710a04dd19500e481daff31f5ea8e8529f2cf697c439d12",
+          "bytes": 106507972,
+          "sha256": "45dcb1c3cffc8c8b7710a04dd19500e481daff31f5ea8e8529f2cf697c439d12",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "connectors/diffusion_pytorch_model-00001-of-00002.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/c5bf0768831b67def0322423f3dae012ac3a4528268f6e7c12555e7e918904fa",
+          "bytes": 4999998520,
+          "sha256": "c5bf0768831b67def0322423f3dae012ac3a4528268f6e7c12555e7e918904fa",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "connectors/diffusion_pytorch_model-00002-of-00002.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/5971a625f1a29f09ac3bfa37fae912aaddbdc93688080528503a43d2d5ac3c3a",
+          "bytes": 1344490576,
+          "sha256": "5971a625f1a29f09ac3bfa37fae912aaddbdc93688080528503a43d2d5ac3c3a",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "text_encoder/model-00001-of-00005.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/8d296b3a429b9656177ea977b121fd5fdc75f0e1691d762313db15a82ab64381",
+          "bytes": 4961189118,
+          "sha256": "8d296b3a429b9656177ea977b121fd5fdc75f0e1691d762313db15a82ab64381",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "text_encoder/model-00002-of-00005.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/8b76326b2a1d477901aba51e22b86647955a2697be8ddf5f5f0c7a5ff70f44ba",
+          "bytes": 4966688198,
+          "sha256": "8b76326b2a1d477901aba51e22b86647955a2697be8ddf5f5f0c7a5ff70f44ba",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "text_encoder/model-00003-of-00005.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/7fab265ccfac3d0b245d996346b4cf9995163417adb34f1e838f2b6df6793122",
+          "bytes": 4884113678,
+          "sha256": "7fab265ccfac3d0b245d996346b4cf9995163417adb34f1e838f2b6df6793122",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "text_encoder/model-00004-of-00005.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/cfb34499d755cb0fdd72179a320e3097f37887c94beb1257ba469bf59734b468",
+          "bytes": 4986341908,
+          "sha256": "cfb34499d755cb0fdd72179a320e3097f37887c94beb1257ba469bf59734b468",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "text_encoder/model-00005-of-00005.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/cab56a1e843ecec4eb132706ad1ba9ec8cca9baa9adb34c0943b026c18b7bb59",
+          "bytes": 4121215522,
+          "sha256": "cab56a1e843ecec4eb132706ad1ba9ec8cca9baa9adb34c0943b026c18b7bb59",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "transformer/diffusion_pytorch_model-00001-of-00004.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/a2156e3b2320eab9a2d949dfba0a3f8f5a907a68a2bad9a40a8e4ec6ff04570c",
+          "bytes": 9932336016,
+          "sha256": "a2156e3b2320eab9a2d949dfba0a3f8f5a907a68a2bad9a40a8e4ec6ff04570c",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "transformer/diffusion_pytorch_model-00002-of-00004.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/314170928006c629c0e015ad062fb5c1090a0f90ca48111eb3534c15a3de2456",
+          "bytes": 9919463480,
+          "sha256": "314170928006c629c0e015ad062fb5c1090a0f90ca48111eb3534c15a3de2456",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "transformer/diffusion_pytorch_model-00003-of-00004.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/2afb34ed41945ff95fa7c33f90ac33cfc766ea6dcb0bb6bc04e228e2471c6f86",
+          "bytes": 9986144288,
+          "sha256": "2afb34ed41945ff95fa7c33f90ac33cfc766ea6dcb0bb6bc04e228e2471c6f86",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "transformer/diffusion_pytorch_model-00004-of-00004.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/a6073fee2aceec165e826d7de162f4e05f19dc72ead8b6e7de9554855fce1d4e",
+          "bytes": 8138277304,
+          "sha256": "a6073fee2aceec165e826d7de162f4e05f19dc72ead8b6e7de9554855fce1d4e",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "vae/diffusion_pytorch_model.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/425f0dfa227dee5d0ff3d9720563370810409a439c302ca74f0f944057ce55c5",
+          "bytes": 1452233194,
+          "sha256": "425f0dfa227dee5d0ff3d9720563370810409a439c302ca74f0f944057ce55c5",
+          "hash_evidence": "prior manifest attestation; stat only"
+        },
+        {
+          "file": "vocoder/diffusion_pytorch_model.safetensors",
+          "resolved_path": "/mnt/nvme/sliders/qualification/models/ltx25-staged-da0b690/cache/models--Lightricks--LTX-2.5-Diffusers/blobs/c99dde145a982974bc4c39608b3b929f232f0126a55d8326a47ad54f486ae23c",
+          "bytes": 258305056,
+          "sha256": "c99dde145a982974bc4c39608b3b929f232f0126a55d8326a47ad54f486ae23c",
+          "hash_evidence": "prior manifest attestation; stat only"
+        }
+      ],
+      "fresh_large_weight_hash_verification": false,
+      "new_agreements_accepted": false,
+      "model_loaded": false
+    }
+  },
+  "bonsai_cached_readout_metadata": [
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/148d84ad6022020d7393e33e588471223a233e6d39045e0688f2eaa73582c3d6.json",
+      "metadata_sha256": "4f57b3c187c9f065ea513019342133bbfe6277aa7eb20e4fe63411c3f33d3140",
+      "caption": "a concrete stairwell under soft light",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "bdec708ff055e659a3f7e463f285df28e1e5f1b17845f5e41b36527b5fa56ced",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/148d84ad6022020d7393e33e588471223a233e6d39045e0688f2eaa73582c3d6.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/239af2c4fa3d227174e62103753326434dfef850209a685b8c0f366ef65c678b.json",
+      "metadata_sha256": "387e757f5860342c25d10610a568064deb97ca83cb9aaf0a3a44c8109d4abc97",
+      "caption": "a cozy rainy street with warm lamps beside a bakery",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "d63f1311cc4bf615eaca4814d770ed4e7254e3f35ac3ad1e24678accacdd0cd3",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/239af2c4fa3d227174e62103753326434dfef850209a685b8c0f366ef65c678b.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/3effe903d964c3d3956dfd5c638945c1566195bd38e568577efd1241d31afdd8.json",
+      "metadata_sha256": "0af299fddec9f447e21b0a498bf87200e49e4aa75cee635930b0081eeb7f9692",
+      "caption": "a calm turquoise sea beside a fishing boat",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "7b1cc3ae21bfb78d5a5556faae8e3cebb45663c8ab02a34a1aa5cc786337203c",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/3effe903d964c3d3956dfd5c638945c1566195bd38e568577efd1241d31afdd8.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/47b67fb8bae8b4010b14b9f7f213db9b4a34a0017b40a04e581fe9b8719a7163.json",
+      "metadata_sha256": "e00bc7dad4ba2589eb7547100f47ffbf07b7d343f5d957390d4568a90ed15a49",
+      "caption": "an empty warehouse with lamps",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "f534e17a90432c686238a05308a6b8e25f061021621d6831c4ac9f7e35a30c8b",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/47b67fb8bae8b4010b14b9f7f213db9b4a34a0017b40a04e581fe9b8719a7163.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/65b669d4956b24d46504ab1764b8f1a05431199f41da6acc526139eea0212670.json",
+      "metadata_sha256": "a055ac5e048d60280e975a7b1a527eddc6e3d26382103b762793fb90c6d69a3a",
+      "caption": "a sea under soft light",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "92466c770b578b54ed085071af68abb3412741d647d836ba7611b1845d282968",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/65b669d4956b24d46504ab1764b8f1a05431199f41da6acc526139eea0212670.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/66c8e08f69a111afb86993c56213f71444904716e295c9c15349e51beb0ef576.json",
+      "metadata_sha256": "276de364861ce200bb1f8c38f1c3e694d55ecd294fe58e977b8b979e53bc7a88",
+      "caption": "a street with lamps",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "a43dd2b96f52c2790847ff264b761b2249ac09f9fe236864200cff154abae163",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/66c8e08f69a111afb86993c56213f71444904716e295c9c15349e51beb0ef576.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/881c1a63d607e32a6a9c97aa88e3e2851595748428f070b749da9ae6c2d490f0.json",
+      "metadata_sha256": "50db5a296cb899d2c31b53447de574333ab26485d55deace643fb2cec1578d2d",
+      "caption": "a cozy rainy street with warm lamps",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "872d3651723d6db6bd5cedee18e4efb19a860fa763869b25a8666f5c584b8d8d",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/881c1a63d607e32a6a9c97aa88e3e2851595748428f070b749da9ae6c2d490f0.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/8c5fe4d0d57eafefcd72ceb47e1bc78f67104f6e12d8b2135e545b5808286857.json",
+      "metadata_sha256": "6e146b819eb8632a03801d9466f5ea95bffce819ae1e96ff9cd273d4ca71958e",
+      "caption": "a garden at dawn",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "3e53c99b969c92baf2dfc87e0402ee7b90b911e693b94e3b2b703fda4e6de4a6",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/8c5fe4d0d57eafefcd72ceb47e1bc78f67104f6e12d8b2135e545b5808286857.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/a6b752aa4d365d7003c3a700b8b96baa7cbbdb936893125e304715d3205165cc.json",
+      "metadata_sha256": "514b9c64aae21b12f3ce8396ef3537a2643370259cc9d3d8f75f66810b1cff6c",
+      "caption": "a blooming rose garden beside a stone wall",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "e8272acc3c55e764ca0987feebf6e013f813a8726656259efc1d7090e656f2d6",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/a6b752aa4d365d7003c3a700b8b96baa7cbbdb936893125e304715d3205165cc.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/c19b9cb9d8eef98b9e4ac3262b2c3b1f3d05c1665876eaa85ecb1f90810f8b57.json",
+      "metadata_sha256": "8ce86e1bd643d42bd222bf08bb5ee44dc3759c244c7fc917a16062fb64e9db14",
+      "caption": "a garden beside a stone wall",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "f99db349cfa4d1979fcd280836e56c5cb44d89754cbc46e3fc6b5e2e1351df25",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/c19b9cb9d8eef98b9e4ac3262b2c3b1f3d05c1665876eaa85ecb1f90810f8b57.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/d30b73cef704f969d3ae9ddc0f2956f9e76750562515347da675aaf35884886a.json",
+      "metadata_sha256": "b393120ae306aa7d6c7a2d5f493aa736fedc8213fae07c931595dbe99cc2c184",
+      "caption": "a calm turquoise sea under soft light",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "753c9552e8a244ddb36e80c6703705a912ed20c1b8aa02666dd842e7000b5387",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/d30b73cef704f969d3ae9ddc0f2956f9e76750562515347da675aaf35884886a.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/dc77842e04b17cf5cfc5ebf252de6612d093e1d95751dfa8fef9e7edac2088c5.json",
+      "metadata_sha256": "7e76ceef1c82c2a2891fdb19c3e922c73134482b8e0f7a9be8a685762f114d9d",
+      "caption": "a parking lot at dawn",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "89267f4ba968cf850ef47cf70402cdd7c6f8e45cdaf49aba4efe3e7cda003e16",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/dc77842e04b17cf5cfc5ebf252de6612d093e1d95751dfa8fef9e7edac2088c5.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/e816b468c2a68cdee50aa1c715b13d7a5aee2d8964de81a9b9f324421758d7f6.json",
+      "metadata_sha256": "3195a30614bc95dc936d55946df8bbf97d60ff59e03702d228287722043b670b",
+      "caption": "a sea beside a fishing boat",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "a385598fd84c57ea7ecc2fbf211170b8b7a3b6f3190cc0352ab5efac13374602",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/e816b468c2a68cdee50aa1c715b13d7a5aee2d8964de81a9b9f324421758d7f6.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/f062c95c41e44d1c1a2618a5590b0390f1a24354621b6ac2f94119fd4fce3b96.json",
+      "metadata_sha256": "c978d8593812bc308abfde8ba29c8e2f0c93d6a4285a6de183f7142dfd555dfd",
+      "caption": "a blooming rose garden at dawn",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "bdc30676a9491162ca0a851bfa5e87909b46a87024e75ec265ad48b95d08c225",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/f062c95c41e44d1c1a2618a5590b0390f1a24354621b6ac2f94119fd4fce3b96.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    },
+    {
+      "metadata_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/f0b7b1e412df642599081c96bc67f50d2c9fe1f58045754f6b6ae86902addd85.json",
+      "metadata_sha256": "a4706d4b9551c90ec772770ebfe50778eb8d6490caf3dd7b805093d648002a00",
+      "caption": "a street with lamps beside a bakery",
+      "model_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+      "declared_tensor_sha256": "4e293d52e6bb24c286bd23687ec5c12077514e206d9f6cdbe638dca7ccad5995",
+      "tensor_path": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017/f0b7b1e412df642599081c96bc67f50d2c9fe1f58045754f6b6ae86902addd85.pt",
+      "tensor_bytes": 22057,
+      "tensor_loaded": false
+    }
+  ],
+  "archived_comparisons": {
+    "tiny": {
+      "recipe_path": "/mnt/nvme/sliders/qualification/runs/tiny-caption-native-1200-20261017/recipe.json",
+      "recipe_sha256": "04facfd7dc028ff29f019fe42020f53380a3c8d9d9a3466385f2bf9bd392a550",
+      "metrics_path": "/mnt/nvme/sliders/qualification/runs/tiny-caption-native-1200-20261017/evaluation/step-001200/metrics.json",
+      "metrics_sha256": "cc6d082a96559fa456bd478540dc61991f7aa3c7cf260b444c5aa6830a3d21fc",
+      "prior_source_commit": "76ab7d4dc82cde6d1fa2220b9637f28846fa5276",
+      "prior_steps": 1200,
+      "prior_quality_qualified": false,
+      "heldout_pairs": [
+        {
+          "neutral": "a garden beside a stone wall",
+          "positive": "a blooming rose garden beside a stone wall"
+        },
+        {
+          "neutral": "a sea beside a fishing boat",
+          "positive": "a calm turquoise sea beside a fishing boat"
+        },
+        {
+          "neutral": "a street with lamps beside a bakery",
+          "positive": "a cozy rainy street with warm lamps beside a bakery"
+        }
+      ],
+      "scales": [
+        0.0,
+        0.5,
+        1.0
+      ],
+      "run_seed": 7,
+      "autoregressive_controls": {
+        "do_sample": false,
+        "max_new_tokens": 32
+      },
+      "prior_metrics_are_diagnostic_only": true
+    },
+    "bonsai": {
+      "recipe_path": "/mnt/nvme/sliders/qualification/runs/bonsai-caption-native-1200-20261017/recipe.json",
+      "recipe_sha256": "8b92d23f0a373b7e629f706bf9cdb7b68b14113a875445ffd1915e68957277b6",
+      "metrics_path": "/mnt/nvme/sliders/qualification/runs/bonsai-caption-native-1200-20261017/evaluation/step-001200/metrics.json",
+      "metrics_sha256": "180b3c12b9f5ebfcef37de07c30bc83d98e4e931aee7fa7c9bae46776e71d2f2",
+      "prior_source_commit": "76ab7d4dc82cde6d1fa2220b9637f28846fa5276",
+      "prior_steps": 1200,
+      "prior_quality_qualified": false,
+      "heldout_pairs": [
+        {
+          "neutral": "a garden beside a stone wall",
+          "positive": "a blooming rose garden beside a stone wall"
+        },
+        {
+          "neutral": "a sea beside a fishing boat",
+          "positive": "a calm turquoise sea beside a fishing boat"
+        },
+        {
+          "neutral": "a street with lamps beside a bakery",
+          "positive": "a cozy rainy street with warm lamps beside a bakery"
+        }
+      ],
+      "scales": [
+        0.0,
+        0.5,
+        1.0
+      ],
+      "run_seed": 7,
+      "autoregressive_controls": {
+        "do_sample": false,
+        "max_new_tokens": 32
+      },
+      "prior_metrics_are_diagnostic_only": true
+    }
+  },
+  "strength_grid": [
+    0,
+    0.5,
+    1
+  ],
+  "seed": 7,
+  "software_pilot": {
+    "total_steps": 4,
+    "batch_size": 2,
+    "checkpoint_after": 2,
+    "independent_process_resume": true,
+    "presets": [
+      "bispf",
+      "bispf_optimized"
+    ]
+  },
+  "hardware_pilot": {
+    "max_updates": 2,
+    "batch_size": 2,
+    "timeout_seconds": 600,
+    "automatic_retry": false,
+    "budget_extension": false
+  },
+  "required_evidence_before_model_load": [
+    "QA receipt approving the single explicit continuous-domain source profile",
+    "frozen canonical core binds base wheel, 49 source hashes, patch and both domains",
+    "backend opts into that exact profile; default release-auto behavior stays blocked",
+    "both-preset wide-response gradients, actual-bank updates and exact fresh-process CPU gates",
+    "fresh required weight/config/tokenizer manifest verification",
+    "core owner explicitly admits exact model/device/command/budget/process placement"
+  ],
+  "model_load_allowed": false,
+  "gpu_admission_requested": false,
+  "model_loaded": false,
+  "download_performed": false,
+  "network_used": false,
+  "legacy_entrypoint_executed": false,
+  "h3": {
+    "action": "native multimodal adapter/model execution stopped",
+    "missing": [
+      "reviewed native AV geometry/response/critic protocol",
+      "verified staged exact model assets and applicable community terms",
+      "measured feasible placement and owner admission"
+    ]
+  }
+}
