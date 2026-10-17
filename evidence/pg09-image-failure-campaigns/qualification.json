@@ -49,8 +49,8 @@
     },
     {
       "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/docs/pg09-observed-image-failure-campaigns.md",
-      "bytes": 16999,
-      "sha256": "ad7020d9ba803e32fa17b2b0da21da90e60e1a8c3afb08002a4ee93df585806c"
+      "bytes": 17377,
+      "sha256": "42c1bdd31545f4d10da922ed21ea4cdcde6109a5a8438dc3830f04f549a26166"
     },
     {
       "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/proposals.json",
@@ -213,7 +213,15 @@
   "active_moss_modified": false,
   "objective": "unchanged shared GAN adversarial + required public prior only when actual bank exists; public D penalty; particles=None adapter GAN",
   "quality_claim": false,
-  "canonical_integration": "pending core owner decision",
+  "canonical_integration": {
+    "owner_reported": true,
+    "proposal_commit": "8dbd1469",
+    "repair_commit": "bd7029cb",
+    "receipt_commit": "b7cc9574",
+    "cpu_tests_passed": 30,
+    "live_admission_granted": false,
+    "active_moss_pins_unchanged": 12
+  },
   "live_admission": "pending, not denied and no uncertain execution",
   "remaining_blockers": [
     "Root owns all GPU/process admission; image extraction/probe/full training not admitted.",
