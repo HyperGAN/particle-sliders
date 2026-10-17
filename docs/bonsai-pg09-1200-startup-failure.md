@@ -1,5 +1,9 @@
 # Bonsai1200 admitted startup failure
 
+Historical failed attempt. The separately requested NVMe/device guard correction
+is now prepared in [bonsai-pg09-1200-proposal-v2.md](bonsai-pg09-1200-proposal-v2.md),
+pending a new root admission; the original attempt is never retried in place.
+
 Admission `bonsai-gan-1200-cpu-20261017-v1` was consumed by the first exact command
 at frozen source `1d289731c0d8a59d91c7f5298565c9a0aa6f706b`, worker SHA256
 `f775c857c413348ac86478f3392c49e4f4fc570b9a847bc8b8860db559cde8ad`, recipe SHA256

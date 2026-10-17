@@ -1,8 +1,10 @@
 # Text/video integration status after the admitted Bonsai CPU canary
 
-Follow-up: the full corrected1200-update comparison is prepared in
-[bonsai-pg09-1200-proposal.md](bonsai-pg09-1200-proposal.md), with an exact
-source-pinned recipe and separate final20-update replay. It is pending a new
+Follow-up: the admitted full comparison stopped before Torch/cache access at
+zero updates because `/tmp` could not meet the disk reserve. Failure evidence is
+frozen at `192696a`. The corrected NVMe-only proposal is
+[bonsai-pg09-1200-proposal-v2.md](bonsai-pg09-1200-proposal-v2.md), with the same
+1200-update protocol and separate final 20-update replay. It is pending a new
 coordinator admission. The canary results below do not substitute for that run.
 
 Code is frozen in `/mnt/nvme/sliders/text-video-adapters-pg09-20261017`, branch
