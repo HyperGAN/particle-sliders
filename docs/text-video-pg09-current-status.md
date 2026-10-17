@@ -6,6 +6,12 @@ training fit is incomplete/unstable, generated training edits are almost a commo
 offset, and the trained critic has weak row-context sensitivity in a fixed probe.
 No sign/pairing/checkpoint defect was established. No further training ran.
 
+The subsequent [training-only bias/routing ablation](bonsai-pg09-bias-routing-ablation.md)
+locates much of the common edit in decoder bias paths, with almost shared routes
+and a frozen critic preference compatible with that offset. It does not establish
+historical training causality or a hard architectural rank limit. Saved artifacts
+and runtime configuration remain unchanged; zero optimizer updates ran.
+
 Follow-up: the admitted NVMe v2 run completed all 1200 updates and the separate
 final 20-update exact replay. **Full-horizon held-out transfer FAILS**, with 0/3
 successful cases and mean relative-edit MSE 1.943358. See
