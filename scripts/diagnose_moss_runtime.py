@@ -130,7 +130,10 @@ def worker(card_path, name, fds):
             tf32_matmul=torch.backends.cuda.matmul.allow_tf32,
             flash_sdp=torch.backends.cuda.flash_sdp_enabled(),
             memory_efficient_sdp=torch.backends.cuda.mem_efficient_sdp_enabled(),
-            math_sdp=torch.backends.cuda.math_sdp_enabled())
+            math_sdp=torch.backends.cuda.math_sdp_enabled(),
+            cudnn_sdp=torch.backends.cuda.cudnn_sdp_enabled(),
+            cudnn_allow_tf32=torch.backends.cudnn.allow_tf32,
+            cublas_workspace_config=os.environ.get('CUBLAS_WORKSPACE_CONFIG'))
     for policy in ('native-default', 'deterministic', 'math-sdpa'):
         if policy != 'native-default':
             torch.use_deterministic_algorithms(True)
