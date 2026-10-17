@@ -161,7 +161,7 @@ class ImageResponseAdapter(FrozenResponseAdapter):
         from pathlib import Path
         result['helper_source_hashes'] = {obj.__module__: hashlib.sha256(
             Path(inspect.getsourcefile(obj)).read_bytes()).hexdigest() for obj in sources}
-        result['diffusers_version'] = version('diffusers')
+        result['diffusers_version'] = None if self.family == 'iris' else version('diffusers')
         return result
 
     def _velocity(self, condition, latent, timestep):

@@ -162,3 +162,81 @@ def test_bonsai_fp32_load_ignores_process_default_dtype(tmp_path):
                for key, value in head.state_dict().items())
     assert all(value.dtype == torch.float32 for value in restored.state_dict().values())
     assert torch.equal(torch.get_rng_state(), rng)
+
+
+def test_iris_minimal_install_builds_and_steps_without_diffusers(monkeypatch):
+    import builtins
+    import importlib.metadata as metadata
+    from particle_sliders import ConditionalPG09
+    from particle_sliders.pg09_backends import ResponseRow
+    from particle_sliders.pg09_readout_critic import ConditionalReadoutCritic
+
+    original_import, original_version = builtins.__import__, metadata.version
+    queries = []
+
+    def guarded_import(name, *args, **kwargs):
+        if name.split('.')[0] == 'diffusers':
+            raise AssertionError('native Iris imported Diffusers')
+        return original_import(name, *args, **kwargs)
+
+    def guarded_version(name):
+        if name == 'diffusers':
+            queries.append(name)
+            raise metadata.PackageNotFoundError(name)
+        return original_version(name)
+
+    monkeypatch.setattr(builtins, '__import__', guarded_import)
+    monkeypatch.setattr(metadata, 'version', guarded_version)
+    torch.manual_seed(61)
+    particles = nn.Parameter(torch.randn(128, 4))
+    scale = [0.]
+
+    class NativeBank(nn.Module):
+        particle_shape = (128, 4)
+
+        def __init__(self):
+            super().__init__()
+            self.weight = nn.Parameter(torch.tensor(.1))
+
+        @contextmanager
+        def active(self, actual_particles, strength):
+            assert actual_particles is particles
+            previous, scale[0] = scale[0], strength
+            try:
+                yield
+            finally:
+                scale[0] = previous
+
+    bank = NativeBank()
+
+    class NativeModel(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.base = nn.Parameter(torch.tensor(.4), requires_grad=False)
+
+        def forward(self, value, timestep, embeds, y_mask):
+            delta = scale[0] * (bank.weight * value.tanh() + particles.mean())
+            return SimpleNamespace(x=value * self.base + embeds.mean() + delta)
+
+    class NativeRuntime:
+        def __init__(self):
+            self.model = NativeModel()
+
+    runtime = NativeRuntime()
+    adapter = IrisResponseAdapter(runtime, bank, particles)
+    assert adapter.metadata()['diffusers_version'] is None
+    condition = {'embeds': torch.zeros(1, 2, 4), 'mask': torch.ones(1, 2, dtype=torch.bool)}
+    positive = dict(condition, embeds=torch.ones(1, 2, 4))
+    rows = [adapter.prepare(ResponseRow(condition, positive, condition,
+                torch.randn(1, 3, 2, 2), timestep=torch.tensor(500.))) for _ in range(2)]
+    conditions = torch.cat([item.neutral.flatten(1) for item in rows])
+    critic = ConditionalReadoutCritic(12, 12)
+    game = ConditionalPG09(adapter, rows, critic, conditions=conditions,
+        particles=particles, response_domain='continuous_field', total_steps=2, batch_size=2)
+    frozen = runtime.model.base.detach().clone()
+    result = game.step()
+    assert result['g_loss'] == pytest.approx(result['g_adv'] + result['prior_regularization'])
+    assert torch.equal(runtime.model.base, frozen)
+    assert adapter.particles is particles and game.prior.z is particles
+    assert queries == []
+    assert not torch.cuda.is_initialized()
