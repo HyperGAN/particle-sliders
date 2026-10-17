@@ -61,6 +61,19 @@ transfer on the fixed gate.
 
 ## Frozen artifacts and remaining work
 
+Independent QA recomputed all three final held-out MSE/cosine/edit-RMS values
+from six SHA-verified frozen teacher tensors and saved zero/+1 outputs; all match
+exactly. It verified all metrics/checkpoints/evaluation stages, balanced final
+D/G exposures of800 per row, producer final checkpoint==expected packet,
+export==final network, and actual bank1180→1200 delta L2=0.0291925371.
+Its receipt is copied to `bonsai-1200-v2-actual/independent-qa-review.json`.
+
+Evidence limits are explicit: exact separate-process replay is enforced by the
+reviewed worker's assertions and receipt; no second restored full packet was saved
+for independent tensor comparison, and QA ran no additional optimizer replay.
+Canary/identity diagnostic floats were source/receipt-checked; their raw vectors
+were not persisted. These limits do not change the recomputed transfer failure.
+
 All 87 artifacts (67.73 MiB) remain at
 `/mnt/nvme/sliders/qualification/runs/bonsai-pg09-gan-1200-20261017-v2/`.
 Code evidence under `evidence/pg09-text-video/bonsai-1200-v2-actual/` contains
