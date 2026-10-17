@@ -202,7 +202,7 @@ def _optimizer_history_schema(packet):
     return result
 
 
-def _validate_optimizer(optimizer, packet, *, require_history=False):
+def _validate_optimizer(optimizer, packet, *, require_history=False, completed_steps=None, generator=False):
     """Bind loaded update laws to the recipe before public optimizer restore.
 
     Native Adam restores group settings without validating them. The recipe
@@ -251,6 +251,10 @@ def _validate_optimizer(optimizer, packet, *, require_history=False):
                         or (isinstance(count, float) and (not math.isfinite(count) or not count.is_integer()))
                         or count < 0):
                     raise ValueError('invalid checkpoint optimizer step count')
+                if isinstance(optimizer, torch.optim.Adam) and completed_steps is not None:
+                    if ((generator and count != completed_steps)
+                            or (not generator and not 1 <= count <= completed_steps)):
+                        raise ValueError('checkpoint Adam step count differs from completed updates')
             if slots and isinstance(optimizer, torch.optim.Adam):
                 required = {'step', 'exp_avg', 'exp_avg_sq'}
                 if live['amsgrad']:
@@ -575,8 +579,9 @@ class ConditionalPG09:
         elif state['prior'] is not None or state['spread'] is not None:
             raise ValueError('unexpected particle state in adapter-only arm')
         _finite_tree((state['opt_g'], state['opt_d'], state['spread']))
-        _validate_optimizer(self.opt_g, state['opt_g'], require_history=state['completed_steps'] > 0)
-        _validate_optimizer(self.opt_d, state['opt_d'])
+        _validate_optimizer(self.opt_g, state['opt_g'], require_history=state['completed_steps'] > 0,
+                            completed_steps=state['completed_steps'], generator=True)
+        _validate_optimizer(self.opt_d, state['opt_d'], completed_steps=state['completed_steps'])
         history_schema = {phase: _optimizer_history_schema(state['opt_' + phase]) for phase in ('g', 'd')}
         if state.get('optimizer_history_schema') != history_schema:
             raise ValueError('checkpoint optimizer history presence or fields differ')

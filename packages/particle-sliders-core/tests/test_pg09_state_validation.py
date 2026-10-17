@@ -155,6 +155,36 @@ def test_started_generator_cannot_reset_all_history_even_with_changed_schema(pre
     equal(before, receiver.state_dict())
 
 
+@pytest.mark.parametrize('completed,count', [(1, 0), (1, 2), (2, 0), (2, 1), (2, 3)])
+def test_original_adam_generator_clock_matches_every_completed_update(completed, count):
+    source = fixture(preset='bispf')
+    for _ in range(completed):
+        source.step()
+    packet = source.state_dict()
+    key = packet['opt_g']['param_groups'][0]['params'][0]
+    packet['opt_g']['state'][key]['step'].fill_(count)
+    receiver = fixture(preset='bispf')
+    before = receiver.state_dict()
+    with pytest.raises(ValueError, match='Adam step count differs'):
+        receiver.load_state_dict(packet)
+    equal(before, receiver.state_dict())
+
+
+@pytest.mark.parametrize('count', [0, 3])
+def test_original_adam_critic_clock_stays_within_completed_updates(count):
+    source = fixture(preset='bispf')
+    source.step()
+    source.step()
+    packet = source.state_dict()
+    key = packet['opt_d']['param_groups'][0]['params'][0]
+    packet['opt_d']['state'][key]['step'].fill_(count)
+    receiver = fixture(preset='bispf')
+    before = receiver.state_dict()
+    with pytest.raises(ValueError, match='Adam step count differs'):
+        receiver.load_state_dict(packet)
+    equal(before, receiver.state_dict())
+
+
 def test_optimizer_history_presence_record_is_mandatory():
     source = fixture()
     packet = source.state_dict()
@@ -192,6 +222,46 @@ def test_never_used_critic_parameter_preserves_absent_history_and_exact_resume(p
     assert packet['optimizer_history_schema']['d'][unused] is None
     expected = source.step()
     receiver = sparse_critic_fixture(preset)
+    receiver.load_state_dict(packet)
+    assert receiver.step() == expected
+    equal(receiver.state_dict(), source.state_dict())
+
+
+class PartiallyUsedCritic(Critic):
+    def __init__(self):
+        super().__init__()
+        self.optional = nn.Parameter(torch.ones(1))
+        self.register_buffer('optional_active', torch.tensor(False))
+
+    def forward(self, response, condition):
+        score = super().forward(response, condition)
+        if bool(self.optional_active):
+            score = score + self.optional * response.flatten(1).mean(1)
+        return score
+
+
+def partially_used_critic_fixture():
+    base = fixture(preset='bispf')
+    with torch.random.fork_rng():
+        torch.manual_seed(123)
+        critic = PartiallyUsedCritic()
+    return ConditionalPG09(base.backend, base.rows, critic, conditions=base.conditions,
+                          particles=base.network.particles, preset='bispf', batch_size=4, total_steps=5)
+
+
+def test_partially_used_adam_critic_history_has_independent_clock_and_exact_resume():
+    source = partially_used_critic_fixture()
+    source.step()
+    source.critic.optional_active.fill_(True)
+    source.step()
+    packet = source.state_dict()
+    optional = next(key for saved, actual in zip(packet['opt_d']['param_groups'], source.opt_d.param_groups)
+                    for key, parameter in zip(saved['params'], actual['params'])
+                    if parameter is source.critic.optional)
+    assert packet['completed_steps'] == 2
+    assert packet['opt_d']['state'][optional]['step'].item() == 1
+    expected = source.step()
+    receiver = partially_used_critic_fixture()
     receiver.load_state_dict(packet)
     assert receiver.step() == expected
     equal(receiver.state_dict(), source.state_dict())
