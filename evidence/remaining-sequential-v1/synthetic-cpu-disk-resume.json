@@ -1,0 +1,24 @@
+{
+  "qualification_scope": "Synthetic CPU toy ConditionalPG09 only; not pretrained/native/GPU equivalence",
+  "proof": {
+    "schema": "remaining-gan-fresh-disk-proof-v1",
+    "recipe_sha256": "312ea6e70f0765d893c38489ab458800f731373ddbd95428cef0652cdf8f2cfe",
+    "reference_sha256": "39b815fc01b34fd531b51f3f38baf2bc11a31457a0adf1e493512958e6ab32b9",
+    "checkpoint_sha256": "1bf181624406744793cc5ac103985820d81edde23e82908cab9669b24406a4b6",
+    "frozen_base": {
+      "parameters_sha256": "69f7186bdad4b84977cb14d5406b41dae9c8dadf0ea1ace6ff13bdee1ecb2905",
+      "buffers_sha256": "109b54f10c7e9dd743169774fd60d751fb7e3c7dee5f964962864faebf26b2b0",
+      "parameters": 1,
+      "combined_sha256": "1cc814ad63dedb948aa0006e7e22b4d18befa8ea28b3ff3f0b2b01893d7e6bc7"
+    },
+    "probe_pid": 2,
+    "resume_pid": 4,
+    "replayed_from_step": 2,
+    "verified_step": 3,
+    "checkpoint_advanced": false,
+    "exact_loss": true,
+    "exact_full_state": true,
+    "exact_sample": true,
+    "frozen_base_unchanged": true
+  }
+}

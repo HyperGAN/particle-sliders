@@ -1,0 +1,61 @@
+{
+  "schema": "remaining-sequential-source-test-v1",
+  "status": "CPU_QUALIFIED_NOT_ADMITTED",
+  "utc": "2026-10-17T18:25:07.999994+00:00",
+  "parent_base": "e5b134c536093f893d5774409691ad6c1bd2f2fb",
+  "isolated_checkout": "/mnt/nvme/sliders/backend-adapters-pg09-20261017",
+  "branch": "backend-adapters-pg09",
+  "new_files_only": true,
+  "tests": {
+    "count": 25,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 6.945,
+    "command": "CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /mnt/nvme/sliders/qualification/envs/pg090/bin/python -m pytest tests/test_pg09_remaining_worker.py tests/test_pg09_remaining_campaigns.py -q -p no:cacheprovider -o pythonpath=''",
+    "pythonpath": [
+      "/mnt/nvme/sliders/backend-adapters-pg09-20261017",
+      "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src",
+      "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts"
+    ]
+  },
+  "ruff": "E9,F pass (--no-cache)",
+  "default_cli_plan": "pass; DRAFT_NOT_ADMITTED, live_executed=false",
+  "native_namespace": "supra_particle_model; exact same core implementation_sources across2 fresh synthetic CPU processes",
+  "fresh_process_proof": "synthetic-cpu-disk-resume.json",
+  "source_and_evidence_sha256": {
+    "conceptmod/textsliders/pg09_remaining_admission.py": "46e1f2f57aba8b89f99cbe2ff3da90faf37cf4e709ebaf92a17bd89b370da3c5",
+    "conceptmod/textsliders/pg09_remaining_bind.py": "7de9473a139de78b72742c5dc8f5f2fb14976c6ec5d74c77310dd4d6cff4491d",
+    "conceptmod/textsliders/pg09_remaining_worker.py": "206525fcd19b2e250c8a68348f0dd8bc7a3023d2f2d6da2c507928277a5ab421",
+    "conceptmod/textsliders/pg09_remaining_offline.py": "f2563055bce586dae00176fd3816cee185ee6f054836a22321516f9a95c6c2be",
+    "scripts/build_remaining_admission_bundle.py": "4f317c2c0927e3c952a304143a0055e172643627d74e5589b663d1f28953522e",
+    "scripts/qualify_remaining_campaigns_offline.py": "98ee1b5a45c5538a6213384744b25546a9a8045b12a9f8057ffab469ad2e81d5",
+    "scripts/bind_remaining_context_receipt.py": "396f2d699ebf92ce2867486f3c3eaa1a391b9216a184f5bcb8f180a1c5c2ce22",
+    "tests/test_pg09_remaining_worker.py": "da49908ec6add620a6448d512fe40d884e2b209a4c2d25a10ab48a4d6fa07882",
+    "docs/pg09-remaining-sequential-admission.md": "bd7f2f4ced6e6b8fec035954a00e55866d5f7017e1b19c4596f8bc0a102c69b8",
+    "evidence/remaining-sequential-v1/synthetic-cpu-disk-resume.json": "b48ba47c042cb57b9ef72e4be0d90cc48afef075a0925bcedc6d47f9fddfecfe",
+    "evidence/remaining-sequential-v1/offline-review.json": "81847d224bd7badfe7ce5fd6c2500bd8c5f797fe4b21a75fdf3e6ad0542244a5",
+    "evidence/remaining-sequential-v1/cpu-tests.xml": "15c7773fe5cb88e5a3b792a27877ae05731bf5378c10cf86bca368cbd44f544b",
+    "evidence/remaining-sequential-v1/admission-final/supra-contexts.draft.json": "ca9a11f5685bc9d70e6cc13d06b2bd7c85118e6ac986f32a0d8101704700edd7",
+    "evidence/remaining-sequential-v1/admission-final/final-form.draft.json": "f046d2a32ee25e962b2d02487a0b4c3b3984b0b14239089cfec7fa1958780866",
+    "evidence/remaining-sequential-v1/admission-final/supra-final-boss.draft.json": "481de95868a8f45d763886088d72d9c260f7dceea5a568263f95f2c7c49d2bc2",
+    "evidence/remaining-sequential-v1/admission-final/sequential-plan.json": "8ebf8e408fcbacfb65697220f284f564f8ca0c16ad7338e1233646941c37377b"
+  },
+  "unexecuted_actions": [
+    "pretrained weight load or byte hash",
+    "native forward",
+    "T5 encoding",
+    "GPU query or phase",
+    "live process dispatch",
+    "guardian creation/admission",
+    "lease acquisition",
+    "service/queue actions",
+    "merge/publication"
+  ],
+  "pending": {
+    "owner": "MOSS priority handoff/capacity/both leases/final source/recipe review/guardian",
+    "supra": "Missing derived19-context export; must complete admitted S01 and offline proof binding before S02",
+    "native": "Both cases require actual strict teacher/gradient/nativeCFG/noise checks and separate GPU disk proof before full budget",
+    "quality": "Full GAN budgets and matched heldouts remain unexecuted"
+  }
+}

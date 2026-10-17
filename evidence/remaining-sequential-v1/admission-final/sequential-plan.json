@@ -1,0 +1,379 @@
+{
+  "schema": "remaining-sequential-admission-v1",
+  "status": "DRAFT_NOT_ADMITTED",
+  "automatic_dispatch": false,
+  "prefix": "Existing BI/Afterimage full budgets and matched heldouts retain priority; owner must record safe handoff",
+  "source_root": "/mnt/nvme/sliders/backend-adapters-pg09-20261017",
+  "offline_review_sha256": "81847d224bd7badfe7ce5fd6c2500bd8c5f797fe4b21a75fdf3e6ad0542244a5",
+  "commands": [
+    {
+      "phase": "FF01",
+      "case": "final-form",
+      "mode": "probe",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": "0",
+        "HF_HOME": "/mnt/nvme/sliders/cache/huggingface",
+        "HF_HUB_OFFLINE": "1",
+        "TRANSFORMERS_OFFLINE": "1",
+        "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "OMP_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "TOKENIZERS_PARALLELISM": "false",
+        "PARTICLE_SLIDERS_ROOT": "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders",
+        "PYTHONPATH": "/mnt/nvme/sliders/backend-adapters-pg09-20261017:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src:/mnt/nvme/sliders/qualification/checkouts/supra-product:/mnt/nvme/sliders/qualification/pg09-audit/wheel"
+      },
+      "argv": [
+        "/mnt/nvme/sliders/moss-image-sliders/.venv/bin/python",
+        "-m",
+        "conceptmod.textsliders.pg09_remaining_worker",
+        "--recipe",
+        "/mnt/nvme/sliders/backend-adapters-pg09-20261017/evidence/remaining-sequential-v1/admission-final/final-form.draft.json",
+        "--output",
+        "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/final-form/v1/full-gan",
+        "--mode",
+        "probe",
+        "--lease-fd",
+        "{owner_admission_fd}",
+        "--lease-fd",
+        "{owner_gpu_fd}"
+      ],
+      "executed": false,
+      "root_guardian_required": true,
+      "blocked_by": [
+        "owner priority safe-handoff",
+        "capacity/leases",
+        "reviewed admission"
+      ]
+    },
+    {
+      "phase": "FF02",
+      "case": "final-form",
+      "mode": "resume-check",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": "0",
+        "HF_HOME": "/mnt/nvme/sliders/cache/huggingface",
+        "HF_HUB_OFFLINE": "1",
+        "TRANSFORMERS_OFFLINE": "1",
+        "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "OMP_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "TOKENIZERS_PARALLELISM": "false",
+        "PARTICLE_SLIDERS_ROOT": "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders",
+        "PYTHONPATH": "/mnt/nvme/sliders/backend-adapters-pg09-20261017:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src:/mnt/nvme/sliders/qualification/checkouts/supra-product:/mnt/nvme/sliders/qualification/pg09-audit/wheel"
+      },
+      "argv": [
+        "/mnt/nvme/sliders/moss-image-sliders/.venv/bin/python",
+        "-m",
+        "conceptmod.textsliders.pg09_remaining_worker",
+        "--recipe",
+        "/mnt/nvme/sliders/backend-adapters-pg09-20261017/evidence/remaining-sequential-v1/admission-final/final-form.draft.json",
+        "--output",
+        "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/final-form/v1/full-gan",
+        "--mode",
+        "resume-check",
+        "--lease-fd",
+        "{owner_admission_fd}",
+        "--lease-fd",
+        "{owner_gpu_fd}"
+      ],
+      "executed": false,
+      "root_guardian_required": true,
+      "blocked_by": [
+        "owner priority safe-handoff",
+        "capacity/leases",
+        "reviewed admission"
+      ]
+    },
+    {
+      "phase": "FF03",
+      "case": "final-form",
+      "mode": "train",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": "0",
+        "HF_HOME": "/mnt/nvme/sliders/cache/huggingface",
+        "HF_HUB_OFFLINE": "1",
+        "TRANSFORMERS_OFFLINE": "1",
+        "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "OMP_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "TOKENIZERS_PARALLELISM": "false",
+        "PARTICLE_SLIDERS_ROOT": "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders",
+        "PYTHONPATH": "/mnt/nvme/sliders/backend-adapters-pg09-20261017:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src:/mnt/nvme/sliders/qualification/checkouts/supra-product:/mnt/nvme/sliders/qualification/pg09-audit/wheel"
+      },
+      "argv": [
+        "/mnt/nvme/sliders/moss-image-sliders/.venv/bin/python",
+        "-m",
+        "conceptmod.textsliders.pg09_remaining_worker",
+        "--recipe",
+        "/mnt/nvme/sliders/backend-adapters-pg09-20261017/evidence/remaining-sequential-v1/admission-final/final-form.draft.json",
+        "--output",
+        "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/final-form/v1/full-gan",
+        "--mode",
+        "train",
+        "--lease-fd",
+        "{owner_admission_fd}",
+        "--lease-fd",
+        "{owner_gpu_fd}"
+      ],
+      "executed": false,
+      "root_guardian_required": true,
+      "blocked_by": [
+        "owner priority safe-handoff",
+        "capacity/leases",
+        "reviewed admission"
+      ]
+    },
+    {
+      "phase": "FF04",
+      "case": "final-form",
+      "mode": "evaluate",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": "0",
+        "HF_HOME": "/mnt/nvme/sliders/cache/huggingface",
+        "HF_HUB_OFFLINE": "1",
+        "TRANSFORMERS_OFFLINE": "1",
+        "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "OMP_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "TOKENIZERS_PARALLELISM": "false",
+        "PARTICLE_SLIDERS_ROOT": "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders",
+        "PYTHONPATH": "/mnt/nvme/sliders/backend-adapters-pg09-20261017:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src:/mnt/nvme/sliders/qualification/checkouts/supra-product:/mnt/nvme/sliders/qualification/pg09-audit/wheel"
+      },
+      "argv": [
+        "/mnt/nvme/sliders/moss-image-sliders/.venv/bin/python",
+        "-m",
+        "conceptmod.textsliders.pg09_remaining_worker",
+        "--recipe",
+        "/mnt/nvme/sliders/backend-adapters-pg09-20261017/evidence/remaining-sequential-v1/admission-final/final-form.draft.json",
+        "--output",
+        "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/final-form/v1/full-gan",
+        "--mode",
+        "evaluate",
+        "--lease-fd",
+        "{owner_admission_fd}",
+        "--lease-fd",
+        "{owner_gpu_fd}"
+      ],
+      "executed": false,
+      "root_guardian_required": true,
+      "blocked_by": [
+        "owner priority safe-handoff",
+        "capacity/leases",
+        "reviewed admission"
+      ]
+    },
+    {
+      "phase": "S01",
+      "case": "supra-contexts",
+      "mode": "contexts",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": "0",
+        "HF_HOME": "/mnt/nvme/ai/caches/huggingface/main",
+        "HF_HUB_OFFLINE": "1",
+        "TRANSFORMERS_OFFLINE": "1",
+        "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "OMP_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "TOKENIZERS_PARALLELISM": "false",
+        "PARTICLE_SLIDERS_ROOT": "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders",
+        "PYTHONPATH": "/mnt/nvme/sliders/backend-adapters-pg09-20261017:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src:/mnt/nvme/sliders/qualification/checkouts/supra-product:/mnt/nvme/sliders/qualification/pg09-audit/wheel"
+      },
+      "argv": [
+        "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+        "-m",
+        "conceptmod.textsliders.pg09_remaining_worker",
+        "--recipe",
+        "/mnt/nvme/sliders/backend-adapters-pg09-20261017/evidence/remaining-sequential-v1/admission-final/supra-contexts.draft.json",
+        "--output",
+        "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/supra-final-boss/v1/context-preparation",
+        "--mode",
+        "contexts",
+        "--lease-fd",
+        "{owner_admission_fd}",
+        "--lease-fd",
+        "{owner_gpu_fd}"
+      ],
+      "executed": false,
+      "root_guardian_required": true,
+      "blocked_by": [
+        "owner priority safe-handoff",
+        "capacity/leases",
+        "reviewed admission"
+      ]
+    },
+    {
+      "phase": "S02",
+      "case": "supra-final-boss",
+      "mode": "probe",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": "0",
+        "HF_HOME": "/mnt/nvme/ai/caches/huggingface/main",
+        "HF_HUB_OFFLINE": "1",
+        "TRANSFORMERS_OFFLINE": "1",
+        "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "OMP_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "TOKENIZERS_PARALLELISM": "false",
+        "PARTICLE_SLIDERS_ROOT": "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders",
+        "PYTHONPATH": "/mnt/nvme/sliders/backend-adapters-pg09-20261017:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src:/mnt/nvme/sliders/qualification/checkouts/supra-product:/mnt/nvme/sliders/qualification/pg09-audit/wheel"
+      },
+      "argv": [
+        "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+        "-m",
+        "conceptmod.textsliders.pg09_remaining_worker",
+        "--recipe",
+        "/mnt/nvme/sliders/backend-adapters-pg09-20261017/evidence/remaining-sequential-v1/admission-final/supra-final-boss.draft.json",
+        "--output",
+        "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/supra-final-boss/v1/full-gan",
+        "--mode",
+        "probe",
+        "--lease-fd",
+        "{owner_admission_fd}",
+        "--lease-fd",
+        "{owner_gpu_fd}"
+      ],
+      "executed": false,
+      "root_guardian_required": true,
+      "blocked_by": [
+        "owner priority safe-handoff",
+        "capacity/leases",
+        "reviewed admission",
+        "reviewed19-context hashes must be rebound afterS01"
+      ]
+    },
+    {
+      "phase": "S03",
+      "case": "supra-final-boss",
+      "mode": "resume-check",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": "0",
+        "HF_HOME": "/mnt/nvme/ai/caches/huggingface/main",
+        "HF_HUB_OFFLINE": "1",
+        "TRANSFORMERS_OFFLINE": "1",
+        "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "OMP_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "TOKENIZERS_PARALLELISM": "false",
+        "PARTICLE_SLIDERS_ROOT": "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders",
+        "PYTHONPATH": "/mnt/nvme/sliders/backend-adapters-pg09-20261017:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src:/mnt/nvme/sliders/qualification/checkouts/supra-product:/mnt/nvme/sliders/qualification/pg09-audit/wheel"
+      },
+      "argv": [
+        "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+        "-m",
+        "conceptmod.textsliders.pg09_remaining_worker",
+        "--recipe",
+        "/mnt/nvme/sliders/backend-adapters-pg09-20261017/evidence/remaining-sequential-v1/admission-final/supra-final-boss.draft.json",
+        "--output",
+        "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/supra-final-boss/v1/full-gan",
+        "--mode",
+        "resume-check",
+        "--lease-fd",
+        "{owner_admission_fd}",
+        "--lease-fd",
+        "{owner_gpu_fd}"
+      ],
+      "executed": false,
+      "root_guardian_required": true,
+      "blocked_by": [
+        "owner priority safe-handoff",
+        "capacity/leases",
+        "reviewed admission",
+        "reviewed19-context hashes must be rebound afterS01"
+      ]
+    },
+    {
+      "phase": "S04",
+      "case": "supra-final-boss",
+      "mode": "train",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": "0",
+        "HF_HOME": "/mnt/nvme/ai/caches/huggingface/main",
+        "HF_HUB_OFFLINE": "1",
+        "TRANSFORMERS_OFFLINE": "1",
+        "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "OMP_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "TOKENIZERS_PARALLELISM": "false",
+        "PARTICLE_SLIDERS_ROOT": "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders",
+        "PYTHONPATH": "/mnt/nvme/sliders/backend-adapters-pg09-20261017:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src:/mnt/nvme/sliders/qualification/checkouts/supra-product:/mnt/nvme/sliders/qualification/pg09-audit/wheel"
+      },
+      "argv": [
+        "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+        "-m",
+        "conceptmod.textsliders.pg09_remaining_worker",
+        "--recipe",
+        "/mnt/nvme/sliders/backend-adapters-pg09-20261017/evidence/remaining-sequential-v1/admission-final/supra-final-boss.draft.json",
+        "--output",
+        "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/supra-final-boss/v1/full-gan",
+        "--mode",
+        "train",
+        "--lease-fd",
+        "{owner_admission_fd}",
+        "--lease-fd",
+        "{owner_gpu_fd}"
+      ],
+      "executed": false,
+      "root_guardian_required": true,
+      "blocked_by": [
+        "owner priority safe-handoff",
+        "capacity/leases",
+        "reviewed admission",
+        "reviewed19-context hashes must be rebound afterS01"
+      ]
+    },
+    {
+      "phase": "S05",
+      "case": "supra-final-boss",
+      "mode": "evaluate",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": "0",
+        "HF_HOME": "/mnt/nvme/ai/caches/huggingface/main",
+        "HF_HUB_OFFLINE": "1",
+        "TRANSFORMERS_OFFLINE": "1",
+        "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "OMP_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "TOKENIZERS_PARALLELISM": "false",
+        "PARTICLE_SLIDERS_ROOT": "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders",
+        "PYTHONPATH": "/mnt/nvme/sliders/backend-adapters-pg09-20261017:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts:/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src:/mnt/nvme/sliders/qualification/checkouts/supra-product:/mnt/nvme/sliders/qualification/pg09-audit/wheel"
+      },
+      "argv": [
+        "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+        "-m",
+        "conceptmod.textsliders.pg09_remaining_worker",
+        "--recipe",
+        "/mnt/nvme/sliders/backend-adapters-pg09-20261017/evidence/remaining-sequential-v1/admission-final/supra-final-boss.draft.json",
+        "--output",
+        "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/supra-final-boss/v1/full-gan",
+        "--mode",
+        "evaluate",
+        "--lease-fd",
+        "{owner_admission_fd}",
+        "--lease-fd",
+        "{owner_gpu_fd}"
+      ],
+      "executed": false,
+      "root_guardian_required": true,
+      "blocked_by": [
+        "owner priority safe-handoff",
+        "capacity/leases",
+        "reviewed admission",
+        "reviewed19-context hashes must be rebound afterS01"
+      ]
+    }
+  ],
+  "stop_after_S01": "Owner reviews actual native19-context receipt; bind hashes into NEW full Supra recipe beforeS02",
+  "total_case_wall_includes_all_phases_and_waits": true,
+  "model_weights_loaded": false,
+  "native_forward": false,
+  "T5_encode": false
+}
