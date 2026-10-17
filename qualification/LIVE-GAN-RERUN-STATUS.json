@@ -1,6 +1,6 @@
 {
   "schema": "root-gan-rerun-handoff-v1",
-  "updated_utc": "2026-10-17T17:59:17.151099+00:00",
+  "updated_utc": "2026-10-17T18:05:22.796853+00:00",
   "integration_checkout": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core",
   "integration_branch": "integration/pg09-conditional-core",
   "integration_head": "40f1d5de469d92ac2d5ea174945760f529bc938e",
@@ -345,6 +345,30 @@
     "offline_check": "qualification/campaign-admission-offline-check.json",
     "priority": "ExistingMOSS3840 thenverifiedmatchedMOSS evaluation; defaultserialize subsequentnewphases",
     "owners_cpu_work": "FinalForm/Supra newfiles-onlyworker shells, image metadata/RNGaudit proposals, audio nextphase cards under preparation",
-    "no_automation": true
+    "no_automation": true,
+    "image_offline_audit": {
+      "admission_id": "image-static-audit-20261017-v1",
+      "status": "COMPLETED_STATIC_ONLY",
+      "source_commit": "ad47df321647b7758f7f096c2f9c8f05caba7eab",
+      "canonical_commit": "48076a5a",
+      "plan_sha256": "3d7a2696dbb31c8e301798c0d242ad5a9a2f5e602387c648bfeffd9ff472beb0",
+      "script_sha256": "ccb0b244150a4b63c53305126600e28cc5a559195758777b2eb1c693ca398c0e",
+      "receipt_sha256": "2f16338a6e9d2329a429b8ad3b2b34214a00ef1b13edfa063991bbdea96de6ad",
+      "manual_preflight": "Output /tmp/image-checkpoint-static-root-20261017.json was asserted absent and disjoint from all pinned input paths before launch.",
+      "elapsed_seconds": 2.081074230001832,
+      "peak_rss_bytes": 21811200,
+      "checksum_bytes": 2390321324,
+      "packets": 4,
+      "pickle_executed": false,
+      "torch_imported": false,
+      "restricted_rng_loading_executed": false,
+      "model_or_optimizer_constructed": false,
+      "gpu_actions": false,
+      "inputs_overwritten": false,
+      "actual_historical_draw_replay_qualified": false,
+      "pending_defect": "CLI lacks enforced pre-read fresh/disjoint output and atomic no-overwrite publication. Restricted RNG admission held; source/proposal-only repair requested. Old cohort immutable; new strict same-plan static proof after repair.",
+      "automatic_retry": false
+    },
+    "audio_proposal_gap": "86d05a6 bundle has new-phase running hostfloor4 rather than required8GiB; owner updating only proposal fields/docs/validator. No audioGPUadmission. Renderer implementation also missing."
   }
 }
