@@ -1,0 +1,127 @@
+# Bounded native audio validation — preparation and admission gates
+
+Audio ownership continues through the continuous-domain fix and real-model
+validation. The earlier fail-closed adapter milestone is software groundwork.
+No full-model job has run and no GPU lease has been granted to this task.
+
+## Existing offline assets and runtimes
+
+`scripts/inspect_audio_pg09_assets.py` completed on both native stacks, loading
+only configs and tokenizers. It verifies config hashes and staged asset byte
+sizes, records existing weight hashes without re-reading the weight tensors,
+and records exact executable/module origins plus all 49 ParticleGAN source
+hashes. Neither invocation initialized CUDA or loaded model weights.
+
+| Family | Interpreter | Actual Torch / Transformers | Staged native response |
+|---|---|---|---|
+| YuE2 | `/ml2/sliders/.venv-yue2-retrain/bin/python` | `2.10.0+cu128` / `4.57.6` | `[1,2048]` |
+| Music3 | `/mnt/nvme/sliders/qualification/envs/pg090/bin/python` | `2.11.0+cu128` / `5.15.0` | `[1,4096]` |
+
+The committed earlier audio receipt also recorded Torch 2.11/Transformers 5.15.
+An intermediate coordination message incorrectly described the newer runtime
+as 2.12/5.13; the actual module origins in these receipts supersede that message.
+
+YuE2's runtime and product both use the package name `yue2`. The preflight
+imports the official installed runtime first, then adds the isolated product's
+directory for its nonconflicting backend/slider/defaults/prompts submodules.
+No installed package is edited. For this interpreter, only the PG0.9 package
+and its metadata are read from the isolated PG environment's site-packages;
+Torch and Transformers remain the native YuE2 versions. No ABI replacement
+or global environment write is used.
+
+The four fixed metal training rows and two fixed heldout rows fit the 512-token
+cap without truncation: YuE2 maximum 180 tokens; Music3 maximum 167 tokens.
+YuE2 can additionally use a fixed 16 semantic-token shared continuation history
+and remain within that cap. Music3 preserves its last-real-token
+`<|audio_start|>` boundary and does not substitute generated history for it.
+
+## Reproduce CPU-only preflight
+
+Run from the isolated audio checkout. These commands use the released
+unchanged PG0.9 package for metadata inspection, not the pending overlay.
+
+```bash
+export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1
+export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+cd /mnt/nvme/sliders/audio-adapters-pg09-20261017
+
+PYTHONPATH=/mnt/nvme/sliders/qualification/envs/pg090/lib/python3.11/site-packages:. \
+/ml2/sliders/.venv-yue2-retrain/bin/python scripts/inspect_audio_pg09_assets.py \
+  --family yue2 --product /mnt/nvme/sliders/audio-yue2-source-20261017 \
+  --model-dir /mnt/nvme/ai/caches/huggingface/music/hub/models--m-a-p--YuE2-3B/snapshots/14fc6c6f146441b1dd6363fcb2e01e82a6914cb7 \
+  --manifest /mnt/nvme/sliders/qualification/models/yue2-cached/qualification-manifest.json \
+  --train-prompts conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml \
+  --heldout-prompts conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml \
+  --max-seq-len 512 --output /tmp/audio-yue2-assets-preflight.json
+
+PYTHONPATH=. /mnt/nvme/sliders/qualification/envs/pg090/bin/python \
+  scripts/inspect_audio_pg09_assets.py --family music3 \
+  --model-dir /mnt/nvme/sliders/qualification/models/music3-bd348f9 \
+  --manifest /mnt/nvme/sliders/qualification/models/music3-bd348f9/qualification-manifest.json \
+  --train-prompts conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml \
+  --heldout-prompts conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml \
+  --max-seq-len 512 --output /tmp/audio-music3-assets-preflight.json
+```
+
+## Proposed bounded stages after host-profile QA and GPU admission
+
+These are proposed bounds, not an active reservation. Core owner
+`01a147d7-f540-778e-ad79-4d8eb267403d` assigns the physical GPU, process slot,
+memory reserve and time window. MOSS priority jobs remain ahead of audio.
+Legacy dispatch holds remain active; none of the old train/queue launchers
+will be resumed.
+
+1. Freeze QA-approved core/adapter/PG source profile. Bind the exact 49 source
+   hashes, released base-wheel digest, single ALZ patch digest, explicit
+   declared domain and resolved continuous domain. Requalify both presets on
+   CPU, including each native runtime and cross-profile/domain restore
+   rejection. The current adapter width guard remains until that contract is
+   approved. No alternate patch, projection, truncation or field reshape.
+2. Request a separate native training smoke lease: four train/two heldout
+   rows, batch 2, rank 8, existing 128×4 bank, max 512 tokens, seed 7,
+   `bispf_optimized`, total budget 20 updates. Compare fresh-process 1+2 against 3
+   updates with the same declared 20-update recipe. Write checkpoints every 2
+   updates, never extend the budget silently. Hard wall limit 900 seconds,
+   failed gates stop only this task's own child process.
+3. On successful smoke and renewed admission, continue that same checkpoint
+   to 20 updates. Report actual elapsed time, peak allocated/reserved device
+   memory and resource telemetry. A larger training budget requires a new
+   explicit decision; 20 updates alone do not establish musical quality.
+4. Request a separate listening lease. Use two predeclared heldout neutral
+   captions/lyrics with seeds 1709/1710. Save matched base, adapter-off,
+   scales 0.5 and 1, plus frozen positive-caption reference. YuE2 uses the pinned
+   eager AR path with `cot=off`, max 200 semantic tokens, then frozen NAR/VAE;
+   record truncation rather than hiding it. Music3 uses the staged native
+   modular pipeline, max 8 seconds per clip. Preserve the actual sampling,
+   CFG and decoder configuration; no unrelated image/flow adapter path.
+
+Actual GPU command arguments will be frozen in the executable runner only
+after core supplies the reviewed host API/profile and a lease. No command in
+this document launches GPU work before that admission.
+
+## Representative output checks
+
+Training must show finite generator adversarial/prior and critic
+adversarial/continuous-penalty components, nonzero response-direction gradients
+to the actual bank, adapter changes, and unchanged frozen base weights. Report
+row exposures and exact conditioning. Require exact native scale 0 replay,
+adapter-only export/reload parity, and exact fresh-process continuation of
+model/optimizer/controller/prior/RNG/loss state. Heldout response change must
+be finite and nonzero, with no quality claim from that fact alone.
+
+Audio outputs must have finite nonempty mono/stereo arrays, correct declared
+sample rate, recorded duration/token bounds, deterministic base/off replay,
+and waveform-effect measurements for the trained adapter. Report clipping,
+silence, RMS/peak values, lengths and all truncation flags. Musical concept
+direction, intelligible lyrics, voice consistency and artifacts require
+listening review of the two predeclared cases. A waveform difference alone
+does not pass semantic quality.
+
+## Current outstanding gates
+
+QA has passed eight optimizer/fresh-process cases for the single ALZ proposal
+at widths 1024/2048/4096/5120, both presets. Patch SHA256:
+`c6531a21f62fa96682f5aece517a6a862bb849ab971aa2766b3946b9a7543571`.
+The proposal remains an isolated overlay. **Executable core host-profile
+admission, audio runtime requalification and GPU admission are pending.**
