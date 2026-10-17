@@ -1,6 +1,6 @@
 {
   "schema": "root-gan-rerun-handoff-v1",
-  "updated_utc": "2026-10-17T17:44:32.660364+00:00",
+  "updated_utc": "2026-10-17T17:45:39.843702+00:00",
   "integration_checkout": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core",
   "integration_branch": "integration/pg09-conditional-core",
   "integration_head": "d9e060396b15f1ed8d45c37513194cbb424cf008",
@@ -205,13 +205,22 @@
       "logical_optimizer_steps_verified": 80,
       "exposures_each_arm": 640,
       "final_training_complete": false
+    },
+    "online_prototype_review": {
+      "source_commit": "78087def8d6cd6888be7eec6cadadb7ee094215b",
+      "integration_status": "HELD_PENDING_IMMUTABLE_REPAIR",
+      "independent_tests": 8,
+      "positive_passes": 4,
+      "provenance_failures": 4,
+      "test_file": "/ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/test_online_snapshot_review.py",
+      "evidence_limit": "Latest condition-drift regression reported in QA working copy; follow-up immutable QA commit pending."
     }
   },
   "other_cases": {
     "final_form": "Newfiles-onlyprovider/proposal integrated40a25d9 fromeef255c;15360signed/scale0.2522578997899252/3840b8, actualMSE254+render200baseline preserved; worker shell/import pins/teacherparity/diskresume/resourceadmission pending.",
     "supra_final_boss": "Context budget repair c6ef6bce integrated; canonical+independent13CPU checks pass, >19 rejected before encode/output, exact19/config/model/T5 live wrapper bound. Live19-context preparation/import/source/weights/parity/worker/freshGPUresume/resources remain NOT admitted/pending.",
-    "sana_happy": "CPU prototype78087de only; canonical integration/live admission HELD for3 QA provenance defects (mutable descriptors, builder mutation, untracked G buffer mutation). Immutable repair+independent online contract review, actual assets/parity/resources/GPU resume/full heldouts pending.",
-    "sd3_smile": "CPU prototype78087de only; canonical integration/live admission HELD for3 QA provenance defects (mutable descriptors, builder mutation, untracked G buffer mutation). Immutable repair+independent online contract review, actual assets/parity/resources/GPU resume/full heldouts pending.",
+    "sana_happy": "CPU prototype78087de only; canonical integration/live admission HELD for4 independent provenance defects: descriptor mutation with stale identity, builder mutation of live descriptor, untracked G-buffer mutation, midstep condition-table drift accepted under stale identity. Four positive D/G-union/startG/prefix/target and Python/NumPy-RNG gates pass. Immutable repair plus all8 independent tests, actual assets/parity/resources/GPU resume/full heldouts remain pending.",
+    "sd3_smile": "CPU prototype78087de only; canonical integration/live admission HELD for4 independent provenance defects: descriptor mutation with stale identity, builder mutation of live descriptor, untracked G-buffer mutation, midstep condition-table drift accepted under stale identity. Four positive D/G-union/startG/prefix/target and Python/NumPy-RNG gates pass. Immutable repair plus all8 independent tests, actual assets/parity/resources/GPU resume/full heldouts remain pending.",
     "bonsai": "Adequate1200-update correctedGAN CPU native-head rerun complete+exactfresh1180\u21921200/export; heldoutTRANSFER FAIL (meanrelativeeditMSE1.943358/canary1.276340); noGGUF/generationquality. No sweep/extension. Original/tmp0updatefailure retained.",
     "h3": "native packedAV protocol/license/hardware gates unqualified",
     "ming": "repository scaffold has no native forward/runtime"
