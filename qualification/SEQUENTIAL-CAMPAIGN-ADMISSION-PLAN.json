@@ -11,7 +11,7 @@
     "Exact immutable command/environment/source/input/output card and independent source review before each new phase",
     "Root acquires BOTH card lease paths; fresh physical UUID/resident/kernel/resource checks; no preemption or permission expansion",
     "One new CUDA child or explicitly owned serial child group at a time; no automatic retries/fallbacks/sweeps",
-    "NVMe output on /dev/nvme0n1p2, >=100GiB free; host reserve >=8GiB and stricter per-card requirements; no /tmp training output",
+    "NVMe output on /dev/nvme0n1p2 with >=100 GiB free; new phase cards must enforce >=8 GiB host reserve. Exception: unchanged bound MOSS training/evaluation guards enforce 4 GiB throughout, not 8 GiB. No /tmp training output.",
     "Soft76C/coolto70C/hard82C; card free floor>=6GiB; preserve resident3196 GPU1 and5556/9450 GPU0; own-group-only graceful stop",
     "Actual imported native runtime origins before model load, exact49 release or explicitly reviewed ALZ profile; no whole-site overlay",
     "Strict frozen teacher/cache and initial grad-enabled/no-grad parity before first update; no tolerance waiver",
@@ -60,7 +60,13 @@
         "Fresh leases/UUID/residents/resources; no old worker on targetcard"
       ],
       "outcome": "Finalexport+reloadaudit;20images/case,40total; oldMSE1600 rerendered under commonconditional-onlyCFG/no-skip; independent visualreview.",
-      "launch_now": false
+      "launch_now": false,
+      "host_resource_floor": {
+        "enforced_host_free_gib": 4,
+        "mechanism": "Existing source-pinned guardian resource_reason and worker ResourceGuard",
+        "stronger_8gib_continuous_floor_enforced": false,
+        "active_source_changes": false
+      }
     },
     {
       "order": 2,
