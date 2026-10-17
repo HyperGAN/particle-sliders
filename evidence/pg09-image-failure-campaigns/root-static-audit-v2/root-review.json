@@ -1,0 +1,37 @@
+{
+  "admission_id": "image-checkpoint-audit-20261017-v2",
+  "source_commit": "247ac44ce3a06302f7656bef13a339f7dfffdaab",
+  "plan_sha256": "77112107a6907bb2aed1e15dbeed517e0704b361edb7f752105efc4395881fe0",
+  "script_sha256": "92abb56187a05b8f342b7d876f8db698c0440563caba0ae0f7d7672fd5a423a3",
+  "static": {
+    "status": "COMPLETED",
+    "receipt_sha256": "06d72a31c46126f52b456ea59fa55a5586932679873465851bcd960b9f992be8",
+    "elapsed_seconds": 19.107439553001313,
+    "peak_rss_bytes": 21753856,
+    "packet_inventories_equal_v1": true
+  },
+  "rng": {
+    "status": "FAILED_CLOSED",
+    "exit_code": 1,
+    "exception_type": "ValueError",
+    "exception_message": "checkpoint schema differs from frozen TrainingState save contract",
+    "output": "/tmp/image-checkpoint-rng-root-v2-20261017.json",
+    "output_created": false,
+    "reason": "Audit assumed seven fields for both cases, but pinned SD3 save source and static data.pkl inventory include lr_scheduler as an eighth field.",
+    "failed_target_assessment": "Ordered plan and pinned source identify SD3 step0 as first incompatible schema; exception did not include packet path. No partial RNG result was published.",
+    "retry_or_fallback": false
+  },
+  "caps": {
+    "wall_cpu_seconds": 120,
+    "hard_address_space_gib": 8,
+    "minimum_available_host_gib": 16,
+    "cuda_visible_devices": "",
+    "cpu_threads": 1
+  },
+  "rng_restored": false,
+  "model_or_optimizer_instantiated": false,
+  "gpu_actions": false,
+  "inputs_or_prior_receipts_overwritten": false,
+  "historical_draw_replay_qualified": false,
+  "required_repair": "Strict per-case schemas and clear packet-path diagnostic; new immutable plan and separately reviewed CPU cohort. No broad extra-key allowance or cap relaxation."
+}

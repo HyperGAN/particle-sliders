@@ -1,7 +1,7 @@
 {
   "schema": "root-sequential-corrected-campaign-plan-v1",
   "status": "PLANNING_ONLY_NO_DISPATCH",
-  "recorded_utc": "2026-10-17T17:57:51.518216+00:00",
+  "recorded_utc": "2026-10-17T18:17:38.490405+00:00",
   "parent_scope": "FinishsafeCPU/offlinevalidation and explicitsequentialadmissionplan; bothMOSS retainpriority; noautomation.",
   "user_scope_authorized": true,
   "new_gpu_admissions_granted": false,
@@ -146,7 +146,8 @@
       "full_wall_cap_seconds": null,
       "wall_cap_reason": "Must be frozen from admitted nativeprofile before fullarm; no unboundedfullrun.",
       "command_vector": null,
-      "command_missing_reason": "Production assetreader/calibration/liveworker/card pending; CPUprototype not a dispatch entrypoint."
+      "command_missing_reason": "Production assetreader/calibration/liveworker/card pending; CPUprototype not a dispatch entrypoint.",
+      "cpu_checkpoint_audit_status": "Repaired output guard passes22tests; actual v2 static audit matched4known packets. Restricted CPU RNG/schema stage failed closed on omitted SD3 lr_scheduler. Strict per-case7/8 schema repair pending; no RNG result published, no replay qualification."
     },
     {
       "order": 5,
@@ -173,7 +174,8 @@
       "full_wall_cap_seconds": null,
       "wall_cap_reason": "Requires measurednativeprofile then frozenhardcap, no unboundedadmission.",
       "command_vector": null,
-      "command_missing_reason": "Productionreader/calibration/liveworker/card notready."
+      "command_missing_reason": "Productionreader/calibration/liveworker/card notready.",
+      "cpu_checkpoint_audit_status": "Repaired output guard passes22tests; actual v2 static audit matched4known packets. Restricted CPU RNG/schema stage failed closed on omitted SD3 lr_scheduler. Strict per-case7/8 schema repair pending; no RNG result published, no replay qualification."
     },
     {
       "order": 6,
@@ -198,7 +200,10 @@
       "render_wall_cap_seconds": null,
       "render_cap_reason": "Separateboundedrenderer proposal required, no rendering implied.",
       "command_vector": null,
-      "command_missing_reason": "Oldsmokecard consumed/restricted; newphase command+source+resumeasset pins awaitingownerfreeze."
+      "command_missing_reason": "Oldsmokecard consumed/restricted; newphase command+source+resumeasset pins awaitingownerfreeze.",
+      "guardian_preparation": "New root guardian76ef74d0 passes35CPUtests, independent source review pending, no launch card. Requires both completed MOSS evaluations and8GiB host floor; actual new proposals still await4->8 repair.",
+      "minimum_fresh_host_available_gib": 12,
+      "new_phase_running_host_floor_gib": 8
     },
     {
       "order": 7,
@@ -219,9 +224,12 @@
         "Stop aftersoftwareproof; inspectrawreceipts beforeany20step/nativeaudioadmission"
       ],
       "smoke_wall_cap_seconds": 900,
-      "minimum_fresh_gpu_free_gib": 26,
+      "minimum_fresh_gpu_free_gib": 30,
       "command_vector": null,
-      "command_missing_reason": "YuE-specific oldguardian cannotadmitMusic3; separatefrozencard+nativecommandrequired."
+      "command_missing_reason": "YuE-specific oldguardian cannotadmitMusic3; separatefrozencard+nativecommandrequired.",
+      "guardian_preparation": "New root guardian76ef74d0 passes35CPUtests, independent source review pending, no launch card. Requires both completed MOSS evaluations and8GiB host floor; actual new proposals still await4->8 repair.",
+      "minimum_fresh_host_available_gib": 24,
+      "new_phase_running_host_floor_gib": 8
     }
   ],
   "authorization_distinction": "Originalcorrectedrerun/validation scopeauthorized. Pendingrootphaseadmission is anoperationaltechnicalgate, not a missinghumanpermissionrequest. No rejectedlaunch retried; no newpermissions/downloads/services. Missing assets/worker/parity cannot be labeled capacity-only.",
