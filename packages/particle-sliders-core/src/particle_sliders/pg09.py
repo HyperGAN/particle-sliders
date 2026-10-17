@@ -234,6 +234,12 @@ def _validate_optimizer(optimizer, packet):
                         or (isinstance(count, float) and (not math.isfinite(count) or not count.is_integer()))
                         or count < 0):
                     raise ValueError('invalid checkpoint optimizer step count')
+            if slots and isinstance(optimizer, torch.optim.Adam):
+                required = {'step', 'exp_avg', 'exp_avg_sq'}
+                if live['amsgrad']:
+                    required.add('max_exp_avg_sq')
+                if slots.keys() != required:
+                    raise ValueError('checkpoint Adam history fields differ')
     if not packet['state'].keys() <= identifiers:
         raise ValueError('unknown checkpoint optimizer parameter history')
 

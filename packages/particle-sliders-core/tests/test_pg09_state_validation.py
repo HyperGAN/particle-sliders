@@ -87,6 +87,39 @@ def test_invalid_optimizer_clocks_rejected_before_mutation(preset, optimizer, st
     equal(before, receiver.state_dict())
 
 
+@pytest.mark.parametrize('optimizer', ['opt_g', 'opt_d'])
+@pytest.mark.parametrize('change', ['missing_exp_avg', 'missing_exp_avg_sq', 'missing_step',
+                                   'extra_field', 'unexpected_amsgrad_history'])
+def test_original_adam_history_requires_complete_exact_fields(optimizer, change):
+    source = fixture(preset='bispf')
+    source.step()
+    packet = source.state_dict()
+    key = packet[optimizer]['param_groups'][0]['params'][0]
+    slots = packet[optimizer]['state'][key]
+    if change.startswith('missing_'):
+        del slots[change.removeprefix('missing_')]
+    elif change == 'extra_field':
+        slots['unexpected'] = 1
+    else:
+        slots['max_exp_avg_sq'] = torch.zeros_like(slots['exp_avg_sq'])
+    receiver = fixture(preset='bispf')
+    before = receiver.state_dict()
+    with pytest.raises(ValueError, match='Adam history fields differ'):
+        receiver.load_state_dict(packet)
+    equal(before, receiver.state_dict())
+
+
+@pytest.mark.parametrize('preset', ['bispf', 'bispf_optimized'])
+def test_initial_empty_optimizer_history_remains_resumable(preset):
+    source = fixture(preset=preset)
+    packet = source.state_dict()
+    assert packet['opt_g']['state'] == packet['opt_d']['state'] == {}
+    receiver = fixture(preset=preset)
+    receiver.load_state_dict(packet)
+    assert receiver.step() == source.step()
+    equal(receiver.state_dict(), source.state_dict())
+
+
 @pytest.mark.parametrize('preset', ['bispf', 'bispf_optimized'])
 @pytest.mark.parametrize('optimizer,module', [('opt_g', 'network'), ('opt_d', 'critic')])
 def test_nonfinite_optimizer_result_marks_update_failed_before_completion(preset, optimizer, module, monkeypatch):
