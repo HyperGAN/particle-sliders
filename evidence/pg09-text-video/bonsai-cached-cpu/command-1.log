@@ -1,0 +1,1 @@
+{"mode": "produce", "preset": "bispf", "completed_steps": 4, "scope": "real official frozen readouts; native torch-side head only", "gpu_used": false, "quality_qualified": false}

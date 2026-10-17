@@ -1,0 +1,315 @@
+{
+  "worker_sha256": "9a3b987cba3d1b999ff8c9a4738be7d537630d01d1f53d1eefea46adacd79c36",
+  "core_sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+  "assets_manifest_sha256": "74521990968a62419b87194cc9f14033400c427876ffc3996a1a2783a181f11f",
+  "readout_identity": "358f97c219524fd96f9d510824f4bc7f874ad4e44927359e0911a3cb95bde5c7",
+  "frozen_readout_identity": {
+    "weight_sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+    "model_revision": "b072e1d3b35a0a630cece372c2127528e0994386",
+    "runtime_commit": "7dffb158de30ebb8ef9d64f33c6b0b2d7c1e6313",
+    "runtime_archive_sha256": "a1fd3a575e70532567845815a042428831771661b857e80f06422fb08904cb7f",
+    "pooling": "last",
+    "embd_normalize": 2,
+    "context": 512,
+    "server_threads": 4,
+    "cpu_only": true
+  },
+  "preparation_sha256": "8fa17d12981677d5ff9c7c34be47674697977fc0a0284d8332ea6f67def3a644",
+  "archived_recipe_sha256": "8b92d23f0a373b7e629f706bf9cdb7b68b14113a875445ffd1915e68957277b6",
+  "cache": "/mnt/nvme/sliders/qualification/models/bonsai-caption-readouts-20261017",
+  "cached_readouts": 15,
+  "model_loaded": false,
+  "tensor_payload_loaded": true,
+  "gpu_used": false,
+  "permitted_scope": "pending owner admission: cached-real-readout head only, CPU one thread",
+  "mode": "produce",
+  "preset": "bispf_optimized",
+  "completed_steps": 4,
+  "metrics": [
+    {
+      "step": 1,
+      "g_loss": 0.7191846966743469,
+      "g_adv": 0.7183668613433838,
+      "prior_regularization": 0.0008178633288480341,
+      "d_loss": 1.3896256685256958,
+      "d_adv": 1.3895084857940674,
+      "d_pen": 0.00011723125498974696,
+      "g_rows": [
+        1,
+        2
+      ],
+      "d_rows": [
+        0,
+        2
+      ],
+      "g_unique_rows": 2,
+      "d_unique_rows": 2,
+      "g_row_exposures": 2,
+      "d_row_exposures": 2,
+      "ema_residual": 0.8133118152618408,
+      "ema_data_scale": 0.5315141677856445,
+      "s_thermal": 1.0
+    },
+    {
+      "step": 2,
+      "g_loss": 0.7142044305801392,
+      "g_adv": 0.7133867740631104,
+      "prior_regularization": 0.0008176544215530157,
+      "d_loss": 1.4061367511749268,
+      "d_adv": 1.4055559635162354,
+      "d_pen": 0.0005807395209558308,
+      "g_rows": [
+        0,
+        1
+      ],
+      "d_rows": [
+        1,
+        2
+      ],
+      "g_unique_rows": 3,
+      "d_unique_rows": 3,
+      "g_row_exposures": 4,
+      "d_row_exposures": 4,
+      "ema_residual": 0.8786384463310242,
+      "ema_data_scale": 0.5363487601280212,
+      "s_thermal": 1.0
+    },
+    {
+      "step": 3,
+      "g_loss": 0.6781911253929138,
+      "g_adv": 0.6773737668991089,
+      "prior_regularization": 0.0008173436508513987,
+      "d_loss": 1.4086947441101074,
+      "d_adv": 1.40823233127594,
+      "d_pen": 0.00046237342758104205,
+      "g_rows": [
+        2,
+        0
+      ],
+      "d_rows": [
+        1,
+        0
+      ],
+      "g_unique_rows": 3,
+      "d_unique_rows": 3,
+      "g_row_exposures": 6,
+      "d_row_exposures": 6,
+      "ema_residual": 0.9102346301078796,
+      "ema_data_scale": 0.4243634045124054,
+      "s_thermal": 1.0
+    },
+    {
+      "step": 4,
+      "g_loss": 0.6751423478126526,
+      "g_adv": 0.6743252277374268,
+      "prior_regularization": 0.0008170974906533957,
+      "d_loss": 1.4164958000183105,
+      "d_adv": 1.4160115718841553,
+      "d_pen": 0.0004842720809392631,
+      "g_rows": [
+        0,
+        2
+      ],
+      "d_rows": [
+        2,
+        0
+      ],
+      "g_unique_rows": 3,
+      "d_unique_rows": 3,
+      "g_row_exposures": 8,
+      "d_row_exposures": 8,
+      "ema_residual": 0.9075496405363083,
+      "ema_data_scale": 0.43309142142534257,
+      "s_thermal": 1.0
+    }
+  ],
+  "heldout_initial": {
+    "records": [
+      {
+        "case": 0,
+        "neutral": "a garden beside a stone wall",
+        "positive": "a blooming rose garden beside a stone wall",
+        "scale": 0.0,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      },
+      {
+        "case": 0,
+        "neutral": "a garden beside a stone wall",
+        "positive": "a blooming rose garden beside a stone wall",
+        "scale": 0.5,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      },
+      {
+        "case": 0,
+        "neutral": "a garden beside a stone wall",
+        "positive": "a blooming rose garden beside a stone wall",
+        "scale": 1.0,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      },
+      {
+        "case": 1,
+        "neutral": "a sea beside a fishing boat",
+        "positive": "a calm turquoise sea beside a fishing boat",
+        "scale": 0.0,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      },
+      {
+        "case": 1,
+        "neutral": "a sea beside a fishing boat",
+        "positive": "a calm turquoise sea beside a fishing boat",
+        "scale": 0.5,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      },
+      {
+        "case": 1,
+        "neutral": "a sea beside a fishing boat",
+        "positive": "a calm turquoise sea beside a fishing boat",
+        "scale": 1.0,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      },
+      {
+        "case": 2,
+        "neutral": "a street with lamps beside a bakery",
+        "positive": "a cozy rainy street with warm lamps beside a bakery",
+        "scale": 0.0,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      },
+      {
+        "case": 2,
+        "neutral": "a street with lamps beside a bakery",
+        "positive": "a cozy rainy street with warm lamps beside a bakery",
+        "scale": 0.5,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      },
+      {
+        "case": 2,
+        "neutral": "a street with lamps beside a bakery",
+        "positive": "a cozy rainy street with warm lamps beside a bakery",
+        "scale": 1.0,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      }
+    ],
+    "canary_relative_rms": 0.0,
+    "positive_input_identity_relative_mse": 0.0,
+    "readout_transfer_gate_passed": false,
+    "zero_exact": true,
+    "note": "Shared PG09 neutral-conditioned student; frozen positive teacher. Squared errors are held-out diagnostics only; no semantic quality claim."
+  },
+  "heldout_final": {
+    "records": [
+      {
+        "case": 0,
+        "neutral": "a garden beside a stone wall",
+        "positive": "a blooming rose garden beside a stone wall",
+        "scale": 0.0,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      },
+      {
+        "case": 0,
+        "neutral": "a garden beside a stone wall",
+        "positive": "a blooming rose garden beside a stone wall",
+        "scale": 0.5,
+        "relative_edit_mse": 1.3736516461648753,
+        "edit_cosine": 0.019909051394850094,
+        "edit_rms_ratio": 0.6315036563592663
+      },
+      {
+        "case": 0,
+        "neutral": "a garden beside a stone wall",
+        "positive": "a blooming rose garden beside a stone wall",
+        "scale": 1.0,
+        "relative_edit_mse": 2.5448969598021645,
+        "edit_cosine": 0.019909053090154786,
+        "edit_rms_ratio": 1.2630073127185326
+      },
+      {
+        "case": 1,
+        "neutral": "a sea beside a fishing boat",
+        "positive": "a calm turquoise sea beside a fishing boat",
+        "scale": 0.0,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      },
+      {
+        "case": 1,
+        "neutral": "a sea beside a fishing boat",
+        "positive": "a calm turquoise sea beside a fishing boat",
+        "scale": 0.5,
+        "relative_edit_mse": 1.2767026957992655,
+        "edit_cosine": -0.02374234990720452,
+        "edit_rms_ratio": 0.5028185011047064
+      },
+      {
+        "case": 1,
+        "neutral": "a sea beside a fishing boat",
+        "positive": "a calm turquoise sea beside a fishing boat",
+        "scale": 1.0,
+        "relative_edit_mse": 2.0590582382649023,
+        "edit_cosine": -0.023742352606985588,
+        "edit_rms_ratio": 1.0056370022094128
+      },
+      {
+        "case": 2,
+        "neutral": "a street with lamps beside a bakery",
+        "positive": "a cozy rainy street with warm lamps beside a bakery",
+        "scale": 0.0,
+        "relative_edit_mse": 1.0,
+        "edit_cosine": 0.0,
+        "edit_rms_ratio": 0.0
+      },
+      {
+        "case": 2,
+        "neutral": "a street with lamps beside a bakery",
+        "positive": "a cozy rainy street with warm lamps beside a bakery",
+        "scale": 0.5,
+        "relative_edit_mse": 1.2824530265582303,
+        "edit_cosine": -0.00973426600443201,
+        "edit_rms_ratio": 0.5218178545466152
+      },
+      {
+        "case": 2,
+        "neutral": "a street with lamps beside a bakery",
+        "positive": "a cozy rainy street with warm lamps beside a bakery",
+        "scale": 1.0,
+        "relative_edit_mse": 2.1094935660324508,
+        "edit_cosine": -0.00973428098380621,
+        "edit_rms_ratio": 1.0436357538849654
+      }
+    ],
+    "canary_relative_rms": 1.0878005761490912,
+    "positive_input_identity_relative_mse": 0.17360002106030697,
+    "readout_transfer_gate_passed": false,
+    "zero_exact": true,
+    "note": "Shared PG09 neutral-conditioned student; frozen positive teacher. Squared errors are held-out diagnostics only; no semantic quality claim."
+  },
+  "adapter_changed": true,
+  "critic_changed": true,
+  "bank_changed": true,
+  "scope": "real official frozen readouts; native torch-side head only",
+  "frozen_readouts_unchanged": true,
+  "gguf_weights_loaded": false,
+  "server_started": false,
+  "quality_qualified": false,
+  "installed_package_modified": false
+}

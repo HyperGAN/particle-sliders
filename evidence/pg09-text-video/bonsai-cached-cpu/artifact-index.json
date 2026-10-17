@@ -1,0 +1,100 @@
+{
+  "admission_id": "bonsai-cached-cpu-20261017-v1",
+  "worker_commit": "44cf34c78067628442c1f29acff6ab33ca65ac72",
+  "tensor_artifact_root": "/tmp/pg09-bonsai-real-cache-20261017",
+  "files": [
+    {
+      "path": "admission-execution.json",
+      "bytes": 2603,
+      "sha256": "11c481f36661e73bb8409ec2a835c67f5f6a336498e1947843a1c361b1b10d4a",
+      "committed_receipt": true
+    },
+    {
+      "path": "bispf/checkpoint.pt",
+      "bytes": 3108473,
+      "sha256": "2928819dcc7fe4e76903f80a11b0ac4d755150cb2e0d672a750a56ac8f5e48c9",
+      "committed_receipt": false
+    },
+    {
+      "path": "bispf/expected.pt",
+      "bytes": 3234903,
+      "sha256": "b85c9956edb5f731745c194a6c3004f2e41a7810955b30f9072a344c5bcc1782",
+      "committed_receipt": false
+    },
+    {
+      "path": "bispf/inference-export.pt",
+      "bytes": 379275,
+      "sha256": "2f94472c72ae0ca32af0b8064935a326fc922cff2648c2a8988211227cef3170",
+      "committed_receipt": false
+    },
+    {
+      "path": "bispf/produce-receipt.json",
+      "bytes": 9894,
+      "sha256": "31eabd27dd23107bfb0d332704fd79c9a64ba382c8f8b2adc1d953dbedf6295a",
+      "committed_receipt": true
+    },
+    {
+      "path": "bispf/restore-receipt.json",
+      "bytes": 1723,
+      "sha256": "6e05ae84f8af1e3be85c3738d7444f4c069a22234777c8a2e9db33ad95b947c2",
+      "committed_receipt": true
+    },
+    {
+      "path": "bispf_optimized/checkpoint.pt",
+      "bytes": 1067701,
+      "sha256": "4d49d78394c2bec7298685deef72251f996b701b83757c0d520ea2c5579e8856",
+      "committed_receipt": false
+    },
+    {
+      "path": "bispf_optimized/expected.pt",
+      "bytes": 1194199,
+      "sha256": "b4a740b8f534ab9289f86da1a6c7444923cb7270ab46a6ad0a08f8c971406427",
+      "committed_receipt": false
+    },
+    {
+      "path": "bispf_optimized/inference-export.pt",
+      "bytes": 379339,
+      "sha256": "af8f09883a961d6d70de1f6a768148bac30402fc025f88571b019c80128b56a8",
+      "committed_receipt": false
+    },
+    {
+      "path": "bispf_optimized/produce-receipt.json",
+      "bytes": 9930,
+      "sha256": "774e121ce15f81fbdf66691997ca5a8e58325b47570249db97534ce873d308b9",
+      "committed_receipt": true
+    },
+    {
+      "path": "bispf_optimized/restore-receipt.json",
+      "bytes": 1733,
+      "sha256": "a76fa3809335901bc5a0357e76dade784e823a55fd3641150425d2f60836f46e",
+      "committed_receipt": true
+    },
+    {
+      "path": "command-1.log",
+      "bytes": 179,
+      "sha256": "daf06540487618bba13377e147dfca3b01383de15ffb63f37b088f036cd07bf8",
+      "committed_receipt": true
+    },
+    {
+      "path": "command-2.log",
+      "bytes": 179,
+      "sha256": "2a88019d4c9e36abb083eb501c1b4d36411d52ed9254d4731bc22469df6e737c",
+      "committed_receipt": true
+    },
+    {
+      "path": "command-3.log",
+      "bytes": 189,
+      "sha256": "ec00cdcab377c8896a0d4e9c42e644747de89506552d70d8a1abe9b1c46b6e4b",
+      "committed_receipt": true
+    },
+    {
+      "path": "command-4.log",
+      "bytes": 189,
+      "sha256": "9185f4c67df2d9251a6baacf1d4db24eea51655f040572a6d689a8f66e6b92f7",
+      "committed_receipt": true
+    }
+  ],
+  "quality_qualified": false,
+  "long_training_admitted": false,
+  "gpu_used": false
+}

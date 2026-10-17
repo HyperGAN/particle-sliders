@@ -1,0 +1,44 @@
+{
+  "bispf": {
+    "completed_steps": 4,
+    "adapter_changed": true,
+    "critic_changed": true,
+    "bank_changed": true,
+    "minimum_penalty": 7.862528582336381e-05,
+    "exact_state": true,
+    "exact_loss": true,
+    "exact_heldout_vectors": true,
+    "exact_export_reload": true,
+    "zero_exact": true,
+    "strength1_relative_edit_mse": [
+      194.50476195500832,
+      127.53797081353555,
+      120.13122758283343
+    ],
+    "canary_relative_rms": 12.38754098568124,
+    "positive_input_identity_relative_mse": 23.562345840042994,
+    "readout_transfer_gate_passed": false,
+    "quality_qualified": false
+  },
+  "bispf_optimized": {
+    "completed_steps": 4,
+    "adapter_changed": true,
+    "critic_changed": true,
+    "bank_changed": true,
+    "minimum_penalty": 0.00011723125498974696,
+    "exact_state": true,
+    "exact_loss": true,
+    "exact_heldout_vectors": true,
+    "exact_export_reload": true,
+    "zero_exact": true,
+    "strength1_relative_edit_mse": [
+      2.5448969598021645,
+      2.0590582382649023,
+      2.1094935660324508
+    ],
+    "canary_relative_rms": 1.0878005761490912,
+    "positive_input_identity_relative_mse": 0.17360002106030697,
+    "readout_transfer_gate_passed": false,
+    "quality_qualified": false
+  }
+}
