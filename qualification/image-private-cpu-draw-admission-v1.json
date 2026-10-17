@@ -1,0 +1,53 @@
+{
+  "schema": "root-image-private-cpu-admission-v1",
+  "admission_id": "image-private-cpu-draw-20261017-v1",
+  "recorded_utc": "2026-10-17T18:36:19.413080+00:00",
+  "status": "REVIEWED_BOUNDED_CPU_ONLY",
+  "owner_commits": [
+    "bebcc1fb1732729b29824a1f2086081756b1b360",
+    "541bbadd87745f53899f5c70f40b49b287b29e1e"
+  ],
+  "canonical_commits": [
+    "9d4b27fc",
+    "4139ee51"
+  ],
+  "independent_review": "QA source+18fixture tests PASS; exact52source+2rootv3receipts+4packetstats/sidecars verified; no QAarchive loads",
+  "plan": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/private-draw-proposal/private-draw-plan.json",
+  "plan_sha256": "48a3035da4dc229a63f872eacd4fae1e4c7eec0d6d84c0a18999467ea7a60122",
+  "driver_sha256": "509e6460cf210732747eef15b24865993d541b3ff5140e88702bb6615796ff75",
+  "module_sha256": "3181eb360d6bac149d4d023dc1f85a8f0d6a653e367e981ad4743ac8eb91b737",
+  "cwd": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core",
+  "argv": [
+    "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+    "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/verify_image_draw_replay_pg09.py",
+    "--plan",
+    "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/private-draw-proposal/private-draw-plan.json",
+    "--plan-sha256",
+    "48a3035da4dc229a63f872eacd4fae1e4c7eec0d6d84c0a18999467ea7a60122",
+    "--output",
+    "/tmp/image-private-cpu-draw-root-v1-20261017.json"
+  ],
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017"
+  },
+  "output": "/tmp/image-private-cpu-draw-root-v1-20261017.json",
+  "output_binding": "Root substitutes fresh disjoint writable /tmp receipt for unexecuted owner-stage output; exact driver/module/plan/known inputs unchanged.",
+  "limits": {
+    "wall_seconds": 120,
+    "outer_timeout_seconds": 130,
+    "address_space_gib": 8,
+    "rss_gib": 8,
+    "minimum_host_available_gib": 16,
+    "threads": 1
+  },
+  "scope": "Reload only four previously v3checksum/schema-qualified packets with CPU/mmap/weights_only; assign tiny states only to private CPU Generator/Random; source500draw schedule and exact endpoint check. No global RNG restore/native/noise/model/optimizer/scheduler/CUDA/GPU actions.",
+  "retry": false,
+  "automatic_next_phase": false,
+  "prior_failures_preserved": true,
+  "active_moss_pins_unchanged": true
+}
