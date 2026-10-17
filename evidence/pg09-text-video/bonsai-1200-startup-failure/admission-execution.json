@@ -1,0 +1,30 @@
+{
+  "admission_id": "bonsai-gan-1200-cpu-20261017-v1",
+  "source_commit": "1d289731c0d8a59d91c7f5298565c9a0aa6f706b",
+  "proposal_sha256": "7854859e3ae028f8e91326846b85eac66819a34d77c7ce516c100b83c2c4be1e",
+  "status": "failed_stopped_no_retry",
+  "commands": [
+    {
+      "argv": [
+        "timeout",
+        "1800",
+        "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+        "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/scripts/verify_bonsai_pg09_cached.py",
+        "--core",
+        "/mnt/nvme/sliders/text-video-core-3e94b13-20261017",
+        "--overlay",
+        "/tmp/alz-pg09-domain-proposal",
+        "--preset",
+        "bispf_optimized",
+        "--output",
+        "/tmp/pg09-bonsai-gan-1200-20261017/bispf_optimized",
+        "--plan",
+        "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/evidence/pg09-text-video/bonsai-1200-cpu-admission-proposal.json",
+        "--mode",
+        "produce"
+      ],
+      "exit_code": 1,
+      "elapsed_seconds": 0.134
+    }
+  ]
+}

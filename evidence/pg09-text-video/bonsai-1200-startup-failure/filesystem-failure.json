@@ -1,0 +1,20 @@
+{
+  "status": "blocked_before_torch_or_cache_payload",
+  "completed_updates": 0,
+  "producer_exit_code": 1,
+  "restore_attempted": false,
+  "automatic_retry": false,
+  "measurements": {
+    "/tmp": {
+      "total_gib": 30.353,
+      "free_gib": 11.476
+    },
+    "/mnt/nvme/sliders": {
+      "total_gib": 3665.465,
+      "free_gib": 1974.564
+    }
+  },
+  "failure": "output filesystem reserve unavailable",
+  "source_changed": false,
+  "heldout_gate": "not_evaluated_no_training_started"
+}
