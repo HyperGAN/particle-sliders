@@ -1,8 +1,30 @@
 # particle-sliders-core
 
-## BISPF (0.4.0)
+## Conditional ParticleGAN 0.9 (0.5.0)
 
-New paired-error integrations should use `BISPFGame`, backed by
+New integrations use `particle_sliders.pg09.ConditionalPG09` with a thin
+native-response backend. See [the contract](CONDITIONAL-PG09-CONTRACT.md).
+The package depends on released `particlegan==0.9.0`; the wheel hash and all
+49 Python source hashes are pinned and checked. The default public preset is
+`bispf_optimized`. Generator training uses its adversarial loss plus required
+public prior regularization; critic training uses its adversarial loss plus
+public critic penalty. There is no optimized MSE or reconstruction term.
+
+Native image/video response axes are retained through the PG penalty. Flat
+continuous vectors of width170 or greater fail closed because the unchanged
+release classifies these as categorical data. ALZ's explicit-domain proposal
+has not been installed. A backend with no routed bank is labeled adapter GAN;
+the core never invents a disconnected particle prior.
+
+Training checkpoints include optimizer/regularizer observers and private RNG
+streams, validate source/domain/conditioning identities before live mutation,
+and resume deterministically on the qualified runtime. Adapter-only exports
+are for inference, not training resume. CPU tests cover those contracts; live
+GPU memory, long-run stability and visual quality require separate admission.
+
+## Preserved BISPF 0.8 interface (historical 0.4.0)
+
+The historical paired-error interface is `BISPFGame`, originally backed by
 `get_recipe("bispf")` at ParticleGAN commit
 `b5d2372f2739d7579ab66d6dba6e220d2eb776d9` (0.8.0).
 See [the integration guide](../../docs/bispf.md) for the callback contract,
@@ -29,12 +51,12 @@ re-exports this API and warns on import.
 Source repository: [HyperGAN/particle-sliders](https://github.com/HyperGAN/particle-sliders).
 Pin this repository. Do not pin `mikkel/sliders-conceptmod` for new installs.
 
-Product repositories depend on this package and train
+Historical product repositories depend on this package and train
 `winning_formulation()`. They do not re-implement routed particles,
 `locked_shared`, or `GradRegularizer` locally. Formulation toys and the DSL
 board stay in [HyperGAN/conceptmod](https://github.com/HyperGAN/conceptmod).
 
-This package pins ParticleGAN 0.8.0 source; this historical interface is adapted to its component API.
+The historical interface was adapted to ParticleGAN 0.8.0's component API.
 Cap, RpGAN loss, and particle VIC come from that public API
 (`GradientPenalty`, `GANLoss`, `ParticleRegularizer`, `make_b_cap`,
 `make_gan_loss`, `get_recipe`). `GradRegularizer` remains a thin
@@ -43,8 +65,8 @@ from `particle_sliders`. Gmix architecture (RoutedMLP, global-mix critic,
 product game structure) stays in this package.
 
 `particlegan` is a **transitive dependency**: pin `particle-sliders-core` and
-you get the ParticleGAN develop SHA recorded in this package's
-`pyproject.toml` (and in `locked_provenance.json`).
+you get the released ParticleGAN version recorded in this package's
+`pyproject.toml`. Historical provenance files describe their original arms.
 
 ## Install
 

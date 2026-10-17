@@ -5,6 +5,7 @@ component API. The historical winning_formulation and endpoint builders remain
 available for existing products; their objective is not silently replaced.
 """
 from .bispf_game import BISPFGame
+from .pg09 import ConditionalPG09
 from .distillation import fit_routed_down
 from .endpoint_game import EndpointGame, endpoint_terms, teacher_poles
 from .formulation_game import FormulationGame, dummy_features, run_formulation_game
@@ -29,10 +30,11 @@ from .reference import (
     rp_g_loss,
 )
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 __all__ = [
     "BISPFGame",
+    "ConditionalPG09",
     "EndpointGame",
     "FormulationGame",
     "GlobalMixErrorCritic",

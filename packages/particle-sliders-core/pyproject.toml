@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "particle-sliders-core"
-version = "0.4.0"
-description = "Shared particle-slider algorithms and the winning formulation stamp"
+version = "0.5.0"
+description = "Conditional ParticleGAN 0.9 slider core with native response backends"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
 dependencies = [
     "torch>=2.6,<3",
-    "particlegan @ git+https://github.com/255BITS/ParticleGAN.git@b5d2372f2739d7579ab66d6dba6e220d2eb776d9",
+    "particlegan==0.9.0",
 ]
 
 [project.optional-dependencies]
@@ -21,7 +21,7 @@ test = ["pytest>=8"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json"]
+particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
