@@ -1,5 +1,11 @@
 # Text/video integration status after the admitted Bonsai CPU canary
 
+Read-only follow-up diagnosis is recorded in
+[bonsai-pg09-readonly-diagnosis.md](bonsai-pg09-readonly-diagnosis.md): final
+training fit is incomplete/unstable, generated training edits are almost a common
+offset, and the trained critic has weak row-context sensitivity in a fixed probe.
+No sign/pairing/checkpoint defect was established. No further training ran.
+
 Follow-up: the admitted NVMe v2 run completed all 1200 updates and the separate
 final 20-update exact replay. **Full-horizon held-out transfer FAILS**, with 0/3
 successful cases and mean relative-edit MSE 1.943358. See
