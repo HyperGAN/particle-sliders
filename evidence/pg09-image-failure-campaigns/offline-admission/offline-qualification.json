@@ -1,0 +1,71 @@
+{
+  "scope": "Metadata/source-only image asset validation and unexecuted audit/native admission proposals",
+  "metadata_records_verified_or_recorded": 87,
+  "unique_metadata_source_paths": 82,
+  "executed": [
+    "metadata validation, two exact archive directory name/stat inventories, package provenance probes",
+    "36 CPU checks incl6 new metadata/synthetic-packet guards;0failure/skip",
+    "Ruff and git diff whitespace checks"
+  ],
+  "actual_checkpoint_packets_opened": 0,
+  "actual_rng_extraction": false,
+  "model_weight_payload_opened": false,
+  "native_model_imports_or_forwards": false,
+  "gpu_queries_or_dispatch": false,
+  "active_moss_or_canonical_source_edits": false,
+  "automations_created": 0,
+  "root_review_needed": "static packet audit first; restricted RNG audit only after separately reviewed static receipt; no actual packet audit admitted",
+  "native_worker_implementation_missing": true,
+  "assets_missing": true,
+  "gpu_capacity_wait_is_only_blocker": false,
+  "selected_cases": 2,
+  "candidate_arms": 4,
+  "candidate_g_updates_per_arm": 1000,
+  "deliverables": [
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/prepare_image_failure_admission_pg09.py",
+      "bytes": 19586,
+      "sha256": "160e894dbec6b30a1fb87d3ab4dd8c7797cef52bf38ab7cd11b040232b787e42"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/audit_image_checkpoint_rng_pg09.py",
+      "bytes": 9941,
+      "sha256": "ccb0b244150a4b63c53305126600e28cc5a559195758777b2eb1c693ca398c0e"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/tests/test_image_failure_offline_admission_pg09.py",
+      "bytes": 5130,
+      "sha256": "f3a5d1699852ca9dd32ab66fdd8159ae281cd1436fb0fcdfd1e68661ee6ac782"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/docs/pg09-image-sequential-admission.md",
+      "bytes": 12662,
+      "sha256": "0a3ca89c90699f1adb63209b5fa34305f4497e5f189bc968b80092fe638183ae"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission/offline-assets.json",
+      "bytes": 45523,
+      "sha256": "a306b57441d963a8dcaf9d217662d1894c222658342ff01951de66943d4ee9f4"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission/rng-audit-plan.json",
+      "bytes": 15827,
+      "sha256": "3d7a2696dbb31c8e301798c0d242ad5a9a2f5e602387c648bfeffd9ff472beb0"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission/sequential-admission-plan.json",
+      "bytes": 11804,
+      "sha256": "0fb86fac9f97ce64313f4880195fabe2b69c7d298c2e06d0ef03e5fa47afbf93"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission/stage-commands.json",
+      "bytes": 2620,
+      "sha256": "c3fefb8fd70096464a5be88c7f57e43f9583ded3d6403a5d88a5ebb12a430fd6"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission/cpu-36-tests.xml",
+      "bytes": 5451,
+      "sha256": "1a3ddf7429b60ed1fe5e82ba8427a16c689c685547bed170f8705220d05706a4"
+    }
+  ]
+}
