@@ -19,7 +19,11 @@ from pathlib import Path
 from test_pg09_wide_text import make_wide
 from test_pg09_text_video import equal
 root, family, preset, profile, mode = Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
-adapter, rows, game = make_wide(family, preset, profile=profile, width=64 if mode.startswith('cross') else 1024)
+if family == 'ltx_connector':
+    from test_pg09_ltx_embed import make_connector
+    adapter, rows, game = make_connector(preset)
+else:
+    adapter, rows, game = make_wide(family, preset, profile=profile, width=64 if mode.startswith('cross') else 1024)
 if mode in ('produce', 'cross-produce'):
     game.step(); game.step()
     torch.save(game.state_dict(), root / 'checkpoint.pt')
@@ -67,6 +71,7 @@ def main():
     parser.add_argument('--core', type=Path, required=True)
     parser.add_argument('--overlay', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--include-ltx', action='store_true', help='also qualify the proposed default connector protocol')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     core_src = args.core.resolve() / 'packages/particle-sliders-core/src'
@@ -90,7 +95,8 @@ def main():
             raise RuntimeError('selected core changed during qualification')
         return json.loads(result.stdout) if result.stdout else None
 
-    for family in ('tiny', 'bonsai'):
+    families = ['tiny', 'bonsai'] + (['ltx_connector'] if args.include_ltx else [])
+    for family in families:
         for preset in ('bispf', 'bispf_optimized'):
             folder = args.output / f'{family}-{preset}'
             folder.mkdir(exist_ok=True)

@@ -171,7 +171,9 @@ def _native_lora_scale(native, value):
     """Native forward resets scales on exit; restore every prior value exactly."""
     layers = list(getattr(native, 'loras', ()))
     previous = [(m, m.multiplier) for m in layers]
-    peft = [(m, dict(m.scaling)) for m in getattr(native, 'transformer', torch.nn.Module()).modules()
+    roots = [getattr(native, name, None) for name in ('transformer', 'encoder', 'connectors')]
+    modules = {id(m): m for root in roots if isinstance(root, torch.nn.Module) for m in root.modules()}
+    peft = [(m, dict(m.scaling)) for m in modules.values()
             if hasattr(m, 'lora_A') and hasattr(m, 'scaling')]
     previous_scale = native.lora_scale
     try:
