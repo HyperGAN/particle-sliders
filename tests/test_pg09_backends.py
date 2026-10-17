@@ -19,9 +19,9 @@ def cpu_threads():
     torch.set_num_threads(1)
 
 
-def make(family):
+def make(family, *, conditioner=True):
     if family == 'anima':
-        backend = FakeAnimaBackend(rank=2, seed=9, lora_targets='dit+conditioner')
+        backend = FakeAnimaBackend(rank=2, seed=9, lora_targets='dit+conditioner' if conditioner else 'dit')
         owned = {id(p) for p in backend.trainable_parameters()}
         for p in backend.transformer.parameters():
             p.requires_grad_(id(p) in owned)
@@ -54,12 +54,12 @@ def make(family):
 
 
 def make_game(family):
-    adapter, row, model = make(family)
+    adapter, row, model = make(family, conditioner=False)
     rows = [row, replace(row, latent=row.latent * .9 + .1)]
     if family == 'moss':
         rows += [replace(r, scale=-1.) for r in rows]
     fixed = [adapter.prepare(r) for r in rows]
-    core = pytest.importorskip('particle_sliders.pg09', reason='shared native-field core implementation pending', exc_type=ImportError)
+    core = __import__('particle_sliders.pg09', fromlist=['ConditionalPG09'])
     conditions = torch.tensor([[float(i), r.row.scale, r.row.guidance] for i, r in enumerate(fixed)])
     class Critic(torch.nn.Module):
         def __init__(self):
@@ -295,3 +295,94 @@ def test_supra_native_increasing_time_and_runtime_bridge():
     assert torch.equal(expected, adapter._response(row, scale=0.))
     assert row.schedule.timesteps == (0., .25, .5, .75)
     assert row.schedule.deltas == (.25, .25, .25, .25)
+
+
+def test_native_time_domains_reject_opposite_conventions():
+    for family in ('anima', 'supra', 'moss'):
+        adapter, row, _ = make(family)
+        if family == 'supra':
+            wrong = replace(row, schedule=FlowSchedule.linear(2, time_scale=1))
+        else:
+            wrong = replace(row, timestep=None, schedule=FlowSchedule.supra(2))
+        with pytest.raises(ValueError, match='trajectory|trajectories'):
+            adapter.prepare(wrong)
+        bad_time = row.latent.new_tensor(1001 if family != 'supra' else 1.1)
+        with pytest.raises(ValueError, match='time'):
+            adapter.velocity(row.neutral, row.latent, bad_time)
+
+
+def test_moss_injected_native_decoder_matches_pipeline():
+    from types import SimpleNamespace
+    from moss_sliders.vendor.pipeline_moss_image import MOSSImagePipeline, MOSSImageScheduler
+    from conceptmod.textsliders.pg09_backends import moss_pipeline_decoder
+    adapter, row, model = make('moss')
+    class VAE(torch.nn.Module):
+        config = SimpleNamespace(batch_norm_eps=1e-5)
+        dtype, device = torch.float32, torch.device('cpu')
+        bn = SimpleNamespace(running_var=torch.ones(4), running_mean=torch.zeros(4))
+        def decode(self, z, return_dict=False):
+            return (z.expand(-1, 3, -1, -1),)
+    pipe = MOSSImagePipeline(model, MOSSImageScheduler(), vae=VAE())
+    pipe.scheduler.set_timesteps(2, device='cpu')
+    rendering = replace(row, timestep=None, schedule=FlowSchedule.from_scheduler(pipe.scheduler))
+    adapter.decoder = moss_pipeline_decoder(pipe, output_type='np')
+    actual = adapter.render(rendering, scale=0.)
+    with adapter.slider.at(0):
+        expected = pipe(prompt_embeds=row.neutral[0], prompt_attention_mask=row.neutral[1],
+                        height=32, width=32, num_inference_steps=2, guidance_scale=1.,
+                        uncond_skip_layers=[], output_type='np', latents=row.latent.clone()).images
+    assert (actual == expected).all()
+
+
+def test_actual_anima_runtime_routed_bank_core_gan_updates_and_exact_resume():
+    from importlib.util import module_from_spec, spec_from_file_location
+    from pathlib import Path
+    pytest.importorskip('lumen_studio.particles')
+    core = pytest.importorskip('particle_sliders.pg09')
+    spec = spec_from_file_location('backend_cpu_example', Path(__file__).parents[1] /
+                                  'scripts/qualify_response_backends_pg09_cpu.py')
+    example = module_from_spec(spec)
+    import sys
+    sys.modules[spec.name] = example
+    spec.loader.exec_module(example)
+    def make():
+        backend, rows, conditions = example.fixture('anima-particles')
+        critic = example.Critic(rows[0].target.shape[1:], conditions.shape[1])
+        game = core.ConditionalPG09(backend, rows, critic, conditions=conditions,
+                                   particles=backend.particles, total_steps=5, batch_size=4)
+        return backend, rows, game
+    backend, rows, game = make()
+    before = deepcopy(backend.network.state_dict())
+    frozen = deepcopy(backend.runtime.transformer.state_dict())
+    assert game.prior.z is backend.particles is backend.network.particles
+    for _ in range(3):
+        metrics = game.step()
+        assert metrics['prior_regularization'] > 0
+        assert metrics['g_loss'] == pytest.approx(metrics['g_adv'] + metrics['prior_regularization'])
+    differences = {name: not torch.equal(before['weights.' + str(i)], p)
+                   for i, (name, p) in enumerate(zip(backend.network.names, backend.network.parameters()))}
+    for role in ('particles', '.down.', '.up.', '.routed.'):
+        assert any(changed for name, changed in differences.items() if role in name), role
+    # The bank has an actual response gradient, independently of prior regularization.
+    bank_grad, = torch.autograd.grad(backend.generated(rows[0]).square().mean(), backend.particles)
+    assert bank_grad.abs().sum() > 0
+    equal(frozen, backend.runtime.transformer.state_dict())
+    state = game.state_dict()
+    expected = game.step()
+    other, other_rows, restored = make()
+    restored.load_state_dict(state)
+    assert expected == restored.step()
+    equal(game.state_dict(), restored.state_dict())
+    assert torch.equal(backend.generated(rows[0]), other.generated(other_rows[0]))
+    assert not torch.cuda.is_initialized()
+
+
+def test_legacy_moss_checkpoint_wrapper_is_rejected():
+    from moss_sliders.lora import Slider
+    from moss_sliders.smoke import tiny_model
+    from moss_sliders.training import checkpoint_blocks
+    model = tiny_model()
+    slider = Slider(model, rank=2)
+    checkpoint_blocks(model)
+    with pytest.raises(ValueError, match='legacy checkpoint'):
+        MossResponseAdapter(model, slider)

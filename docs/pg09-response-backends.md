@@ -2,7 +2,7 @@
 
 These adapters own model forwards and adapter state. `particle_sliders.pg09.ConditionalPG09` owns the single GAN implementation. No adapter calls the legacy MSE trainers. The generator objective is the PG adversarial loss plus its required regularizer for an **actual participating** routed bank; the critic uses its PG adversarial loss and required penalty. A paired residual is a response coordinate, not a reconstruction loss.
 
-The isolated backend branch adds no shared-core files. The coordinated core contract is `integration/pg09-conditional-core`, initial contract commit `97ec394`. The initial backend milestone can run its model/CFG/export tests before the core implementation exists; six integration cases explicitly skip until `particle_sliders.pg09` imports. That milestone does not qualify GAN training.
+The isolated backend branch adds no shared-core files. The coordinated core contract is `integration/pg09-conditional-core`, initial contract commit `97ec394`. The initial backend contract milestone was `063814e`; the follow-up qualifies these adapters against the implemented native-field game. All GAN tests call that single core directly. Tests fail on import errors once the integration is installed; an uninstalled optional product fixture may skip its dedicated native-bank case.
 
 ## Interface
 
@@ -27,7 +27,7 @@ Every non-CPU binding requires a verified staged-model identity. Loading/downloa
 
 For Anima/MOSS, configure a fresh copy of the actual Euler scheduler and call `FlowSchedule.from_scheduler(scheduler)`; this preserves shifted/snapped timesteps and all sigma intervals. `FlowSchedule.linear(K,time_scale=1000)` is an explicit unshifted trajectory fixture, not a substitute for a product scheduler. Anima live forward normalizes raw scheduler timesteps by its training-timestep count; MOSS consumes raw `1000*sigma`.
 
-`render(row,scale=...)` uses the same response/CFG loop as training and an injected native decoder. The Turbo runtime binding preserves model-output BF16 rounding before and after each Euler step. For custom MOSS/Anima/Supra bindings, supply the exact staged model's decoder; no fake image fallback exists. The CPU fixtures use tensor decoders only to check the loop contract, without image-quality claims.
+`render(row,scale=...)` uses the same response/CFG loop as training and an injected native decoder. The Turbo runtime binding preserves the official FP32 tensor scalar `dt` multiplied into BF16 model output, followed by FP32 sample addition and BF16 output cast; Python scalar multiplication or prematurely upcasting the velocity changes rounding. For custom MOSS/Anima/Supra bindings, supply the exact staged model's decoder; no fake image fallback exists. The CPU fixtures use tensor decoders only to check the loop contract, without image-quality claims.
 
 Install `checkpoint_with_adapter_scale(block,network)` instead of legacy MOSS checkpoint wrappers. The new wrapper captures each forward's scale for backward recomputation; signed rows may share a batch. Native enabled Diffusers checkpointing is rebound through its public checkpoint-function hook. Double installation of the explicit wrapper is rejected. Nested local/PEFT scales restore exactly without changing frozen-base or adapter `requires_grad` flags.
 
@@ -39,11 +39,12 @@ Use the isolated released PG0.9 environment, with CUDA hidden. `requirements-tin
 export CUDA_VISIBLE_DEVICES=''
 export PYTHONDONTWRITEBYTECODE=1
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
-export PYTHONPATH=/path/to/core/packages/particle-sliders-core/src:/path/to/moss/src:.
+export PYTHONPATH=/path/to/core/packages/particle-sliders-core/src:/path/to/moss/src:/path/to/anima-product:.
 /path/to/pg090/bin/python -m pytest tests/test_pg09_backends.py -q -o pythonpath='' -p no:cacheprovider
 /path/to/pg090/bin/python scripts/qualify_response_backends_pg09_cpu.py --family all --output /tmp/pg09-backend-qualification
+/path/to/pg090/bin/python scripts/qualify_response_backends_pg09_cpu.py --family anima-particles --output /tmp/pg09-native-bank-qualification
 ```
 
-The CPU command uses one shared `ConditionalPG09` game for all model fixtures, explicitly selects `get_recipe('bispf_optimized')` through core, verifies exact resume/reload, and writes a JSON receipt plus adapter-only exports. The base adapters are labeled **adapter-GAN only**: they do not contain a routed particle bank. The native Anima runtime binding exposes its genuine participating bank separately for coordinator/QA qualification. Native fields must reach the PG penalty without flattening; flat continuous vectors of width170+ must fail closed until a qualified upstream domain API is installed.
+The CPU command uses one shared `ConditionalPG09` game for all model fixtures, explicitly selects `get_recipe('bispf_optimized')` through core, verifies exact resume/reload, and writes a JSON receipt plus adapter-only exports. The base adapters are labeled **adapter-GAN only**: they do not contain a routed particle bank. The `anima-particles` example and dedicated native-bank test use the actual product ParticleAdapter/Mixer with a real CosmosTransformer3DModel at tiny random dimensions. They verify adapter/router/bank updates, a nonzero response gradient to the same128×4bank, frozen base weights, native5Dfield shape, and exact checkpoint/export continuation. This is software qualification, not pretrained image-quality evidence. Native fields must reach the PG penalty without flattening; flat continuous vectors of width170+ must fail closed until a qualified upstream domain API is installed.
 
 No GPU launch, cancellation, queue dispatch, merge, publication or model-quality qualification is performed by this branch.

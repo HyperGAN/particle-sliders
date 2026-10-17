@@ -9,17 +9,40 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-import torch
+import torch  # noqa: E402
 
-from conceptmod.textsliders.pg09_backends import (
+from conceptmod.textsliders.pg09_backends import (  # noqa: E402
     AnimaResponseAdapter, SupraResponseAdapter, MossResponseAdapter,
     FlowSchedule, ResponseRow, load_adapter, save_adapter, response_signature,
+    AnimaRuntimeResponseAdapter,
 )
 
 
 def fixture(family):
     torch.manual_seed(9)
-    if family == 'moss':
+    if family == 'anima-particles':
+        from types import SimpleNamespace
+        from diffusers import CosmosTransformer3DModel, FlowMatchEulerDiscreteScheduler
+        from lumen_studio.backends.anima import TurboRuntime
+        from lumen_studio.particles import ParticleAdapter, Mixer
+        model = CosmosTransformer3DModel(
+            in_channels=4, out_channels=4, num_attention_heads=2, attention_head_dim=32,
+            num_layers=1, mlp_ratio=2, text_embed_dim=8, adaln_lora_dim=4,
+            max_size=(2, 4, 4), patch_size=(1, 1, 1), extra_pos_embed_type=None,
+        ).to(dtype=torch.bfloat16).eval().requires_grad_(False)
+        particle_adapter = ParticleAdapter(model)
+        runtime = TurboRuntime.__new__(TurboRuntime)  # No loader, model download or CUDA call.
+        runtime.device, runtime.dtype = torch.device('cpu'), torch.bfloat16
+        runtime.transformer, runtime.scale = model, 1
+        runtime.identity = dict(model='real Cosmos architecture at tiny random dimensions', pretrained=False)
+        runtime.pipe = SimpleNamespace(scheduler=FlowMatchEulerDiscreteScheduler(num_train_timesteps=1000))
+        runtime.mixer = Mixer(model)
+        runtime.mixer.add('fixture', particle_adapter)
+        runtime.encode = lambda prompt: torch.full((1, 2, 8), len(prompt) / 10.)
+        adapter = AnimaRuntimeResponseAdapter(runtime, particle_adapter, 'fixture')
+        row = ResponseRow('neutral', 'positive longer', '', torch.randn(1, 4, 1, 2, 2),
+                          timestep=torch.tensor(500.))
+    elif family == 'moss':
         from moss_sliders.lora import Slider
         from moss_sliders.smoke import tiny_model
         model = tiny_model()
@@ -29,7 +52,7 @@ def fixture(family):
     else:
         if family == 'anima':
             from conceptmod.textsliders.anima_fake import FakeAnimaBackend
-            backend = FakeAnimaBackend(rank=2, seed=9, lora_targets='dit+conditioner')
+            backend = FakeAnimaBackend(rank=2, seed=9, lora_targets='dit')
             owned = {id(p) for p in backend.trainable_parameters()}
             for p in backend.transformer.parameters():
                 p.requires_grad_(id(p) in owned)
@@ -46,7 +69,9 @@ def fixture(family):
     if family == 'moss':
         rows += [replace(r, scale=-1.) for r in rows]
     prepared = [adapter.prepare(r) for r in rows]
-    conditions = torch.tensor([[float(i), r.scale, r.guidance] for i, r in enumerate(rows)])
+    conditions = torch.tensor([[float(i), r.scale, r.guidance,
+                                float(r.timestep) if r.timestep is not None else r.schedule.timesteps[0]]
+                               for i, r in enumerate(rows)])
     return adapter, prepared, conditions
 
 
@@ -77,7 +102,7 @@ def qualify(family, directory):
         backend, rows, conditions = fixture(family)
         critic = Critic(rows[0].target.shape[1:], conditions.shape[1])
         game = ConditionalPG09(backend, rows, critic, conditions=conditions,
-                              particles=None, preset='bispf_optimized',
+                              particles=getattr(backend, 'particles', None), preset='bispf_optimized',
                               response_domain='continuous_field', batch_size=4, total_steps=5)
         return backend, rows, game
     backend, rows, game = make()
@@ -99,14 +124,16 @@ def qualify(family, directory):
                 response_signature=response_signature(backend, rows, model_fingerprint=f'CPU-{family}-seed9'),
                 recipe=asdict(game.recipe), metrics=metrics + [expected],
                 objective='PG adversarial + required PG constraints; no MSE',
-                actual_particle_bank=False, qualification='adapter-GAN software only',
+                actual_particle_bank=hasattr(backend, 'particles'),
+                qualification=('existing routed-bank GAN software' if hasattr(backend, 'particles')
+                               else 'adapter-GAN software only'),
                 exact_resume=True, exact_adapter_reload=True, quality_qualified=False,
                 cuda_initialized=False)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--family', choices=['all', 'anima', 'supra', 'moss'], default='all')
+    parser.add_argument('--family', choices=['all', 'anima', 'supra', 'moss', 'anima-particles'], default='all')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     torch.set_num_threads(1)
