@@ -4,7 +4,7 @@
   "core_checkout": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core",
   "core_branch": "integration/pg09-conditional-core",
   "core_contract_commit": "97ec394",
-  "core_head": "7884c8dd87ad510be6cad2bdf88c0c8ba23bf0c4",
+  "core_head": "f7d42d2dd719ef47048e3e093f9f0038e05c8135",
   "core_worktree_at_test": [],
   "core_source_sha256": "6d6793fe1cac98f16c6a5b01258e07bde32580d373cd7c748e640e7f53f6ab26",
   "backend_sources": {
@@ -12,14 +12,18 @@
     "scripts/qualify_response_backends_pg09_cpu.py": "3c6436fc7fdb24cf2a1d6d54541135f15158214975cf1bb1c7cd0ae4ddbd4c80",
     "tests/test_pg09_backends.py": "ac5d01de6ab8b843f2c1cfc2969ff3c7610806c239bcc2c6eb8e787111cd1aed"
   },
-  "tests": "25 passed, 0 skipped, 0 failures in 3.66s",
+  "tests": "92 passed, 0 skipped, 0 failures in 5.33s",
   "test_targets": [
     "tests/test_pg09_backends.py",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/tests",
+    "/ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/test_conditional_core_review.py",
     "/ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/test_runtime_adapter_review.py"
   ],
   "pg_version": "0.9.0",
   "wheel_sha256": "41746614b135e5593fa9c66c2a6784c4f872a7957fce132ca59f95dc7963e1ab",
   "cuda_visible_devices": "",
   "gpu_processes_started": false,
-  "quality_qualified": false
+  "quality_qualified": false,
+  "backend_implementation_commit": "182db8e885dec28f062f0fda4e882abe708de89b",
+  "core_implementation_commit": "7884c8dd87ad510be6cad2bdf88c0c8ba23bf0c4"
 }
