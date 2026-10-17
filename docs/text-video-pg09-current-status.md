@@ -1,11 +1,12 @@
 # Text/video integration status after the admitted Bonsai CPU canary
 
-Follow-up: the admitted full comparison stopped before Torch/cache access at
-zero updates because `/tmp` could not meet the disk reserve. Failure evidence is
-frozen at `192696a`. The corrected NVMe-only proposal is
-[bonsai-pg09-1200-proposal-v2.md](bonsai-pg09-1200-proposal-v2.md), with the same
-1200-update protocol and separate final 20-update replay. It is pending a new
-coordinator admission. The canary results below do not substitute for that run.
+Follow-up: the admitted NVMe v2 run completed all 1200 updates and the separate
+final 20-update exact replay. **Full-horizon held-out transfer FAILS**, with 0/3
+successful cases and mean relative-edit MSE 1.943358. See
+[bonsai-pg09-1200-result-v2.md](bonsai-pg09-1200-result-v2.md) for the complete
+gate results and receipts. It also corrects the archived positive-input student
+bug; this is not an isolated objective comparison. The zero-update `/tmp` failure
+is preserved at `192696a`. No additional training is admitted.
 
 Code is frozen in `/mnt/nvme/sliders/text-video-adapters-pg09-20261017`, branch
 `integration/text-video-pg09`. No shared core file was edited. The shared trainer
@@ -63,7 +64,7 @@ trainer; its separate legacy trainer was neither copied nor invoked.
 | Backend | Response and status | Remaining action / status |
 |---|---|---|
 | TinyQwen | Actual native slider/bank and last-token1024 coordinates; CPU profile/replay gates pass | Pretrained loader/zero-scale/runtime fit and quality remain pending; no model/GPU admission |
-| Bonsai | Native Torch head with its actual128x4 bank on frozen5120 GGUF readouts; admitted real-cache canary passes both presets | Held-out transfer fails after four updates; no convergence or generation claim, no further training admission |
+| Bonsai | Native Torch head with its actual128x4 bank on frozen5120 GGUF readouts; admitted 1200-update optimized execution and exact final20 replay pass | Full-horizon held-out transfer FAILS (0/3 cases); no convergence/generation claim or further training admission |
 | LTX default | Full native token-major/feature-minor sequence, fixed common-mask support, teacher-only preconnector hold, live neutral TE/video connectors; independent software QA passes | Reuse staged text-only loader pinned `c7096d475f70daee41fc161150cf8eeba1dfffc5`; pretrained shape/mask/runtime/memory/AV rendering and owner GPU admission remain pending |
 | LTX optional velocity | Genuine5D native video coordinates, fixed audio context; CPU software gates pass | Optional arm does not cover default connector or full AV render; actual model/render admission remains pending |
 | MiniMax H3 | Actual native jointly packed multimodal architecture inspected | Blocked on honest native AV geometry/critic protocol, staged source/asset/license and hardware-fit review; no invented vector/image response |

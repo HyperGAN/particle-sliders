@@ -1,0 +1,90 @@
+{
+  "records": [
+    {
+      "case": 0,
+      "neutral": "a garden beside a stone wall",
+      "positive": "a blooming rose garden beside a stone wall",
+      "scale": 0.0,
+      "relative_edit_mse": 1.0,
+      "edit_cosine": 0.0,
+      "edit_rms_ratio": 0.0
+    },
+    {
+      "case": 0,
+      "neutral": "a garden beside a stone wall",
+      "positive": "a blooming rose garden beside a stone wall",
+      "scale": 0.5,
+      "relative_edit_mse": 1.0,
+      "edit_cosine": 0.0,
+      "edit_rms_ratio": 0.0
+    },
+    {
+      "case": 0,
+      "neutral": "a garden beside a stone wall",
+      "positive": "a blooming rose garden beside a stone wall",
+      "scale": 1.0,
+      "relative_edit_mse": 1.0,
+      "edit_cosine": 0.0,
+      "edit_rms_ratio": 0.0
+    },
+    {
+      "case": 1,
+      "neutral": "a sea beside a fishing boat",
+      "positive": "a calm turquoise sea beside a fishing boat",
+      "scale": 0.0,
+      "relative_edit_mse": 1.0,
+      "edit_cosine": 0.0,
+      "edit_rms_ratio": 0.0
+    },
+    {
+      "case": 1,
+      "neutral": "a sea beside a fishing boat",
+      "positive": "a calm turquoise sea beside a fishing boat",
+      "scale": 0.5,
+      "relative_edit_mse": 1.0,
+      "edit_cosine": 0.0,
+      "edit_rms_ratio": 0.0
+    },
+    {
+      "case": 1,
+      "neutral": "a sea beside a fishing boat",
+      "positive": "a calm turquoise sea beside a fishing boat",
+      "scale": 1.0,
+      "relative_edit_mse": 1.0,
+      "edit_cosine": 0.0,
+      "edit_rms_ratio": 0.0
+    },
+    {
+      "case": 2,
+      "neutral": "a street with lamps beside a bakery",
+      "positive": "a cozy rainy street with warm lamps beside a bakery",
+      "scale": 0.0,
+      "relative_edit_mse": 1.0,
+      "edit_cosine": 0.0,
+      "edit_rms_ratio": 0.0
+    },
+    {
+      "case": 2,
+      "neutral": "a street with lamps beside a bakery",
+      "positive": "a cozy rainy street with warm lamps beside a bakery",
+      "scale": 0.5,
+      "relative_edit_mse": 1.0,
+      "edit_cosine": 0.0,
+      "edit_rms_ratio": 0.0
+    },
+    {
+      "case": 2,
+      "neutral": "a street with lamps beside a bakery",
+      "positive": "a cozy rainy street with warm lamps beside a bakery",
+      "scale": 1.0,
+      "relative_edit_mse": 1.0,
+      "edit_cosine": 0.0,
+      "edit_rms_ratio": 0.0
+    }
+  ],
+  "canary_relative_rms": 0.0,
+  "positive_input_identity_relative_mse": 0.0,
+  "readout_transfer_gate_passed": false,
+  "zero_exact": true,
+  "note": "Shared PG09 neutral-conditioned student; frozen positive teacher. Squared errors are held-out diagnostics only; no semantic quality claim."
+}
