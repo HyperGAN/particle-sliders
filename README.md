@@ -102,51 +102,24 @@ and language-model objectives used by the other backends.
 
 ## Use the shared core
 
-Products such as
-[anima-particle-sliders](https://github.com/HyperGAN/anima-particle-sliders),
-[krea2-particle-sliders](https://github.com/HyperGAN/krea2-particle-sliders) and
-[supra-concept-sliders](https://github.com/HyperGAN/supra-concept-sliders) are
-meant to pin `particle-sliders-core` and train `winning_formulation()`, not
-re-implement the routed particles, critic or losses. Each product's migration
-status is in
-[docs/winning-formulation.md](docs/winning-formulation.md#product-follow-ups).
-Install your PyTorch build first, then pin a full commit of `main`. The git
-revision, not the package version, identifies the stamp.
+Install `particle-sliders-core` from a reviewed full commit. Its 0.6.0 API pins
+released ParticleGAN **0.9.1** and supplies the shared conditional GAN,
+response adapters, sampling and checkpoint lifecycle in one installable wheel.
+New products execute `ConditionalPG09.step()`; importing the historical
+`winning_formulation()` stamp alone does not migrate a live trainer.
 
 ```bash
-python -m pip install \
-  "particle-sliders-core @ git+https://github.com/HyperGAN/particle-sliders.git@<commit>#subdirectory=packages/particle-sliders-core"
+python -m pip install "particle-sliders-core[serialization] @ git+https://github.com/HyperGAN/particle-sliders.git@<reviewed-commit>#subdirectory=packages/particle-sliders-core"
 ```
 
-```python
-from particle_sliders import winning_formulation, FormulationGame
-
-stamp = winning_formulation()
-config = {**stamp.as_dict(), "g_lr": 2e-5}  # only stamp.model_surface_keys may differ
-stamp.require(config)                       # raises if a formulation key drifts
-
-# targets / neutrals: [N, rank] paired positive and neutral features from your model
-game = FormulationGame(stamp, config, critic_targets=targets, critic_neutrals=neutrals)
-for step in range(1, steps + 1):            # steps count from 1
-    stats = game.step(step, features)       # features: [batch, stamp.spec["adapter_rank"]]
-```
-
-The **architecture** (gmix: routed particles plus a global-mix critic) is
-fixed. Its **tuning parameters** (`particle-gmix-1600-v2`) are provisional
-until [ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38) picks a
-winner. Products get new values by bumping the pin, never by editing them
-locally. The runnable reference is
-[test_formulation_game.py](packages/particle-sliders-core/tests/test_formulation_game.py).
-
-- [Package README](packages/particle-sliders-core/README.md): install, API and `FormulationGame` train step
-- [Winning formulation](docs/winning-formulation.md): the product stamp and what products may override
-- [Shared-core architecture](docs/shared-core.md): what lives in the core and what stays in each product
-
-`concept-slider-core` / `concept_slider_core` is a deprecated alias from the
-Anima extraction. Formulation toys live in
-[HyperGAN/conceptmod](https://github.com/HyperGAN/conceptmod). The research
-trainers stay in this tree until each product repo moves its own train/infer
-surface.
+Start with the [package API and usage](packages/particle-sliders-core/README.md),
+[shared ownership](docs/shared-core.md) and
+[native-response contract](packages/particle-sliders-core/CONDITIONAL-PG09-CONTRACT.md).
+The installed public modules work without a `conceptmod` source checkout.
+Native weights, runtime dependencies, GPU admission and rendering quality remain
+product-specific gates. Historical gmix/endpoint/BISPF interfaces remain named
+historical arms. Existing PG 0.9.0 source-bound runs keep their pins; upgrading
+or relocating code requires a new cohort or explicitly reviewed migration.
 
 ## Train a slider
 

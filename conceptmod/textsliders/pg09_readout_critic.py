@@ -1,13 +1,10 @@
-"""Small raw-logit critic for bounded readout qualification."""
-import torch
-from torch import nn
+"""Compatibility alias for the installable :mod:`particle_sliders.pg09_readout_critic`.
 
+All implementations live in particle-sliders-core. Alias the module itself so
+legacy private imports, monkeypatches and serialized class lookups use the same
+objects as package imports.
+"""
+from importlib import import_module as _import_module
+import sys as _sys
 
-class ConditionalReadoutCritic(nn.Module):
-    def __init__(self, response_width, condition_width, hidden=16):
-        super().__init__()
-        self.net = nn.Sequential(nn.Linear(response_width + condition_width, hidden),
-                                 nn.SiLU(), nn.Linear(hidden, 1))
-
-    def forward(self, response, condition):
-        return self.net(torch.cat((response.flatten(1), condition), dim=1)).squeeze(-1)
+_sys.modules[__name__] = _import_module("particle_sliders.pg09_readout_critic")

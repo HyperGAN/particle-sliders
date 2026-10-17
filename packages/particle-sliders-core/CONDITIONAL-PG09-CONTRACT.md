@@ -1,6 +1,6 @@
 # Conditional ParticleGAN 0.9 integration contract
 
-Canonical checkout: `/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core`, branch `integration/pg09-conditional-core`.
+Historical qualification checkout (immutable; not an install requirement): `/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core`, branch `integration/pg09-conditional-core`.
 
 Implementation API:
 
@@ -42,3 +42,26 @@ Thin backends can call `validate_pg09_domain(shape, response_domain=..., pg_sour
 `evaluate(index, seed=...)` preserves training RNG; `export_state_dict()` and `load_export_state_dict()` transfer adapter-only inference payloads. An inference export cannot resume training; use the full training checkpoint. Backend rendering remains on `backend.render` using its declared response loop.
 
 No GPU admission until objective, gradient, row binding, conditioning, domain, sampling, export/reload and exact-resume CPU gates pass. Prior MSE jobs remain held and are preserved as wrong-objective baselines. CPU qualification is not model-quality or live-memory qualification.
+
+
+## Package 0.6.0 / released PG 0.9.1 lineage
+
+The installable API now pins PG 0.9.1 (wheel SHA256
+`b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec`).
+All49 sources are verified against the new release/profile manifests. The
+reviewed continuous patch is replayed onto this exact release only in a separately
+staged overlay; the old 0.9.0 overlay is not accepted. The profile label is retained,
+while base release, wheel, patch and source identities remain explicit.
+
+The host component loop binds `training_precision=float32`; it does not silently
+claim upstream GANTrainer's BF16/channels-last CUDA execution. The optimized
+recipe's batched optimizer setting remains explicit in the saved resolved recipe.
+No source or numeric compatibility is inferred from a version bump.
+
+Public response/campaign/native modules live in `particle_sliders`, with old
+repository paths acting as same-object aliases. Moving class/source identity or
+changing PG version deliberately invalidates old source-bound checkpoints.
+Inference exports validate and retain completed steps; failed partial updates
+cannot export, and inference-loaded games cannot issue training checkpoints.
+Adapter evaluation temporarily uses eval mode and restores each original mode;
+frozen native model evaluation remains the backend's responsibility.

@@ -43,7 +43,7 @@ class Network(nn.Module):
         return out
 
 
-def fixture(seed=0, **kwargs):
+def fixture(seed=0, frozen_critic=False, **kwargs):
     data = torch.Generator().manual_seed(144)
     neutral = torch.randn(7, 3, generator=data)
     targets = neutral + torch.randn(7, 3, generator=data)
@@ -51,6 +51,8 @@ def fixture(seed=0, **kwargs):
         torch.manual_seed(seed)
         network = Network()
         critic = GlobalMixErrorCritic(targets, neutrals=neutral, tokens=2, width=8, heads=2, score_bound=0.)
+        if frozen_critic:
+            critic.mix.weight.requires_grad_(False)
     game = BISPFGame(network, critic, targets, seed=seed, batch_size=4, **kwargs)
     def predict(i, phase):
         assert network.active, "both D and G must see the active adapter"
@@ -167,6 +169,126 @@ def test_nonreentrant_model_checkpoint_replay_keeps_adapter_scale():
     actual = other.step(1, checkpointed)
     assert_equal(actual, expected)
     assert_equal(other.state_dict(), game.state_dict())
+
+
+def test_reentrant_checkpoint_callback_keeps_connectivity_scale_and_exact_resume():
+    from torch.utils.checkpoint import checkpoint
+
+    def checkpointed(predict):
+        def call(i, phase):
+            if phase != "g":
+                return predict(i, phase)
+            # The actual routed parameters are captured by the native model,
+            # as in a reentrant transformer block checkpoint.
+            token = torch.ones((), requires_grad=True)
+            return checkpoint(lambda _: predict(i, phase), token, use_reentrant=True)
+        return call
+
+    reference, predict = fixture()
+    game, native_predict = fixture()
+    assert_equal(game.step(1, checkpointed(native_predict)), reference.step(1, predict))
+    # Reentrant backward accumulates parameter contributions in a different
+    # order; equivalent updates can differ by one float32 rounding unit.
+    for left, right in ((game.network, reference.network), (game.critic, reference.critic)):
+        for key, value in left.state_dict().items():
+            torch.testing.assert_close(value, right.state_dict()[key], rtol=1e-6, atol=1e-7)
+    assert_equal(game.state_dict()["streams"], reference.state_dict()["streams"])
+    assert_equal(game.model_cpu_rng, reference.model_cpu_rng)
+    state = game.state_dict()
+    expected = game.step(2, checkpointed(native_predict))
+    resumed, resumed_predict = fixture(seed=99)
+    resumed.load_state_dict(state)
+    torch.randn(19)
+    assert_equal(resumed.step(2, checkpointed(resumed_predict)), expected)
+    assert_equal(resumed.state_dict(), game.state_dict())
+    assert not game.network.active and not resumed.network.active
+
+
+@pytest.mark.parametrize("failure", [None, "disconnected", "backward"])
+def test_reentrant_connectivity_probe_retains_graph_rng_and_prior_grad_buffers(failure):
+    from torch.utils.checkpoint import checkpoint
+    from particle_sliders._training import require_connected_response
+
+    weight = nn.Parameter(torch.tensor([2.]))
+    unused = nn.Parameter(torch.tensor([7.]))
+    value = torch.tensor([3.], requires_grad=True)
+    weight.grad, unused.grad, value.grad = torch.tensor([5.]), torch.tensor([11.]), torch.tensor([13.])
+    prior = [(leaf, leaf.grad, leaf.grad.clone()) for leaf in (weight, unused, value)]
+    calls = 0
+
+    def native(inputs):
+        nonlocal calls
+        calls += 1
+        if failure == "backward" and calls > 1:
+            raise RuntimeError("injected checkpoint backward failure")
+        return inputs * weight
+
+    response = checkpoint(native, value, use_reentrant=True)
+    rng = torch.get_rng_state().clone()
+    parameters = [weight, unused] if failure == "disconnected" else [weight]
+    if failure:
+        error = ValueError if failure == "disconnected" else RuntimeError
+        with pytest.raises(error, match="disconnected|injected checkpoint backward failure"):
+            require_connected_response(response, parameters)
+    else:
+        require_connected_response(response, parameters)
+        require_connected_response(response, parameters)
+    for leaf, gradient, expected in prior:
+        assert leaf.grad is gradient
+        assert torch.equal(leaf.grad, expected)
+    assert torch.equal(torch.get_rng_state(), rng)
+    if failure is None:
+        # The retained graph must still perform the real training backward.
+        response.sum().backward()
+        assert torch.equal(weight.grad, torch.tensor([8.]))
+        assert torch.equal(value.grad, torch.tensor([15.]))
+
+
+@pytest.mark.parametrize("disconnection", ["detached", "bank"])
+def test_disconnected_native_gan_path_rejected_before_any_optimizer_update(disconnection):
+    game, predict = fixture()
+    before = deepcopy((game.network.state_dict(), game.critic.state_dict(),
+                       game.opt_g.state_dict(), game.opt_d.state_dict()))
+    seen = []
+
+    def broken_predict(i, phase):
+        seen.append(phase)
+        if disconnection == "detached":
+            return predict(i, phase).detach()
+        # The bridge is live, but its native route reads a detached particle
+        # bank. SBNP alone must not make this qualify as a particle GAN step.
+        return game.network.bridge(torch.ones(1, 3) * (i + 1),
+                                   game.network.particles.detach())
+
+    with pytest.raises(ValueError, match="detached generator|routed bank is disconnected"):
+        game.step(1, broken_predict)
+    assert seen and set(seen) == {"g"}
+    assert game.completed_steps == 0
+    assert_equal(before, (game.network.state_dict(), game.critic.state_dict(),
+                         game.opt_g.state_dict(), game.opt_d.state_dict()))
+    assert all(p.requires_grad for p in game.critic.parameters())
+    assert not game.network.active
+
+
+def test_frozen_critic_parameters_and_phase_flags_survive_success_and_failure():
+    game, predict = fixture(frozen_critic=True)
+    frozen = game.critic.mix.weight
+    before = frozen.detach().clone()
+    flags = [p.requires_grad for p in game.critic.parameters()]
+    assert not any(p is frozen for group in game.opt_d.param_groups for p in group["params"])
+    game.step(1, predict)
+    assert torch.equal(before, frozen)
+    assert [p.requires_grad for p in game.critic.parameters()] == flags
+
+    def fail_g_loss(*args):
+        raise RuntimeError("injected generator failure")
+
+    game.loss.g_loss = fail_g_loss
+    with pytest.raises(RuntimeError, match="injected generator failure"):
+        game.step(2, predict)
+    assert [p.requires_grad for p in game.critic.parameters()] == flags
+    assert torch.equal(before, frozen)
+    assert not game.network.active
 
 
 def test_reject_mismatch_before_update():

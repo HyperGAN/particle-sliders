@@ -1,0 +1,71 @@
+{
+  "destination_source_sha256": {
+    "bonsai_native.py": "c46de3514a1169ba6d61dc0558975e498c1e7f2fab7d2d5710590c0687a57922",
+    "pg09_text_video.py": "6d4c60f0235573c944bfb12ecada0c45a774b419aefc10c73af8758ea62fb580",
+    "tiny_llm_backend.py": "392344c0c2e966db72a46bd44fd4363c05914f6ab134414133e87bb983523186",
+    "tiny_native.py": "336df6f61d12429420caa4a4bbe349e04021f7da594a3f185471a86e4d5f334e"
+  },
+  "followup_changes": [
+    "public lora_scale_context is exact existing private implementation object",
+    "image checkpoint binding centralized after model/network ownership validation, including native Iris and Qwen",
+    "Bonsai load rejects malformed/dtype-mismatched exports before construction; FP32 reload and CPU RNG preserved independently of process default dtype"
+  ],
+  "followup_validation": {
+    "checks": [
+      "exact public/private LoRA scale context identity and heterogeneous nested scale restoration",
+      "Iris and Qwen constructors bind native checkpoint hook once; two signed forwards repeatedly replay with uncheckpointed gradient parity",
+      "Bonsai exact known keys/shapes/FP32/finiteness prevalidation before constructor; CPU RNG preserved on success and all rejection paths; scale/protocol/tensors preserved; process default dtype cannot round restored weights"
+    ],
+    "environment": "same offline CPU interpreter/dependency roots as validation",
+    "result": "41 passed in 6.37s",
+    "tests": [
+      "packages/particle-sliders-core/tests/test_native_binding_followups.py",
+      "packages/particle-sliders-core/tests/test_backend_package_surface.py",
+      "packages/particle-sliders-core/tests/test_text_native_package.py"
+    ]
+  },
+  "frozen_source_sha256": {
+    "bonsai_gguf_particle.py": "ff03e9f20223af9c58101c54b617b7d231aa787fea926dd5db3cea24245c4249",
+    "tiny_llm_backend.py": "392344c0c2e966db72a46bd44fd4363c05914f6ab134414133e87bb983523186",
+    "tiny_llm_particle.py": "99096f5cbfeb9c29ac0fe6daa84d4892c286165055ef3b912437659bc0bb1ae7"
+  },
+  "release_policy": "local build and CPU tests only; publication and frozen-runtime migration pending independent review",
+  "shared_helper_source_sha256": {
+    "pg09_backends.py": "5db98918880af33f55ca7312975a0fd112bdae8a7c69a3e357433beb056e32c1",
+    "pg09_images.py": "e92e36fdcc8e5327ea096fa8d48adc8749d453d19c4e945fd246dd931fe2c5c3"
+  },
+  "source_commit": "fe54d05daa2a3dbc91e7c6697ba8386ff74a8c30",
+  "source_namespace": "conceptmod.textsliders",
+  "source_repository": "HyperGAN/particle-sliders",
+  "training_policy": "ConditionalPG09 owns training; no historical loop copied",
+  "validation": {
+    "dependency_root": "/ml2/codex-storage/future-workspaces/2026-10-17/task-14/pg091-release/wheel",
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "",
+      "HF_HUB_OFFLINE": "1",
+      "MKL_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "TRANSFORMERS_OFFLINE": "1"
+    },
+    "interpreter": "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+    "isolated_wheel": "fresh local wheel copied from package-only source; python -I with only installed wheel and qualified PG dependency injected; conceptmod/analysis/Transformers/Diffusers/safetensors/Hub/llama_cpp imports denied; real shared-game step passes",
+    "native_runtime_gates": [
+      "live TinyQwen native weights and width1024 continuous-profile admission remain outside this CPU package qualification",
+      "Bonsai native5120 admission, immutable real readouts, GGUF runtime and model identity remain coordinator-owned"
+    ],
+    "result": "55 passed in 9.98s",
+    "source_tree_test_environment": "PYTHONPATH includes canonical package src and qualified PG dependency so child processes use same imports",
+    "tests": [
+      "packages/particle-sliders-core/tests/test_text_native_package.py",
+      "tests/test_pg09_text_video.py",
+      "tests/test_tiny_llm_slider.py"
+    ]
+  },
+  "verified_extraction": {
+    "bonsai_native": "head extracted from fe54d05 with shared.RoutedMLP retargeted; subsequent reviewed loader fix validates static exact FP32/finite schema before any construction and preserves CPU RNG with fork_rng(devices=[])",
+    "pg09_text_video": "current1e960d9b source with two local native imports retargeted; strict Bonsai type check preserved",
+    "tiny_llm_backend": "complete source byte-identical to fe54d05 snapshot",
+    "tiny_native": "five native definitions byte-identical to fe54d05; relative canonical imports and FORMAT only; no legacy recipe/game"
+  }
+}

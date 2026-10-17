@@ -6,30 +6,20 @@ Qwen3 LM (prompt-state last-hidden only). Shared game math lives in
 """
 from __future__ import annotations
 
-from contextlib import contextmanager
 import json
 from pathlib import Path
 
 import torch
-from torch import nn
-from safetensors.torch import load_file, save_file
 import yaml
 
 from conceptmod.textsliders import particle_bridge_gan as shared
-from conceptmod.textsliders.lora import LoRANetwork
 from conceptmod.textsliders.slider_targets import lm_faithful_plus_neu
-from conceptmod.textsliders.train_lm_slider_music3 import (
-    DEFAULT_MODEL,
-    TARGET_REPLACE,
-    _assemble,
-    _assert_last_token_is_audio_start,
-    _encode_static,
-    _encode_train,
-    _tokenize,
+from particle_sliders.music3_native import (
+    DEFAULT_MODEL, TARGET_REPLACE, FORMAT, Music3Backend, ParticleNetwork,
+    Qwen3Attention, _TinyLM, _encode_train,
 )
 from conceptmod.textsliders.yue2_backend import sound_only
 
-FORMAT = "conceptmod-music3-routed-particle-lm-v1"
 RECIPE = dict(
     name="anneal-routed-particle-error-music3-v1",
     generator_objective="paired_error_rpgan_plus_particle_vic",
@@ -106,196 +96,6 @@ def load_prompts(path):
             raise ValueError("Particle bridge requires distinct neutral and positive captions")
         rows.append(row)
     return rows, meta
-
-
-class Music3Backend:
-    """Frozen Music 3 LM + tokenizer for prompt-state last-hidden reads."""
-
-    def __init__(self, model_dir=DEFAULT_MODEL, device="cuda:0", dummy=False):
-        self.model_dir = Path(model_dir)
-        self.device = torch.device(device if not dummy else "cpu")
-        self.dummy = bool(dummy)
-        if dummy:
-            self.tokenizer = None
-            self.model = _TinyLM(32).to(self.device).eval().requires_grad_(False)
-            self.identity = {"dummy": True, "hidden_size": 32, "fixture": "byte-projection-v1"}
-            return
-        from transformers import AutoModelForCausalLM, AutoTokenizer
-
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            str(self.model_dir / "tokenizer"), local_files_only=True
-        )
-        self.model = AutoModelForCausalLM.from_pretrained(
-            str(self.model_dir / "language_model"),
-            torch_dtype=torch.bfloat16,
-            local_files_only=True,
-        )
-        self.model.to(self.device)
-        self.model.eval()
-        self.model.requires_grad_(False)
-        self.identity = {
-            "model_dir": str(self.model_dir.resolve()),
-            "hidden_size": int(self.model.config.hidden_size),
-            "num_layers": int(self.model.config.num_hidden_layers),
-        }
-
-    def encode_text(self, style: str, lyrics: str):
-        text = _assemble(style, lyrics)
-        if self.dummy:
-            ids = torch.tensor([[b % 31 for b in text.encode("utf-8")] + [31]], device=self.device)
-            return ids, torch.ones_like(ids)
-        ids, mask = _tokenize(self.tokenizer, text, self.device)
-        _assert_last_token_is_audio_start(ids, mask, self.tokenizer, where="particle bridge")
-        return ids, mask
-
-    def hidden(self, ids, mask, *, train=False):
-        if self.dummy:
-            return self.model(ids)
-        if train:
-            return _encode_train(self.model, ids, mask)
-        with torch.no_grad():
-            return _encode_static(self.model, ids, mask)
-
-
-class Qwen3Attention(nn.Module):
-    """CPU dummy projection with the production adapter target class name.
-
-    Used only by _TinyLM; it is not a model of Qwen attention or audio quality.
-    """
-    def __init__(self, hidden):
-        super().__init__()
-        self.proj = nn.Linear(hidden, hidden)
-
-    def forward(self, x):
-        return torch.tanh(self.proj(x))
-
-
-class _TinyLM(nn.Module):
-    def __init__(self, hidden):
-        super().__init__()
-        self.config = type("C", (), {"hidden_size": hidden, "num_hidden_layers": 1})()
-        self.embed = nn.Embedding(32, hidden)
-        self.attention = Qwen3Attention(hidden)
-
-    def forward(self, ids):
-        return self.attention(self.embed(ids.clamp(0, 31).long())).mean(1, keepdim=False)
-
-
-class ParticleNetwork(nn.Module):
-    """Music 3 LM LoRA with a shared routed particle cloud between down and up."""
-
-    def __init__(self, lm, rank=8, alpha=8.0):
-        super().__init__()
-        if rank != 8 or float(alpha) != 8.0:
-            raise ValueError("Particle format pins rank/alpha 8")
-        self.rank = rank
-        self.alpha = float(alpha)
-        self.network = LoRANetwork(
-            lm,
-            rank=rank,
-            alpha=alpha,
-            multiplier=0.0,
-            delimiter="-",
-            target_replace=TARGET_REPLACE,
-            prefix="lora_te",
-            train_method="full",
-        )
-        if not self.network.unet_loras:
-            raise RuntimeError("LoRA wrapped 0 Qwen3Attention linears")
-        device = next(lm.parameters()).device
-        self.particles = nn.Parameter(torch.randn(128, 4, device=device))
-        self.bridges = nn.ModuleDict()
-        for lora in self.network.unet_loras:
-            bridge = shared.RoutedMLP(rank, rank)
-            key = lora.lora_name.replace(".", "-")
-            self.bridges[key] = bridge
-        # Move weights first, then install routed forwards that look up
-        # self.particles at call time (not a Parameter captured before .to()).
-        self.to(device=device, dtype=torch.float32)
-        for lora in self.network.unet_loras:
-            key = lora.lora_name.replace(".", "-")
-            self._install(lora, self.bridges[key])
-        self.set_scale(0.0)
-
-    def _install(self, lora, bridge):
-        network = self
-
-        def forward(x, lora=lora, bridge=bridge, network=network):
-            if lora.multiplier == 0:
-                return lora.org_forward(x)
-            weight = lora.lora_down.weight
-            x_lora = x.to(device=weight.device, dtype=weight.dtype)
-            features = lora.lora_down(x_lora).float()
-            routed = bridge(features, network.particles)
-            delta = lora.lora_up(routed.to(dtype=weight.dtype)).to(device=x.device, dtype=x.dtype)
-            return lora.org_forward(x) + delta * (lora.multiplier * lora.scale)
-
-        # LoRANetwork.apply_to() binds Linear.forward to LoRAModule.forward as a
-        # MethodType. Assigning lora.forward alone does not change that binding,
-        # so the LM never entered the particle bridge and GAN grads stayed 0.
-        lora.forward = forward
-        host = getattr(lora.org_forward, "__self__", None)
-        if host is None:
-            raise RuntimeError(f"Cannot rebind host forward for {lora.lora_name}")
-        host.forward = forward
-
-    def set_scale(self, scale: float):
-        self.network.set_lora_slider(float(scale))
-        for lora in self.network.unet_loras:
-            lora.multiplier = float(scale)
-
-    @contextmanager
-    def scaled(self, scale: float):
-        previous = float(self.network.lora_scale)
-        self.set_scale(scale)
-        try:
-            yield
-        finally:
-            self.set_scale(previous)
-
-    def save(self, path, metadata, *, state=None):
-        path = Path(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        record = dict(
-            metadata,
-            format=FORMAT,
-            rank=self.rank,
-            alpha=self.alpha,
-            particles=128,
-            particle_dim=4,
-            bridge_width=48,
-            router_width=16,
-            target_replace=TARGET_REPLACE,
-            prefix="lora_te",
-        )
-        payload = json.dumps(record, sort_keys=True, ensure_ascii=False)
-        sound_only(payload)
-        state = self.state_dict() if state is None else state
-        if any(not torch.isfinite(v).all() for v in state.values()):
-            raise ValueError("Invalid particle-slider export")
-        save_file(
-            {k: v.detach().float().cpu().contiguous() for k, v in state.items()},
-            str(path),
-            metadata={"conceptmod": payload},
-        )
-        path.with_suffix(".json").write_text(json.dumps(record, indent=2) + "\n")
-
-    @classmethod
-    def load(cls, lm, path):
-        from safetensors import safe_open
-
-        with safe_open(str(path), framework="pt", device="cpu") as handle:
-            record = json.loads((handle.metadata() or {}).get("conceptmod", "{}"))
-        sound_only(json.dumps(record, ensure_ascii=False))
-        required = dict(
-            format=FORMAT, rank=8, alpha=8.0, particles=128, particle_dim=4, bridge_width=48, router_width=16
-        )
-        if any(record.get(key) != value for key, value in required.items()):
-            raise ValueError("Incompatible Music 3 routed-particle checkpoint")
-        network = cls(lm)
-        state = load_file(str(path), device="cpu")
-        network.load_state_dict(state, strict=True)
-        return network, record
 
 
 @torch.no_grad()

@@ -13,6 +13,8 @@ import torch
 from torch import nn
 from particlegan import get_recipe
 
+from ._training import preserve_parameter_flags, require_connected_response
+
 UPSTREAM_COMMIT = "b5d2372f2739d7579ab66d6dba6e220d2eb776d9"
 
 
@@ -120,15 +122,24 @@ class BISPFGame:
     def step(self, index, predict):
         if type(index) is not int or index != self.completed_steps + 1 or index > self.recipe.total_steps:
             raise ValueError("updates must be contiguous; resume from completed_steps + 1")
-        with self._model_stream():
+        with self._model_stream(), preserve_parameter_flags(self.critic):
             return self._step(index, predict)
 
     def _step(self, index, predict):
-        d_rows, d_noise = self._batch()
-        self.critic.requires_grad_(True)
-        self.opt_d.zero_grad(set_to_none=True)
+        # Keep the active adapter scale through connectivity preflight, D and
+        # the eventual G backward, including model checkpoint recomputation.
         context = self.network.scaled(1.) if hasattr(self.network, "scaled") else nullcontext()
-        with torch.no_grad(), context:
+        with context:
+            return self._active_step(index, predict)
+
+    def _active_step(self, index, predict):
+        d_rows, d_noise = self._batch()
+        g_rows, g_noise = self._batch()
+        generated = self._predictions(g_rows, "g", predict)
+        require_connected_response(generated,
+            (p for p in self.network.parameters() if p.requires_grad))
+        self.opt_d.zero_grad(set_to_none=True)
+        with torch.no_grad():
             fake = d_noise + self._predictions(d_rows, "d", predict) - self.targets[d_rows.to(self.device)]
         # Pass original hook-bearing score tensors: reshape/detach here would
         # discard coordinates and silently couple scalar logits instead.
@@ -144,18 +155,15 @@ class BISPFGame:
         self.opt_d.zero_grad(set_to_none=True)
         self.critic.requires_grad_(False)
         self.opt_g.zero_grad(set_to_none=True)
-        g_rows, g_noise = self._batch()
         with torch.no_grad():
             real_scores = self.critic(g_noise)
-        context = self.network.scaled(1.) if hasattr(self.network, "scaled") else nullcontext()
-        with context:
-            fake = g_noise + self._predictions(g_rows, "g", predict) - self.targets[g_rows.to(self.device)]
-            g_adv = self.loss.g_loss(self.critic(fake), real_scores)
-            prior_loss = self.spread(self.prior.z)  # recipe weight applied once
-            total = g_adv + prior_loss
-            if not torch.isfinite(total):
-                raise FloatingPointError("non-finite BISPF generator loss")
-            total.backward()
+        fake = g_noise + generated - self.targets[g_rows.to(self.device)]
+        g_adv = self.loss.g_loss(self.critic(fake), real_scores)
+        prior_loss = self.spread(self.prior.z)  # recipe weight applied once
+        total = g_adv + prior_loss
+        if not torch.isfinite(total):
+            raise FloatingPointError("non-finite BISPF generator loss")
+        total.backward()
         if not _finite_grad(self.network.parameters()):
             raise FloatingPointError("non-finite BISPF generator gradients")
         self.opt_g.step()

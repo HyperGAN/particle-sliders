@@ -1,6 +1,6 @@
 {
-  "base_release": "0.9.0",
-  "base_wheel_sha256": "41746614b135e5593fa9c66c2a6784c4f872a7957fce132ca59f95dc7963e1ab",
+  "base_release": "0.9.1",
+  "base_wheel_sha256": "b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec",
   "patch_sha256": "c6531a21f62fa96682f5aece517a6a862bb849ab971aa2766b3946b9a7543571",
   "python_sources": {
     "__init__.py": "607c6bb12acd631ae1ff98f6e61d990ff4ab5b60ec86f5a8cb5864cda7c11864",
@@ -33,25 +33,25 @@
     "optim/__init__.py": "8e0403422e18e52c6fcd3bc73ddb138116bd910a6645207fe3b9f1e71a82274a",
     "optim/constraint_geometry.py": "b78f2d6dec2d345c1357b3812a7f9adac8c4da0f86c8536ebfe0092c18269c5e",
     "optim/convolution_frobenius.py": "0916f94d13c7213856faf5d40f5896891fb102f8995caa17e255ba8237bb9e3a",
-    "optim/convolution_quintic.py": "8b2dd1159f24c1248e860027553989e020f4741a315626622d4db35a5c0e07db",
+    "optim/convolution_quintic.py": "55441cfca6e5136ea3810a6f6d5dfb284be4629c373e2b9a5bdaf16218608f14",
     "optim/critic_cap.py": "74950ecd95c56b9921e2ed28250c4c2694d764b1a9fd5a2d10585f283a45b999",
     "optim/direction_blend.py": "f18900ba47c639dc5484022d294bec7fe199efbd770c92876c548f727822eb72",
-    "optim/dualnorm.py": "05ba0bbe470b06418c04dbb6da88733ac1dff5fecdcf01d8c2dfd61c178fe92b",
+    "optim/dualnorm.py": "89c3d3279cf97181c9f2d5a8424a055ac1de13b5a1292cf87bba310afd9ffd8b",
     "optim/prior_proximal.py": "50b20c11f0e7f7cabb9496d4874136172f36ce9997baf6db8d5dce91e3ca32ea",
     "optim/strict_progress.py": "45f4764a3bdfbf4f0f6f6986817b8aef6aacc14cadbd1fc63e0d483011b2f577",
     "output_moments.py": "dcf3e27228d2c3c9738e473c5b22ee9e6d5047ddcd60c538b66526adb53ef188",
     "particle_prior.py": "0220878bebea227da63abbf9f5b1ebdabdc6aea54fd2332fd2cab02ed734238f",
     "policy.py": "7b904bec09c4bbcfaa59b74465102489e5b45456f5725441b6538da6adf2accc",
     "population_continuity.py": "378cd75cca45bc8da4da33e686a12cf99df853042687978314e37c532bc17fe6",
-    "recipe_compat.py": "f9dc60da36a7a21e1951015ad9b952a21e0462c0e9c0a84252089214d68ead23",
+    "recipe_compat.py": "030cbf25d52c6a9b8db54b84b6b50c89bcbe3570658aa0f287515f7c403ec265",
     "recipe_schedules.py": "b675bdc9f72224b11e9887f8ed66b1a541ffc76d80242709969cc67ac47ca46a",
-    "recipes.py": "9dc473673bc3440fa2cc0eb56547a931cca7c14d2892be9b6e268ae1b8733849",
+    "recipes.py": "8ad4bb31f513662892c595796767b5be8e2044cc283aed4a3aa131685338d7a6",
     "routing.py": "63249d808fccb3d4e113eb1d638a245ee665c3cade20a1542bb706f316b4abcc",
     "row_evidence.py": "78be40141ef3946860458e9842159be9321f05c217a4800dd4134113b6eba93e",
     "sigreg.py": "96bac4b2344f9d505a7d767ecfbb58ab06442e2a1de1a48ea479baa2288e048b",
     "tensorflow_adam.py": "37f1192e48b84907446d8f676c62631bf87ff450b2a2e6b63e7489adc33e24e9",
-    "training.py": "f84bf044405a1ea105350a260bfc903bade9b8d464ad80eb005b0e4a307a6c2b",
+    "training.py": "3711700bcb1700d9446fb6ced07d8d98188860ff219828ec91f49e3bb10b8344",
     "vicreg_loss.py": "177a68b98036e4725cacf6bc0d95277111184c0dcb9566d3f7fc1527046cefda"
   },
-  "sources_sha256": "04dfa82d3b25fba9ba69e2bced0d816c2419204115e987680c9630c73d28f377"
+  "sources_sha256": "57831c50d77da70292632d9fcb8ba3e8e68c3d5557dfbd4675aeca6b2091763f"
 }

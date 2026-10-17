@@ -34,9 +34,7 @@ from torch import nn
 from conceptmod.textsliders import particle_bridge_gan as shared
 from conceptmod.textsliders.bonsai_gguf_backend import HIDDEN, EncodedText
 
-FORMAT = "conceptmod-bonsai-gguf-particle-v1"
-RANK = 8
-ALPHA = 8.0
+from particle_sliders.bonsai_native import BonsaiParticleHead, FORMAT, RANK, ALPHA
 RECIPE = dict(
     name="anneal-routed-particle-error-bonsai-gguf-v1",
     source_recipe="anneal-routed-particle-error-yue2-v1",
@@ -79,96 +77,6 @@ RECIPE = dict(
 )
 
 
-class BonsaiParticleHead(nn.Module):
-    """Routed low-rank residual on the frozen 5120-dim readout.
-
-    ``up`` starts at zero so a fresh head is the base behavior;
-    ``multiplier`` 0 bypasses it exactly. The 128x4 cloud belongs to
-    this head exactly once.
-    """
-
-    def __init__(self, hidden: int = HIDDEN, rank: int = RANK,
-                 alpha: float = ALPHA) -> None:
-        super().__init__()
-        if int(rank) != RANK or float(alpha) != ALPHA:
-            raise ValueError("The Bonsai particle format pins rank/alpha 8")
-        if int(hidden) != HIDDEN:
-            raise ValueError(
-                f"Bonsai readout width is {HIDDEN}, got {hidden}"
-            )
-        self.rank, self.alpha = int(rank), float(alpha)
-        self.scale = float(alpha) / float(rank)
-        self.multiplier = 0.0
-        self.particles = nn.Parameter(torch.randn(128, 4))
-        self.down = nn.Linear(hidden, rank, bias=False)
-        self.up = nn.Linear(rank, hidden, bias=False)
-        nn.init.kaiming_uniform_(self.down.weight, a=5 ** 0.5)
-        nn.init.zeros_(self.up.weight)
-        self.bridge = shared.RoutedMLP(rank, rank)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.multiplier == 0:
-            return x
-        host_device, host_dtype = x.device, x.dtype
-        features = self.down(x.to(device=self.down.weight.device,
-                                   dtype=self.down.weight.dtype))
-        routed = self.bridge(features, self.particles)
-        delta = self.up(routed).to(device=host_device, dtype=host_dtype)
-        return x + delta * (self.multiplier * self.scale)
-
-    @contextmanager
-    def scaled(self, scale: float):
-        previous = self.multiplier
-        self.multiplier = float(scale)
-        try:
-            yield
-        finally:
-            self.multiplier = previous
-
-    def save(self, path, metadata):
-        from safetensors.torch import save_file
-
-        path = Path(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        record = dict(
-            metadata, format=FORMAT, rank=self.rank, alpha=self.alpha,
-            hidden=HIDDEN, particles=128, particle_dim=4,
-            bridge_width=48, router_width=16,
-        )
-        state = self.state_dict()
-        if any(not torch.isfinite(v).all() for v in state.values()):
-            raise ValueError("Invalid Bonsai particle-head export")
-        save_file(
-            {k: v.detach().float().cpu().contiguous() for k, v in state.items()},
-            str(path), metadata={"conceptmod": json.dumps(record, sort_keys=True)},
-        )
-        path.with_suffix(".json").write_text(json.dumps(record, indent=2) + "\n")
-
-    @classmethod
-    def load(cls, path):
-        from safetensors import safe_open
-        from safetensors.torch import load_file
-
-        with safe_open(str(path), framework="pt", device="cpu") as handle:
-            record = json.loads((handle.metadata() or {}).get("conceptmod", "{}"))
-        required = dict(format=FORMAT, rank=8, alpha=8.0, hidden=HIDDEN,
-                        particles=128, particle_dim=4,
-                        bridge_width=48, router_width=16)
-        if any(record.get(k) != v for k, v in required.items()):
-            raise ValueError("Incompatible Bonsai routed-particle checkpoint")
-        state = load_file(str(path), device="cpu")
-        probe = cls()
-        expected = set(probe.state_dict())
-        if set(state) != expected or any(
-            tuple(state[k].shape) != tuple(probe.state_dict()[k].shape)
-            for k in expected
-        ):
-            raise ValueError("Incomplete Bonsai routed-particle tensors")
-        if any(not torch.isfinite(t).all() for t in state.values()):
-            raise ValueError("Non-finite Bonsai routed-particle tensors")
-        network = cls()
-        network.load_state_dict(state, strict=True)
-        return network, record
 
 
 def prepare_rows(backend, rows: list[dict]) -> list[dict]:
