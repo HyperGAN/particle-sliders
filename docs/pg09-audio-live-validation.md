@@ -125,3 +125,10 @@ at widths 1024/2048/4096/5120, both presets. Patch SHA256:
 `c6531a21f62fa96682f5aece517a6a862bb849ab971aa2766b3946b9a7543571`.
 The proposal remains an isolated overlay. **Executable core host-profile
 admission, audio runtime requalification and GPU admission are pending.**
+
+Additional preparation checks: 16 existing audio tests passed in 7.03 seconds
+under the native YuE2 Torch 2.10/Transformers 4.57.6 interpreter on the released
+PG0.9 path, using the namespace bootstrap (fresh-process child bootstrap is
+deferred to final profile qualification). Six matched-waveform checker CPU
+tests pass in 0.03 seconds, including exact-off, finite/channel, duration-bound
+and truncation-reporting cases. These tests synthesize arrays, not audio.
