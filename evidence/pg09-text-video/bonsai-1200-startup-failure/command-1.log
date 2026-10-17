@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/scripts/verify_bonsai_pg09_cached.py", line 332, in <module>
+    main()
+  File "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/scripts/verify_bonsai_pg09_cached.py", line 328, in main
+    execute(args, receipt)
+  File "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/scripts/verify_bonsai_pg09_cached.py", line 146, in execute
+    check_limits(plan, started, args.mode, startup=True)
+  File "/mnt/nvme/sliders/text-video-adapters-pg09-20261017/scripts/verify_bonsai_pg09_cached.py", line 138, in check_limits
+    raise OSError('output filesystem reserve unavailable')
+OSError: output filesystem reserve unavailable
