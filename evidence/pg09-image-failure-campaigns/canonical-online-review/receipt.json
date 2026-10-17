@@ -1,0 +1,28 @@
+{
+  "schema": "canonical-online-image-contract-review-v1",
+  "source_proposal_commit": "78087def8d6cd6888be7eec6cadadb7ee094215b",
+  "source_repair_commit": "d8272d9fd2554bf9e9a71711dbb45efcbf46de45",
+  "canonical_proposal_commit": "8dbd1469",
+  "canonical_repair_commit": "bd7029cb88f1e8b01e1e8ac46959cbb43cc1ccaa",
+  "module_sha256": "9b2f60c6b7871bfb58f4ab0ca436bde406dc09bd13a7b35ba667d7be68605712",
+  "independent_qa_commit": "23cbded33ea40f27efa5d730594f7ddc58bdc05b",
+  "isolated_cpu_passed": 30,
+  "canonical_cpu_passed": 30,
+  "skipped": 0,
+  "closed_findings": [
+    "descriptor drift",
+    "builder mutation of live descriptor",
+    "generator buffer drift under stale state hash",
+    "condition-table drift"
+  ],
+  "active_moss_source_pins_unchanged": true,
+  "live_admission": false,
+  "pending": [
+    "source-bound descriptor/noise/condition assets",
+    "training-only response scale calibration",
+    "native teacher/pipeline/decoder parity",
+    "Sana full snapshot/hash memory and timing measurement",
+    "separate-process GPU disk resume",
+    "completed1000-step budgets and matched heldouts"
+  ]
+}
