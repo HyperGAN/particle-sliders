@@ -27,7 +27,7 @@ class AudioCritic(nn.Module):
 
 
 def make_audio(family, *, preset='bispf_optimized', checkpointing=False, width=32,
-               pg_source_profile='release', penalty_input_domain='auto'):
+               pg_source_profile='release', penalty_input_domain='auto', critic_class=AudioCritic):
     from particle_sliders import ConditionalPG09, winning_formulation
     torch.set_num_threads(1)
     torch.manual_seed(23)
@@ -79,7 +79,7 @@ def make_audio(family, *, preset='bispf_optimized', checkpointing=False, width=3
             AudioRow((23, 37, 41, 43, 47), (53, 59, 41, 43, 47), history_tokens=3)]
     prepared = [adapter.prepare(row) for row in rows]
     conditions = audio_conditions(prepared)
-    critic = AudioCritic(width, conditions.shape[1])
+    critic = critic_class(width, conditions.shape[1])
     game = ConditionalPG09(adapter, prepared, critic, conditions=conditions,
         particles=adapter.particles, response_domain='continuous_vector',
         preset=preset, batch_size=2, total_steps=4, seed=71,

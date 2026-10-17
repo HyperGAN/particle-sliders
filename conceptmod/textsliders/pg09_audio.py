@@ -8,6 +8,7 @@ profile. No projection, truncation, field reshape or objective fallback.
 from dataclasses import dataclass, replace
 
 import torch
+from torch import nn
 
 from conceptmod.textsliders.pg09_backends import (
     AdapterParameters, checkpoint_with_adapter_scale,
@@ -27,6 +28,16 @@ class PreparedAudioResponse:
     row: AudioRow
     target: torch.Tensor
     neutral: torch.Tensor
+
+
+class AudioResponseCritic(nn.Module):
+    """Stable import identity for shared-game checkpoint and inference reload."""
+    def __init__(self, width, condition_width):
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(width + condition_width, 16), nn.SiLU(), nn.Linear(16, 1))
+
+    def forward(self, response, condition):
+        return self.net(torch.cat((response, condition), dim=1)).squeeze(-1)
 
 
 def require_audio_width(width, *, pg_source_profile='release', penalty_input_domain='auto'):

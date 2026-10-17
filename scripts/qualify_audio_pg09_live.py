@@ -13,22 +13,13 @@ import sys
 import time
 
 import torch
-from torch import nn
 
 from inspect_audio_pg09_assets import bootstrap_yue2_product, runtime_identity
 from conceptmod.textsliders.pg09_audio import (
     AudioRow, Music3ARResponseAdapter, YuE2ARResponseAdapter, audio_conditions,
     require_audio_width,
+    AudioResponseCritic,
 )
-
-
-class LiveAudioCritic(nn.Module):
-    def __init__(self, width, condition_width):
-        super().__init__()
-        self.net = nn.Sequential(nn.Linear(width + condition_width, 16), nn.SiLU(), nn.Linear(16, 1))
-
-    def forward(self, response, condition):
-        return self.net(torch.cat((response, condition), dim=1)).squeeze(-1)
 
 
 def sha_file(path):
@@ -70,7 +61,18 @@ def load_native(args, options, check):
         bootstrap_yue2_product(args.product)
         from yue2.backend import YuE2Backend
         from yue2.slider import ParticleSlider
-        backend = YuE2Backend(str(args.model_dir), device=args.device, allow_hub=False)
+        from yue2.storage import model_identity, resolve_model
+        record = manifest['records']['model']
+        resolved = Path(resolve_model(record['model'], revision=record['revision'],
+            cache_dir=manifest['cache_dir'], local_files_only=True)).resolve()
+        if args.model_dir.resolve() != Path(record['path']).resolve() or resolved != args.model_dir.resolve():
+            raise ValueError('YuE2 model directory differs from supplied staged manifest')
+        if model_identity(resolved) != manifest['model_identity']:
+            raise ValueError('actual YuE2 model files/config differ from supplied manifest')
+        backend = YuE2Backend(record['model'], device=args.device, allow_hub=False,
+            revision=record['revision'], cache_dir=manifest['cache_dir'])
+        if backend.identity != manifest['model_identity']:
+            raise ValueError('loaded YuE2 backend identity differs from supplied manifest')
         model = backend.model
         check()
         torch.manual_seed(args.seed)
@@ -129,7 +131,7 @@ def load_native(args, options, check):
         previous = contexts.setdefault(key, prepared.row.neutral_ids)
         if previous != prepared.row.neutral_ids:
             raise ValueError('distinct native contexts collide in the complete fixed condition dataset')
-    critic = LiveAudioCritic(fixed[0].target.shape[-1], conditions.shape[1]).to(args.device)
+    critic = AudioResponseCritic(fixed[0].target.shape[-1], conditions.shape[1]).to(args.device)
     game = ConditionalPG09(adapter, fixed, critic, conditions=conditions,
         particles=adapter.particles, response_domain='continuous_vector',
         preset=args.preset, batch_size=2, seed=args.seed, total_steps=args.total_steps, **options)
@@ -207,7 +209,7 @@ def main():
         if args.fixture:
             from pg09_audio_cpu_fixtures import make_audio
             adapter, model, fixed, game = make_audio(args.family, preset=args.preset,
-                checkpointing=True, **options)
+                checkpointing=True, critic_class=AudioResponseCritic, **options)
             heldout = [adapter.prepare(replace(p.row, neutral_ids=(61,) + p.row.neutral_ids[1:])) for p in fixed]
         else:
             status['stage'] = 'loading_and_preparing_native_model'
@@ -225,6 +227,7 @@ def main():
             game.load_state_dict(packet['game'])
             logs = packet['metrics']
         before = {n: p.detach().clone() for n, p in adapter.network.named_parameters()}
+        bank_before = adapter.particles.detach().clone()
         critic_before = {n: p.detach().clone() for n, p in game.critic.named_parameters()}
         while game.completed_steps < args.until:
             check()
@@ -246,7 +249,10 @@ def main():
         direction = torch.linspace(-1, 1, response.shape[-1], device=response.device)
         bank_gradient = torch.autograd.grad((response * direction).sum(), adapter.particles)[0]
         bank_gradient_l1 = float(bank_gradient.abs().sum())
-        if not changed or not critic_changes or bank_gradient_l1 <= 0 or not all(m['d_pen'] > 0 for m in logs):
+        bank_changed = not torch.equal(bank_before, adapter.particles)
+        bank_delta_rms = float((bank_before - adapter.particles.detach()).square().mean().sqrt())
+        if (not changed or not critic_changes or not bank_changed or bank_gradient_l1 <= 0
+                or not all(m['d_pen'] > 0 for m in logs)):
             raise ValueError('adapter/critic/bank-gradient/continuous-penalty learning gate failed')
         state = game.state_dict()
         exported = game.export_state_dict()
@@ -266,6 +272,7 @@ def main():
             elapsed_seconds=time.monotonic() - started, frozen_base_unchanged=True,
             zero_replay_exact=True, export_replay_exact=True, changed_adapter_tensors=len(changed),
             changed_critic_tensors=len(critic_changes), bank_response_gradient_l1=bank_gradient_l1,
+            actual_bank_weights_changed=bank_changed, actual_bank_delta_rms=bank_delta_rms,
             heldout_response_effect=[float((v - p.neutral).square().mean().sqrt()) for v, p in zip(probes, heldout)],
             quality_qualified=False, audio_rendered=False,
             peak_allocated_bytes=(torch.cuda.max_memory_allocated() if not args.fixture else 0),

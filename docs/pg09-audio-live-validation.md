@@ -76,8 +76,9 @@ will be resumed.
    hashes, released base-wheel digest, single ALZ patch digest, explicit
    declared domain and resolved continuous domain. Requalify both presets on
    CPU, including each native runtime and cross-profile/domain restore
-   rejection. The current adapter width guard remains until that contract is
-   approved. No alternate patch, projection, truncation or field reshape.
+   rejection. This CPU/source gate is now qualified against immutable core
+   `3e94b13eb5d6cd1ceee3f018f019a68603f35696`; the release/auto width guard
+   remains active by default. No alternate patch, projection or field reshape.
 2. Request a separate native training smoke lease: four train/two heldout
    rows, batch 2, rank 8, existing 128×4 bank, max 512 tokens, seed 7,
    `bispf_optimized`, total budget 20 updates. Compare fresh-process 1+2 against 3
@@ -96,9 +97,8 @@ will be resumed.
    modular pipeline, max 8 seconds per clip. Preserve the actual sampling,
    CFG and decoder configuration; no unrelated image/flow adapter path.
 
-Actual GPU command arguments will be frozen in the executable runner only
-after core supplies the reviewed host API/profile and a lease. No command in
-this document launches GPU work before that admission.
+Exact proposed argument vectors are frozen in the command cards. They remain
+pending the core owner's external guardian and explicit GPU admission.
 
 ## Representative output checks
 
@@ -145,20 +145,46 @@ prepares the predeclared rows and delegates every update to ConditionalPG09.
 It validates the exact domain profile before CUDA initialization/model loading,
 requires an explicit admission identifier and fresh free-memory bound, reuses
 the existing resource guard, hashes every frozen host parameter before/after,
-checks actual-bank response gradients and critic/adapter changes, and tests
+checks actual-bank response gradients, actual bank weight changes with delta
+RMS, critic/adapter changes, and tests
 adapter reload after deliberately perturbing adapter state. Checkpoints remain
 resumable after inference-export checks. No legacy trainer is invoked.
 
+Before constructing YuE2, the worker resolves the pinned model ID/revision
+offline, requires the actual directory to agree with both the supplied path
+and manifest, and recomputes the native weight/config identity. It then passes
+the pinned model ID/revision/cache to the native constructor and checks the
+loaded identity again. A read-only asset check hashes the 7,261,441,640-byte
+weight file and confirms an exact manifest match without loading tensors or
+initializing CUDA. The critic has a stable import identity in `pg09_audio`,
+allowing public inference-export reload from an imported renderer. CPU tests
+exercise that separate import path and all three bank-update stage checks.
+
 `scripts/run_audio_pg09_smoke.py` runs full 3, first 1 and resumed 3 as serial
-owned children inside one 900-second lease; no simultaneous CUDA children. It
+children within a 900-second budget; no simultaneous CUDA children. It
 compares every state/metric/heldout-probe/export field exactly. A CPU random
 fixture exercises this supervisor; native/full-width source-profile gates
 exercise both actual model classes on their corresponding CPU runtime stacks.
 
 `evidence/pg09-audio/audio-admission-drafts.json` contains exact argument
 vectors, worker/supervisor/resource-guard hashes, core/profile pins and the
-proposed resource bounds. Core owner must supply the physical GPU and real
-admission ID. YuE2 requests at least 16 GiB fresh free memory; Music3 at least
+proposed resource bounds. An admission ID is provenance, not lease proof.
+Core owner owns the external guardian: both physical-card leases, GPU UUID
+and resident admission, per-child process-group ownership, kernel telemetry,
+resource guards, a 900-second total and no retry. This supervisor's
+`subprocess.run` children inherit its process group; the external owner must
+establish the required ownership or invoke the three worker argument vectors
+directly. No alternate local lease mechanism is provided.
+
+YuE2 requests at least 16 GiB fresh free memory; Music3 at least
 26 GiB. The existing runtime guard retains its 6 GiB free reserve, thermal and
 host/NVMe checks. Each smoke window is capped at 900 seconds. Subsequent
 continuation to 20 updates and listening runs need separate renewed admission.
+
+The corrected frozen worker SHA256 is
+`019a56ef3475f2d876e6a3c0affee2c4029095d6e5e2bc92ada9ca2c8a4fa3ec`.
+It supersedes the worker in commit `90c17d0`. Final repair evidence is in
+`evidence/pg09-audio/live-worker-repair/source-receipt.json`: 29 release/worker
+checks, four native-width checks per runtime, six focused worker checks, and
+an exact serial supervisor CPU replay. These checks do not establish
+pretrained behavior or audio quality.

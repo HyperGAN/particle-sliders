@@ -1,10 +1,10 @@
 {
-  "status": "pending_core_owner_gpu_admission",
+  "status": "pending_external_core_owner_guardian_and_gpu_admission",
   "core_commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
   "pg_profile": "alz-continuous-v1",
   "penalty_input_domain": "continuous",
   "patch_sha256": "c6531a21f62fa96682f5aece517a6a862bb849ab971aa2766b3946b9a7543571",
-  "worker_sha256": "e19427dd9ebe44bc11a7b88b732ad5a97cea775be7c64bc3a2099ef8f40e97dc",
+  "worker_sha256": "019a56ef3475f2d876e6a3c0affee2c4029095d6e5e2bc92ada9ca2c8a4fa3ec",
   "supervisor_sha256": "0731a5ff71b6de639789bab84909612feb959bb1057c46dc663509a04ec8aec8",
   "resource_guard_sha256": "711249a0d9cc0a1f4b7982068f3b44e1d0c082426a65c7698d3266d53ec1a6c9",
   "maximum_total_wall_seconds": 900,
@@ -103,5 +103,15 @@
         "/mnt/nvme/sliders/audio-adapters-pg09-20261017/conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml"
       ]
     }
-  ]
+  ],
+  "supersedes_commit": "90c17d0badac7e6835886071f81422b9097edefd",
+  "external_guardian_requirements": [
+    "both physical-card leases",
+    "GPU UUID and resident admission",
+    "per-child process-group ownership across sequential children",
+    "kernel telemetry and resource guards",
+    "900 seconds total and no retry"
+  ],
+  "admission_id_is_lease_proof": false,
+  "supervisor_process_group_policy": "subprocess.run children inherit parent PGID; external owner must establish required ownership or invoke three worker argument vectors directly"
 }

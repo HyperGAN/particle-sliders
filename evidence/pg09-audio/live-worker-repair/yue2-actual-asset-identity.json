@@ -1,0 +1,17 @@
+{
+  "actual_directory": "/mnt/nvme/ai/caches/huggingface/music/hub/models--m-a-p--YuE2-3B/snapshots/14fc6c6f146441b1dd6363fcb2e01e82a6914cb7",
+  "actual_identity": {
+    "files": {
+      "model.safetensors": {
+        "sha256": "1d55c42c1a9875c34f5d736e15078449992b044e807ce2a138e6cf289a1e59e9",
+        "bytes": 7261441640
+      }
+    },
+    "config_sha256": "ad3477bbef890bf98ae196c1e4b44779494a6231c4ab66f32708eabadf265329"
+  },
+  "exact_manifest_match": true,
+  "elapsed_seconds": 10.616093584001646,
+  "loaded_weight_tensors": false,
+  "gpu_initialized": false,
+  "tokenizer_sha256": "b2b1b8dfb5cc5f024bafc373121c6aba3f66f9a5a0269e243470a1de16a33186"
+}
