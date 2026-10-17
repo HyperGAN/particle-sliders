@@ -222,6 +222,18 @@ def _validate_optimizer(optimizer, packet):
                                       or slots[name].shape != parameter.shape
                                       or slots[name].dtype != parameter.dtype):
                     raise ValueError('checkpoint optimizer tensor schema differs')
+                if name in ('exp_avg_sq', 'max_exp_avg_sq') and name in slots and (slots[name] < 0).any():
+                    raise ValueError('checkpoint optimizer second moment is negative')
+            if 'step' in slots:
+                count = slots['step']
+                if isinstance(count, torch.Tensor):
+                    if count.ndim != 0:
+                        raise ValueError('invalid checkpoint optimizer step count')
+                    count = count.item()
+                if (isinstance(count, bool) or not isinstance(count, (int, float))
+                        or (isinstance(count, float) and (not math.isfinite(count) or not count.is_integer()))
+                        or count < 0):
+                    raise ValueError('invalid checkpoint optimizer step count')
     if not packet['state'].keys() <= identifiers:
         raise ValueError('unknown checkpoint optimizer parameter history')
 
@@ -466,6 +478,7 @@ class ConditionalPG09:
             d_total.backward()
             self._require_finite_gradients(self.critic)
             self.opt_d.step()
+            self._require_finite_parameters(self.critic)
             self.opt_d.zero_grad(set_to_none=True)
             self.critic.requires_grad_(False)
             g_fake = g_real + (generated - g_target) / self.response_scale
@@ -481,6 +494,7 @@ class ConditionalPG09:
             constraint_geometry_backward(g_total, self.opt_g, (g_adv,))
             self._require_finite_gradients(self.network)
             self.opt_g.step()
+            self._require_finite_parameters(self.network)
         finally:
             for parameter, flag in zip(self.critic.parameters(), flags):
                 parameter.requires_grad_(flag)
@@ -500,6 +514,11 @@ class ConditionalPG09:
     def _require_finite_gradients(module):
         if any(p.grad is not None and not torch.isfinite(p.grad).all() for p in module.parameters()):
             raise FloatingPointError('nonfinite gradients')
+
+    @staticmethod
+    def _require_finite_parameters(module):
+        if any(not torch.isfinite(p).all() for p in module.parameters()):
+            raise FloatingPointError('nonfinite parameters after optimizer step')
 
     def state_dict(self):
         if self._export_loaded:

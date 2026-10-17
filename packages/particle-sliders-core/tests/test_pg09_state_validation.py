@@ -53,6 +53,68 @@ def test_restore_rejects_changed_update_law_before_mutation(preset, optimizer, s
 
 
 @pytest.mark.parametrize('preset', ['bispf', 'bispf_optimized'])
+@pytest.mark.parametrize('optimizer', ['opt_g', 'opt_d'])
+@pytest.mark.parametrize('moment', ['exp_avg_sq', 'max_exp_avg_sq'])
+def test_negative_second_moments_rejected_before_mutation(preset, optimizer, moment):
+    source = fixture(preset=preset)
+    source.step()
+    packet = source.state_dict()
+    key = packet[optimizer]['param_groups'][0]['params'][0]
+    parameter = getattr(source, optimizer).param_groups[0]['params'][0]
+    packet[optimizer]['state'][key][moment] = torch.full_like(parameter, -1.)
+    receiver = fixture(preset=preset)
+    before = receiver.state_dict()
+    with pytest.raises(ValueError, match='second moment is negative'):
+        receiver.load_state_dict(packet)
+    equal(before, receiver.state_dict())
+
+
+@pytest.mark.parametrize('preset', ['bispf', 'bispf_optimized'])
+@pytest.mark.parametrize('optimizer', ['opt_g', 'opt_d'])
+@pytest.mark.parametrize('step', [-1, torch.tensor(-1.), torch.tensor(.5),
+                                  torch.tensor(float('nan')), torch.tensor(float('inf')),
+                                  torch.ones(2), torch.tensor(True)])
+def test_invalid_optimizer_clocks_rejected_before_mutation(preset, optimizer, step):
+    source = fixture(preset=preset)
+    source.step()
+    packet = source.state_dict()
+    key = packet[optimizer]['param_groups'][0]['params'][0]
+    packet[optimizer]['state'][key]['step'] = step
+    receiver = fixture(preset=preset)
+    before = receiver.state_dict()
+    with pytest.raises(ValueError, match='optimizer|nonfinite'):
+        receiver.load_state_dict(packet)
+    equal(before, receiver.state_dict())
+
+
+@pytest.mark.parametrize('preset', ['bispf', 'bispf_optimized'])
+@pytest.mark.parametrize('optimizer,module', [('opt_g', 'network'), ('opt_d', 'critic')])
+def test_nonfinite_optimizer_result_marks_update_failed_before_completion(preset, optimizer, module, monkeypatch):
+    game = fixture(preset=preset)
+    update = getattr(game, optimizer)
+    original = update.step
+
+    def corrupt_after_update(*args, **kwargs):
+        result = original(*args, **kwargs)
+        with torch.no_grad():
+            next(getattr(game, module).parameters()).fill_(float('nan'))
+        return result
+
+    monkeypatch.setattr(update, 'step', corrupt_after_update)
+    with pytest.raises(FloatingPointError, match='nonfinite parameters after optimizer'):
+        game.step()
+    assert game._failed and game.completed_steps == 0
+    assert not any(int(counts.sum()) for counts in game.exposures.values())
+    assert all(parameter.requires_grad for parameter in game.critic.parameters())
+    with pytest.raises(RuntimeError, match='failed update'):
+        game.state_dict()
+    with pytest.raises(RuntimeError, match='failed update'):
+        game.export_state_dict()
+    with pytest.raises(RuntimeError, match='failed update'):
+        game.step()
+
+
+@pytest.mark.parametrize('preset', ['bispf', 'bispf_optimized'])
 def test_valid_optimizer_restore_preserves_snapshot_and_exact_next_update(preset):
     source = fixture(preset=preset)
     source.step()
