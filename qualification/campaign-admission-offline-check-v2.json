@@ -1,0 +1,59 @@
+{
+  "schema": "root-sequential-admission-offline-check-v2",
+  "recorded_utc": "2026-10-17T18:33:42.684298+00:00",
+  "active_moss": [
+    {
+      "recipe": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/qualification/moss-reruns/bad-intent-original-runtime-v2.json",
+      "recipe_sha256": "8baaf4ecdddc36da87a627f1cc72229e0db25550be6ebbec683ff10a4bda4882",
+      "source_pins_verified": 12
+    },
+    {
+      "recipe": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/qualification/moss-reruns/afterimage-original-runtime-v2.json",
+      "recipe_sha256": "1b9d734ad86910af2a903ad6d8b2ee39f0c19081b54138ea162cf332fa508553",
+      "source_pins_verified": 12
+    }
+  ],
+  "remaining_canonical_drafts": {
+    "source_pins_verified": 33,
+    "phase_vectors_verified": 9,
+    "independent_review_sha256": "d56cb3689e416ce464b4a670a493abc74d47ef85add49e7f8230b3e82458b122"
+  },
+  "image_actual_restricted_audit": {
+    "root_review": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/evidence/pg09-image-failure-campaigns/root-static-audit-v3/root-review.json",
+    "sha256": "d9c780c2d4e94c4a5216059caab8b1706bbfcfd3cfbc9365af3948e55bb73519",
+    "packets": 4,
+    "not_historical_draw_replay": true
+  },
+  "audio_new_renderer": {
+    "root_review": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/evidence/pg09-audio/next-phase-renderer-root-review/receipt.json",
+    "sha256": "210055c3462221bcd7c76a2354014158e9945d65dfaa569b6495c25107b0968f",
+    "cpu_tests": 16,
+    "pretrained_acoustic": false
+  },
+  "new_audio_guardian": {
+    "commit": "590f16dd",
+    "independent_cpu_tests": 44,
+    "scope": [
+      "Y20",
+      "M3S"
+    ],
+    "root_launch_card_created": false
+  },
+  "host_mem_available_kib": 44138908,
+  "filesystems": {
+    "/mnt/nvme/sliders": {
+      "device": 66306,
+      "available_bytes": 2120013127680
+    },
+    "/tmp": {
+      "device": 43,
+      "available_bytes": 11871846400
+    }
+  },
+  "input_tensor_payloads_opened": 0,
+  "native_model_imports": false,
+  "gpu_queries": false,
+  "process_control": false,
+  "new_phase_admission": false,
+  "automation": false
+}

@@ -52,5 +52,9 @@
     "Measured fullbudget resource/wall fit and completed matchedheldoutquality"
   ],
   "cumulative_case_wall": "FF7days/Supra6hours inclcontexts,loads,waiting,training,evaluation; no retry/extension",
-  "root_launch_card_created": false
+  "root_launch_card_created": false,
+  "independent_canonical_review_commit": "92c7a6865525f687d0062b35a88dda5a7567cd12",
+  "independent_canonical_source_pins_verified": 33,
+  "independent_canonical_phase_vectors_verified": 9,
+  "independent_canonical_import_attestation": "Actual stdlib worker/admission/binder import origins verified under heavy-module import blocker; core/backends source specs only. Live native import attestation pending."
 }

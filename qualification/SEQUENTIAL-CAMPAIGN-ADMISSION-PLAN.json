@@ -20,8 +20,8 @@
     "Full fixed budget and coverage before quality claim; exact matched heldouts/fruit/teacher controls, independent rawreceipt and visual/listening review"
   ],
   "offline_check": {
-    "path": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/qualification/campaign-admission-offline-check.json",
-    "sha256": "15e55a497c22348eddaa64391923496bb99c654b937ef408aac8754c79b0f156"
+    "path": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/qualification/campaign-admission-offline-check-v2.json",
+    "sha256": "ef416766cae1b3ddd7a9bec0ad840fef17f5d5e8b9ec2aaed0b698d6b7f208a3"
   },
   "stages": [
     {

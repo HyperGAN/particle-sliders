@@ -1,0 +1,28 @@
+{
+  "status": "PASS_STDLIB_ONLY_DRAFT_REVIEW_NOT_ADMISSION",
+  "drafts": 3,
+  "phase_vectors": 9,
+  "source_pins_verified": 33,
+  "actual_stdlib_import_origins": {
+    "conceptmod.textsliders.pg09_remaining_worker": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_remaining_worker.py",
+    "conceptmod.textsliders.pg09_remaining_admission": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_remaining_admission.py",
+    "conceptmod.textsliders.pg09_remaining_bind": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_remaining_bind.py"
+  },
+  "heavy_core_backend_resolution": "ModuleSpec paths/hash only; no heavy module execution",
+  "input_payloads_opened": 0,
+  "heavy_native_imports": 0,
+  "gpu_or_dispatch": false,
+  "draft_sha256": {
+    "supra-contexts.draft.json": "33bdc5f5b2b2114dd242013ba124f80e904d62a53acf8f62d89aa3f691731d51",
+    "final-form.draft.json": "c6875b3393b3463f7b89088b45385bee9058f36ac69d08a12fc49a847d830931",
+    "supra-final-boss.draft.json": "356d097dd6c00488849668b730812f338445a760b4c92b7c57d7054877fcf6ee",
+    "sequential-plan.json": "ac150343b48e278d9cc4a5a34ff49fff63e5cd6ad662b09568139f42ac9e3dc7"
+  },
+  "remaining": [
+    "Root guardian/priority receipt/leases/admission",
+    "19 Supra contexts and binding",
+    "Actual native import attestation/parity/resources",
+    "Fresh-process GPU disk resume",
+    "Adequate full budgets and matched quality"
+  ]
+}
