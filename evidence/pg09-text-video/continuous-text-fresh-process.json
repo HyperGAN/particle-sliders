@@ -1,0 +1,154 @@
+{
+  "qualification": "synthetic native-width CPU software gates only; no pretrained model admission",
+  "core_sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+  "cases": [
+    {
+      "family": "tiny",
+      "preset": "bispf",
+      "profile": "alz-continuous-v1",
+      "completed_steps": 4,
+      "response_shape": [
+        1,
+        1024
+      ],
+      "exact_losses": true,
+      "exact_full_state": true,
+      "exact_sample": true,
+      "evaluation_preserves_training_rng": true,
+      "cuda_initialized": false,
+      "implementation_sources": {
+        "particle_sliders.pg09": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+        "conceptmod.textsliders.pg09_text_video": "f70b9580bf63439ede3632db2839afbe79309ec002e19ea93a0c06a5f3cd6e79",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "test_pg09_text_video": "ae8d15742913eca5a7fd209c16a58e560479e9aee03674649893b60d5126dfa9",
+        "conceptmod.textsliders.tiny_llm_backend": "1462e04af8e037654a4ece6e5b1db7491ae5aa272f43dcb568447e13ef5acdf4",
+        "conceptmod.textsliders.tiny_llm_particle": "1482f554621f32ba3abe3c4d708a4773385b627922ce4a9f134b3834041b796f",
+        "torch.nn.modules.container": "2caff8043d111843e301e5b7086c303ed0e861780fced92a1eb3808461334cc5",
+        "torch.nn.modules.linear": "45aa464d373ca22cc2f063e25df64ed78f37bbf3ba4203e8220bd545920c45dd",
+        "torch.nn.modules.activation": "8b8076c9383f8faea0800e5312e6df32b0829a6fd9a149ae4dc9620d2d6885fd",
+        "conceptmod.textsliders.particle_bridge_gan": "738d50200ea5de9a9c4943b34474f862b06a9321cd78e6838196ef9b9d6993f0",
+        "torch.nn.modules.module": "0758af0e6a4214bc36707739c3e730d69c82fdec790eee6fb63e7eeb7518c492",
+        "torch.nn.modules.sparse": "4897b5402c35e49c830edaee1eacc1b1c3f802ddc8e7ddf4112a71c78bea81f5",
+        "torch.nn.modules.normalization": "fe394c3aea142534b8d93dbae3784c9183cd44ae2e83d70d8c6a15245aed061b"
+      },
+      "source_profile": "alz-continuous-v1",
+      "penalty_input_domain": "continuous",
+      "resolved_penalty_domain": "continuous"
+    },
+    {
+      "family": "tiny",
+      "preset": "bispf_optimized",
+      "profile": "alz-continuous-v1",
+      "completed_steps": 4,
+      "response_shape": [
+        1,
+        1024
+      ],
+      "exact_losses": true,
+      "exact_full_state": true,
+      "exact_sample": true,
+      "evaluation_preserves_training_rng": true,
+      "cuda_initialized": false,
+      "implementation_sources": {
+        "particle_sliders.pg09": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+        "conceptmod.textsliders.pg09_text_video": "f70b9580bf63439ede3632db2839afbe79309ec002e19ea93a0c06a5f3cd6e79",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "test_pg09_text_video": "ae8d15742913eca5a7fd209c16a58e560479e9aee03674649893b60d5126dfa9",
+        "conceptmod.textsliders.tiny_llm_backend": "1462e04af8e037654a4ece6e5b1db7491ae5aa272f43dcb568447e13ef5acdf4",
+        "conceptmod.textsliders.tiny_llm_particle": "1482f554621f32ba3abe3c4d708a4773385b627922ce4a9f134b3834041b796f",
+        "torch.nn.modules.container": "2caff8043d111843e301e5b7086c303ed0e861780fced92a1eb3808461334cc5",
+        "torch.nn.modules.linear": "45aa464d373ca22cc2f063e25df64ed78f37bbf3ba4203e8220bd545920c45dd",
+        "torch.nn.modules.activation": "8b8076c9383f8faea0800e5312e6df32b0829a6fd9a149ae4dc9620d2d6885fd",
+        "conceptmod.textsliders.particle_bridge_gan": "738d50200ea5de9a9c4943b34474f862b06a9321cd78e6838196ef9b9d6993f0",
+        "torch.nn.modules.module": "0758af0e6a4214bc36707739c3e730d69c82fdec790eee6fb63e7eeb7518c492",
+        "torch.nn.modules.sparse": "4897b5402c35e49c830edaee1eacc1b1c3f802ddc8e7ddf4112a71c78bea81f5",
+        "torch.nn.modules.normalization": "fe394c3aea142534b8d93dbae3784c9183cd44ae2e83d70d8c6a15245aed061b"
+      },
+      "source_profile": "alz-continuous-v1",
+      "penalty_input_domain": "continuous",
+      "resolved_penalty_domain": "continuous"
+    },
+    {
+      "family": "bonsai",
+      "preset": "bispf",
+      "profile": "alz-continuous-v1",
+      "completed_steps": 4,
+      "response_shape": [
+        1,
+        5120
+      ],
+      "exact_losses": true,
+      "exact_full_state": true,
+      "exact_sample": true,
+      "evaluation_preserves_training_rng": true,
+      "cuda_initialized": false,
+      "implementation_sources": {
+        "particle_sliders.pg09": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+        "conceptmod.textsliders.pg09_text_video": "f70b9580bf63439ede3632db2839afbe79309ec002e19ea93a0c06a5f3cd6e79",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "test_pg09_text_video": "ae8d15742913eca5a7fd209c16a58e560479e9aee03674649893b60d5126dfa9",
+        "conceptmod.textsliders.bonsai_gguf_backend": "bc83fa01340cc11efcb6ba4d7aaaddc05ce3a01a6ce1b086f933205358bfd84a",
+        "conceptmod.textsliders.bonsai_gguf_particle": "ff03e9f20223af9c58101c54b617b7d231aa787fea926dd5db3cea24245c4249",
+        "torch.nn.modules.container": "2caff8043d111843e301e5b7086c303ed0e861780fced92a1eb3808461334cc5",
+        "torch.nn.modules.linear": "45aa464d373ca22cc2f063e25df64ed78f37bbf3ba4203e8220bd545920c45dd",
+        "torch.nn.modules.activation": "8b8076c9383f8faea0800e5312e6df32b0829a6fd9a149ae4dc9620d2d6885fd",
+        "conceptmod.textsliders.particle_bridge_gan": "738d50200ea5de9a9c4943b34474f862b06a9321cd78e6838196ef9b9d6993f0"
+      },
+      "source_profile": "alz-continuous-v1",
+      "penalty_input_domain": "continuous",
+      "resolved_penalty_domain": "continuous"
+    },
+    {
+      "family": "bonsai",
+      "preset": "bispf_optimized",
+      "profile": "alz-continuous-v1",
+      "completed_steps": 4,
+      "response_shape": [
+        1,
+        5120
+      ],
+      "exact_losses": true,
+      "exact_full_state": true,
+      "exact_sample": true,
+      "evaluation_preserves_training_rng": true,
+      "cuda_initialized": false,
+      "implementation_sources": {
+        "particle_sliders.pg09": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+        "conceptmod.textsliders.pg09_text_video": "f70b9580bf63439ede3632db2839afbe79309ec002e19ea93a0c06a5f3cd6e79",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "test_pg09_text_video": "ae8d15742913eca5a7fd209c16a58e560479e9aee03674649893b60d5126dfa9",
+        "conceptmod.textsliders.bonsai_gguf_backend": "bc83fa01340cc11efcb6ba4d7aaaddc05ce3a01a6ce1b086f933205358bfd84a",
+        "conceptmod.textsliders.bonsai_gguf_particle": "ff03e9f20223af9c58101c54b617b7d231aa787fea926dd5db3cea24245c4249",
+        "torch.nn.modules.container": "2caff8043d111843e301e5b7086c303ed0e861780fced92a1eb3808461334cc5",
+        "torch.nn.modules.linear": "45aa464d373ca22cc2f063e25df64ed78f37bbf3ba4203e8220bd545920c45dd",
+        "torch.nn.modules.activation": "8b8076c9383f8faea0800e5312e6df32b0829a6fd9a149ae4dc9620d2d6885fd",
+        "conceptmod.textsliders.particle_bridge_gan": "738d50200ea5de9a9c4943b34474f862b06a9321cd78e6838196ef9b9d6993f0"
+      },
+      "source_profile": "alz-continuous-v1",
+      "penalty_input_domain": "continuous",
+      "resolved_penalty_domain": "continuous"
+    }
+  ],
+  "cross_profile_cases": [
+    {
+      "source": "release",
+      "destination": "alz-continuous-v1",
+      "profile": "alz-continuous-v1",
+      "cross_profile_rejected": true,
+      "live_state_unchanged": true,
+      "global_rng_unchanged": true,
+      "cuda_initialized": false
+    },
+    {
+      "source": "alz-continuous-v1",
+      "destination": "release",
+      "profile": "release",
+      "cross_profile_rejected": true,
+      "live_state_unchanged": true,
+      "global_rng_unchanged": true,
+      "cuda_initialized": false
+    }
+  ],
+  "installed_package_modified": false,
+  "pretrained_assets_loaded": false
+}
