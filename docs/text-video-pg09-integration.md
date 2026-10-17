@@ -1,5 +1,11 @@
 # Text/video shared PG 0.9 integration, 2026-10-17
 
+Historical initial integration receipt. Current explicit-profile adapters,
+independent LTX review, local staged assets and admitted real cached Bonsai
+results are recorded in [text-video-pg09-current-status.md](text-video-pg09-current-status.md).
+The original wide-domain and local-LTX-discovery blockers below describe the
+earlier release-only checkpoint, not the later explicit-profile qualification.
+
 Implemented in isolated checkout `/mnt/nvme/sliders/text-video-adapters-pg09-20261017`,
 branch `integration/text-video-pg09`, implementation commit
 `56c91a8` (adapters, tests, verifier), based on adapter commit
