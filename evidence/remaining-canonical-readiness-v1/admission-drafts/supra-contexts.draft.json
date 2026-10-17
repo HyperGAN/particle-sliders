@@ -1,0 +1,147 @@
+{
+  "schema": "remaining-pg09-worker-v1",
+  "case": "supra-final-boss",
+  "objective": "pg09_gan_only",
+  "preset": "bispf_optimized",
+  "sampling": "balanced",
+  "particles": null,
+  "total_steps": 28800,
+  "batch_size": 4,
+  "seed": 7,
+  "checkpoint_every": 400,
+  "response_scale": 0.32844100447280516,
+  "python": "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+  "hf_home": "/mnt/nvme/ai/caches/huggingface/main",
+  "versions": {
+    "torch": "2.11.0+cu128",
+    "diffusers": "0.40.0.dev0",
+    "transformers": "5.15.0"
+  },
+  "caps": {
+    "wall_seconds": 21600,
+    "phase_probe_seconds": 1800,
+    "phase_resume_seconds": 1800,
+    "phase_contexts_seconds": 1800,
+    "phase_evaluate_seconds": 7200,
+    "max_reserved_gib": 12,
+    "max_rss_gib": 8,
+    "output_gib": 8,
+    "admission_free_vram_gib": 18,
+    "admission_host_available_gib": 12
+  },
+  "cohort_id": "remaining-sequential-20261017-supra-final-boss-v1",
+  "cohort_root": "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/supra-final-boss/v1",
+  "output_directory": "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/supra-final-boss/v1/context-preparation",
+  "admission": "DRAFT_NOT_ADMITTED",
+  "physical_gpu": 0,
+  "lease_paths": [
+    "/mnt/nvme/sliders/qualification/admission-gpu-0.lock",
+    "/mnt/nvme/sliders/locks/gpu-0.lock"
+  ],
+  "owner_priority_gate": {
+    "path": "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/owner-priority-handoff.json",
+    "sha256": null
+  },
+  "source_pins": {
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_remaining_admission.py": "46e1f2f57aba8b89f99cbe2ff3da90faf37cf4e709ebaf92a17bd89b370da3c5",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_remaining_worker.py": "bbbea675b751158dbe804f8d02e9fd2a38d6b9d85707c78c800901009525e36e",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_remaining_bind.py": "7de9473a139de78b72742c5dc8f5f2fb14976c6ec5d74c77310dd4d6cff4491d",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_remaining_campaigns.py": "fcf8dcb6a2016a4083f1319d30b7c1402bcd06cbd290dee37a3bdf264cb2bac9",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_backends.py": "e540d77bf56810e2e2411fb5d0122de2a025cccfa8757671d9ea577c4d07e1fe",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_moss_campaign.py": "32f8f042d3a76af531b566e07c4048ec2557acb31cadcc8988ee0518dbc3d565",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_moss_worker.py": "f91d5958dd4cf52c26ea3c0f77dee290d4eff36625111bbba4e68ede82da5a18",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src/particle_sliders/pg09.py": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts/moss_original_runtime.py": "c251787e913d14853a6bea4f2cf6ffaa13ee0e89541bea85fb64271c8dfb1cfb",
+    "/mnt/nvme/sliders/qualification/checkouts/supra-product/supra/runtime.py": "9b56409101a8c674b29e02066ef0d6ed257f231d9aa68fef34a7197c445a151c",
+    "/mnt/nvme/sliders/qualification/checkouts/supra-product/vendor/particle-sliders/conceptmod/textsliders/supra_model.py": "640851f4570d0f9eacccac70022f06668ddf92dcf8629e978a76443db60acdc4"
+  },
+  "resource_guard": {
+    "path": "/mnt/nvme/sliders/qualification/ops-sana-kernel-fixed/music3_resources.py",
+    "sha256": "711249a0d9cc0a1f4b7982068f3b44e1d0c082426a65c7698d3266d53ec1a6c9"
+  },
+  "package_origins": {
+    "torch": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/torch/__init__.py",
+    "diffusers": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/__init__.py",
+    "transformers": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/transformers/__init__.py"
+  },
+  "package_source_sha256": {
+    "torch": "0387d8b811b289287479c8bfdf4e1dac3a71b246f938d82da1331cf2dc8bf001",
+    "diffusers": "f53f106e6741413a30fb3d55a894cc3bcb958093c2a7d8ee89d2365af26ebf56",
+    "transformers": "ac1684d5484a462b89782c5d94efdc6917500a05b9aa54ef910972eb0b74af37"
+  },
+  "resolved_recipe_sha256": "41b179d77accece75e246645bba8ac37a08f58b8e8c1924dbd703a7ce194f9e0",
+  "offline_review_path": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/evidence/remaining-sequential-v1/offline-review.json",
+  "offline_review_sha256": "81847d224bd7badfe7ce5fd6c2500bd8c5f797fe4b21a75fdf3e6ad0542244a5",
+  "expected_base_parameter_sha256": null,
+  "model_revision": "10dec6e4b4b5d1c44fd1d7d3fe5e50137333da5b",
+  "text_revision": "7bcac572ce56db69c1ea7c8af255c5d7c9672fc2",
+  "vae_revision": "31f26fdeee1355a5c34592e401dd41e45d25a493",
+  "config_path": "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/source/prompts-final-boss.yaml",
+  "config_canonical_sha256": "d32639ad9084f60d13faea1ef0e4d92b4bfc2e0420bc0fd15f4992c6270edd5b",
+  "teacher_cache": "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/teacher_cache.pt",
+  "teacher_cache_sha256": "1345e96be5d7999e8ebd752a695e184eb908a594156971c382be07eb4023e67c",
+  "logical_rows": 600,
+  "teacher_indices": [
+    0,
+    239
+  ],
+  "old_adapters": {
+    "MSE1600": {
+      "path": "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/final-boss-supra.safetensors",
+      "sha256": "38917cacef83f1f322284ae9faedf1c75948f6f8b07f8a8cef3f3e88892594c6",
+      "manifest": "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/final-boss-supra.json",
+      "manifest_sha256": "1366fa81c0b7ec0fe968be790164c09b4964c838a779c5cb7fa521e29ffe81c4",
+      "completed_steps": 1600
+    },
+    "MSE-selected27200": {
+      "path": "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/converged/final-boss-supra.safetensors",
+      "sha256": "05023616c6a8c874ada122e45ca4b0380510f6d4c901e63fea455d88e3972b8f",
+      "manifest": "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/converged/final-boss-supra.json",
+      "manifest_sha256": "fbd930de55263c1e8b2623c87061b5d3eef51f7a51b81eb2325f118f8a6979de",
+      "completed_steps": 27200
+    }
+  },
+  "contexts": {
+    "path": "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/supra-final-boss/v1/context-preparation/frozen-contexts.safetensors",
+    "sha256": null,
+    "receipt_sha256": null,
+    "preparation_phase_path": "/mnt/nvme/sliders/qualification/runs/remaining-pg09-sequential-v1/supra-final-boss/v1/context-preparation/phase.json",
+    "preparation_phase_sha256": null,
+    "case_budget_sha256": null,
+    "unique_prompts": 19
+  },
+  "model_assets": [
+    {
+      "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--SupraLabs--Supra2-IMG/snapshots/10dec6e4b4b5d1c44fd1d7d3fe5e50137333da5b/model_final_ema.pt",
+      "bytes": 416651529,
+      "prior_verified_sha256": "e96aa0537e0fd120af82b3a606dd50c90ae079ac7aa97b38a8da4882daeeee48",
+      "weight_bytes_opened": false,
+      "sha_reverified": false
+    },
+    {
+      "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--google--flan-t5-base/snapshots/7bcac572ce56db69c1ea7c8af255c5d7c9672fc2/model.safetensors",
+      "bytes": 990345061,
+      "prior_verified_sha256": "1dfb70afdcedceb9f9fae2f9b68e004ad934361fb35b9b2bd50b45ea90790fc8",
+      "weight_bytes_opened": false,
+      "sha_reverified": false
+    },
+    {
+      "path": "/mnt/nvme/ai/caches/huggingface/main/hub/models--stabilityai--sd-vae-ft-mse/snapshots/31f26fdeee1355a5c34592e401dd41e45d25a493/diffusion_pytorch_model.safetensors",
+      "bytes": 334643276,
+      "prior_verified_sha256": "a1d993488569e928462932c8c38a0760b874d166399b14414135bd9c42df5815",
+      "weight_bytes_opened": false,
+      "sha_reverified": false
+    }
+  ],
+  "input_sha256": {
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/evidence/remaining-sequential-v1/offline-review.json": "81847d224bd7badfe7ce5fd6c2500bd8c5f797fe4b21a75fdf3e6ad0542244a5",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/source/prompts-final-boss.yaml": "7ca91dbfbd269b5d8ca1bb5baf428d104c0afd26a2ff85bc1c3e8b824232ed61",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/recipe.json": "eca04168995a4dbf375735a58044a06faca9cd893b377ddc9ac09ac585b8101f",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/teacher_cache.pt": "1345e96be5d7999e8ebd752a695e184eb908a594156971c382be07eb4023e67c",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/converged/validation_cache.pt": "56abdd25fcb999a65ba440302281916859946493fab32f4a6abafb693a924b80",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/final-boss-supra.safetensors": "38917cacef83f1f322284ae9faedf1c75948f6f8b07f8a8cef3f3e88892594c6",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/benchmark/final-boss-supra.json": "1366fa81c0b7ec0fe968be790164c09b4964c838a779c5cb7fa521e29ffe81c4",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/converged/final-boss-supra.safetensors": "05023616c6a8c874ada122e45ca4b0380510f6d4c901e63fea455d88e3972b8f",
+    "/mnt/nvme/sliders/qualification/runs/supra-final-boss-20261017/converged/final-boss-supra.json": "fbd930de55263c1e8b2623c87061b5d3eef51f7a51b81eb2325f118f8a6979de"
+  }
+}

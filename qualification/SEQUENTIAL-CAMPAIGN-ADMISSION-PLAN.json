@@ -1,7 +1,7 @@
 {
   "schema": "root-sequential-corrected-campaign-plan-v1",
   "status": "PLANNING_ONLY_NO_DISPATCH",
-  "recorded_utc": "2026-10-17T18:30:16.832340+00:00",
+  "recorded_utc": "2026-10-17T18:32:11.146626+00:00",
   "parent_scope": "FinishsafeCPU/offlinevalidation and explicitsequentialadmissionplan; bothMOSS retainpriority; noautomation.",
   "user_scope_authorized": true,
   "new_gpu_admissions_granted": false,
@@ -71,13 +71,13 @@
     {
       "order": 2,
       "id": "final-form",
-      "status": "IMPLEMENTATION_AND_CAPACITY_PENDING",
+      "status": "CPU_IMPLEMENTED_GUARDIAN_NATIVE_QUALIFICATION_AND_CAPACITY_PENDING",
       "user_scope_authorized": true,
       "launch_now": false,
       "preferred_gpu": 0,
       "offline": "384trainbundles/15360signedrows audited; scale0.2522578997899252; nativeTorch2.9.1/releasePG0.9.",
       "missing": [
-        "New case-specific worker/phasecard binding actualMSE200/254, not existing2case1600 restriction",
+        "Root phase-specific guardian/card/priority and actual NVMe/lease/phase proof controls; no rootlaunchcard created",
         "Actualimport pins and loader/native frozen-cache+grad parity",
         "Separateprocess GPU file-resume and memory/timing qualification"
       ],
@@ -91,21 +91,22 @@
       "full_wall_cap_seconds": 604800,
       "resource_rule": "First unknown/model phase requires>=36GiB fresh free onGPU0; native measuredprobe must fit freefloor6GiB and host8GiB reserve. Fullbudgetwallforecast reviewed before admission.",
       "command_vector": null,
-      "command_missing_reason": "New isolated worker/card under CPU implementation; no executable approved yet.",
-      "worker_shell_review": "Immutable77b5ca9 adds17files/25CPUtests; independent proof schema/from2/verified3/PID rejection gap requires source repair before canonical draft generation. No live dispatch."
+      "command_missing_reason": "Exact canonical draft commands exist but are non-dispatchable: owner priority receipt, reviewed rootphasecard/guardian/lease proofs/resources pending; Supra contexts additionally missing.",
+      "worker_shell_review": "71388b62+e9797fdf new files integrated;59root+59independentCPUtests pass; exact proof-schema/2to3/PID gates repaired; canonical3draftsourcepins33/33 match;9unexecutedphasecommands. No native/GPU admission.",
+      "draft_commands": "evidence/remaining-canonical-readiness-v1/admission-drafts/sequential-plan.json"
     },
     {
       "order": 3,
       "id": "supra-final-boss",
-      "status": "MISSING_CONTEXT_ASSET_AND_IMPLEMENTATION",
+      "status": "CPU_IMPLEMENTED_GUARDIAN_NATIVE_QUALIFICATION_AND_CAPACITY_PENDING",
       "user_scope_authorized": true,
       "launch_now": false,
       "preferred_gpu": 0,
       "hf_home": "/mnt/nvme/ai/caches/huggingface/main",
       "offline": "Native model/T5/VAE revisions and cache manifests local;240edit+30hold cachedresponses; scale0.32844100447280516.",
       "missing": [
+        "Root phase-specific guardian/card/priority and actual NVMe/lease/phase proof controls; no rootlaunchcard created",
         "19required contexts notarchived; genuine nativeT5/storedunconditional export required",
-        "New source-bound context worker +training/checkpoint/render shells",
         "Frozen batchedCFG2 versus splitbranch arithmetic parity and native CUDA-noise provenance"
       ],
       "phases": [
@@ -119,8 +120,9 @@
       "training_wall_cap_seconds": 21600,
       "budget_rule": "Full28800 must fit measured6h hardcap includingcheckpoint cost; if not, STOP and report, no shortening/extension.",
       "command_vector": null,
-      "command_missing_reason": "Shells +frozencontextasset notyetready; no launch card.",
-      "worker_shell_review": "Immutable77b5ca9 adds17files/25CPUtests; independent proof schema/from2/verified3/PID rejection gap requires source repair before canonical draft generation. No live dispatch."
+      "command_missing_reason": "Exact canonical draft commands exist but are non-dispatchable: owner priority receipt, reviewed rootphasecard/guardian/lease proofs/resources pending; Supra contexts additionally missing.",
+      "worker_shell_review": "71388b62+e9797fdf new files integrated;59root+59independentCPUtests pass; exact proof-schema/2to3/PID gates repaired; canonical3draftsourcepins33/33 match;9unexecutedphasecommands. No native/GPU admission.",
+      "draft_commands": "evidence/remaining-canonical-readiness-v1/admission-drafts/sequential-plan.json"
     },
     {
       "order": 4,

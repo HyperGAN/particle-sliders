@@ -1,0 +1,56 @@
+{
+  "schema": "root-remaining-canonical-readiness-v1",
+  "recorded_utc": "2026-10-17T18:32:11.145913+00:00",
+  "owner_shell_commit": "77b5ca9e3c62f263dc4afb2d07b19bee99a27ddb",
+  "owner_repair_commit": "da36b48832e435d297cd8c7d02843eafe96cc1e6",
+  "canonical_shell_commit": "71388b62",
+  "canonical_repair_commit": "e9797fdf",
+  "worker_sha256": "bbbea675b751158dbe804f8d02e9fd2a38d6b9d85707c78c800901009525e36e",
+  "root_cpu_tests": 59,
+  "root_cpu_seconds": 6.68,
+  "skipped": 0,
+  "independent_qa_commit": "ffd8207f6e5395d21421eece27d8afdbb5226054",
+  "independent_cpu_tests": 59,
+  "proof_schema_findings": "Closed: exact schema, strictly typed2to3 and distinct positive int PIDs before checkpoint access",
+  "drafts": {
+    "supra-contexts.draft.json": {
+      "sha256": "33bdc5f5b2b2114dd242013ba124f80e904d62a53acf8f62d89aa3f691731d51",
+      "source_pins": 11,
+      "source_pins_match": true,
+      "pending_priority": true,
+      "pending_root_admission": true
+    },
+    "final-form.draft.json": {
+      "sha256": "c6875b3393b3463f7b89088b45385bee9058f36ac69d08a12fc49a847d830931",
+      "source_pins": 11,
+      "source_pins_match": true,
+      "pending_priority": true,
+      "pending_root_admission": true
+    },
+    "supra-final-boss.draft.json": {
+      "sha256": "356d097dd6c00488849668b730812f338445a760b4c92b7c57d7054877fcf6ee",
+      "source_pins": 11,
+      "source_pins_match": true,
+      "pending_priority": true,
+      "pending_root_admission": true
+    }
+  },
+  "phase_commands": 9,
+  "phase_commands_executed": 0,
+  "status": "CPU_INTEGRATED_DRAFTS_NOT_ADMITTED",
+  "active_moss_source_pins": {
+    "bad-intent-original-runtime-v2.json": 12,
+    "afterimage-original-runtime-v2.json": 12
+  },
+  "optimized_loss": "SharedConditionalPG09 only; no copied GAN loop or optimized MSE",
+  "scope": "Synthetic CPU fixture model/optimizer steps and small existing cache/metadata proposal generation; no pretrained weights/native forward/T5/GPU or live dispatch",
+  "remaining": [
+    "Root phase-specific guardian and source/card/priority/checkpoint proof before any native load",
+    "All MOSS3840 training and matched evaluations retain priority",
+    "Supra19derived native contexts remain missing; separately admit<=19encodes then owner stop/review/offline binder",
+    "Native CUDAnoise/teacher/grad/CFG/decoder parity and separate-process GPU diskresume",
+    "Measured fullbudget resource/wall fit and completed matchedheldoutquality"
+  ],
+  "cumulative_case_wall": "FF7days/Supra6hours inclcontexts,loads,waiting,training,evaluation; no retry/extension",
+  "root_launch_card_created": false
+}
