@@ -1,0 +1,48 @@
+{
+  "discovered_utc": "2026-10-17T16:07:55.296303+00:00",
+  "discovery_endpoint": "https://api.github.com/users/HyperGAN/repos?per_page=100",
+  "page_counts": [
+    20,
+    0
+  ],
+  "audio_products": [
+    {
+      "repository": "HyperGAN/music3-particle-sliders",
+      "default_branch": "main",
+      "clone_url": "https://github.com/HyperGAN/music3-particle-sliders.git",
+      "description": "Music 3 particle sliders \u2014 product repo (Anima/Krea2 pattern); shared particle-sliders-core",
+      "inspected_head": "b40d2aa6fed745eda3043d3d3b11e362ec2f8dfe"
+    },
+    {
+      "repository": "HyperGAN/yue2-particle-sliders",
+      "default_branch": "main",
+      "clone_url": "https://github.com/HyperGAN/yue2-particle-sliders.git",
+      "description": "YuE2 particle sliders \u2014 product repo (Anima/Krea2 pattern); shared particle-sliders-core",
+      "inspected_head": "b33794d81b92c125891a011531f55554d65e2082"
+    }
+  ],
+  "additional_audio_particle_sliders_found": false,
+  "related_shared_source": {
+    "repository": "HyperGAN/particle-sliders",
+    "original_adapter_base": "92f6e3f",
+    "common_helper_original": "ec34e4ecc68aedc88bb5cd44a96d4bd78af99fa9",
+    "common_helper_cherry_pick": "fbf97b3557779d97cb06a9c1b3194abcb5c21a82",
+    "frozen_core": "ec234e184676c46060ecbf6122df0e7b726f45a7"
+  },
+  "decisions": {
+    "yue2": "native AR2048 continuous response blocked; tiny32 software binding qualified",
+    "music3": "native Qwen3 AR4096 continuous response blocked; product live skeleton; tiny32 native binding qualified",
+    "other_music3_hosts": "no completed product live host binding; no silent host substitution"
+  },
+  "models": {
+    "yue2": {
+      "revision": "14fc6c6f146441b1dd6363fcb2e01e82a6914cb7",
+      "hidden_size": 2048,
+      "runtime_revision": "ef1936f2ee39fe8de486a0f47a481c95f8d4da87"
+    },
+    "music3": {
+      "revision": "bd348f9c49ea3c1b39f33ace3436f8fad435f24e",
+      "hidden_size": 4096
+    }
+  }
+}
