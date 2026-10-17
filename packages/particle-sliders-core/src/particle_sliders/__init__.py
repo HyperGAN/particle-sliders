@@ -8,6 +8,7 @@ from ParticleGAN #38 when that search crowns a full live-leaderboard winner.
 GAN primitives (cap, RpGAN loss, particle VIC) come from the ``particlegan``
 develop API; gmix architecture stays in this package.
 """
+from .attach import Conv1dBinding, ConvAttachment
 from .distillation import fit_routed_down
 from .endpoint_game import EndpointGame, endpoint_terms, teacher_poles
 from .formulation_game import FormulationGame, dummy_features, run_formulation_game
@@ -35,6 +36,8 @@ from .reference import (
 __version__ = "0.3.0"
 
 __all__ = [
+    "Conv1dBinding",
+    "ConvAttachment",
     "EndpointGame",
     "FormulationGame",
     "GlobalMixErrorCritic",

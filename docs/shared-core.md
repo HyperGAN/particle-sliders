@@ -22,7 +22,7 @@ flowchart TB
 |---|---|---|
 | Architecture | `gmix_architecture()` | Routed particles and a global-mix critic. Fixed product structure |
 | Formulation | `winning_formulation()` | Gmix plus `CURRENT_FORMULATION`. Parameters are provisional until ParticleGAN #38 crowns a full live leaderboard winner (9 toys × 29 bounds). Call `require()`; bump the pin when the overlay changes |
-| Particle adapter | Soft routing and bottleneck MLP | Projection names, hooks, strength controls |
+| Particle adapter | Soft routing and bottleneck MLP. `stamp.attach` binds `nn.Conv1d` and pools it to `adapter_rank`; the game still uses `RoutedMLP` | Projection names, hooks, strength controls |
 | Learning | Paired losses, global-mix critic, VIC, noise; ParticleGAN `GradientPenalty` / `GANLoss` / `ParticleRegularizer` (alias `GradRegularizer`) | Frozen targets, optimizer step sizes on `model_surface_keys`, update loop |
 | Named callables | `gmix_architecture()`, `particle_gmix_1600_v2()`, `locked_shared_recipe()` | Architecture stays gmix. `particle_gmix_1600_v2` is the provisional parameter overlay. `locked_shared` is an endpoint recipe, not the product architecture |
 | Ordinary LoRA fitting | Dual ridge solve | Activation capture, calibration budget, export names |

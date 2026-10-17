@@ -36,6 +36,8 @@ class FormulationGame:
 
     ``features`` must be ``[batch, adapter_rank]``. The product owns how those
     features are produced (velocity edit, prompt projection, whitened residual).
+    An ``nn.Conv1d`` host uses ``stamp.attach``; the pooled features and the
+    existing ``RoutedMLP`` still come through this step.
     Particles and the routed bridge live here unless the product passes its own.
     """
 
