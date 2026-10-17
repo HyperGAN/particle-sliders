@@ -25,12 +25,12 @@
     "bad-intent": {
       "step": 260,
       "progress_utc": "2026-10-17T18:47:27.621177+00:00",
-      "status": "stopped",
-      "next_regular_checkpoint": 320,
-      "eta320_minutes": 21.5122
+      "status": "guard-stopped260_safe",
+      "next_regular_checkpoint": null,
+      "eta320_minutes": null
     },
     "afterimage": {
-      "step": 259,
+      "step": 266,
       "progress_utc": "2026-10-17T18:48:02.800573+00:00",
       "status": "training",
       "next_regular_checkpoint": 320,
@@ -104,7 +104,11 @@
     "IndependentQA criterion/source review",
     "Freshownedprocess/lease/UUID/kernel/resource checks and actualfileproof"
   ],
-  "first_panel_eta": "Regularcheckpoint320 about20minutes fromsnapshot; nativecontext/previewtime unmeasured. Allow30-60minutes afterready checkpoint/pause, conditionalonnewcodeQA andresourcegates.",
+  "first_panel_eta": "ImmutableBI260 is available NOW afterguardstop. Actualcontext/preview requiresnewsource+CPUQA/card; nativeencoding/renderunmeasured. Targetfirstpanel30-60minutes afterworker/cardqualification, noGPUlaunchbeforefreshresources.",
   "automatic_retry": false,
-  "automation": false
+  "automation": false,
+  "first_candidate": {
+    "bad_intent": 260,
+    "afterimage": "latestimmutablecheckpoint atpaneladmission; otherGPUmaycontinuetraining"
+  }
 }

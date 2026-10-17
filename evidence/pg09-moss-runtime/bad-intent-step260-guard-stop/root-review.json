@@ -1,0 +1,41 @@
+{
+  "schema": "root-moss-guard-stop-review-v1",
+  "recorded_utc": "2026-10-17T18:50:32.980673+00:00",
+  "case": "bad-intent",
+  "step": 260,
+  "reason": "RuntimeError('new unowned GPU process observed')",
+  "owner_intentional_pause": false,
+  "root_sent_signal": false,
+  "root_new_cuda_launch": false,
+  "worker_exit_code": 0,
+  "full_checkpoint_checksum_verified": true,
+  "checkpoint_state_sha256": "c661d849c731eae00244c1bf6fba6d297b51882b1a08f5fdf5151f0179d4beda",
+  "frozen_base_unchanged": true,
+  "exposures_each": 2080,
+  "old_guardian_receipt_preserved": true,
+  "automatic_retry": false,
+  "transient_process_identity": "Not recorded in originalguardianerror; absent in subsequent read-only NVMLsnapshot. Do not attribute to ALZ or another owner without evidence.",
+  "subsequent_read_only_nvml": {
+    "gpu0": {
+      "residents": [
+        5556,
+        9450
+      ],
+      "free_mib": 46858,
+      "temperature_c": 51,
+      "power_w": 25.01
+    },
+    "gpu1": {
+      "processes": [
+        3196,
+        1149912
+      ],
+      "free_mib": 17220,
+      "temperature_c": 74,
+      "power_w": 224.57
+    }
+  },
+  "next_action": "New source-reviewed quality-preview card may use immutable260 afterfreshleases/resources. Resumption from260 only throughnew reviewed disk-proof workflow; no implicitrestart.",
+  "user_authorized_quality_stopping": true,
+  "quality_qualified": false
+}

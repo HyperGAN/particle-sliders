@@ -1,0 +1,91 @@
+{
+  "schema": "moss-pg09-admission-v1",
+  "phase": "train",
+  "concept": "bad-intent",
+  "recipe_sha256": "f4ca175543f01b02801d459c626a7b0081b9ad34add1808ba81a489163e2bb67",
+  "recipe_path": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/qualification/moss-reruns/bad-intent-original-runtime-v2.json",
+  "objective": "pg09_gan_only",
+  "command": [
+    "/mnt/nvme/sliders/moss-image-sliders/.venv/bin/python",
+    "-u",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts/moss_original_runtime.py",
+    "--recipe",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/qualification/moss-reruns/bad-intent-original-runtime-v2.json",
+    "--output",
+    "/mnt/nvme/sliders/qualification/runs/moss-pg09-original-runtime-v2-20261017/bad-intent",
+    "--mode",
+    "train",
+    "--lease-fd",
+    "3",
+    "--lease-fd",
+    "4"
+  ],
+  "physical_gpu": 0,
+  "uuid": "GPU-72c1b506-891d-b8bc-b353-e020585e1c47",
+  "initial": {
+    "temperature_c": 49.0,
+    "gpu_free_mib": 46853.0,
+    "power_w": 24.91,
+    "power_limit_w": 225.0,
+    "host_free_mib": 31763.3828125,
+    "disk_free_gib": 1974.848487854004
+  },
+  "lease_paths": [
+    "/mnt/nvme/sliders/qualification/admission-gpu-0.lock",
+    "/mnt/nvme/sliders/locks/gpu-0.lock"
+  ],
+  "status": "failed_no_retry",
+  "telemetry": [
+    {
+      "temperature_c": 72.0,
+      "gpu_free_mib": 32719.0,
+      "power_w": 224.39,
+      "power_limit_w": 225.0,
+      "host_free_mib": 42780.18359375,
+      "disk_free_gib": 1974.3804473876953,
+      "elapsed_seconds": 5563.977684259415
+    },
+    {
+      "temperature_c": 71.0,
+      "gpu_free_mib": 32680.0,
+      "power_w": 224.37,
+      "power_limit_w": 225.0,
+      "host_free_mib": 42680.6796875,
+      "disk_free_gib": 1974.3804473876953,
+      "elapsed_seconds": 5566.0562064647675
+    },
+    {
+      "temperature_c": 71.0,
+      "gpu_free_mib": 32686.0,
+      "power_w": 219.93,
+      "power_limit_w": 225.0,
+      "host_free_mib": 42649.16015625,
+      "disk_free_gib": 1974.3804397583008,
+      "elapsed_seconds": 5568.14107632637
+    },
+    {
+      "temperature_c": 72.0,
+      "gpu_free_mib": 32644.0,
+      "power_w": 221.49,
+      "power_limit_w": 225.0,
+      "host_free_mib": 42971.85546875,
+      "disk_free_gib": 1974.3804321289062,
+      "elapsed_seconds": 5570.223256826401
+    },
+    {
+      "temperature_c": 72.0,
+      "gpu_free_mib": 32699.0,
+      "power_w": 224.43,
+      "power_limit_w": 225.0,
+      "host_free_mib": 42835.8671875,
+      "disk_free_gib": 1974.3804321289062,
+      "elapsed_seconds": 5572.310817241669
+    }
+  ],
+  "mse_hold_preserved": true,
+  "started_utc": "2026-10-17T17:14:10.620098+00:00",
+  "pid": 1120571,
+  "error": "RuntimeError('new unowned GPU process observed')",
+  "elapsed_seconds": 5603.912197828293,
+  "exit_code": 0
+}

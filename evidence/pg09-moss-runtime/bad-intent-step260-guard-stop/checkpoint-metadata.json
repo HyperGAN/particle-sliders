@@ -1,0 +1,7 @@
+{
+  "schema": "moss-pg09-worker-checkpoint-v1",
+  "step": 260,
+  "recipe_sha256": "f4ca175543f01b02801d459c626a7b0081b9ad34add1808ba81a489163e2bb67",
+  "frozen_base_sha256": "394b0dad3cc89f63c0a0cc6b1420316e496494973dc4c9b17d730e91fcf371d7",
+  "state_sha256": "c661d849c731eae00244c1bf6fba6d297b51882b1a08f5fdf5151f0179d4beda"
+}
