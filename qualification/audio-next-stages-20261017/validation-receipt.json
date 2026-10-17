@@ -1,0 +1,34 @@
+{
+  "status": "CPU_PROPOSAL_VALIDATION_PASSED",
+  "phases": [
+    {
+      "phase": "Y20",
+      "status": "PROPOSED_NOT_ADMITTED",
+      "output_absent": true,
+      "command_frozen": true
+    },
+    {
+      "phase": "YR0",
+      "status": "PROPOSED_NOT_ADMITTED",
+      "output_absent": true,
+      "command_frozen": false
+    },
+    {
+      "phase": "YR1",
+      "status": "PROPOSED_NOT_ADMITTED",
+      "output_absent": true,
+      "command_frozen": false
+    },
+    {
+      "phase": "M3S",
+      "status": "PROPOSED_NOT_ADMITTED",
+      "output_absent": true,
+      "command_frozen": true
+    }
+  ],
+  "source_files_rehashed": 37,
+  "asset_bytes_independently_verified_in_receipt": 36312138722,
+  "model_tensors_loaded": false,
+  "gpu_actions": false,
+  "dispatch": false
+}

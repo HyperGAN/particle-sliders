@@ -1,0 +1,203 @@
+{
+  "status": "actual_existing_bytes_verified",
+  "families": {
+    "yue2": {
+      "manifest_path": "/mnt/nvme/sliders/qualification/models/yue2-cached/qualification-manifest.json",
+      "manifest_sha256": "8179fd4e4bb1c5d3cd49a0e9d48ede76269561f1001d611ea6a64e37bdd1eb20",
+      "files": [
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/music/hub/models--m-a-p--YuE2-3B/snapshots/14fc6c6f146441b1dd6363fcb2e01e82a6914cb7/model.safetensors",
+          "bytes": 7261441640,
+          "sha256": "1d55c42c1a9875c34f5d736e15078449992b044e807ce2a138e6cf289a1e59e9",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/music/hub/models--m-a-p--YuE2-3B/snapshots/14fc6c6f146441b1dd6363fcb2e01e82a6914cb7/config.json",
+          "bytes": 959,
+          "sha256": "ad3477bbef890bf98ae196c1e4b44779494a6231c4ab66f32708eabadf265329",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/music/hub/models--m-a-p--YuE2-Vae/snapshots/9a94e1d0ea9f8087e98f77fa88df4a4068104d2a/model.safetensors",
+          "bytes": 530512720,
+          "sha256": "807ce9d5149fa27c5ad3e6582058469852e908f6c5acc8c8aa338e7ab7751346",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/music/hub/models--m-a-p--YuE2-Vae/snapshots/9a94e1d0ea9f8087e98f77fa88df4a4068104d2a/config.json",
+          "bytes": 1378,
+          "sha256": "f0191bb9694009956de44e0c361a6f1334760be4c8f848e599bde242a54a0970",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/ai/caches/huggingface/music/hub/models--m-a-p--YuE2-3B/snapshots/14fc6c6f146441b1dd6363fcb2e01e82a6914cb7/qwen.tiktoken",
+          "bytes": 2561218,
+          "sha256": "b2b1b8dfb5cc5f024bafc373121c6aba3f66f9a5a0269e243470a1de16a33186",
+          "verified": true
+        }
+      ],
+      "total_bytes": 7794517915
+    },
+    "music3": {
+      "manifest_path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/qualification-manifest.json",
+      "manifest_sha256": "6f08547501d9d38294c91131d22b162fc5d04c683dd258d3b408522558ced7f2",
+      "files": [
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/condition_encoder/config.json",
+          "bytes": 292,
+          "sha256": "1cdea3f36506719128ae4a29cdfff74b1134e607eb4a504ce6d810568fac8263",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/condition_encoder/diffusion_pytorch_model.safetensors",
+          "bytes": 100671852,
+          "sha256": "83179c5eaa9a68a370affe0c1b96c2179f659ea4175666b31071490a202c2a4d",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/language_model/config.json",
+          "bytes": 1596,
+          "sha256": "34ded58fcd5e8181557f1417e76af9f3e95109a5ce113a4771fd16f8625b53c0",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/language_model/generation_config.json",
+          "bytes": 158,
+          "sha256": "c0f7c1612e174a7bdec9548464a7bf031a0292587033228e6767fb9e5dc367cd",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/language_model/model-00001-of-00004.safetensors",
+          "bytes": 4910103856,
+          "sha256": "1e95924a158b45b67cfad04fa0f0a352e5a263e69338734d7c1d558be776cc98",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/language_model/model-00002-of-00004.safetensors",
+          "bytes": 4915960352,
+          "sha256": "fde2d335eef7eafa268d35e53d4b040ee51d2f3fa727f9855b4c97d88a2892da",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/language_model/model-00003-of-00004.safetensors",
+          "bytes": 4983068496,
+          "sha256": "6549a831637ab678a573047e7fa8fdf966998c4f45330e6eb7573d67f7b9b4c6",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/language_model/model-00004-of-00004.safetensors",
+          "bytes": 2359864688,
+          "sha256": "a1c9865f357b64d3ae9f428fb98a844831e5a0aee9ed17b19bd7f7be32b964a9",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/language_model/model.safetensors.index.json",
+          "bytes": 32914,
+          "sha256": "a8bf9de1e8c0d680f39730a127d74445b4abf505623bd91d5ed4f97c0869cc2a",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/rvq_depth_decoder/config.json",
+          "bytes": 274,
+          "sha256": "b38c7f72d4b2fa8667442071f9e4a63ca5a7b5d0859e5e64ee7f79c4bc64520c",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/rvq_depth_decoder/diffusion_pytorch_model.safetensors",
+          "bytes": 1292055248,
+          "sha256": "80e86ab006bb5c8d4f223205045035a1c77b2bb9c3be9a86d7e740bbafe5ddf0",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/scheduler/scheduler_config.json",
+          "bytes": 483,
+          "sha256": "b544466124aab333da4874417da0168610067e9c9ff95fcb63d749e4bf891d99",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/tokenizer/chat_template.jinja",
+          "bytes": 4168,
+          "sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/tokenizer/tokenizer.json",
+          "bytes": 11423801,
+          "sha256": "b1537fa9e59a537276ecbc2e12d0438edff635a1f4a4948e679774b5feb3e610",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/tokenizer/tokenizer_config.json",
+          "bytes": 377,
+          "sha256": "1689852cc9c45010de040c8302a8acdc0d2c4c6c740dd7e9dd0a8c704e16eada",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/transformer/config.json",
+          "bytes": 294,
+          "sha256": "f60856be934127a8b8223510aff2e38a9efd8bbdbc230c3d3339b96e2cb12f00",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/transformer/diffusion_pytorch_model-00001-of-00002.safetensors",
+          "bytes": 4959921384,
+          "sha256": "1943baebe93b5d5a57e9e1f603d9cef51a73a55e7a42f52913932dc06dcf10f0",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/transformer/diffusion_pytorch_model-00002-of-00002.safetensors",
+          "bytes": 4767750800,
+          "sha256": "b2f9e29d241e107e5a281f8b369d6db48eee983917df966c56d7b8dd0bd482c2",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/transformer/diffusion_pytorch_model.safetensors.index.json",
+          "bytes": 42679,
+          "sha256": "5a57fc3b98e91ec7f4e9da199b3dc8ce1c67e42824c42bed91c15443c049b991",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/vocoder/config.json",
+          "bytes": 251,
+          "sha256": "4161afd07ba7d5b949e29c8a7a005592259fba73e9110b6ece9dfd38d3489eac",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/vocoder/diffusion_pytorch_model.safetensors",
+          "bytes": 216695272,
+          "sha256": "daf0bf0560ea978ce7b5ec3e82f420a44429efef18bdfbe3c714d55ceffbe934",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/config.json",
+          "bytes": 107,
+          "sha256": "1ffcff67d916d5519d1ef9a36853232ee6bcb7e14a936623c4e85559f5dce106",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/modular_model_index.json",
+          "bytes": 2391,
+          "sha256": "1dc86609cf8855e70cc3f5d085213988094fb59e448aedcda06740d34e386002",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/LICENSE",
+          "bytes": 7373,
+          "sha256": "b21d12df2adae59dad3fcf80c1d81492654c662342f497d9a9770198c9317e58",
+          "verified": true
+        },
+        {
+          "path": "/mnt/nvme/sliders/qualification/models/music3-bd348f9/README.md",
+          "bytes": 11701,
+          "sha256": "d4bc52aa5d33ae013992253fbddd3b4929c26254f3c74674af6cb2b0042db6e2",
+          "verified": true
+        }
+      ],
+      "total_bytes": 28517620807
+    }
+  },
+  "elapsed_seconds": 50.71249352499581,
+  "model_tensors_loaded": false,
+  "cuda_used": false,
+  "downloads": false
+}
