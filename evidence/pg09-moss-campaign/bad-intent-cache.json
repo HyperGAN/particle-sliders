@@ -1,0 +1,125 @@
+{
+  "provider": {
+    "protocol": "lazy-moss-campaign-pg090-v1",
+    "concept": "bad-intent",
+    "model_revision": "fc5de0d56fc910cbca6f6625a70f5f582b26deb1",
+    "recipe_sha256": "7b58d3e9029a12ef85e57ad1c7d68df66bf30c3cbb1b392abc8705d34f8aaa0e",
+    "embeddings_sha256": "f8531e52559f944422f52d177615db50c1c10eb1c2610987bcec3d60c92f19f4",
+    "prompt_order_sha256": "5c851f0986d62b69c3bfd2fef6dc93611e789e077eb7acaa9c8ce2c24ebdac8e",
+    "target_index_sha256": "9bf3c9bf8a2624721eeb322fa71e7421dcba0f763d0cf13011a965341e28739a",
+    "target_assets_sha256": "0b2b9ebeeee9aecfad94d0de63343a68502b3eb5bc671828f0baf37c826e9cf1",
+    "split": "train",
+    "strength": 1.0,
+    "response_shape": [
+      1,
+      128,
+      32,
+      32
+    ],
+    "condition_width": 4101,
+    "condition_policy": {
+      "version": "moss-context-time-sign-v1",
+      "pooling": "mask-weighted neutral Qwen mean",
+      "normalization": "per-context pooled RMS, epsilon=1e-12",
+      "suffix": [
+        "native_timestep/1000",
+        "sign",
+        "strength",
+        "training_guidance/3",
+        "positive_path"
+      ],
+      "row_id_feature": false,
+      "teacher_negative": "neutral caption",
+      "cfg_negative": "empty prompt"
+    },
+    "rows": 15360,
+    "order": "bundle/path/position/sign(+1,-1)",
+    "training_guidance": 1.0,
+    "target": "cached frozen neutral + sign*strength*cached(positive-neutral)",
+    "target_verification": "sidecar identities eagerly; asset SHA256 on every LRU load",
+    "bundles": 384,
+    "unsigned_states": 7680,
+    "signed_rows": 15360,
+    "lru_bundles": 2,
+    "lru_contexts": 4,
+    "eager_native_targets": false
+  },
+  "coverage": {
+    "unsigned_states": 7680,
+    "signed_rows": 15360,
+    "batch_size": 8,
+    "old_signed_generator_forwards": 25600,
+    "one_full_generator_cycle_updates": 1920,
+    "old_generator_forward_matched_updates": 3200,
+    "proposed_two_full_cycles_updates": 3840,
+    "d_sampling": "independent balanced shuffled cycles",
+    "g_sampling": "balanced shuffled cycles; checkpoint order/cursor in shared core",
+    "wall_time": "unknown until coordinator-admitted bounded canary"
+  },
+  "conditions_shape": [
+    3,
+    4101
+  ],
+  "condition_row_ids_used": false,
+  "sample_indices": [
+    0,
+    1,
+    15359
+  ],
+  "sample_native_times": [
+    1000.0,
+    1000.0,
+    24.0
+  ],
+  "sample_signs": [
+    1,
+    -1,
+    -1
+  ],
+  "native_response_shape": [
+    1,
+    128,
+    32,
+    32
+  ],
+  "samples_finite": true,
+  "matched_evaluation": {
+    "seed": 29001,
+    "steps": 50,
+    "width": 512,
+    "height": 512,
+    "guidance_scales": [
+      3.0,
+      3.0,
+      1.0,
+      3.0,
+      3.0
+    ],
+    "adapter_strengths": [
+      0.0,
+      0.0,
+      0.0,
+      -1.0,
+      1.0
+    ],
+    "labels": [
+      "off",
+      "direct-positive",
+      "direct-positive-cfg1",
+      "minus",
+      "plus"
+    ]
+  },
+  "protocol_corrections": [
+    "adapter affects conditional branch only",
+    "negative-layer skip disabled"
+  ],
+  "old_objective": "signed frozen velocity MSE; unchanged; no adversarial or particle loss",
+  "new_objective": "public PG0.9 adversarial + required PG constraints; no MSE",
+  "model_weights_loaded": false,
+  "cuda_initialized": false,
+  "training_edit_rms_response_scale": 0.18700603425178916,
+  "scale_policy": "single frozen training-only strength-adjusted RMS over cached pole contrasts",
+  "wall_seconds": 30.127406398001767,
+  "max_rss_kib": 717196
+}

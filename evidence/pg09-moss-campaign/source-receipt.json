@@ -1,0 +1,27 @@
+{
+  "core_implementation_commit": "ec234e184676c46060ecbf6122df0e7b726f45a7",
+  "core_source_sha256": "c1a889123833b34ba1dbf9cb72d2ec0babc61f2ca78834c7e40e490e0e3cd121",
+  "checkpoint_fix_commit": "ec34e4ecc68aedc88bb5cd44a96d4bd78af99fa9",
+  "source_sha256": {
+    "conceptmod/textsliders/pg09_backends.py": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+    "conceptmod/textsliders/pg09_moss_campaign.py": "32f8f042d3a76af531b566e07c4048ec2557acb31cadcc8988ee0518dbc3d565",
+    "scripts/inspect_moss_campaign_pg09.py": "04a0a2bb108d505cca80b71a2e817d198c87309a62f9678d83164a83721cf495",
+    "tests/test_pg09_moss_campaign.py": "7c682a53db03f60786132260dddba793d1f459e0088d05349282da25338fa124",
+    "tests/test_pg09_backends.py": "475b1adc127899599b4db681fdff151ba89c093b0ce4350e170205162d6ad6da"
+  },
+  "tests": "109 passed, 0 skipped, 0 failed in7.66seconds",
+  "targets": [
+    "tests/test_pg09_backends.py",
+    "tests/test_pg09_moss_campaign.py",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/tests",
+    "/ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/test_conditional_core_review.py",
+    "/ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/test_runtime_adapter_review.py",
+    "/ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/test_campaign_release_review.py"
+  ],
+  "full_training_cache_assets_checked": true,
+  "pretrained_weights_loaded": false,
+  "cuda_initialized": false,
+  "gpu_training_started": false,
+  "quality_qualified": false,
+  "remaining": "coordinator-admitted pretrained canary, sustained GAN rerun and held-out review"
+}
