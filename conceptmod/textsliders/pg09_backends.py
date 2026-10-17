@@ -369,6 +369,26 @@ class MossResponseAdapter(FrozenResponseAdapter):
         return self.transformer(latent, timestep, embeds, mask).sample.float()
 
 
+class _RepeatableScaleContext:
+    """A checkpoint context may be entered for several autograd.grad replays."""
+    def __init__(self, network, scale):
+        self.network, self.scale = network, scale
+        self._active = []
+
+    def __enter__(self):
+        context = self.network.scaled(self.scale)
+        value = context.__enter__()
+        self._active.append(context)
+        return value
+
+    def __exit__(self, *exc):
+        return self._active.pop().__exit__(*exc)
+
+
+def _checkpoint_contexts(network, scale):
+    return _RepeatableScaleContext(network, scale), _RepeatableScaleContext(network, scale)
+
+
 def checkpoint_with_adapter_scale(module, network):
     """Checkpoint a block with the forward scale captured for recomputation.
 
@@ -383,7 +403,7 @@ def checkpoint_with_adapter_scale(module, network):
     def forward(*args, **kwargs):
         scale = network.scale
         return checkpoint(original, *args, use_reentrant=False,
-                          context_fn=lambda: (network.scaled(scale), network.scaled(scale)), **kwargs)
+                          context_fn=lambda: _checkpoint_contexts(network, scale), **kwargs)
 
     module.forward = forward
     module._pg09_scale_checkpoint = True
@@ -405,7 +425,7 @@ def bind_native_gradient_checkpointing(root, network):
     def checkpoint_fn(function, *args, **kwargs):
         scale = network.scale
         return checkpoint(function, *args, use_reentrant=False,
-                          context_fn=lambda: (network.scaled(scale), network.scaled(scale)), **kwargs)
+                          context_fn=lambda: _checkpoint_contexts(network, scale), **kwargs)
 
     # A backend whose native checkpoint hook cannot be replaced must fail here.
     enable(gradient_checkpointing_func=checkpoint_fn)

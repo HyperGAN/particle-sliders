@@ -172,7 +172,11 @@ def test_moss_checkpoint_recomputation_captures_each_signed_row():
                 checkpoint_with_adapter_scale(block, adapter.network)
         values = [adapter.generated(adapter.prepare(r)) for r in rows]
         # The scale contexts have exited before this batch backward.
-        sum(v.square().mean() for v in values).backward()
+        total = sum(v.square().mean() for v in values)
+        for _ in range(3):
+            replay = torch.autograd.grad(total, list(adapter.network.parameters()), retain_graph=True)
+            assert all(g.isfinite().all() for g in replay)
+        total.backward()
         gradients = [p.grad.clone() for p in adapter.network.parameters()]
         if not checkpointing:
             reference = gradients
