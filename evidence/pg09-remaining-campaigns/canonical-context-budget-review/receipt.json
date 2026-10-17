@@ -1,0 +1,52 @@
+{
+  "schema": "root-canonical-context-budget-review-v1",
+  "updated_utc": "2026-10-17T17:43:06.876402+00:00",
+  "integration_commit": "c6ef6bcee1e4f772712a75c47ccaf28d0b1f6f2a",
+  "source_commit": "e5b134c536093f893d5774409691ad6c1bd2f2fb",
+  "tests": {
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0,
+    "xml_sha256": "0adb36f685d727ac150df66133edaf26b4ca0fef83635672182a179a6f36285f"
+  },
+  "active_moss_sources": {
+    "bad-intent": {
+      "recipe_sha256": "f4ca175543f01b02801d459c626a7b0081b9ad34add1808ba81a489163e2bb67",
+      "source_pins_verified": 12,
+      "latest_step": 81,
+      "status": "training",
+      "latest_checkpoint": {
+        "directory": "step-000080",
+        "step": 80,
+        "recipe_sha256": "f4ca175543f01b02801d459c626a7b0081b9ad34add1808ba81a489163e2bb67"
+      },
+      "loaded_source_origins": {
+        "conceptmod.textsliders.pg09_moss_campaign": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_moss_campaign.py",
+        "conceptmod.textsliders.pg09_backends": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_backends.py",
+        "particle_sliders.pg09": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src/particle_sliders/pg09.py",
+        "moss_sliders.vendor.pipeline_moss_image": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src/moss_sliders/vendor/pipeline_moss_image.py",
+        "moss_sliders.lora": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src/moss_sliders/lora.py"
+      }
+    },
+    "afterimage": {
+      "recipe_sha256": "7bb1cff4d82337b4674ffe770edb46965498a42d9f42e137aa8b7bddf0eecfa3",
+      "source_pins_verified": 12,
+      "latest_step": 71,
+      "status": "training",
+      "latest_checkpoint": {
+        "directory": "step-000003",
+        "step": 3,
+        "recipe_sha256": "7bb1cff4d82337b4674ffe770edb46965498a42d9f42e137aa8b7bddf0eecfa3"
+      },
+      "loaded_source_origins": {
+        "conceptmod.textsliders.pg09_moss_campaign": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_moss_campaign.py",
+        "conceptmod.textsliders.pg09_backends": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_backends.py",
+        "particle_sliders.pg09": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src/particle_sliders/pg09.py",
+        "moss_sliders.vendor.pipeline_moss_image": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src/moss_sliders/vendor/pipeline_moss_image.py",
+        "moss_sliders.lora": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src/moss_sliders/lora.py"
+      }
+    }
+  },
+  "torch_imported": false,
+  "gpu_or_live_encoding_admitted": false
+}
