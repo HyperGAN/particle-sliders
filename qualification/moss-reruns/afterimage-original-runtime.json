@@ -46,7 +46,7 @@
   ],
   "physical_gpu": 1,
   "admission": "REVIEWED_GAN_RECIPE",
-  "integration_commit": "9f0447b0fc78ae84786af13b93c990e159854c9d",
+  "integration_commit": "f93d49d642a3a9c1f465fe91bfe504b640e34972",
   "numeric_policy": {
     "deterministic_algorithms": true,
     "cudnn_benchmark": false,
@@ -64,5 +64,6 @@
       "transformers": "5.3.0"
     },
     "pg_source_directory": "/mnt/nvme/sliders/qualification/pg09-audit/wheel"
-  }
+  },
+  "runtime_diagnostic_sha256": "19ece46b64e4ecb3a04505425018802814645ec3cfc1167c34af8629b0cc8726"
 }
