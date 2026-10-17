@@ -1,0 +1,13 @@
+{
+  "schema": "root-bonsai-readonly-diagnosis-review-v1",
+  "source_commit": "c855b68acd4dbad68e86ed09602bab982efffc4f",
+  "integration_commit": "3bb277f8",
+  "script_sha256": "18709d3d31338f2bfe893ad6c5d43ebfe1e0484790f576359e18953b4459d5e3",
+  "all_diagnostic_values_exact_except_elapsed": true,
+  "root_elapsed_seconds": 1.4622282330019516,
+  "source_pins_unchanged": 96,
+  "opened_artifacts_unchanged": 76,
+  "optimizer_updates": 0,
+  "gpu_used": false,
+  "extension_or_tuning_admitted": false
+}
