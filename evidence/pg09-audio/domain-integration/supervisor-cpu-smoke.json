@@ -1,0 +1,18 @@
+{
+  "status": "exact_smoke_passed",
+  "exact_full_state_metrics_probes_export": true,
+  "elapsed_seconds": 11.75517449000472,
+  "maximum_wall_seconds": 900,
+  "worker_sha256": "e19427dd9ebe44bc11a7b88b732ad5a97cea775be7c64bc3a2099ef8f40e97dc",
+  "supervisor_sha256": "0731a5ff71b6de639789bab84909612feb959bb1057c46dc663509a04ec8aec8",
+  "worker_arguments": [
+    "--family",
+    "music3",
+    "--fixture",
+    "--device",
+    "cpu",
+    "--total-steps",
+    "4"
+  ],
+  "pretrained_quality_qualified": false
+}

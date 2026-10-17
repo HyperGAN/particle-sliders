@@ -118,13 +118,18 @@ direction, intelligible lyrics, voice consistency and artifacts require
 listening review of the two predeclared cases. A waveform difference alone
 does not pass semantic quality.
 
-## Current outstanding gates
+## Reviewed host integration and outstanding GPU gates
 
 QA has passed eight optimizer/fresh-process cases for the single ALZ proposal
 at widths 1024/2048/4096/5120, both presets. Patch SHA256:
 `c6531a21f62fa96682f5aece517a6a862bb849ab971aa2766b3946b9a7543571`.
-The proposal remains an isolated overlay. **Executable core host-profile
-admission, audio runtime requalification and GPU admission are pending.**
+The proposal remains an isolated overlay. QA independently requalified
+immutable core `3e94b13eb5d6cd1ceee3f018f019a68603f35696`; its public
+validator and source/domain/runtime-bound checkpoint contract are wired into
+the audio adapters. Native YuE2-2048 and Qwen3-4096 random-model CPU gates
+pass under both presets on their separate runtime stacks, including exact
+fresh-process continuation and safe checkpoint loading. **GPU admission and
+pretrained training/listening qualification remain pending.**
 
 Additional preparation checks: 16 existing audio tests passed in 7.03 seconds
 under the native YuE2 Torch 2.10/Transformers 4.57.6 interpreter on the released
@@ -132,3 +137,28 @@ PG0.9 path, using the namespace bootstrap (fresh-process child bootstrap is
 deferred to final profile qualification). Six matched-waveform checker CPU
 tests pass in 0.03 seconds, including exact-off, finite/channel, duration-bound
 and truncation-reporting cases. These tests synthesize arrays, not audio.
+
+## Reviewable bounded workers
+
+`scripts/qualify_audio_pg09_live.py` loads only the requested native model,
+prepares the predeclared rows and delegates every update to ConditionalPG09.
+It validates the exact domain profile before CUDA initialization/model loading,
+requires an explicit admission identifier and fresh free-memory bound, reuses
+the existing resource guard, hashes every frozen host parameter before/after,
+checks actual-bank response gradients and critic/adapter changes, and tests
+adapter reload after deliberately perturbing adapter state. Checkpoints remain
+resumable after inference-export checks. No legacy trainer is invoked.
+
+`scripts/run_audio_pg09_smoke.py` runs full 3, first 1 and resumed 3 as serial
+owned children inside one 900-second lease; no simultaneous CUDA children. It
+compares every state/metric/heldout-probe/export field exactly. A CPU random
+fixture exercises this supervisor; native/full-width source-profile gates
+exercise both actual model classes on their corresponding CPU runtime stacks.
+
+`evidence/pg09-audio/audio-admission-drafts.json` contains exact argument
+vectors, worker/supervisor/resource-guard hashes, core/profile pins and the
+proposed resource bounds. Core owner must supply the physical GPU and real
+admission ID. YuE2 requests at least 16 GiB fresh free memory; Music3 at least
+26 GiB. The existing runtime guard retains its 6 GiB free reserve, thermal and
+host/NVMe checks. Each smoke window is capped at 900 seconds. Subsequent
+continuation to 20 updates and listening runs need separate renewed admission.

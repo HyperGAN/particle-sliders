@@ -1,9 +1,9 @@
 """Native AR last-state bindings for the single shared ConditionalPG09 game.
 
 No loaders, losses, optimizers, token generation or audio decoding run here.
-Released PG0.9 admits these continuous responses only below width170. The
-pretrained YuE2/Music3 models are deliberately blocked, without projection,
-truncation, flattening into fields, or a different training objective.
+Released PG0.9 admits these responses only below width170. Wider native AR
+states require the shared core's exact reviewed explicit-continuous source
+profile. No projection, truncation, field reshape or objective fallback.
 """
 from dataclasses import dataclass, replace
 
@@ -29,21 +29,22 @@ class PreparedAudioResponse:
     neutral: torch.Tensor
 
 
-def require_audio_width(width):
-    if type(width) is not int or not 1 <= width < 170:
-        raise ValueError(
-            'native AR hidden response requires continuous_vector width <170; '
-            'pretrained YuE2/Music3 are blocked by released PG0.9; '
-            'no truncation, projection, categorical or field reshape fallback'
-        )
+def require_audio_width(width, *, pg_source_profile='release', penalty_input_domain='auto'):
+    from particle_sliders.pg09 import validate_pg09_domain
+    if type(width) is not int or width < 1:
+        raise ValueError('positive native AR hidden width required')
+    return validate_pg09_domain((1, width), response_domain='continuous_vector',
+        pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain)
 
 
 class ARLastHiddenResponseAdapter:
     """Wrap an already attached native slider; retain its actual routed bank."""
     family = 'abstract_audio_ar'
 
-    def __init__(self, model, slider, *, model_identity, checkpoint_modules=()):
-        require_audio_width(model.config.hidden_size)
+    def __init__(self, model, slider, *, model_identity, checkpoint_modules=(),
+                 pg_source_profile='release', penalty_input_domain='auto'):
+        self.domain_gate = require_audio_width(model.config.hidden_size,
+            pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain)
         if not model_identity:
             raise ValueError('verified model identity or explicit CPU fixture identity required')
         if any(getattr(m, 'gradient_checkpointing', False) for m in model.modules()):
@@ -117,6 +118,7 @@ class ARLastHiddenResponseAdapter:
         return dict(protocol='audio-ar-last-hidden-pg090-v1', family=self.family,
                     model_identity=self.model_identity, adapter_names=list(self.network.names),
                     response_domain='continuous_vector', response_width=int(self.model.config.hidden_size),
+                    pg_domain_gate=dict(self.domain_gate),
                     response_coordinates='native final AR token hidden state; no projection',
                     target_convention='frozen positive last hidden; shared continuation history',
                     student_conditioning='neutral', time_coordinates='no diffusion time; AR history length',

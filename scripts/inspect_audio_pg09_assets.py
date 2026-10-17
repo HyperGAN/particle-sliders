@@ -20,6 +20,8 @@ def bootstrap_yue2_product(product):
     runtime = importlib.import_module('yue2')
     if Path(runtime.__file__).resolve().is_relative_to(product):
         raise ValueError('product package shadows the official native runtime')
+    if str(product / 'yue2') in runtime.__path__:
+        return runtime
     for name in ('backend.py', 'slider.py', 'defaults.py', 'prompts.py'):
         if any((Path(root) / name).exists() for root in runtime.__path__):
             raise ValueError('runtime/product submodule collision: ' + name)

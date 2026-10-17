@@ -1,0 +1,518 @@
+{
+  "core_commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
+  "core_module_sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+  "patch_sha256": "c6531a21f62fa96682f5aece517a6a862bb849ab971aa2766b3946b9a7543571",
+  "profile": "alz-continuous-v1",
+  "penalty_input_domain": "continuous",
+  "pretrained_weights_loaded": false,
+  "gpu_admitted": false,
+  "cases": {
+    "yue2/bispf": {
+      "width": 2048,
+      "exact_resume": true,
+      "semantic_sha256": "688257458da45ba27cc50c590fe1a55de261f76233e7807566f54eaace5133ad",
+      "runtime": {
+        "python": "3.11.15",
+        "torch": "2.10.0+cu128",
+        "cuda": "12.8",
+        "numpy": "2.2.6",
+        "deterministic": false,
+        "tf32_matmul": false
+      },
+      "source_profile": "alz-continuous-v1",
+      "penalty_input_domain": "continuous",
+      "resolved_penalty_domain": "continuous",
+      "pg_sources_sha256": "d01c3ca511fba55a49da4b51202b1b855df8d1c4b0d2e99831ce19bb951915e9",
+      "implementation_sources": {
+        "particle_sliders.pg09": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+        "conceptmod.textsliders.pg09_audio": "291845458950bd3e0eafad13ab63940cf0075971e865817caafacfe2b47e300e",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "__main__": "386882dbee79b0ac4e28f1b3d724f11c2708e6e82be734b4d1276386bb6f2812",
+        "yue2.backend": "2f1d279d6c6075dc09d45b8d17ca76ad4b076fa668f02953648eb6766fbe2bf4",
+        "yue2.modeling_yue2": "62d2bd758c8fff1a0d64584a699343076fca9a7880db5d8e19263bc30ae79d7c",
+        "yue2.slider": "467f408f2e400bcd179c780fd4fbd488e9d671d85f579726cb9eb8cd8415aea1",
+        "torch.nn.modules.container": "0926f4f410342dee41ce5cb53b1340507bddab79795106f0da3d461a2459c165",
+        "torch.nn.modules.linear": "c71e0b482f21432c6353351e6220956dbee2b8eb11f6e9646b7a8ee17b6a82af",
+        "torch.nn.modules.activation": "d2929845da0371704b4fa75d9ef487ac3842525e6a979c526016a740926aa900",
+        "torch.nn.modules.sparse": "12837bc7dd9a5050c2082c80dcdc6e9fafefb39abfe5b2268ead8724c0a2e06f",
+        "particle_sliders.reference": "2c5809edd3818fab9efdd0c5234ea6b5027de5fc0130155e537950471018a371"
+      },
+      "minimum_penalty": 0.00037190536386333406,
+      "metrics": [
+        {
+          "step": 1,
+          "g_loss": 13.27294921875,
+          "g_adv": 13.268913269042969,
+          "prior_regularization": 0.004035705700516701,
+          "d_loss": 1.3421778678894043,
+          "d_adv": 1.3418059349060059,
+          "d_pen": 0.00037190536386333406,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            1,
+            0
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 2,
+          "d_row_exposures": 2,
+          "ema_residual": 0.7842540740966797,
+          "ema_data_scale": 70.56343841552734,
+          "s_thermal": 1.0
+        },
+        {
+          "step": 2,
+          "g_loss": 5.736441135406494,
+          "g_adv": 5.732471942901611,
+          "prior_regularization": 0.003968995530158281,
+          "d_loss": 2.2670977115631104,
+          "d_adv": 2.2376530170440674,
+          "d_pen": 0.02944479137659073,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            1,
+            0
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 4,
+          "d_row_exposures": 4,
+          "ema_residual": 0.8124729990959167,
+          "ema_data_scale": 58.49405288696289,
+          "s_thermal": 1.0
+        },
+        {
+          "step": 3,
+          "g_loss": 10.83027172088623,
+          "g_adv": 10.826294898986816,
+          "prior_regularization": 0.003976825159043074,
+          "d_loss": 6.088318824768066,
+          "d_adv": 5.773455619812012,
+          "d_pen": 0.3148631453514099,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            0,
+            1
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 6,
+          "d_row_exposures": 6,
+          "ema_residual": 0.8743366599082947,
+          "ema_data_scale": 60.555580139160156,
+          "s_thermal": 1.0
+        }
+      ]
+    },
+    "yue2/bispf_optimized": {
+      "width": 2048,
+      "exact_resume": true,
+      "semantic_sha256": "c5336b58faf5211e459fdf902bb434012c3eed0fe6ab5dc51028a787bc58b63b",
+      "runtime": {
+        "python": "3.11.15",
+        "torch": "2.10.0+cu128",
+        "cuda": "12.8",
+        "numpy": "2.2.6",
+        "deterministic": false,
+        "tf32_matmul": false
+      },
+      "source_profile": "alz-continuous-v1",
+      "penalty_input_domain": "continuous",
+      "resolved_penalty_domain": "continuous",
+      "pg_sources_sha256": "d01c3ca511fba55a49da4b51202b1b855df8d1c4b0d2e99831ce19bb951915e9",
+      "implementation_sources": {
+        "particle_sliders.pg09": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+        "conceptmod.textsliders.pg09_audio": "291845458950bd3e0eafad13ab63940cf0075971e865817caafacfe2b47e300e",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "__main__": "386882dbee79b0ac4e28f1b3d724f11c2708e6e82be734b4d1276386bb6f2812",
+        "yue2.backend": "2f1d279d6c6075dc09d45b8d17ca76ad4b076fa668f02953648eb6766fbe2bf4",
+        "yue2.modeling_yue2": "62d2bd758c8fff1a0d64584a699343076fca9a7880db5d8e19263bc30ae79d7c",
+        "yue2.slider": "467f408f2e400bcd179c780fd4fbd488e9d671d85f579726cb9eb8cd8415aea1",
+        "torch.nn.modules.container": "0926f4f410342dee41ce5cb53b1340507bddab79795106f0da3d461a2459c165",
+        "torch.nn.modules.linear": "c71e0b482f21432c6353351e6220956dbee2b8eb11f6e9646b7a8ee17b6a82af",
+        "torch.nn.modules.activation": "d2929845da0371704b4fa75d9ef487ac3842525e6a979c526016a740926aa900",
+        "torch.nn.modules.sparse": "12837bc7dd9a5050c2082c80dcdc6e9fafefb39abfe5b2268ead8724c0a2e06f",
+        "particle_sliders.reference": "2c5809edd3818fab9efdd0c5234ea6b5027de5fc0130155e537950471018a371"
+      },
+      "minimum_penalty": 2.256068455608329e-06,
+      "metrics": [
+        {
+          "step": 1,
+          "g_loss": 0.9573394656181335,
+          "g_adv": 0.9565322995185852,
+          "prior_regularization": 0.000807141128461808,
+          "d_loss": 1.381670594215393,
+          "d_adv": 1.3812986612319946,
+          "d_pen": 0.00037190536386333406,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            1,
+            0
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 2,
+          "d_row_exposures": 2,
+          "ema_residual": 0.7842540740966797,
+          "ema_data_scale": 70.56343841552734,
+          "s_thermal": 1.0
+        },
+        {
+          "step": 2,
+          "g_loss": 0.8420836925506592,
+          "g_adv": 0.8412768840789795,
+          "prior_regularization": 0.0008068293682299554,
+          "d_loss": 1.455234408378601,
+          "d_adv": 1.4552321434020996,
+          "d_pen": 2.256068455608329e-06,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            1,
+            0
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 4,
+          "d_row_exposures": 4,
+          "ema_residual": 0.8026344180107117,
+          "ema_data_scale": 66.01280975341797,
+          "s_thermal": 1.0
+        },
+        {
+          "step": 3,
+          "g_loss": 0.6638292074203491,
+          "g_adv": 0.6630222201347351,
+          "prior_regularization": 0.0008069699979387224,
+          "d_loss": 1.6434353590011597,
+          "d_adv": 1.6429110765457153,
+          "d_pen": 0.0005242631305009127,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            0,
+            1
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 6,
+          "d_row_exposures": 6,
+          "ema_residual": 0.8549907207489014,
+          "ema_data_scale": 57.85403823852539,
+          "s_thermal": 1.0
+        }
+      ]
+    },
+    "music3/bispf": {
+      "width": 4096,
+      "exact_resume": true,
+      "semantic_sha256": "91120f421a50e97818a34d812f31ec9f8e1b6fcff713ce27ea752e33b2f41a55",
+      "runtime": {
+        "python": "3.11.15",
+        "torch": "2.11.0+cu128",
+        "cuda": "12.8",
+        "numpy": "2.4.4",
+        "deterministic": false,
+        "tf32_matmul": false
+      },
+      "source_profile": "alz-continuous-v1",
+      "penalty_input_domain": "continuous",
+      "resolved_penalty_domain": "continuous",
+      "pg_sources_sha256": "d01c3ca511fba55a49da4b51202b1b855df8d1c4b0d2e99831ce19bb951915e9",
+      "implementation_sources": {
+        "particle_sliders.pg09": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+        "conceptmod.textsliders.pg09_audio": "291845458950bd3e0eafad13ab63940cf0075971e865817caafacfe2b47e300e",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "__main__": "386882dbee79b0ac4e28f1b3d724f11c2708e6e82be734b4d1276386bb6f2812",
+        "transformers.models.qwen3.modeling_qwen3": "cbb7f2dc274c2f5592746c0dc6985ca50353efa07376f92cc922b77680a74f69",
+        "conceptmod.textsliders.music3_particle_bridge": "8d638506c6d7dc0bd860650540a15ee92c9f32b3e4e78965404b443bd0aa69b1",
+        "torch.nn.modules.container": "2caff8043d111843e301e5b7086c303ed0e861780fced92a1eb3808461334cc5",
+        "torch.nn.modules.linear": "45aa464d373ca22cc2f063e25df64ed78f37bbf3ba4203e8220bd545920c45dd",
+        "torch.nn.modules.activation": "8b8076c9383f8faea0800e5312e6df32b0829a6fd9a149ae4dc9620d2d6885fd",
+        "torch.nn.modules.sparse": "4897b5402c35e49c830edaee1eacc1b1c3f802ddc8e7ddf4112a71c78bea81f5",
+        "transformers.activations": "5b20c0a3625edc0001a98f09ce3c6b5baa1100e1d7ad8dee649e4d45c8468665",
+        "conceptmod.textsliders.lora": "2bcf1a1267ca0369e0e2d4e2584db6821b2ab518c9cd3c535292d20a5e25d85d",
+        "conceptmod.textsliders.particle_bridge_gan": "738d50200ea5de9a9c4943b34474f862b06a9321cd78e6838196ef9b9d6993f0"
+      },
+      "minimum_penalty": 0.0005149868666194379,
+      "metrics": [
+        {
+          "step": 1,
+          "g_loss": 6.610868453979492,
+          "g_adv": 6.6066155433654785,
+          "prior_regularization": 0.0042527965269982815,
+          "d_loss": 1.3864927291870117,
+          "d_adv": 1.3859777450561523,
+          "d_pen": 0.0005149868666194379,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            1,
+            0
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 2,
+          "d_row_exposures": 2,
+          "ema_residual": 0.9685357809066772,
+          "ema_data_scale": 37.22121810913086,
+          "s_thermal": 1.0
+        },
+        {
+          "step": 2,
+          "g_loss": 8.54321575164795,
+          "g_adv": 8.539032936096191,
+          "prior_regularization": 0.0041830590926110744,
+          "d_loss": 0.6541234254837036,
+          "d_adv": 0.6533896923065186,
+          "d_pen": 0.0007337349816225469,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            1,
+            0
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 4,
+          "d_row_exposures": 4,
+          "ema_residual": 0.9683259099721908,
+          "ema_data_scale": 36.859308528900144,
+          "s_thermal": 1.0
+        },
+        {
+          "step": 3,
+          "g_loss": 9.218174934387207,
+          "g_adv": 9.213984489440918,
+          "prior_regularization": 0.004190152045339346,
+          "d_loss": 0.7255422472953796,
+          "d_adv": 0.5319195985794067,
+          "d_pen": 0.1936226487159729,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            0,
+            1
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 6,
+          "d_row_exposures": 6,
+          "ema_residual": 0.9663121522963046,
+          "ema_data_scale": 37.06318949222564,
+          "s_thermal": 1.0
+        }
+      ]
+    },
+    "music3/bispf_optimized": {
+      "width": 4096,
+      "exact_resume": true,
+      "semantic_sha256": "855dce6175ec21d80f638952564bb87d0df9583387cd169a15059e52c3419563",
+      "runtime": {
+        "python": "3.11.15",
+        "torch": "2.11.0+cu128",
+        "cuda": "12.8",
+        "numpy": "2.4.4",
+        "deterministic": false,
+        "tf32_matmul": false
+      },
+      "source_profile": "alz-continuous-v1",
+      "penalty_input_domain": "continuous",
+      "resolved_penalty_domain": "continuous",
+      "pg_sources_sha256": "d01c3ca511fba55a49da4b51202b1b855df8d1c4b0d2e99831ce19bb951915e9",
+      "implementation_sources": {
+        "particle_sliders.pg09": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+        "conceptmod.textsliders.pg09_audio": "291845458950bd3e0eafad13ab63940cf0075971e865817caafacfe2b47e300e",
+        "conceptmod.textsliders.pg09_backends": "60efe36a8239cf2f47c0750a31cd0b33c7e22b22db965d1115c893605cb8baab",
+        "__main__": "386882dbee79b0ac4e28f1b3d724f11c2708e6e82be734b4d1276386bb6f2812",
+        "transformers.models.qwen3.modeling_qwen3": "cbb7f2dc274c2f5592746c0dc6985ca50353efa07376f92cc922b77680a74f69",
+        "conceptmod.textsliders.music3_particle_bridge": "8d638506c6d7dc0bd860650540a15ee92c9f32b3e4e78965404b443bd0aa69b1",
+        "torch.nn.modules.container": "2caff8043d111843e301e5b7086c303ed0e861780fced92a1eb3808461334cc5",
+        "torch.nn.modules.linear": "45aa464d373ca22cc2f063e25df64ed78f37bbf3ba4203e8220bd545920c45dd",
+        "torch.nn.modules.activation": "8b8076c9383f8faea0800e5312e6df32b0829a6fd9a149ae4dc9620d2d6885fd",
+        "torch.nn.modules.sparse": "4897b5402c35e49c830edaee1eacc1b1c3f802ddc8e7ddf4112a71c78bea81f5",
+        "transformers.activations": "5b20c0a3625edc0001a98f09ce3c6b5baa1100e1d7ad8dee649e4d45c8468665",
+        "conceptmod.textsliders.lora": "2bcf1a1267ca0369e0e2d4e2584db6821b2ab518c9cd3c535292d20a5e25d85d",
+        "conceptmod.textsliders.particle_bridge_gan": "738d50200ea5de9a9c4943b34474f862b06a9321cd78e6838196ef9b9d6993f0"
+      },
+      "minimum_penalty": 5.229027919995133e-06,
+      "metrics": [
+        {
+          "step": 1,
+          "g_loss": 0.8138585090637207,
+          "g_adv": 0.8130079507827759,
+          "prior_regularization": 0.0008505592122673988,
+          "d_loss": 1.4055850505828857,
+          "d_adv": 1.4050700664520264,
+          "d_pen": 0.0005149868666194379,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            1,
+            0
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 2,
+          "d_row_exposures": 2,
+          "ema_residual": 0.9685357809066772,
+          "ema_data_scale": 37.22121810913086,
+          "s_thermal": 1.0
+        },
+        {
+          "step": 2,
+          "g_loss": 0.8655716180801392,
+          "g_adv": 0.8647212982177734,
+          "prior_regularization": 0.0008502946002408862,
+          "d_loss": 1.396162748336792,
+          "d_adv": 1.3955695629119873,
+          "d_pen": 0.0005932299536652863,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            1,
+            0
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 4,
+          "d_row_exposures": 4,
+          "ema_residual": 0.9847561120986938,
+          "ema_data_scale": 37.04838562011719,
+          "s_thermal": 1.0
+        },
+        {
+          "step": 3,
+          "g_loss": 0.766606330871582,
+          "g_adv": 0.7657564282417297,
+          "prior_regularization": 0.0008499210816808045,
+          "d_loss": 1.353868007659912,
+          "d_adv": 1.3538627624511719,
+          "d_pen": 5.229027919995133e-06,
+          "g_rows": [
+            1,
+            0
+          ],
+          "d_rows": [
+            0,
+            1
+          ],
+          "g_unique_rows": 2,
+          "d_unique_rows": 2,
+          "g_row_exposures": 6,
+          "d_row_exposures": 6,
+          "ema_residual": 0.9872316122055054,
+          "ema_data_scale": 34.58060073852539,
+          "s_thermal": 1.0
+        }
+      ]
+    }
+  },
+  "sources": {
+    "conceptmod/textsliders/pg09_audio.py": "291845458950bd3e0eafad13ab63940cf0075971e865817caafacfe2b47e300e",
+    "scripts/pg09_audio_cpu_fixtures.py": "386882dbee79b0ac4e28f1b3d724f11c2708e6e82be734b4d1276386bb6f2812",
+    "scripts/inspect_audio_pg09_assets.py": "a3bef592be41c4d35c0aa258a98d68072209e27d236e79c6562901dd20d3813d",
+    "scripts/qualify_audio_pg09_live.py": "e19427dd9ebe44bc11a7b88b732ad5a97cea775be7c64bc3a2099ef8f40e97dc",
+    "scripts/run_audio_pg09_smoke.py": "0731a5ff71b6de639789bab84909612feb959bb1057c46dc663509a04ec8aec8",
+    "tests/test_pg09_audio_domain.py": "fae4f9d3465897cabb1c01c82db88c7fa45a3fce68ddb261b2edc0326c9e9e91",
+    "tests/test_pg09_audio_live_worker.py": "063a1c310c3e28915b7dc7334db897590f3b505f75ce391e553dbc7dfd4faf6a"
+  },
+  "tests": {
+    "yue2-domain-tests.xml": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "4",
+      "time": "18.781",
+      "timestamp": "2026-10-17T10:36:16.594478-06:00",
+      "hostname": "pop-os"
+    },
+    "music3-domain-tests.xml": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "4",
+      "time": "15.709",
+      "timestamp": "2026-10-17T10:36:17.768640-06:00",
+      "hostname": "pop-os"
+    },
+    "release-audio-tests.xml": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "23",
+      "time": "18.426",
+      "timestamp": "2026-10-17T10:25:39.471668-06:00",
+      "hostname": "pop-os"
+    },
+    "worker-tests.xml": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "2",
+      "time": "19.601",
+      "timestamp": "2026-10-17T10:31:33.528095-06:00",
+      "hostname": "pop-os",
+      "scope": "Worker fixture/resume/admission guards before final live-only load-resource hook refinements; final worker bytes additionally exercised by recorded supervisor smoke."
+    },
+    "native-yue2-release-tests.xml": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "17",
+      "time": "19.582",
+      "timestamp": "2026-10-17T10:21:41.799248-06:00",
+      "hostname": "pop-os",
+      "scope": "Historical pre-profile native-class release gate; core ec234e1 and then-current fixture source."
+    }
+  },
+  "supervisor_cpu_smoke": {
+    "status": "exact_smoke_passed",
+    "exact_full_state_metrics_probes_export": true,
+    "elapsed_seconds": 11.75517449000472,
+    "maximum_wall_seconds": 900,
+    "worker_sha256": "e19427dd9ebe44bc11a7b88b732ad5a97cea775be7c64bc3a2099ef8f40e97dc",
+    "supervisor_sha256": "0731a5ff71b6de639789bab84909612feb959bb1057c46dc663509a04ec8aec8",
+    "worker_arguments": [
+      "--family",
+      "music3",
+      "--fixture",
+      "--device",
+      "cpu",
+      "--total-steps",
+      "4"
+    ],
+    "pretrained_quality_qualified": false
+  }
+}

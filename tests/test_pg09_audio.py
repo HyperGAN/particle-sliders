@@ -131,10 +131,10 @@ def test_checkpoint_forward_scale_survives_context_exit(family):
 
 @pytest.mark.parametrize('width', [170, 2048, 2560, 4096])
 def test_full_width_rejected_before_forward_or_optimizer(width):
-    with pytest.raises(ValueError, match='no truncation'):
+    with pytest.raises(ValueError, match='width >=170'):
         require_audio_width(width)
     model = SimpleNamespace(config=SimpleNamespace(hidden_size=width))
-    with pytest.raises(ValueError, match='released PG0.9'):
+    with pytest.raises(ValueError, match='released PG09'):
         Music3ARResponseAdapter(model, None, model_identity={'fixture': 'width guard only'})
 
 
