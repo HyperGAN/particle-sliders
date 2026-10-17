@@ -1,13 +1,10 @@
-"""Shared particle-slider algorithms and the winning formulation stamp.
+"""Shared routed-particle training, with BISPFGame and legacy gmix interfaces.
 
-Model ids, Comfy class names, and model-specific train/infer surfaces belong
-to product repositories. Products call ``FormulationGame`` for the stamp
-feature-space step and own feature projection, Hub, and Comfy. The game they
-train is ``winning_formulation()``: gmix architecture, formulation parameters
-from ParticleGAN #38 when that search crowns a full live-leaderboard winner.
-GAN primitives (cap, RpGAN loss, particle VIC) come from the ``particlegan``
-develop API; gmix architecture stays in this package.
+New paired-error integrations use BISPFGame and the pinned ParticleGAN recipe
+component API. The historical winning_formulation and endpoint builders remain
+available for existing products; their objective is not silently replaced.
 """
+from .bispf_game import BISPFGame
 from .distillation import fit_routed_down
 from .endpoint_game import EndpointGame, endpoint_terms, teacher_poles
 from .formulation_game import FormulationGame, dummy_features, run_formulation_game
@@ -32,9 +29,10 @@ from .reference import (
     rp_g_loss,
 )
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
+    "BISPFGame",
     "EndpointGame",
     "FormulationGame",
     "GlobalMixErrorCritic",

@@ -21,8 +21,8 @@ def test_reference_sources_exact():
     package = Path(teachers.__file__).parent
     meta = json.loads((package / "locked_provenance.json").read_text())
     grad_meta = meta["grad_regularizer"]
-    assert grad_meta["impl"] == "particlegan.GradientPenalty"
-    assert grad_meta["particlegan_sha"] == "82b72661c03377f348ccb76de37cd4ca02d45a8d"
+    assert grad_meta["impl"] == "particlegan.grad_regularizers.GradientPenalty"
+    assert grad_meta["particlegan_sha"] == "b5d2372f2739d7579ab66d6dba6e220d2eb776d9"
     # Thin wrapper: no duplicate GradRegularizer class body in this package.
     wrapper = (package / "grad_regularizers.py").read_text()
     assert "from particlegan" in wrapper

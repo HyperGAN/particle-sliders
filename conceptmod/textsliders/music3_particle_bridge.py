@@ -116,14 +116,9 @@ class Music3Backend:
         self.device = torch.device(device if not dummy else "cpu")
         self.dummy = bool(dummy)
         if dummy:
-            from transformers import AutoConfig
-
-            config = AutoConfig.from_pretrained(
-                str(self.model_dir / "language_model"), local_files_only=True
-            )
             self.tokenizer = None
-            self.model = _TinyLM(config.hidden_size).to(self.device)
-            self.identity = {"dummy": True, "hidden_size": config.hidden_size}
+            self.model = _TinyLM(32).to(self.device).eval().requires_grad_(False)
+            self.identity = {"dummy": True, "hidden_size": 32, "fixture": "byte-projection-v1"}
             return
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -146,6 +141,9 @@ class Music3Backend:
 
     def encode_text(self, style: str, lyrics: str):
         text = _assemble(style, lyrics)
+        if self.dummy:
+            ids = torch.tensor([[b % 31 for b in text.encode("utf-8")] + [31]], device=self.device)
+            return ids, torch.ones_like(ids)
         ids, mask = _tokenize(self.tokenizer, text, self.device)
         _assert_last_token_is_audio_start(ids, mask, self.tokenizer, where="particle bridge")
         return ids, mask
@@ -159,15 +157,28 @@ class Music3Backend:
             return _encode_static(self.model, ids, mask)
 
 
+class Qwen3Attention(nn.Module):
+    """CPU dummy projection with the production adapter target class name.
+
+    Used only by _TinyLM; it is not a model of Qwen attention or audio quality.
+    """
+    def __init__(self, hidden):
+        super().__init__()
+        self.proj = nn.Linear(hidden, hidden)
+
+    def forward(self, x):
+        return torch.tanh(self.proj(x))
+
+
 class _TinyLM(nn.Module):
     def __init__(self, hidden):
         super().__init__()
         self.config = type("C", (), {"hidden_size": hidden, "num_hidden_layers": 1})()
         self.embed = nn.Embedding(32, hidden)
-        self.out = nn.Linear(hidden, hidden)
+        self.attention = Qwen3Attention(hidden)
 
     def forward(self, ids):
-        return self.out(self.embed(ids.clamp(0, 31).long())).mean(1, keepdim=False)
+        return self.attention(self.embed(ids.clamp(0, 31).long())).mean(1, keepdim=False)
 
 
 class ParticleNetwork(nn.Module):
@@ -313,37 +324,43 @@ def prepare(backend: Music3Backend, rows, meta, max_seq_len=4096):
     return prepared
 
 
-def build_game(backend, network, fixed):
+def build_game(backend, network, fixed, *, recipe=None):
     device = next(network.parameters()).device
     targets = torch.cat([row["targets"] for row in fixed]).to(device)
     neutrals = torch.cat([row["neutral"] for row in fixed]).to(device)
-    kind = RECIPE.get("critic", "mix")
+    recipe = RECIPE if recipe is None else recipe
+    kind = recipe.get("critic", "mix")
+    config = {}
+    accepted = shared.CRITIC_CONFIG_BY_KIND.get(kind, set())
     for key, ref in (
-        ("critic", "critic"),
-        ("critic_patch", "critic_patch"),
-        ("critic_hidden", "critic_width"),
-        ("critic_layers", "critic_layers"),
-        ("critic_heads", "critic_heads"),
-        ("critic_tokens", "critic_tokens"),
-        ("critic_queries", "critic_queries"),
-        ("critic_rank", "critic_rank"),
-        ("critic_score_bound", "critic_score_bound"),
-        ("d_lr", "d_lr"),
+        ("critic_patch", "patch"), ("critic_hidden", "width"),
+        ("critic_layers", "layers"), ("critic_heads", "heads"),
+        ("critic_tokens", "tokens"), ("critic_queries", "queries"),
+        ("critic_rank", "rank"), ("critic_score_bound", "score_bound"),
     ):
-        if key in RECIPE:
-            shared.REFERENCE[ref] = RECIPE[key]
-    return shared.build_game(network, targets, critic=kind, neutrals=neutrals)
+        if key in recipe and (ref in accepted or ref == "score_bound"):
+            config[ref] = recipe[key]
+    # MLP/patch have no score-bound implementation; a positive legacy setting
+    # was historically ignored for them. BISPF passes the explicit raw value 0.
+    if kind in ("mlp", "patch"):
+        config.pop("score_bound", None)
+    return shared.build_game(network, targets, critic=kind,
+                             critic_config=config, neutrals=neutrals)
 
 
-def update(backend, network, critic, g, d, rows, *, sampler, step, checkpointing=True):
+def update(backend, network, critic, g, d, rows, *, sampler, step, checkpointing=True,
+           bispf=None):
     device = critic.target_mean.device
     targets = torch.cat([row["targets"] for row in rows]).to(device)
     predictions = {}
 
     def predict(index, phase):
         row = rows[index]
-        ids = row["positive_ids"].to(device)
-        mask = row["positive_mask"].to(device)
+        # The frozen positive-caption state is the teacher. BISPF trains the
+        # adapted neutral caption, matching inference; legacy keeps its old input.
+        prefix = "neutral" if bispf is not None else "positive"
+        ids = row[f"{prefix}_ids"].to(device)
+        mask = row[f"{prefix}_mask"].to(device)
         with network.scaled(1.0):
             if checkpointing and phase == "g" and not backend.dummy:
                 pred = torch.utils.checkpoint.checkpoint(
@@ -355,9 +372,9 @@ def update(backend, network, critic, g, d, rows, *, sampler, step, checkpointing
             predictions[index] = pred.detach()
         return critic.normalize(pred)
 
-    result = shared.update(
+    result = (bispf.step(step, predict) if bispf is not None else shared.update(
         network, critic, g, d, targets, predict, sampler=sampler, step=step
-    )
+    ))
     result["cos_pos"] = sum(
         float(
             torch.nn.functional.cosine_similarity(

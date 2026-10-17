@@ -1,23 +1,20 @@
-"""Thin wrapper over ParticleGAN develop gradient penalties.
+"""Compatibility for historical fixed L2/autograd b_cap callers.
 
-Products historically imported ``GradRegularizer`` from ``particle_sliders``.
-That name remains a compatibility alias of ParticleGAN's ``GradientPenalty``
-(``particlegan.grad_regularizers.GradRegularizer``). Prefer calling
-``GradientPenalty``, ``get_recipe(...).make_gradient_penalty()``, or
-``particlegan.make_b_cap()`` for new code.
-
-This module no longer vendors a ParticleGAN excerpt. The implementation lives
-in the ``particlegan`` dependency pinned in ``pyproject.toml``.
+The kernels remain upstream. ParticleGAN 0.8 removed the old top-level
+aliases and optional norm/method/anneal arguments. Nondefault retired modes
+raise instead of silently changing their meaning.
 """
+from particlegan.grad_regularizers import GradientPenalty as UpstreamGradientPenalty
 
-from particlegan import GradientPenalty
-from particlegan.grad_regularizers import GradRegularizer, finite_difference_norm
 
-# ParticleGAN publishes GradientPenalty as an alias of GradRegularizer.
-assert GradRegularizer is GradientPenalty
+class GradientPenalty(UpstreamGradientPenalty):
+    def __init__(self, *args, norm="l2", method="autograd",
+                 target_anneal="none", arm="b_cap", **kwargs):
+        if (norm, method, target_anneal) != ("l2", "autograd", "none"):
+            raise ValueError("ParticleGAN 0.8 compatibility supports L2/autograd/no anneal only")
+        super().__init__(*args, arm=arm, **kwargs)
 
-__all__ = [
-    "GradRegularizer",
-    "GradientPenalty",
-    "finite_difference_norm",
-]
+
+GradRegularizer = GradientPenalty
+
+__all__ = ["GradRegularizer", "GradientPenalty"]

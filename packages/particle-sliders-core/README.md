@@ -1,5 +1,26 @@
 # particle-sliders-core
 
+## BISPF (0.4.0)
+
+New paired-error integrations should use `BISPFGame`, backed by
+`get_recipe("bispf")` at ParticleGAN commit
+`b5d2372f2739d7579ab66d6dba6e220d2eb776d9` (0.8.0).
+See [the integration guide](../../docs/bispf.md) for the callback contract,
+recipe differences, checkpoints and executed tests. `bispf_provenance.json`
+records the upstream source hashes. This is the SRpGAN/formulation-Adam
+component variant, with the product's existing full-bank routing.
+
+The sections below describe the preserved historical gmix stamp. In upstream
+0.8 the old top-level `GradientPenalty`, `GradRegularizer`, `LOCKED_SHARED`,
+`make_b_cap`, and `make_gan_loss` exports are retired. The local fixed-cap
+wrapper uses `particlegan.grad_regularizers.GradientPenalty`; it accepts only
+L2/autograd/no-anneal compatibility settings. `particlegan_locked_shared()`
+now returns a `legacy-fixed-bcap` label and equivalent cap/loss builders,
+without the retired upstream stamp object. The removed
+`finite_difference_norm` re-export has no supported 0.8 equivalent.
+
+## Historical gmix and endpoint interfaces
+
 Installable shared core for HyperGAN slider products. Import `particle_sliders`.
 The pip name `concept-slider-core` and the import `concept_slider_core` are
 deprecated aliases from the Anima extraction. `concept_slider_core` still
@@ -13,7 +34,7 @@ Product repositories depend on this package and train
 `locked_shared`, or `GradRegularizer` locally. Formulation toys and the DSL
 board stay in [HyperGAN/conceptmod](https://github.com/HyperGAN/conceptmod).
 
-This package **depends on ParticleGAN develop** (`particlegan` 0.6.0 API).
+This package pins ParticleGAN 0.8.0 source; this historical interface is adapted to its component API.
 Cap, RpGAN loss, and particle VIC come from that public API
 (`GradientPenalty`, `GANLoss`, `ParticleRegularizer`, `make_b_cap`,
 `make_gan_loss`, `get_recipe`). `GradRegularizer` remains a thin

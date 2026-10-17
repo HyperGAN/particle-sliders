@@ -7,6 +7,14 @@ a metal arrangement or a lighting style. Music comes first here: YuE2 and
 MiniMax Music 3 generate songs from a style caption and lyrics. Image and video
 backends follow.
 
+Music 3 routed-particle training now defaults to **BISPF** from a pinned
+ParticleGAN develop commit. The shared `BISPFGame` owns the paired-error
+Sinkhorn update and recovery state. See [BISPF integration and validation](docs/bispf.md)
+for the exact variant, bounded CPU commands, changed behavior and limitations.
+`--formulation legacy` retains the previous Music 3 game. Other backend
+trainers and the historical `winning_formulation()` stamp retain their existing
+objectives; upgrading a dependency does not silently retrain published sliders.
+
 This repository also ships
 [`particle-sliders-core`](packages/particle-sliders-core), the installable
 training core that HyperGAN slider products are meant to pin.
