@@ -1,7 +1,7 @@
 {
   "schema": "root-sequential-corrected-campaign-plan-v1",
   "status": "PLANNING_ONLY_NO_DISPATCH",
-  "recorded_utc": "2026-10-17T18:32:11.146626+00:00",
+  "recorded_utc": "2026-10-17T18:39:19.285662+00:00",
   "parent_scope": "FinishsafeCPU/offlinevalidation and explicitsequentialadmissionplan; bothMOSS retainpriority; noautomation.",
   "user_scope_authorized": true,
   "new_gpu_admissions_granted": false,
@@ -133,14 +133,14 @@
       "preferred_gpu": 0,
       "offline": "Repairedv2onlineCPUcontract30checks; same148M fullattn2 functionclass,rawt500/CFG4.5empty-positive teacher.",
       "missing": [
-        "Historical CPU draw reconstruction only proposed; actual CUDA noise/text states not recovered by RNG hashes",
+        "Source-only CPU candidate established; actual CUDAnoise/native text and learned prefix remain unreconstructed/unqualified",
         "Frozen selecteddescriptor/noise/contextreader +globalcollisiongate",
         "Training-only response-scale scalar and native Off/teacher/mask/sampler/decoder/export parity",
         "595MB native snapshot +595MB fullreadback/hash and fullG/D memory/timing measured",
         "GPU diskresumetest"
       ],
       "phases": [
-        "Preserve successful v3 packet/RNG schema receipts and prior failed v2 cohort; review NEW private-generator-only source draw reconstruction proposal before any further packet loading",
+        "Preserve successful v3 schemas and source-only privateCPU endpoint cohort; next separately review tiny private-CUDA-noise and numeric native condition proposals under MOSSpriority",
         "Freeze truthful common training descriptor plan; historical byte replay only if actually proven",
         "Calibrate training-only editRMS; nativezero-updateparity +3step probe/full1000recipe +separateprocessdiskreplay",
         "Separately admit each fixed publicpreset arm:1000G+1000D,batch2,500descriptors,4cycles; checkpoints/panels0/20/250/500/750/1000",
@@ -151,7 +151,9 @@
       "wall_cap_reason": "Must be frozen from admitted nativeprofile before fullarm; no unboundedfullrun.",
       "command_vector": null,
       "command_missing_reason": "Production assetreader/calibration/liveworker/card pending; CPUprototype not a dispatch entrypoint.",
-      "cpu_checkpoint_audit_status": "Actual v3 static and restricted CPU/mmap/weights_only audit PASS4packets, exact Sana7/SD3eight source-bound schemas and RNG metadata. Hard8GiBAS fits,534241280B peak. Historical draw/text/native parity remains unqualified; no global RNG restore/model/optimizer/native/GPU actions."
+      "cpu_checkpoint_audit_status": "Actual v3 static and restricted CPU/mmap/weights_only audit PASS4packets, exact Sana7/SD3eight source-bound schemas and RNG metadata. Hard8GiBAS fits,534241280B peak. Historical draw/text/native parity remains unqualified; no global RNG restore/model/optimizer/native/GPU actions.",
+      "cpu_draw_candidate_status": "Actual rootcohort623306cd exit0: privateCPU500draw schedules reproduce bothCPU/Python endpoints exactly; global3RNG unchanged; fullhistoricalreplay FALSE. QA c58b082 metadata/hash/index reviewPASS, no duplicatepacketload.",
+      "reader_prototype": "Lazy FileDescriptorAssets selected checksum/noise/condition read seam and both public core CPU fixture games qualified; native widths/globalcompletecondition collision audit/productionworker not yet qualified."
     },
     {
       "order": 5,
@@ -162,13 +164,13 @@
       "preferred_gpu": 0,
       "offline": "Repairedv2onlineCPUcontract30checks; nativeBF16 schedulerendpoint with currentadapter no-gradprefix1..49/50.",
       "missing": [
-        "Historical CPU draw reconstruction only proposed; actual CUDA noise/text states not recovered by RNG hashes",
+        "Source-only CPU candidate established; actual CUDAnoise/native text and learned prefix remain unreconstructed/unqualified",
         "Fixeddescriptor/noise/completecondition reader +collisiongate",
         "Training-only responsescale and actual nativeBF16endpoint/CFG/mask/decoder parity",
         "Snapshot/memory/timing and separateprocessGPUdiskresume"
       ],
       "phases": [
-        "Preserve successful v3 packet/RNG schema receipts and prior failed v2 cohort; review NEW private-generator-only source draw reconstruction proposal before any further packet loading",
+        "Preserve successful v3 schemas and source-only privateCPU endpoint cohort; next separately review tiny private-CUDA-noise and numeric native condition proposals under MOSSpriority",
         "Freeze explicit onlineprefix algorithm/currentG version/rowhashes; never silently substitute frozenprefix",
         "Nativezero-updateparity +trainingonlycalibration +3step probe/full1000recipe +separateprocessdiskresume",
         "Separately admit both publicpreset1000/b2 arms,4cycles; panels0/20/250/500/750/1000",
@@ -179,7 +181,9 @@
       "wall_cap_reason": "Requires measurednativeprofile then frozenhardcap, no unboundedadmission.",
       "command_vector": null,
       "command_missing_reason": "Productionreader/calibration/liveworker/card notready.",
-      "cpu_checkpoint_audit_status": "Actual v3 static and restricted CPU/mmap/weights_only audit PASS4packets, exact Sana7/SD3eight source-bound schemas and RNG metadata. Hard8GiBAS fits,534241280B peak. Historical draw/text/native parity remains unqualified; no global RNG restore/model/optimizer/native/GPU actions."
+      "cpu_checkpoint_audit_status": "Actual v3 static and restricted CPU/mmap/weights_only audit PASS4packets, exact Sana7/SD3eight source-bound schemas and RNG metadata. Hard8GiBAS fits,534241280B peak. Historical draw/text/native parity remains unqualified; no global RNG restore/model/optimizer/native/GPU actions.",
+      "cpu_draw_candidate_status": "Actual rootcohort623306cd exit0: privateCPU500draw schedules reproduce bothCPU/Python endpoints exactly; global3RNG unchanged; fullhistoricalreplay FALSE. QA c58b082 metadata/hash/index reviewPASS, no duplicatepacketload.",
+      "reader_prototype": "Lazy FileDescriptorAssets selected checksum/noise/condition read seam and both public core CPU fixture games qualified; native widths/globalcompletecondition collision audit/productionworker not yet qualified."
     },
     {
       "order": 6,
