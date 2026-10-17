@@ -1,0 +1,110 @@
+{
+  "schema": "root-moss-quality-early-stop-plan-v1",
+  "recorded_utc": "2026-10-17T18:48:14.329408+00:00",
+  "status": "NEWFILES_PREVIEW_RESUME_IMPLEMENTATION_AND_QA_PENDING",
+  "human_instruction": "Stop when good enough;3840 is MAXIMUM not mandatory completion. Graceful checkpointed pause/stop of ownedruns authorized.",
+  "maximum_steps": 3840,
+  "maximum_preserves_original_public_recipe_lr_horizon": true,
+  "change_active_bound_sources": false,
+  "scope": "Source/CPU preparation now; actualpause/render only after newphasecard/guardian/QA readiness and freshresources.",
+  "coverage_rationale": {
+    "training_prompts": 24,
+    "seeds": 16,
+    "paths": 2,
+    "positions": 10,
+    "signs": 2,
+    "signed_rows": 15360,
+    "batch_size": 8,
+    "updates_per_full_cycle": 1920,
+    "maximum_cycles": 2,
+    "one_discriminator_and_one_generator_update_per_step": true,
+    "independent_balanced_shuffles": true,
+    "two_cycles_reason": "Bounded complete coverage with20percentmore Gexposures than old25600; engineering budget, not proven convergence requirement"
+  },
+  "snapshot": {
+    "bad-intent": {
+      "step": 260,
+      "progress_utc": "2026-10-17T18:47:27.621177+00:00",
+      "status": "stopped",
+      "next_regular_checkpoint": 320,
+      "eta320_minutes": 21.5122
+    },
+    "afterimage": {
+      "step": 259,
+      "progress_utc": "2026-10-17T18:48:02.800573+00:00",
+      "status": "training",
+      "next_regular_checkpoint": 320,
+      "eta320_minutes": 21.03219
+    }
+  },
+  "interim_panel": {
+    "final_heldout_set_untouched": true,
+    "new_captions_per_case": 2,
+    "frozen_caption_asset": "QA freezes NEW non-final captions and nativeQwen context asset gate; no placeholder embeddings",
+    "variants": [
+      "clean_unattached_base",
+      "adapter_off0",
+      "minus-1",
+      "half+0.5",
+      "plus+1",
+      "frozen_positive_teacher"
+    ],
+    "images_per_case": 12,
+    "seeds": [
+      31019,
+      31073
+    ],
+    "native_settings": {
+      "resolution": 512,
+      "steps": 50,
+      "cfg": 3,
+      "teacher_cfg": 3,
+      "adapter_cfg": "conditional-only frozen-empty negative; no skip"
+    },
+    "first_candidate": 320,
+    "later_decisions": "Every+320updates ormaximum3840; no extra prompts/seeds/strength sweeps",
+    "maximum_reviews": 12,
+    "adaptive_sweep": false
+  },
+  "pass_criterion": [
+    "Intended effect clearly visible on BOTH fixedinterim captions at+1",
+    "Strength0/.5/1 changes are coherent and controllable; negative direction does not increase effect and remains coherent",
+    "Cleanbase/off exact; identity/composition acceptable accounting for intended pose/framing/atmosphere edit scope and identity_preservationFalse",
+    "No materially worse anatomy/texture/duplication or other artifacts than baseline/teacher",
+    "Independent QA visual review agrees; GANloss cannot decide"
+  ],
+  "capacity": {
+    "current_guardian_rejects_every_extra_cuda_process": true,
+    "both_card_leases_held": true,
+    "concurrent_render_admitted": false,
+    "preferred_pause_gpu": 0,
+    "sequence": [
+      "Graceful checkpoint/SIGINT owned GPU0worker afternewcardsready; letguardianexit/releasebothleases",
+      "Verify immutable fullstate/frozenbase+ownedstop proof; preserve oldguardianreceipt evenifSTOPPED classified failed_no_retry",
+      "Encoder-only nativeQwen first; releaseit before DiT/VAE load",
+      "Read-only DiT+FP32VAE preview bothcase immutablecandidates sequentially onreleasedGPU0; GPU1trainingmaycontinue",
+      "Independentvisualdecision; pass=>retainselectedcheckpoint+stopownedcase; fail=>newreviewedexactresume to nextcoarsecheckpoint"
+    ],
+    "minimum_fresh_gpu_gib": 30,
+    "minimum_start_host_gib": 24,
+    "continuous_host_floor_gib": 8,
+    "maximum_peak_reserved_gib": 24,
+    "maximum_peak_rss_gib": 24,
+    "minimum_disk_free_gib": 100,
+    "newoutput_limit_gib": 10,
+    "context_phase_seconds": 900,
+    "preview_phase_seconds": 1800,
+    "resumeproof_phase_seconds": 1800,
+    "thermal": "Soft76/cool70/hard82; preserveallresidents; onlyownedPGIDs",
+    "resumption": "CPU-mapfullstate,same3840recipe/allstreams; arbitraryN one-stepdiskwitness required; never resetoptimizer/scheduler/RNG"
+  },
+  "pending": [
+    "NEW standalonepreview/resumeseam and rootguardian/card/CPUtests",
+    "Frozennewvalidationcaptions/Qwenassetidentity and actualnativeencode parity",
+    "IndependentQA criterion/source review",
+    "Freshownedprocess/lease/UUID/kernel/resource checks and actualfileproof"
+  ],
+  "first_panel_eta": "Regularcheckpoint320 about20minutes fromsnapshot; nativecontext/previewtime unmeasured. Allow30-60minutes afterready checkpoint/pause, conditionalonnewcodeQA andresourcegates.",
+  "automatic_retry": false,
+  "automation": false
+}
