@@ -10,7 +10,7 @@
     "YR1",
     "M3S"
   ],
-  "alternate_order": "Root may review a separateM3S window afterY20 while renderer implementation remains pending; every phase stays serial and subordinate to all MOSS priority. No automatic dispatch.",
+  "alternate_order": "Root may review a separate Music3 smoke window after Y20 while renderer independent review/producer/guard gates remain pending; every phase stays serial and subordinate to MOSS priority. No automatic dispatch.",
   "root_owner_thread": "01a147d7-f540-778e-ad79-4d8eb267403d",
   "phase_cards": [
     "yue2-continue20.proposed.json",
@@ -19,7 +19,7 @@
     "music3-smoke.proposed.json"
   ],
   "capacity_only": false,
-  "capacity_note": "No proposal runs under the unchanged smoke-only guardian. Y20 needs a root-owned phase scope/card plus a fresh capacity window; it needs no new native training implementation. M3S needs a separate family scope and first native GPU qualification. Rendering additionally lacks its bounded implementation.",
+  "capacity_note": "No proposal runs under the unchanged smoke-only guardian. Phase-specific root guards and new capacity/admission remain mandatory. The separate renderer now exists and passes native-random/synthetic CPU gates; producer20-step artifacts, independent review and first native render parity still remain.",
   "readiness": {
     "Y20": {
       "native_implementation_missing": false,
@@ -39,12 +39,12 @@
   },
   "actual_missing": {
     "YR0": [
-      "Bounded sharedPG09 export-to-native-audio renderer source+CPU qualification",
-      "New20-step export producer/hash",
-      "Renderer-specific root guardian/card"
+      "Independent renderer review",
+      "Accepted20-step export+qualification producer hashes",
+      "Renderer-specific root guardian/card and first native render parity"
     ],
     "YR1": [
-      "Same renderer/producer gates plus acceptedcase0 and new rootlease"
+      "Same review/producer/guardian gates plus acceptedcase0 and new rootlease"
     ]
   },
   "not_missing": [
@@ -56,9 +56,9 @@
   "cuda_initialized_by_preparation": false,
   "source_integrity_checked_against_admitted_card": true,
   "proposal_hashes": {
-    "yue2-continue20.proposed.json": "ce662bfdabf71803d5ebb23de8759fc61d7f83a1e31ef6c1f23b5179fca6e001",
-    "yue2-matched-case-0.proposed.json": "8531c87302f7504b139aecda1e4eedf6189ba497bf777ab93a6d33018d7818c1",
-    "yue2-matched-case-1.proposed.json": "e6d306e1d483b1f8742c4ed21a5ef7f90f8c17c6992c1d42105c48e13685e76a",
-    "music3-smoke.proposed.json": "f9b0701382cded3ff91548b54b2ea3c2951ff14e811c1ce92589bf244c32b560"
+    "yue2-continue20.proposed.json": "2b6e1fe286cc2e77401501c14df74b5902eb933a4d8d487c01c0e14af5b5a59f",
+    "yue2-matched-case-0.proposed.json": "c1f13af5f0527c42f70be91ce3d8076364975321b04ec147465c9ee6f53bce01",
+    "yue2-matched-case-1.proposed.json": "282bc16ce8b61d32e3ee13cc703d28a32d6c1b9918aeeb6a4415aa2804001172",
+    "music3-smoke.proposed.json": "eb218c2ba5aacbf75270566a4afc8b1ccf1502d8dce48731064ce17130f8fb25"
   }
 }

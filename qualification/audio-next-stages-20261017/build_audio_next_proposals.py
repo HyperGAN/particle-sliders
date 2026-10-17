@@ -1,5 +1,6 @@
 """Freeze non-dispatchable audio proposals from CPU/offline evidence only."""
 from copy import deepcopy
+import ast
 import hashlib
 import json
 from pathlib import Path
@@ -46,7 +47,7 @@ for name in ('audio_offline_identity.py', 'audio_next_runtime.py', 'build_audio_
 checkpoint = RUNS / 'yue2-smoke/full3/checkpoint.pt'
 checkpoint_hash = sha(checkpoint)
 common_sources = {p:h for p,h in smoke['source_pins'].items()
-    if '/audio-adapters-' in p or '/audio-core-pin-' in p or '/ops-music3/' in p}
+    if '/audio-adapters-' in p or '/audio-core-pin-' in p or '/ops-music3/' in p or '/audio-yue2-source-' in p}
 base_env = deepcopy(smoke['environment'])
 base_env['CUDA_VISIBLE_DEVICES'] = '<ROOT_ASSIGNED_SINGLE_PHYSICAL_GPU_AFTER_REVIEW>'
 gates = dict(moss_priority='All existing MOSS jobs and source pins retain priority; root alone admits a free window.',
@@ -59,7 +60,7 @@ limits = dict(compute_seconds=720, shutdown_grace_seconds=180, maximum_wall_seco
     maximum_concurrent_cuda_children=1, gpu_running_free_mib_minimum=6144,
     gpu_abort_temperature_c=82, gpu_cooling_start_c=76, gpu_cooling_target_c=70,
     gpu_cooling_maximum_seconds=180, startup_temperature_c_below=76,
-    host_running_available_gib_minimum=4, nvme_free_gib_minimum=100,
+    host_running_available_gib_minimum=8, nvme_free_gib_minimum=100,
     power_abort_fraction_of_limit=1.15, retry=False, automatic_next_phase=False)
 
 
@@ -118,26 +119,32 @@ continuation['limits'].update(startup_gpu_free_gib_minimum=16, startup_host_avai
 save('yue2-continue20.proposed.json', continuation)
 
 render_phases = []
+renderer_path = ROOT / 'scripts/render_yue2_pg09.py'
+renderer_tree = ast.parse(renderer_path.read_text())
+protocol_node = next(node.value for node in renderer_tree.body if isinstance(node, ast.Assign)
+    and any(isinstance(target, ast.Name) and target.id == 'PROTOCOL' for target in node.targets))
+renderer_protocol = {keyword.arg:ast.literal_eval(keyword.value) for keyword in protocol_node.keywords}
 for index in (0, 1):
     render = base(f'YR{index}', 'yue2', RUNS / f'yue2-matched-case-{index}')
-    render.update(command=None, executable_card_ready=False,
-        implementation_status='BLOCKED: no reviewed bounded shared-PG09 native audio renderer exists.',
-        implementation_gates=['Create a separate renderer; do not change already-admitted worker/adapter/core/native sources.',
-            'Load the phaseY20 public inference export by reconstructing the same bound native game/condition rows and using load_export_state_dict; no legacy checkpoint-format conversion.',
-            'Qualify stable imported critic/source/runtime identity, adapter/bank ownership once, RNG isolation and captured scale using CPU random/mock transport tests.',
-            'Reuse one loaded native YuE host; ensure no duplicate pretrained GPU model. Freeze native-host reuse and transfer behavior before admission.',
-            'Generate the clean unattached base first, then attach/load the existing slider into that same host for off/half/on/reference; freeze the loader/attachment order and CPU-test it. Do not label a second scale0 call as an independent clean base.',
-            'Freeze renderer+all executed sources and concrete executable argv/card after CPU gates; root must separately review a renderer-specific guardian.',
-            'At runtime run base/off pair first and reject any token/latent/waveform inequality before half/on/reference. No auto fallback.'],
+    render.update(command=[smoke['command'][0], str(renderer_path), '--card',
+            str(CORE / f'qualification/audio-reruns/yue2-matched-case-{index}.json')],
+        executable_card_ready=False, renderer_sha256=sha(renderer_path),
+        implementation_status='Separate bounded public-PG09-export renderer implemented and CPU qualified with native-random AR and synthetic acoustics; no pretrained/native-audio/GPU result.',
+        implementation_gates=['Root independently reviews frozen renderer source and native-random CPU receipt.',
+            'Accepted Y20 producer export AND qualification artifacts must exist and their exact hashes must be frozen.',
+            'Root separately implements/reviews the render phase guardian and reviewed root card with continuous8GiB host reserve.',
+            'Native base/off token/latent/waveform parity is a runtime gate before half/on/reference; no fallback.'],
         producer_input=dict(path=str(RUNS / 'yue2-continue20/adapter-export.pt'), sha256=None,
             status='NOT_YET_PRODUCED: freeze actual output hash only after acceptedY20 receipt; do not admit an unbound export.'),
+        producer_qualification_input=dict(path=str(RUNS / 'yue2-continue20/qualification.pt'), sha256=None,
+            status='NOT_YET_PRODUCED: bind the matching20-step qualification, probes and frozen-base identity.'),
         pipeline=dict(class_name='yue2.pipeline.YuE2Pipeline', model_id='m-a-p/YuE2-3B',
             revision='14fc6c6f146441b1dd6363fcb2e01e82a6914cb7', vae_id='m-a-p/YuE2-Vae',
             vae_revision='9a94e1d0ea9f8087e98f77fa88df4a4068104d2a', local_files_only=True,
             device='cuda:0', backend='torch-eager', quantization='none', offload_ar=False,
             memory_budget_gib=16, vae_core_frames=1024, vae_halo_frames=16,
             model_dtype='bfloat16', vae_dtype='float32', ode_steps=32, ode_method='midpoint'),
-        protocol=runtime['yue2']['protocol'], heldout_case=index,
+        protocol=renderer_protocol, heldout_case=index,
         heldout_prefix_identity=runtime['yue2']['heldout_prefixes'][index], seed=1709+index,
         variants=[dict(name='base', caption='neutral', adapter_attached=False),
             dict(name='off', caption='neutral', adapter_scale=0),
@@ -160,6 +167,24 @@ for index in (0, 1):
     render['limits'].update(startup_gpu_free_gib_minimum=20, startup_host_available_gib_minimum=16,
         sequential_cuda_children=1, maximum_resident_native_models=1)
     render['source_pins'][str(ROOT / 'conceptmod/textsliders/pg09_audio_checks.py')] = sha(ROOT / 'conceptmod/textsliders/pg09_audio_checks.py')
+    render['source_pins'][str(renderer_path)] = sha(renderer_path)
+    renderer_inputs = dict(render['input_pins'])
+    renderer_inputs[render['producer_input']['path']] = None
+    renderer_inputs[render['producer_qualification_input']['path']] = None
+    assets_manifest = load(assets['families']['yue2']['manifest_path'])
+    runtime_keys = ('sys_executable','torch_version','torch_file','transformers_version',
+                    'transformers_file','particlegan_version','particlegan_file')
+    render['root_card_template'] = dict(schema='root-yue2-pg09-render-admission-v1',
+        status='UNREVIEWED_TEMPLATE_NOT_ADMITTED', admission_id=None, case=index,
+        output_directory=render['output_directory'], protocol=renderer_protocol,
+        limits=render['limits'], source_pins=render['source_pins'], input_pins=renderer_inputs,
+        runtime_expected={key:runtime['yue2']['runtime'][key] for key in runtime_keys},
+        manifest=assets['families']['yue2']['manifest_path'],
+        model_dir=assets_manifest['records']['model']['path'], vae_dir=assets_manifest['records']['vae']['path'],
+        product='/mnt/nvme/sliders/audio-yue2-source-20261017',
+        train_prompts=smoke['command'][smoke['command'].index('--train-prompts')+1],
+        heldout_prompts=smoke['command'][smoke['command'].index('--heldout-prompts')+1],
+        adapter_export=render['producer_input']['path'], qualification=render['producer_qualification_input']['path'])
     render['required_previous_phase'] = 'AcceptedY20 plus separately qualified renderer; ' + ('case0 accepted for case1.' if index else 'first native render parity gate.')
     save(f'yue2-matched-case-{index}.proposed.json', render)
     render_phases.append(render['phase'])
@@ -189,21 +214,21 @@ save('music3-smoke.proposed.json', music)
 index = dict(schema='audio-pg09-sequential-plan-v1', status='CPU_OFFLINE_PROPOSALS_ONLY',
     dispatch_allowed=False, automation_created=False, no_already_admitted_source_changes=True,
     phase_order=['Y20', 'YR0', 'YR1', 'M3S'],
-    alternate_order='Root may review a separateM3S window afterY20 while renderer implementation remains pending; every phase stays serial and subordinate to all MOSS priority. No automatic dispatch.',
+    alternate_order='Root may review a separate Music3 smoke window after Y20 while renderer independent review/producer/guard gates remain pending; every phase stays serial and subordinate to MOSS priority. No automatic dispatch.',
     root_owner_thread='01a147d7-f540-778e-ad79-4d8eb267403d',
     phase_cards=['yue2-continue20.proposed.json','yue2-matched-case-0.proposed.json',
                  'yue2-matched-case-1.proposed.json','music3-smoke.proposed.json'],
     capacity_only=False,
-    capacity_note='No proposal runs under the unchanged smoke-only guardian. Y20 needs a root-owned phase scope/card plus a fresh capacity window; it needs no new native training implementation. M3S needs a separate family scope and first native GPU qualification. Rendering additionally lacks its bounded implementation.',
+    capacity_note='No proposal runs under the unchanged smoke-only guardian. Phase-specific root guards and new capacity/admission remain mandatory. The separate renderer now exists and passes native-random/synthetic CPU gates; producer20-step artifacts, independent review and first native render parity still remain.',
     readiness=dict(Y20=dict(native_implementation_missing=False, assets_missing=False,
         runtime_missing=False, phase_specific_root_guardian_pending=True,
         new_admission_and_fresh_capacity_pending=True),
         M3S=dict(native_worker_missing=False, assets_missing=False, runtime_missing=False,
         phase_specific_root_guardian_pending=True, first_native_gpu_qualification_pending=True,
         new_admission_and_fresh_capacity_pending=True)),
-    actual_missing=dict(YR0=['Bounded sharedPG09 export-to-native-audio renderer source+CPU qualification',
-        'New20-step export producer/hash', 'Renderer-specific root guardian/card'],
-        YR1=['Same renderer/producer gates plus acceptedcase0 and new rootlease']),
+    actual_missing=dict(YR0=['Independent renderer review', 'Accepted20-step export+qualification producer hashes',
+        'Renderer-specific root guardian/card and first native render parity'],
+        YR1=['Same review/producer/guardian gates plus acceptedcase0 and new rootlease']),
     not_missing=['Existing YuE2 model/tokenizer/NAR/VAE bytes and native runtime APIs',
         'Existing Music3 LM/tokenizer/condition/RVQ/flow/vocoder bytes and native modular API imports'],
     asset_total_verified_bytes=sum(f['total_bytes'] for f in assets['families'].values()),

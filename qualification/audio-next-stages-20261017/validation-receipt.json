@@ -11,13 +11,13 @@
       "phase": "YR0",
       "status": "PROPOSED_NOT_ADMITTED",
       "output_absent": true,
-      "command_frozen": false
+      "command_frozen": true
     },
     {
       "phase": "YR1",
       "status": "PROPOSED_NOT_ADMITTED",
       "output_absent": true,
-      "command_frozen": false
+      "command_frozen": true
     },
     {
       "phase": "M3S",
@@ -26,7 +26,7 @@
       "command_frozen": true
     }
   ],
-  "source_files_rehashed": 37,
+  "source_files_rehashed": 47,
   "asset_bytes_independently_verified_in_receipt": 36312138722,
   "model_tensors_loaded": false,
   "gpu_actions": false,

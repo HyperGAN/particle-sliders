@@ -1,0 +1,32 @@
+{
+  "status": "CPU_RENDERER_QUALIFIED_NOT_NATIVE_AUDIO_ADMITTED",
+  "tests": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "16",
+    "time": "12.358",
+    "timestamp": "2026-10-17T12:20:26.752158-06:00",
+    "hostname": "pop-os"
+  },
+  "renderer_sha256": "2d1fd75f69b6e37392fb518e58a761a0f14fd79a58ef16c0f2bb1e2f5c25a1f1",
+  "test_source_sha256": "6cc0052fb19e1c5492686074bf159cb525cdd9e7fd41ed38458d3b9d90266c2a",
+  "native_runtime_receipt": "yue2-offline-runtime.json",
+  "core_commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
+  "scope": "Real random YuE2 AR, public GAN/export, synthetic acoustic transport. Loader stubbed before pretrained weights for direct unchanged-producer binding parity.",
+  "pretrained_tensors_loaded": false,
+  "native_acoustic_synthesis_or_decode": false,
+  "gpu_initialized": false,
+  "admitted_sources_changed": false,
+  "new_phase_host_running_available_gib_minimum": 8,
+  "old_four_gib_policy_rejected_by_renderer_and_proposal_validator": true,
+  "remaining": [
+    "Independent renderer review",
+    "Accepted20-step export and qualification hashes",
+    "New root phase-specific guardian and explicit admission",
+    "First native matched token/latent/waveform parity and listening review"
+  ],
+  "all_nine_fixed_product_sources_bound": true,
+  "missing_product_and_wrong_product_rejected": true
+}

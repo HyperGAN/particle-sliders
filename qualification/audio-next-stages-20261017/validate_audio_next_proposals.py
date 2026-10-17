@@ -36,9 +36,16 @@ for name in index['phase_cards']:
     assert card['limits']['shutdown_grace_seconds'] == 180
     assert card['limits']['maximum_wall_seconds'] == 900
     assert card['limits']['maximum_concurrent_cuda_children'] == 1
+    assert card['limits']['host_running_available_gib_minimum'] >= 8
     assert not card['limits']['retry'] and not card['limits']['automatic_next_phase']
     assert card['source_profile'] == 'alz-continuous-v1' and card['penalty_input_domain'] == 'continuous'
     assert len(card['pg_sources']) == 49
+    if card['family'] == 'yue2':
+        product = Path('/mnt/nvme/sliders/audio-yue2-source-20261017')
+        product_files = sorted((product/'yue2').glob('*.py'))
+        assert len(product_files) == 9
+        assert all(str(path) in card['source_pins'] for path in product_files), 'missing fixed product source'
+        assert all(card['source_pins'][str(path)] == sha(path) for path in product_files)
     runtime = load(root / card['runtime_receipt'])
     assert not runtime['cuda_initialized'] and not runtime['models_constructed']
     assert runtime['domain']['resolved_penalty_domain'] == 'continuous'
@@ -57,6 +64,7 @@ for name in index['phase_cards']:
         assert command[1].endswith('/scripts/qualify_audio_pg09_live.py')
         assert command[command.index('--until')+1] == '20'
         assert command[command.index('--total-steps')+1] == '20'
+        assert command[command.index('--product')+1] == '/mnt/nvme/sliders/audio-yue2-source-20261017'
         assert card['initial_completed_steps'] + card['additional_updates'] == 20
         assert card['input_pins'][command[command.index('--resume')+1]]
     elif phase == 'M3S':
@@ -67,8 +75,14 @@ for name in index['phase_cards']:
         assert command[command.index('--minimum-free-gib')+1] == '30'
         assert card['limits']['sequential_cuda_children'] == 3
     else:
-        assert card['command'] is None and not card['executable_card_ready']
+        assert card['command'][1].endswith('/scripts/render_yue2_pg09.py')
+        assert not card['executable_card_ready']
         assert card['producer_input']['sha256'] is None
+        assert card['producer_qualification_input']['sha256'] is None
+        assert card['root_card_template']['admission_id'] is None
+        assert card['root_card_template']['product'] == '/mnt/nvme/sliders/audio-yue2-source-20261017'
+        assert card['root_card_template']['limits']['host_running_available_gib_minimum'] >= 8
+        assert sha(card['command'][1]) == card['renderer_sha256']
         assert card['protocol']['cfg_scale'] == 1.0 and card['protocol']['cot'] == 'off'
         assert card['maximum_clips'] == 5 and card['maximum_semantic_tokens_per_clip'] == 200
         assert card['maximum_audio_seconds_per_clip'] == 8.1

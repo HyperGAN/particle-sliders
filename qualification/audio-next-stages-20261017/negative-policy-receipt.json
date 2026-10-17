@@ -1,0 +1,19 @@
+{
+  "status": "CPU_NEGATIVE_POLICIES_PASSED",
+  "cases": {
+    "old_four_gib_floor": {
+      "rejected": true,
+      "exit_code": 1
+    },
+    "missing_product_source": {
+      "rejected": true,
+      "exit_code": 1
+    },
+    "wrong_product_root": {
+      "rejected": true,
+      "exit_code": 1
+    }
+  },
+  "gpu_actions": false,
+  "admitted_sources_changed": false
+}
