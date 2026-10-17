@@ -128,23 +128,20 @@ def test_resolved_model_id_is_ltx25_diffusers():
     assert DEFAULT_TRANSFORMER_SUBFOLDER == "transformer"
     assert FULL_TRANSFORMER_SUBFOLDER == "transformer_full"
     args = parse_args(["--dummy"])
-    assert args.model_id == "Lightricks/LTX-2.5-Diffusers"
-    assert args.transformer_subfolder == "transformer"
-    assert args.encoder_device == DEFAULT_ENCODER_DEVICE == "cpu"
+    assert args.model_id == DEFAULT_MODEL
+    assert args.transformer_subfolder == DEFAULT_TRANSFORMER_SUBFOLDER
+    assert args.device == args.encoder_device == DEFAULT_ENCODER_DEVICE == "cpu"
     assert args.rank == DEFAULT_RANK == 16
     assert args.alpha == DEFAULT_ALPHA == 16.0
     assert args.lr == DEFAULT_LR == pytest.approx(2e-4)
     assert args.steps == DEFAULT_STEPS == 700
     assert args.recipe == DEFAULT_RECIPE == RECIPE_EMBED
     assert args.te_last_n == DEFAULT_TE_LAST_N == 4
-    assert args.hold_mode == DEFAULT_HOLD_MODE == HOLD_MODE_NON_CONCEPT
     assert args.lora_up_init_std == DEFAULT_LORA_UP_INIT_STD == 0.02
     assert args.load_ltx_lora is None
-    assert args.sample_scales == DEFAULT_SAMPLE_SCALES_TEXT == "-1,0,0.5,1"
-    assert parse_sample_scales(args.sample_scales) == list(DEFAULT_SAMPLE_SCALES)
-    assert args.sample_num_frames == DEFAULT_NUM_FRAMES == 49
-    assert args.sample_height == DEFAULT_SAMPLE_HEIGHT == 544
-    assert args.sample_width == DEFAULT_SAMPLE_WIDTH == 960
+    assert args.pg_source_profile == "release"
+    assert args.penalty_input_domain == "auto"
+    assert parse_sample_scales(args.sample_scales) == [0.0, 0.5, 1.0]
     assert args.diag is False
     assert resolve_ltx25_recipe(None) == RECIPE_EMBED
     assert is_embed_recipe("embed") is True
@@ -390,57 +387,40 @@ def test_smile_yaml_same_subject_bare_captions():
         assert concept
 
 
-def test_dummy_train_writes_sidecar_and_student_is_neu(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: a person, closed mouth\n"
-        "  positive: a person smiling showing teeth, happy joyful expression\n"
-        "  neutral: a person, closed mouth\n"
-        "  unconditional: ''\n"
-        "  attributes: []\n"
-        "  concept_words: smiling, smile, happy, joyful, teeth\n"
-    )
+def test_public_cli_fails_closed_before_reading_prompts_or_writing(tmp_path):
+    output = tmp_path / "closed"
+    missing = tmp_path / "missing.yaml"
     args = parse_args([
-        "--dummy", "--steps", "20", "--name", "ltx25-dummy",
-        "--save_dir", str(tmp_path), "--prompts_file", str(prompts),
-        "--lr", "0.5", "--seed", "0", "--no_sample",
+        "--dummy", "--steps", "1", "--save_dir", str(output),
+        "--prompts_file", str(missing),
     ])
-    sidecar = train(args)
-    assert sidecar["model_id"] == "Lightricks/LTX-2.5-Diffusers"
-    assert sidecar["transformer_subfolder"] == "transformer"
-    assert sidecar["student_plus"] == "neu"
-    assert sidecar["hold_stage"] == "pre_connector"
-    assert sidecar["recipe"] == RECIPE_EMBED
-    assert sidecar["dit_frozen"] is True
-    assert sidecar["train_dit"] is False
-    assert sidecar["te_last_n"] == 4
-    assert sidecar["minus_teacher"] is False
-    assert sidecar["lora_host"] == "te_last_n+video_connectors"
-    assert sidecar["lora_hosts"] == list(LORA_EMBED_HOSTS)
-    assert sidecar["lora_linears"] == list(LORA_TE_ATTN_NAMES)
-    assert sidecar["train_audio_attn"] is False
-    assert sidecar["velocity_contract"] is None
-    assert sidecar["predict_v_faked"] is False
-    assert sidecar["teacher"] == "encode_plus_post_connector_video"
-    assert sidecar["guidance"] == 1.0
-    assert sidecar["stg_scale"] == 0.0
-    assert sidecar["modality_scale"] == DISTILLED_MODALITY_SCALE == 1.0
-    assert sidecar["prompt_enhancer"] is False
-    assert sidecar["decoder"] == "conv_vae"
-    assert sidecar["sigmas"] == DISTILLED_SIGMA_VALUES
-    assert sidecar["lora_up_init_std"] == 0.02
-    assert sidecar["first_loss"] > sidecar["last_loss"]
-    data = json.loads((tmp_path / "ltx25-dummy_last.json").read_text())
-    assert data["backend"] == "ltx25"
+    with pytest.raises(ValueError, match="released PG09|width 8208"):
+        train(args)
+    assert not output.exists()
+
+    with pytest.raises(RuntimeError, match="not qualified"):
+        train(parse_args(["--save_dir", str(output)]))
+    assert not output.exists()
 
 
-def test_scale_zero_matches_neu_teacher():
+def test_scale_zero_restores_frozen_neutral_after_adapter_mutation():
     backend = LTX25Backend(device="cpu", dummy=True)
-    neu = backend.encode_text("a person, closed mouth")
-    packed = backend.pack_t2v(neu)
-    teacher = backend.forward_velocity(packed, scale=0.0)
-    student = backend.forward_velocity(packed, scale=0.0)
-    assert torch.allclose(teacher.sample, student.sample)
+    caption = "a person, closed mouth"
+    backend.network.set_lora_slider(0.0)
+    frozen = backend.encode_text(caption, frozen=True)
+    baseline, mask = backend.encode_post_connector_video(frozen, scale=0.0)
+    with torch.no_grad():
+        for lora in backend.network.loras:
+            lora.lora_up.weight.add_(0.5)
+    backend.network.set_lora_slider(1.0)
+    active = backend.encode_text(caption, frozen=False)
+    adapted, _ = backend.encode_post_connector_video(active, scale=1.0)
+    assert not torch.equal(adapted, baseline)
+    backend.network.set_lora_slider(0.0)
+    neutral = backend.encode_text(caption, frozen=True)
+    restored, restored_mask = backend.encode_post_connector_video(neutral, scale=0.0)
+    assert torch.equal(restored_mask, mask)
+    assert torch.equal(restored, baseline)
 
 
 def test_plus_and_neu_velocities_differ():
@@ -543,71 +523,38 @@ def test_pack_dim_uses_proj_in_in_features():
     assert packed.audio_hidden_states.shape[-1] == dummy.audio_proj_in.in_features
 
 
-def test_dummy_train_writes_mp4s_at_minus_one_to_one(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: a person sitting in a chair, closed mouth\n"
-        "  positive: a person sitting in a chair, big smile showing teeth\n"
-        "  neutral: a person sitting in a chair, closed mouth\n"
-        "  unconditional: ''\n  attributes: []\n"
-    )
-    args = parse_args([
-        "--dummy", "--steps", "2", "--name", "ltx-sample",
-        "--save_dir", str(tmp_path), "--prompts_file", str(prompts),
-        "--sample_scales=-1,0,0.5,1", "--seed", "0",
-    ])
-    sidecar = train(args)
-    assert sidecar["sample_grid"]["scales"] == [-1.0, 0.0, 0.5, 1.0]
-    assert sidecar["sample_grid"]["guidance"] == 1.0
-    assert sidecar["sample_grid"]["infer_caption"] == "neu"
-    assert "num_inference_steps" not in sidecar["sample_grid"]
-    samples = tmp_path / "samples"
-    meta = json.loads((samples / "final_meta.json").read_text())
-    assert meta["sigmas"] == DISTILLED_SIGMA_VALUES
-    assert meta["prompt_enhancer"] is False
-    mp4s = sorted(p.name for p in samples.glob("*.mp4"))
-    assert any("scalem1.mp4" in n for n in mp4s)
-    assert any("scale0.mp4" in n for n in mp4s)
-    assert any("scale0.5.mp4" in n for n in mp4s)
-    assert any("scale1.mp4" in n for n in mp4s)
-    for path in samples.glob("*.mp4"):
-        assert path.stat().st_size > 0
-        assert b"ftyp" in path.read_bytes()[:32]
+def test_unqualified_mp4_and_bipolar_probe_routes_reject(tmp_path):
+    from particle_sliders.ltx25_cli import emit_ltx_samples, write_ltx_sample_mp4
+
+    path = tmp_path / "placeholder.mp4"
+    with pytest.raises(RuntimeError, match="placeholder MP4 files are forbidden"):
+        write_ltx_sample_mp4(path, torch.zeros(2, 8, 8, 3), fps=24)
+    with pytest.raises(RuntimeError, match="not qualified"):
+        emit_ltx_samples(None, None, tmp_path, [])
+    with pytest.raises(ValueError, match="unipolar"):
+        parse_sample_scales("-1,0,0.5,1")
+    assert not path.exists()
 
 
-def test_load_ltx_lora_roundtrip_and_steps_zero(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: a person, closed mouth\n"
-        "  positive: a person smiling showing teeth\n"
-        "  neutral: a person, closed mouth\n"
-        "  unconditional: ''\n  attributes: []\n"
-    )
-    train_dir = tmp_path / "trained"
-    train(parse_args([
-        "--dummy", "--steps", "4", "--name", "ltx-load",
-        "--save_dir", str(train_dir), "--prompts_file", str(prompts),
-        "--no_sample", "--seed", "1",
-    ]))
-    lora_path = resolve_ltx_lora_path(str(train_dir))
+def test_historical_native_lora_roundtrip_is_separate_from_shared_cli(tmp_path):
     src = LTX25Backend(device="cpu", dummy=True)
-    src.load_trained(str(train_dir))
+    with torch.no_grad():
+        for parameter in src.network.parameters():
+            parameter.add_(0.1)
+    src.save_trained(str(tmp_path / "native_lora"))
+    saved = resolve_ltx_lora_path(str(tmp_path))
     dst = LTX25Backend(device="cpu", dummy=True)
-    dst.load_trained(str(lora_path))
-    for a, b in zip(src.network.parameters(), dst.network.parameters()):
-        assert torch.allclose(a, b)
-    sample_dir = tmp_path / "reload"
-    sidecar = train(parse_args([
-        "--dummy", "--steps", "0", "--name", "ltx-reload",
-        "--save_dir", str(sample_dir), "--prompts_file", str(prompts),
-        "--load_ltx_lora", str(train_dir), "--sample_scales=-1,0,0.5,1",
-        "--encoder_device", "cpu", "--device", "cuda:0",
-    ]))
-    assert sidecar["steps"] == 0
-    assert sidecar["load_ltx_lora"]
-    assert sidecar["encoder_device"] is None
-    mp4s = {p.name for p in (sample_dir / "samples").glob("*.mp4")}
-    assert any("scale0.5" in n for n in mp4s)
+    dst.load_trained(str(saved))
+    assert src.network.state_dict().keys() == dst.network.state_dict().keys()
+    for name, value in src.network.state_dict().items():
+        assert torch.equal(value, dst.network.state_dict()[name])
+    output = tmp_path / "closed"
+    with pytest.raises(ValueError, match="legacy native LoRA"):
+        train(parse_args([
+            "--dummy", "--steps", "0", "--save_dir", str(output),
+            "--load_ltx_lora", str(saved),
+        ]))
+    assert not output.exists()
 
 
 def test_zero_init_lora_up_is_uni_identity():
@@ -679,32 +626,14 @@ def test_place_pipeline_never_blankets_to():
     assert pipe.connectors.device == "cpu"
 
 
-def test_docs_card_has_live_flags():
+def test_docs_describe_shared_cli_and_remaining_runtime_gates():
     docs = Path("docs/ltx25-slider.md").read_text()
-    assert "Lightricks/LTX-2.5-Diffusers" in docs
-    assert "transformer/" in docs
-    assert "transformer_full/" in docs
-    assert "DISTILLED_SIGMA_VALUES" in docs
-    assert "num_inference_steps" in docs
-    assert "--encoder_device cpu" in docs
-    assert "A6000" in docs
-    assert "cuda:1" in docs
-    assert "embed-match" in docs.lower() or "ltx25_uni_embed" in docs
-    assert "0.9999" in docs or "dead teacher" in docs.lower()
-    assert "0.68" in docs
-    assert "WEAK" in docs
-    assert "-1,0,0.5,1" in docs or "−1, 0, 0.5, 1" in docs
-    assert "544" in docs and "960" in docs and "49" in docs
-    assert "pre-connector" in docs.lower() or "PRE-connector" in docs
-    assert "gemma4_unified" in docs
-    assert "prompts-ltx25-smile.yaml" in docs
-    assert "prompts-ltx25-chiaroscuro.yaml" in docs
-    assert "--load_ltx_lora" in docs
-    assert "--diag" in docs
-    assert "--te_last_n" in docs
-    assert "--sample_scales=-1,0,0.5,1" in docs
-    assert "velocity" in docs.lower()
-    assert "Do **not** reintroduce DiT velocity-UNI" in docs or "not the smile/chiaro default" in docs.lower()
+    assert "particle_sliders.ltx25_cli" in docs
+    assert "response-probes.pt" in docs
+    assert "--pg_source_profile alz-continuous-v1" in docs
+    assert "--penalty_input_domain continuous" in docs
+    assert "--resume" in docs and "--load_export" in docs
+    assert any(term in docs.lower() for term in ("not qualified", "unqualified", "does not qualify"))
 
 
 def _assert_diag_row(row: dict) -> None:
@@ -738,14 +667,11 @@ def test_dummy_diag_expression_gap_not_lighting(tmp_path):
         assert row["student"]["scale0_vs_teacher_neu"]["cos"] == pytest.approx(1.0, abs=1e-5)
     table = format_diag_table(summary)
     assert "expr_cos" in table
-    via = train_main([
-        "--dummy", "--diag", "--name", "ltx-diag-flag",
-        "--save_dir", str(tmp_path / "via-train"),
-        "--prompts_file", "conceptmod/textsliders/data/prompts-ltx25-smile.yaml",
-        "--seed", "2",
-    ])
-    assert via["recipe"] == "ltx25_uni_diag"
-    assert (tmp_path / "via-train" / "ltx-diag-flag_diag.json").is_file()
+    with pytest.raises(ValueError, match="diagnostics.*not shared GAN"):
+        train_main([
+            "--dummy", "--diag", "--save_dir", str(tmp_path / "via-train"),
+        ])
+    assert not (tmp_path / "via-train").exists()
 
 
 def test_connector_pad_enforces_register_multiple():
@@ -887,35 +813,12 @@ def test_embed_match_loss_shapes_and_valid_mask():
     assert gap["cos"] == pytest.approx(1.0, abs=1e-5)
 
 
-def test_embed_match_cli_dummy_and_velocity_opt_in(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: a person, closed mouth\n"
-        "  positive: a person smiling showing teeth, happy joyful expression\n"
-        "  neutral: a person, closed mouth\n"
-        "  unconditional: ''\n"
-        "  attributes: []\n"
-        "  concept_words: smiling, smile, happy, joyful, teeth\n"
-    )
-    embed = train(parse_args([
-        "--dummy", "--steps", "8", "--name", "ltx-embed",
-        "--save_dir", str(tmp_path / "embed"), "--prompts_file", str(prompts),
-        "--lr", "0.5", "--seed", "0", "--no_sample",
-    ]))
-    assert embed["recipe"] == RECIPE_EMBED
-    assert embed["dit_frozen"] is True
-    assert embed["first_loss"] > embed["last_loss"]
-    vel = train(parse_args([
-        "--dummy", "--steps", "8", "--name", "ltx-vel",
-        "--recipe", "ltx25_uni_velocity",
-        "--save_dir", str(tmp_path / "vel"), "--prompts_file", str(prompts),
-        "--lr", "0.5", "--seed", "0", "--no_sample",
-    ]))
-    assert vel["recipe"] == RECIPE_VELOCITY
-    assert vel["dit_frozen"] is False
-    assert vel["train_dit"] is True
-    assert vel["lora_hosts"] == ["attn1", "attn2"]
-    assert vel["first_loss"] > vel["last_loss"]
+def test_historical_velocity_and_diagnostic_training_routes_are_closed(tmp_path):
+    for flag in (["--recipe", "ltx25_uni_velocity"], ["--diag"]):
+        output = tmp_path / flag[0].lstrip("-")
+        with pytest.raises(ValueError, match="closed|not shared GAN"):
+            train(parse_args(["--dummy", "--save_dir", str(output), *flag]))
+        assert not output.exists()
 
 
 def test_chiaroscuro_yaml_locked_non_concept_structure():

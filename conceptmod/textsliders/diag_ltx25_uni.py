@@ -20,6 +20,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
+if __name__ == "__main__" and "--dummy" not in sys.argv[1:]:
+    raise SystemExit("LTX production runtime is not qualified; only --dummy CPU diagnostic fixtures are admitted")
+
 import torch
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -348,13 +351,18 @@ def run_diag(
     args: argparse.Namespace,
     backend: LTX25Backend | None = None,
 ) -> dict[str, Any]:
+    if not getattr(args, "dummy", False) or (backend is not None and not backend.dummy):
+        raise RuntimeError("LTX production runtime is not qualified; CPU diagnostic fixtures only")
+    if getattr(args, "load_ltx_lora", None):
+        raise ValueError("legacy LoRA diagnostic inference is closed; use the shared --load_export contract")
     rows = load_slider_rows(args.prompts_file, getattr(args, "attributes", "") or "")
     cap = getattr(args, "max_rows", None)
     if cap is None:
         cap = getattr(args, "sample_max_rows", None)
     if cap is not None:
         rows = rows[: max(0, int(cap))]
-    backend = backend or build_backend(args)
+    backend = backend or LTX25Backend(dummy=True, lora_rank=args.rank, lora_alpha=args.alpha,
+                       lora_up_init_std=args.lora_up_init_std)
     loaded = None
     if getattr(args, "load_ltx_lora", None):
         loaded = backend.load_trained(args.load_ltx_lora)

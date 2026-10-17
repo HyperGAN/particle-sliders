@@ -1,7 +1,8 @@
-"""MiniMax-H3 backend: dummy packed-sequence Omni-Transformer, live ModularPipeline.
+"""MiniMax-H3 CPU architecture fixture; native execution is closed.
 
-Live hub id is ``MiniMaxAI/MiniMax-H3`` (FL2VA / t2va). Dummy never imports
-that loader and never hits the Hub.
+Historical native internals remain for source audit. Public construction and
+runtime methods admit only the tiny dummy fixture until the native AV protocol,
+source/assets/license, hardware and coordinator admission gates are reviewed.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from conceptmod.textsliders.minimax_h3_uni import apply_unused_hold
+from conceptmod.textsliders.train_lora_minimax_h3 import require_h3_cpu_fixture
 
 DEFAULT_MODEL = "MiniMaxAI/MiniMax-H3"
 DEFAULT_VARIANT = "FL2VA"
@@ -350,6 +352,8 @@ class MiniMaxH3Backend:
         lora_up_init_std: float = DEFAULT_LORA_UP_INIT_STD,
         dummy: bool = False,
     ) -> None:
+        # No native loader, device allocation or adapter attachment before the gate.
+        require_h3_cpu_fixture(dummy)
         self.device = torch.device(device if not dummy else "cpu")
         # Dual-GPU escape hatch: encoder (Qwen3-VL-32B) on a second card.
         # Dummy stays CPU. When unset, encoder shares ``device`` (B200/B300).
@@ -503,7 +507,8 @@ class MiniMaxH3Backend:
         hold_neu: EncodedText | None = None,
         hold_mask: torch.Tensor | None = None,
     ) -> PackedLayout:
-        """Build a t2va packed layout. Dummy uses a tiny fake sequence."""
+        """Build the tiny synthetic CPU diagnostic layout, never native geometry."""
+        require_h3_cpu_fixture(self.dummy)
         enc = text.embeds
         if hold_neu is not None and hold_mask is not None:
             enc = apply_unused_hold(
@@ -554,7 +559,8 @@ class MiniMaxH3Backend:
         )
 
     def forward_velocity(self, packed: PackedLayout, *, scale: float) -> DummyVelocity:
-        """Actual Omni-Transformer forward. Not conceptmod ``predict_v``."""
+        """CPU architecture fixture forward. No native runtime qualification."""
+        require_h3_cpu_fixture(self.dummy)
         if self.network is None:
             raise RuntimeError("LoRA was not attached")
         # Always enter the network: LoRAModule starts at multiplier=1. Scale 0
@@ -588,12 +594,14 @@ class MiniMaxH3Backend:
         )
 
     def save_trained(self, path: str) -> None:
+        require_h3_cpu_fixture(self.dummy)
         if self.network is None:
             return
         self.network.save_weights(path + ".safetensors", dtype=torch.float32)
 
     def load_trained(self, path: str) -> str:
-        """Load a directory or ``.safetensors`` written by ``save_trained``."""
+        """Load a CPU fixture adapter only; this is not training resume."""
+        require_h3_cpu_fixture(self.dummy)
         if self.network is None:
             raise RuntimeError("LoRA was not attached")
         resolved = resolve_h3_lora_path(path)
@@ -620,6 +628,7 @@ class MiniMaxH3Backend:
         ModularPipeline ``pipe(prompt=..., num_frames=...)`` and does **not**
         pass ``guidance_scale``.
         """
+        require_h3_cpu_fixture(self.dummy)
         if self.network is None:
             raise RuntimeError("LoRA was not attached")
         side = int(short_side or self.short_side)

@@ -1,4 +1,4 @@
-"""MiniMax-H3 UNI slider: CPU mocks only. No Hub, no GPU, no H3 weights."""
+"""MiniMax-H3 architecture fixtures and fail-closed public routes; CPU only."""
 
 from __future__ import annotations
 
@@ -64,6 +64,7 @@ from conceptmod.textsliders.diag_minimax_h3_uni import (
     run_diag,
 )
 from conceptmod.textsliders.train_lora_minimax_h3 import (
+    H3MigrationBlocked,
     load_slider_rows,
     main as train_main,
     parse_args,
@@ -457,68 +458,12 @@ def test_chiaroscuro_config_and_docs_card():
     assert cfg["train"]["hold_weight"] == 3.0
     assert cfg["save"]["name"] == "chiaroscuro-minimax-h3-uni-v5"
     docs = Path("docs/minimax-h3-slider.md").read_text()
-    assert "--name chiaroscuro-minimax-h3-uni" in docs
-    assert "prompts-minimax-h3-chiaroscuro.yaml" in docs
-    assert "--rank 8 --alpha 8 --lr 1e-4 --steps 500" in docs
-    assert "--name chiaroscuro-minimax-h3-uni-r16" in docs
-    assert "--rank 16 --alpha 16 --lr 1e-4 --steps 1200" in docs
-    assert "--rank 16 --alpha 16 --lr 1e-4 --steps 1500" in docs
-    assert "--name chiaroscuro-minimax-h3-uni-v3" in docs
-    assert "--name chiaroscuro-minimax-h3-uni-v4" in docs
-    assert "--name chiaroscuro-minimax-h3-uni-v5" in docs
-    assert "--rank 16 --alpha 16 --lr 1e-4 --steps 2000" in docs
-    assert "--rank 16 --alpha 16 --lr 1e-4 --steps 2500" in docs
-    assert "--hold_mode non_concept" in docs
-    assert "--hold_weight 2.0" in docs
-    assert "--hold_weight 5.0" in docs
-    assert "--hold_weight 3.0" in docs
-    assert "slider-h3-chiaro-v3" in docs
-    assert "slider-h3-chiaro-v4" in docs
-    assert "slider-h3-chiaro-v5" in docs
-    assert "Rembrandt key light from the left" in docs
-    assert "hard single-source side light" in docs
-    assert "deep black shadows" in docs
-    assert "no fill" in docs
-    assert "identity leak" in docs
-    assert "v1/v2" in docs
-    assert "800" in docs and "1500" in docs
-    assert "escalate" in docs
-    assert "--short_side 768 --guidance 0" in docs
-    assert "FL2VA" in docs and "t2va" in docs
-    assert "MiniMaxAI/MiniMax-H3" in docs
-    assert "sampled frames" in docs or "sampled-frame" in docs
-    assert "sampled videos" in docs
-    assert "last-50" in docs
-    assert "B200" in docs and "B300" in docs
-    assert "--encoder_device cuda:1" in docs
-    assert "--load_h3_lora" in docs
-    assert "--steps 0" in docs
-    assert "--sample_scales 0,1" in docs
-    assert "--sample_duration 5" in docs
-    assert "--sample_fps 24" in docs
-    assert "2.13.0+cu130" in docs
-    assert "sm_103" in docs
-    assert "2.6+cu124" in docs
-    assert "zero-init" in docs
-    assert "slider-h3-chiaro-v1" in docs
-    assert "rank16 × 1500" in docs or "rank16 x 1500" in docs
-    assert "--lora_up_init_std 0.02" in docs
-    assert "Music 3" in docs
-    assert "plus-oracle" in docs or "plus caption at scale 0" in docs
-    assert "blue denim shirt" in docs
-    assert "white tee" in docs
-    assert "fruit bowl" in docs
-    assert "windsor chairs" in docs
-    assert "painted figures" in docs
-    assert "bearded scholars" in docs
-    assert "FAIL 1/3" in docs
-    assert "≥2/3" in docs or ">=2/3" in docs
-    assert "diag_minimax_h3_uni" in docs
-    assert "identity drift" in docs
-    assert "lighting gap" in docs
-    assert "--diag" in docs
-    assert "scale1_vs_scale0" in docs
-    assert "neu_lora_on_vs_off" in docs
+    assert "closed" in docs
+    assert "native AV geometry" in docs
+    assert "community license" in docs
+    assert "--dummy --diag" in docs
+    assert "no native runtime or quality qualification" in docs
+    assert "Historical configurations" in docs
 
 
 def test_train_step_non_concept_hold_copies_shared_subject():
@@ -554,69 +499,25 @@ def test_train_step_non_concept_hold_copies_shared_subject():
             assert torch.allclose(held[i], neu_enc.embeds[0, j]), word
 
 
-def test_dummy_train_attributes_hold_mode_sidecar(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: person\n  positive: old person\n  neutral: person\n"
-        "  unconditional: ''\n  attributes: []\n"
-    )
-    args = parse_args([
-        "--dummy",
-        "--steps", "2",
-        "--name", "minimax-h3-attr-hold",
-        "--save_dir", str(tmp_path),
-        "--prompts_file", str(prompts),
-        "--hold_mode", "attributes",
-        "--no_sample",
-        "--seed", "0",
-    ])
-    sidecar = train(args)
-    assert sidecar["hold_mode"] == HOLD_MODE_ATTRIBUTES
-    assert sidecar["hold"] == "unused_attribute_tokens_to_encode_neu"
+def test_dummy_train_attributes_hold_mode_is_closed(tmp_path):
+    args = parse_args(["--dummy", "--steps", "2", "--hold_mode", "attributes",
+                       "--save_dir", str(tmp_path), "--prompts_file", "missing.yaml"])
+    with pytest.raises(H3MigrationBlocked, match="native jointly packed AV"):
+        train(args)
+    assert list(tmp_path.iterdir()) == []
 
 
-def test_dummy_train_drops_uni_loss_and_writes_sidecar(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: person\n  positive: old person\n  neutral: person\n"
-        "  unconditional: ''\n  attributes: []\n"
-    )
-    args = parse_args([
-        "--dummy",
-        "--steps", "20",
-        "--name", "minimax-h3-dummy",
-        "--save_dir", str(tmp_path),
-        "--prompts_file", str(prompts),
-        "--lr", "0.5",
-        "--seed", "0",
-    ])
-    sidecar = train(args)
-    assert sidecar["model_id"] == "MiniMaxAI/MiniMax-H3"
-    assert sidecar["resolved_model_id"] == "MiniMaxAI/MiniMax-H3"
-    assert sidecar["variant"] == "FL2VA"
-    assert sidecar["workflow"] == "t2va"
-    assert sidecar["stack"] == "omni_transformer_flow"
-    assert sidecar["recipe"] == "minimax_h3_uni_velocity"
-    assert sidecar["minus_teacher"] is False
-    assert sidecar["minus_canary"] is True
-    assert sidecar["lora_only"] is True
-    assert sidecar["lora_host"] == "MiniMaxH3Attention"
-    assert sidecar["lora_linears"] == ["to_q", "to_k", "to_v", "to_out.0"]
-    assert sidecar["train_adaln"] is False
-    assert sidecar["velocity_teacher"] == "data_pointing"
-    assert sidecar["predict_v_faked"] is False
-    assert sidecar["cfg_distilled"] is True
-    assert sidecar["guidance"] == 0.0
-    assert sidecar["short_side"] == 768
-    assert sidecar["hold_concept_words"] is False
-    assert sidecar["hold_mode"] == HOLD_MODE_NON_CONCEPT
-    assert sidecar["hold"] == "non_concept_tokens_to_encode_neu"
-    assert sidecar["hold_weight"] == 1.0
-    assert sidecar["hosted_not_in_weights"] == ["H3-Context-IR", "H3-Regenerate-2K"]
-    assert sidecar["lora_up_init_std"] == 0.02
-    assert sidecar["first_loss"] > sidecar["last_loss"]
-    data = json.loads((tmp_path / "minimax-h3-dummy_last.json").read_text())
-    assert data["backend"] == "minimax_h3"
+def test_dummy_train_cannot_reactivate_legacy_supervised_loss(tmp_path):
+    args = parse_args(["--dummy", "--steps", "20", "--lr", "0.5",
+                       "--save_dir", str(tmp_path)])
+    backend = MiniMaxH3Backend(device="cpu", dummy=True)
+    before = {k: v.detach().clone() for k, v in backend.network.state_dict().items()}
+    rng = torch.random.get_rng_state().clone()
+    with pytest.raises(H3MigrationBlocked, match="legacy supervised UNI/MSE"):
+        train(args, backend)
+    assert torch.equal(rng, torch.random.get_rng_state())
+    assert all(torch.equal(before[k], v) for k, v in backend.network.state_dict().items())
+    assert list(tmp_path.iterdir()) == []
 
 
 def test_scale_zero_matches_neu_teacher():
@@ -759,96 +660,28 @@ def test_place_pipeline_encoder_device_skips_blanket_to():
     assert pipe.text_encoder.device == "cuda:1"
 
 
-def test_dummy_train_writes_t2va_samples(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: person sitting in a chair\n  positive: chiaroscuro person sitting in a chair\n"
-        "  neutral: person sitting in a chair\n  unconditional: ''\n  attributes: []\n"
-    )
-    args = parse_args([
-        "--dummy",
-        "--steps", "2",
-        "--name", "h3-sample",
-        "--save_dir", str(tmp_path),
-        "--prompts_file", str(prompts),
-        "--sample_scales", "0,1",
-        "--sample_duration", "5",
-        "--sample_fps", "24",
-        "--seed", "0",
-    ])
-    sidecar = train(args)
-    assert sidecar["guidance"] == 0.0
-    assert sidecar["sample_grid"]["guidance"] == 0.0
-    assert sidecar["sample_grid"]["scales"] == [0.0, 1.0]
-    assert sidecar["sample_grid"]["duration"] == 5.0
-    assert sidecar["sample_grid"]["fps"] == 24.0
-    samples = tmp_path / "samples"
-    meta = json.loads((samples / "final_meta.json").read_text())
-    assert meta["guidance"] == 0.0
-    assert meta["scales"] == [0.0, 1.0]
-    mp4s = sorted(samples.glob("*.mp4"))
-    assert [p.name for p in mp4s] == [
-        "final_person-sitting-in-a-chair_scale0.mp4",
-        "final_person-sitting-in-a-chair_scale1.mp4",
-    ]
-    for path in mp4s:
-        assert path.stat().st_size > 0
-        assert path.read_bytes()[:8].endswith(b"ftyp") or b"ftyp" in path.read_bytes()[:32]
+def test_dummy_train_does_not_write_fake_t2va_samples(tmp_path):
+    args = parse_args(["--dummy", "--steps", "2", "--save_dir", str(tmp_path)])
+    with pytest.raises(H3MigrationBlocked, match="unbound inference/sample export"):
+        train(args)
+    assert list(tmp_path.iterdir()) == []
 
 
-def test_load_h3_lora_roundtrip_and_steps_zero_sample(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: ceramic vase on a wooden table\n  positive: chiaroscuro ceramic vase on a wooden table\n"
-        "  neutral: ceramic vase on a wooden table\n  unconditional: ''\n  attributes: []\n"
-    )
-    train_dir = tmp_path / "trained"
-    args = parse_args([
-        "--dummy",
-        "--steps", "4",
-        "--name", "h3-load",
-        "--save_dir", str(train_dir),
-        "--prompts_file", str(prompts),
-        "--no_sample",
-        "--seed", "1",
-    ])
-    train(args)
-    lora_path = resolve_h3_lora_path(str(train_dir))
-    assert lora_path.name.endswith(".safetensors")
+def test_cpu_fixture_roundtrip_does_not_enable_steps_zero_inference(tmp_path):
+    fixture_dir = tmp_path / "fixture"
+    fixture_dir.mkdir()
     src = MiniMaxH3Backend(device="cpu", dummy=True)
-    src.load_trained(str(train_dir))
+    src.save_trained(str(fixture_dir / "fixture_lora"))
     dst = MiniMaxH3Backend(device="cpu", dummy=True)
-    dst.load_trained(str(lora_path))
+    dst.load_trained(str(fixture_dir))
     for a, b in zip(src.network.parameters(), dst.network.parameters()):
-        assert torch.allclose(a, b)
-
-    sample_dir = tmp_path / "reload"
-    reload_args = parse_args([
-        "--dummy",
-        "--steps", "0",
-        "--name", "h3-reload",
-        "--save_dir", str(sample_dir),
-        "--prompts_file", str(prompts),
-        "--load_h3_lora", str(train_dir),
-        "--sample_scales", "0,0.5,1",
-        "--encoder_device", "cuda:1",
-        "--device", "cuda:0",
-    ])
-    assert reload_args.steps == 0
-    assert reload_args.load_h3_lora == str(train_dir)
-    assert reload_args.encoder_device == "cuda:1"
-    sidecar = train(reload_args)
-    assert sidecar["steps"] == 0
-    assert sidecar["first_loss"] is None
-    assert sidecar["load_h3_lora"]
-    assert sidecar["encoder_device"] is None  # dummy stays CPU
-    assert sidecar["sample_grid"]["scales"] == [0.0, 0.5, 1.0]
-    mp4s = {p.name for p in (sample_dir / "samples").glob("*.mp4")}
-    assert mp4s == {
-        "final_ceramic-vase-on-a-wooden-table_scale0.mp4",
-        "final_ceramic-vase-on-a-wooden-table_scale0.5.mp4",
-        "final_ceramic-vase-on-a-wooden-table_scale1.mp4",
-    }
+        assert torch.equal(a, b)
+    output = tmp_path / "reload"
+    args = parse_args(["--dummy", "--steps", "0", "--load_h3_lora", str(fixture_dir),
+                       "--save_dir", str(output)])
+    with pytest.raises(H3MigrationBlocked, match="adapter-only resume"):
+        train(args)
+    assert not output.exists()
 
 
 def test_dummy_encoder_device_does_not_hit_hub():
@@ -1191,15 +1024,9 @@ def test_dummy_diag_load_h3_lora_and_trainer_flag(tmp_path):
         "  unconditional: ''\n  attributes: []\n"
     )
     train_dir = tmp_path / "trained"
-    train(parse_args([
-        "--dummy",
-        "--steps", "4",
-        "--name", "h3-diag-lora",
-        "--save_dir", str(train_dir),
-        "--prompts_file", str(prompts),
-        "--no_sample",
-        "--seed", "1",
-    ]))
+    train_dir.mkdir()
+    fixture = MiniMaxH3Backend(device="cpu", dummy=True)
+    fixture.save_trained(str(train_dir / "h3_diag_fixture_lora"))
     diag_dir = tmp_path / "diag"
     summary = run_diag(parse_diag_args([
         "--dummy",
@@ -1256,3 +1083,56 @@ def test_dummy_diag_does_not_hit_hub():
     finally:
         h3._load_minimax_h3_modular = orig
     assert called["n"] == 0
+
+
+def test_native_backend_rejects_before_loader(monkeypatch):
+    import conceptmod.textsliders.minimax_h3_backend as h3
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("native loader was reached before migration gate")
+
+    monkeypatch.setattr(h3, "_load_minimax_h3_modular", forbidden)
+    with pytest.raises(H3MigrationBlocked, match="hardware fit"):
+        MiniMaxH3Backend(dummy=False, device="cuda:0")
+
+
+@pytest.mark.parametrize("method", ["pack", "forward", "save", "load", "generate"])
+def test_native_backend_public_methods_cannot_bypass_constructor(method, tmp_path):
+    backend = object.__new__(MiniMaxH3Backend)
+    backend.dummy = False
+    actions = {
+        "pack": lambda: backend.pack_t2va(None),
+        "forward": lambda: backend.forward_velocity(None, scale=1),
+        "save": lambda: backend.save_trained(str(tmp_path / "adapter")),
+        "load": lambda: backend.load_trained("missing.safetensors"),
+        "generate": lambda: backend.generate_t2va("a vase"),
+    }
+    with pytest.raises(H3MigrationBlocked):
+        actions[method]()
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("native_args", [True, False])
+def test_diagnostic_rejects_native_args_or_injected_native_backend_before_mutation(
+    native_args, monkeypatch, tmp_path
+):
+    import conceptmod.textsliders.diag_minimax_h3_uni as diag
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("diagnostic touched RNG or prompts before migration gate")
+
+    monkeypatch.setattr(diag, "load_slider_rows", forbidden)
+    monkeypatch.setattr(torch, "manual_seed", forbidden)
+    args = parse_diag_args((["--dummy"] if not native_args else []) + ["--save_dir", str(tmp_path)])
+    backend = object.__new__(MiniMaxH3Backend)
+    backend.dummy = False
+    with pytest.raises(H3MigrationBlocked):
+        run_diag(args, backend)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_direct_row_diagnostic_rejects_injected_native_backend():
+    backend = object.__new__(MiniMaxH3Backend)
+    backend.dummy = False
+    with pytest.raises(H3MigrationBlocked):
+        diagnose_row(backend, object(), hold_mode="non_concept", seed=7, index=0)

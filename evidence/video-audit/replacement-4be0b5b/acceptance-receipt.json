@@ -1,0 +1,43 @@
+{
+  "schema": "embedded-video-replacement-acceptance-v1",
+  "shared_core_commit": "4be0b5b29d2e2c741431f468d71ba8a7c884b724",
+  "shared_producer_wheel_sha256": "2e7621c370e790f65702acf76cfa2f428b393cd3f863245aa26d8a76ff096ada",
+  "video_implementation_commit": "397c69c2f1cdaf2b06098bc2649e04d6e4673b2e",
+  "consumer_wheel_sha256": "f56eb2da52809ecbcd5ade6f6dca27c615f917d70e8f4db54d75aff6e905c209",
+  "cpu_tests": {
+    "passed": 139,
+    "subtests": 12,
+    "seconds": 16.22,
+    "failures": 0,
+    "skips": 0
+  },
+  "independent_restore_tests": {
+    "passed": 8,
+    "seconds": 4.29,
+    "failures": 0,
+    "skips": 0
+  },
+  "sourcefree": {
+    "presets": [
+      "bispf",
+      "bispf_optimized"
+    ],
+    "exact_full4_vs_fresh_process2plus2": true,
+    "export_probe_reload_exact": true,
+    "source_tamper_rejected_before_output": true,
+    "installed_sources_match_wheel": true
+  },
+  "actual_superseded_source_checkpoint_rejected": true,
+  "native_runtime": "pending separate source/assets/license/hardware/protocol/AV qualification and coordinator admission",
+  "active_cohort_retarget": false,
+  "gpu_execution": false,
+  "merge": false,
+  "receipts": {
+    "cpu-tests.xml": "25c8bb36deca6816de42e6cfc59ebe2bcc3d689434034c562b70ef3ba3560561",
+    "cross-candidate-rejection.json": "fd26d2b75a2458e04c8595d8265300df6af7d6d80536f28fa59e642684316d8f",
+    "independent-restore-tests.xml": "583f5ae206b1922cf2a7393d3b1d44f86f569ea92063d861073ce41480385cb9",
+    "source-integrity.json": "b03ffafa07b776c1d54c04cb891866e15fd383f29fc489edde673ffa17372dc2",
+    "sourcefree-receipt.json": "40a93e4519afed58e97735524321c0846e0ebe0e11adc94ca31c9e3487ec8a86",
+    "wheel-composition.json": "a8ee1f4acd515bc7a4ba4a43aca283febef55b0f33f8ea6c8e7c4baae65784f7"
+  }
+}

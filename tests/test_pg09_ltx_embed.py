@@ -9,7 +9,7 @@ from particle_sliders.pg09 import ConditionalPG09
 from conceptmod.textsliders import ltx25_backend as native_mod
 from conceptmod.textsliders import ltx25_uni
 from conceptmod.textsliders.pg09_ltx_embed import LTX25ConnectorResponseAdapter, LTXEmbedRow
-from conceptmod.textsliders.pg09_text_video import ResponseCompatibilityError
+from particle_sliders.pg09_text_video import ResponseCompatibilityError
 from test_pg09_text_video import Critic, equal
 
 
@@ -163,7 +163,7 @@ def native_components_backend(monkeypatch):
     pipe = SimpleNamespace(text_encoder=encoder, connectors=connectors, transformer=transformer,
                            tokenizer=native_mod.DummyTokenizer(), vae=None, audio_vae=None, vocoder=None)
     monkeypatch.setattr(native_mod, '_load_ltx25_pipeline', lambda *a, **kw: pipe)
-    return native_mod.LTX25Backend(device='cpu', encoder_device='cpu', dummy=False,
+    return native_mod.LTX25Backend(device='cpu', encoder_device='cpu', dummy=False, components=pipe,
                                    lora_rank=2, lora_alpha=2, te_last_n=1)
 
 
