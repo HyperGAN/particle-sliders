@@ -1,0 +1,43 @@
+{
+  "root": "/mnt/nvme/sliders/qualification/runs/moss-pg09-original-runtime-v2-20261017/bad-intent",
+  "recipe_sha256": "f4ca175543f01b02801d459c626a7b0081b9ad34add1808ba81a489163e2bb67",
+  "checkpoint_step": 80,
+  "final_training_complete": false,
+  "checkpoint_sha256": "51af01de98875ac41c2979a37767ad7ffecc7530207b4f12e46c1a69d98a6b05",
+  "finite_state": true,
+  "coverage": {
+    "g": {
+      "total_exposures": 640,
+      "unique_rows": 640,
+      "min_exposures": 0,
+      "max_exposures": 1,
+      "cursor": 640
+    },
+    "d": {
+      "total_exposures": 640,
+      "unique_rows": 640,
+      "min_exposures": 0,
+      "max_exposures": 1,
+      "cursor": 640
+    }
+  },
+  "parameter_movement": {
+    "network": {
+      "changed_tensors": 336,
+      "delta_l2": 55.29771186942979
+    },
+    "critic": {
+      "changed_tensors": 10,
+      "delta_l2": 2.0869237817140465
+    }
+  },
+  "optimizer_membership_matches_verified_initial": true,
+  "released_pg_source_files_verified": 49,
+  "logical_optimizer_steps_verified": 80,
+  "frozen_base_sha256": "394b0dad3cc89f63c0a0cc6b1420316e496494973dc4c9b17d730e91fcf371d7",
+  "final_frozen_base_verified": false,
+  "inference_export_matches_checkpoint": false,
+  "matched_image_quality": "pending independent complete fixed-heldout review",
+  "scope": "adapter_gan; no particle bank",
+  "qa_cuda_initialized": false
+}

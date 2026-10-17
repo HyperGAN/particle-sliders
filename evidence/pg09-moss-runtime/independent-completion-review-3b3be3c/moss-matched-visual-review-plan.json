@@ -1,0 +1,106 @@
+{
+  "concepts": {
+    "bad-intent": {
+      "archived_recipe": "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/bad-intent/recipe.json",
+      "archived_recipe_sha256": "62dbcfdba7008a3ca4db93e8e45b13ee528d3d3faac426273cd9d1c1ccbcdc20",
+      "evaluation_seed": 29001,
+      "rows": [
+        {
+          "id": "uncanny-dev-00",
+          "neutral_prompt_sha256": "b8213fc0c48371827447a9659a45e5f9bc1f8fed72c563e87df1c0ed9045ecd6",
+          "positive_prompt_sha256": "4a7840720d5a6f4db2d32a657b4128d4b228da0a3839cd022cfb1e0028b87875",
+          "allowed_changed_fields": [
+            "character.expression",
+            "pose",
+            "framing",
+            "atmosphere"
+          ],
+          "identity_preservation_required": false,
+          "desired_atmosphere_or_effect": "psychological horror, unsettling anticipation, oppressive intimacy, stark chiaroscuro, narrow light across the eyes, deep shadows around the face, ordinary surroundings falling into darkness"
+        },
+        {
+          "id": "uncanny-dev-01",
+          "neutral_prompt_sha256": "57b4f52593746c123972f4d0e74155430cc6eda204a984215a8cced0ab974918",
+          "positive_prompt_sha256": "679a830bfe406c35c28db35fae3533d3edb50d2aa66cc06604b782f3c9e21dd9",
+          "allowed_changed_fields": [
+            "character.expression",
+            "pose",
+            "framing",
+            "atmosphere"
+          ],
+          "identity_preservation_required": false,
+          "desired_atmosphere_or_effect": "intense psychological horror, emotional mismatch, uncanny stillness, deep charcoal shadows, a small hard light on the face, the darkness behind the figure feels impossibly deep"
+        }
+      ]
+    },
+    "afterimage": {
+      "archived_recipe": "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/afterimage/recipe.json",
+      "archived_recipe_sha256": "da15b691ce7c881d6774d54015aa82adbbd7465ec33e3c5d146250e955ebe90d",
+      "evaluation_seed": 29001,
+      "rows": [
+        {
+          "id": "afterimage-dev-00",
+          "neutral_prompt_sha256": "b8213fc0c48371827447a9659a45e5f9bc1f8fed72c563e87df1c0ed9045ecd6",
+          "positive_prompt_sha256": "85050b417f4c30f8aec3f0c5733fbb724d573da27d8dc352648022efb72136b6",
+          "allowed_changed_fields": [
+            "character.expression",
+            "pose",
+            "framing",
+            "atmosphere"
+          ],
+          "identity_preservation_required": false,
+          "desired_atmosphere_or_effect": "surreal temporal afterimage, one solid central character with multiple translucent offset impressions of the same face and shoulders, successive moments layered together, cyan and magenta edge separation, luminous motion trails"
+        },
+        {
+          "id": "afterimage-dev-01",
+          "neutral_prompt_sha256": "57b4f52593746c123972f4d0e74155430cc6eda204a984215a8cced0ab974918",
+          "positive_prompt_sha256": "45412931843fe92f5e89a4658318451d3d68dd24cc2f4411273cb3f5baf77584",
+          "allowed_changed_fields": [
+            "character.expression",
+            "pose",
+            "framing",
+            "atmosphere"
+          ],
+          "identity_preservation_required": false,
+          "desired_atmosphere_or_effect": "fractured time, a readable central figure surrounded by fading spectral repetitions of the same gesture, overlapping hand and face afterimages, long-exposure light smears, colored silhouettes receding through space"
+        }
+      ]
+    }
+  },
+  "arms": [
+    "gan",
+    "old-mse-common-protocol"
+  ],
+  "controls": [
+    "off",
+    "direct-positive",
+    "direct-positive-cfg1"
+  ],
+  "slider_variants": [
+    "minus",
+    "plus"
+  ],
+  "expected_images_per_concept": 20,
+  "protocol": "512pixels50steps seed29001;CFG3 exceptdirect-positive-cfg1;frozen emptynegative adapter0/no layer skip",
+  "preconditions": [
+    "final3840checkpoint/coverage/source/frozenbase and inferenceexport gates",
+    "complete exactsidecar/hash/protocol audit",
+    "identical off/direct controls across arms"
+  ],
+  "visual_review_dimensions": [
+    "Does plus introduce the declared expression/pose/framing/atmosphere or temporal effect compared with off?",
+    "Does minus change the intended effect in the opposite direction without inventing unrequested constraints?",
+    "Can the central subject/action remain readable? Record coherent intended afterimage repetitions separately from malformed solid anatomy.",
+    "Compare GAN and oldMSE under the common protocol, including concept specificity, collapse/noise, composition and severe artifacts.",
+    "Use directpositive CFG3/CFG1 to identify base/control limitations; do not infer semantic quality from pixelRMS, losses or update count."
+  ],
+  "record_each_row_arm": [
+    "observed concept change: none/weak/clear plus concrete visible evidence",
+    "minus direction relative to off",
+    "coherence/artifacts and any unexpected content changes",
+    "comparison to oldMSE and directcontrols",
+    "pass/fail/inconclusive with reasons"
+  ],
+  "limits": "Two fixed heldouts perconcept andonefixedseed; narrow matched comparison, not broad generalization or a quality claim from software checks",
+  "execution_authority": "coreowner only; QA readonly artifact inspection"
+}
