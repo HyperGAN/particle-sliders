@@ -236,7 +236,9 @@ class TinyLLMBackend:
     def encode(self, text: str) -> EncodedText:
         ids = [int(x) for x in self.tokenizer.encode(text, add_special_tokens=False)]
         ids = ids or [0]
-        limit = int(getattr(self.model.config, "max_position_embeddings", MODEL_CONTEXT))
+        config = self.model.config
+        limit = int(config.get("max_position_embeddings", MODEL_CONTEXT) if isinstance(config, dict)
+                    else getattr(config, "max_position_embeddings", MODEL_CONTEXT))
         if len(ids) > limit:
             raise ValueError(f"prompt exceeds context ({len(ids)} > {limit})")
         return EncodedText(ids=ids)

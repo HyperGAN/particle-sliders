@@ -81,6 +81,22 @@ def test_game_is_the_shared_yue2_module_not_a_copy():
     assert yue2_game.noise_std(20000) == pytest.approx(0.03)
 
 
+def test_native_bridge_executes_shared_package_with_archival_state_parity():
+    from particle_sliders.reference import RoutedMLP
+
+    network = TinyParticleSlider(TinyLLMBackend(dummy=True).model)
+    assert all(type(adapter.bridge) is RoutedMLP for adapter in network.adapters.values())
+    torch.manual_seed(73)
+    former = yue2_game.RoutedMLP(8, 8)
+    torch.manual_seed(73)
+    shared = RoutedMLP(8, 8)
+    assert former.state_dict().keys() == shared.state_dict().keys()
+    for key, value in former.state_dict().items():
+        assert torch.equal(value, shared.state_dict()[key])
+    values, particles = torch.randn(2, 3, 8), torch.randn(128, 4)
+    assert torch.equal(former(values, particles), shared(values, particles))
+
+
 def test_build_game_uses_reference_lrs_and_betas():
     backend = TinyLLMBackend(device="cpu", dummy=True)
     rows = load_slider_rows("conceptmod/textsliders/data/prompts-tiny-llm.yaml")
@@ -120,6 +136,19 @@ def test_particle_branches_attach_only_to_attention_qkvo():
     # up starts at zero: freshly attached adapter is the base behavior.
     for adapter in network.adapters.values():
         assert torch.count_nonzero(adapter.lora_up.weight).item() == 0
+
+
+def test_router_and_bank_follow_host_device_without_gpu():
+    backend = TinyLLMBackend(dummy=True)
+    backend.model.to(device="meta", dtype=torch.bfloat16)
+    network = TinyParticleSlider(backend.model)
+    assert all(p.device.type == "meta" and p.dtype == torch.bfloat16
+               for p in network.parameters())
+    # The PG0.9 adapter promotion changes dtype while preserving placement.
+    network.float()
+    assert all(p.device.type == "meta" and p.dtype == torch.float32
+               for p in network.parameters())
+    assert not torch.cuda.is_initialized()
 
 
 def test_rank_alpha_pin_and_double_attach_guard():
@@ -260,6 +289,84 @@ def test_save_load_roundtrip_and_rejections(tmp_path):
     save_file({k: v.cpu() for k, v in bad.items()}, str(bad_path), metadata=meta)
     with pytest.raises(ValueError, match="[Ii]ncomplete"):
         TinyParticleSlider.load(fresh.model, bad_path)
+
+
+@pytest.mark.parametrize("host_dtype", [torch.float32, torch.bfloat16])
+def test_explicit_fp32_reload_avoids_host_rounding(tmp_path, host_dtype):
+    torch.manual_seed(91)
+    original = TinyLLMBackend(dummy=True)
+    original.model.to(dtype=host_dtype)
+    network = TinyParticleSlider(original.model).float()
+    with torch.no_grad():
+        for parameter in network.parameters():
+            parameter.copy_(torch.rand_like(parameter) * .02)
+    path = tmp_path / "fp32.safetensors"
+    network.save(path, {})
+
+    torch.manual_seed(91)
+    fresh = TinyLLMBackend(dummy=True)
+    fresh.model.to(dtype=host_dtype)
+    base = {k: v.clone() for k, v in fresh.model.state_dict().items()}
+    loaded, _ = TinyParticleSlider.load(fresh.model, path, adapter_dtype=torch.float32)
+    for key, value in network.state_dict().items():
+        assert loaded.state_dict()[key].dtype == torch.float32
+        assert torch.equal(loaded.state_dict()[key], value)
+    assert all(p.dtype == host_dtype for p in fresh.model.parameters())
+    for key, value in base.items():
+        assert torch.equal(fresh.model.state_dict()[key], value)
+    ids = original.encode("a quiet garden").ids
+    assert ids == fresh.encode("a quiet garden").ids
+    for scale in (-1., 0., .5, 1.):
+        with network.scaled(scale), loaded.scaled(scale), torch.no_grad():
+            assert torch.equal(original.hidden(ids), fresh.hidden(ids))
+
+    # Preserve the archival loader's default of matching the frozen host dtype.
+    legacy = TinyLLMBackend(dummy=True)
+    legacy.model.to(dtype=host_dtype)
+    default, _ = TinyParticleSlider.load(legacy.model, path)
+    assert all(p.dtype == host_dtype for p in default.parameters())
+    assert not torch.cuda.is_initialized()
+
+
+@pytest.mark.parametrize("corruption", ["shape", "integer", "bf16", "nonfinite", "targets"])
+def test_fp32_load_rejects_before_binding_or_rng_mutation(tmp_path, corruption):
+    from safetensors import safe_open
+    from safetensors.torch import load_file, save_file
+
+    source = TinyParticleSlider(TinyLLMBackend(dummy=True).model)
+    path = tmp_path / "valid.safetensors"
+    source.save(path, {})
+    state = load_file(str(path))
+    with safe_open(str(path), framework="pt", device="cpu") as handle:
+        metadata = handle.metadata()
+    if corruption == "shape":
+        state["particles"] = state["particles"][:-1]
+    elif corruption == "integer":
+        state["particles"] = state["particles"].to(torch.int64)
+    elif corruption == "bf16":
+        state["particles"] = state["particles"].to(torch.bfloat16)
+    elif corruption == "nonfinite":
+        state["particles"][0, 0] = float("nan")
+    else:
+        record = json.loads(metadata["conceptmod"])
+        record["targets"] = ["unrelated"]
+        metadata["conceptmod"] = json.dumps(record)
+    corrupt = tmp_path / "corrupt.safetensors"
+    save_file(state, str(corrupt), metadata=metadata)
+
+    backend = TinyLLMBackend(dummy=True)
+    base = {k: v.clone() for k, v in backend.model.state_dict().items()}
+    forwards = {k: m.forward for k, m in _attention_targets(backend.model).items()}
+    rng = torch.get_rng_state().clone()
+    with pytest.raises(ValueError):
+        TinyParticleSlider.load(backend.model, corrupt, adapter_dtype=torch.float32)
+    assert torch.equal(torch.get_rng_state(), rng)
+    for key, module in _attention_targets(backend.model).items():
+        assert module.forward == forwards[key]
+    for key, value in base.items():
+        assert torch.equal(backend.model.state_dict()[key], value)
+    # Rejection leaves the host available for a valid attachment.
+    TinyParticleSlider.load(backend.model, path, adapter_dtype=torch.float32)
 
 
 def test_steps_zero_load_reports_without_training(tmp_path):

@@ -1,0 +1,58 @@
+{
+  "repository": "https://github.com/HyperGAN/particle-sliders.git",
+  "source_commit": "7f018780c073790e1d706c31716d720302750a08",
+  "upstream_main": "20fdf98d25455582e7e7191eef8ef51cf73173ae",
+  "branch": "audit/tinyqwen-shared-pg09",
+  "core_commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
+  "core_module_sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+  "pg_version": "0.9.0",
+  "protocol": "tiny-qwen-shared-pg090-neutral-v2",
+  "source_sha256": {
+    "conceptmod/textsliders/tiny_llm_backend.py": "392344c0c2e966db72a46bd44fd4363c05914f6ab134414133e87bb983523186",
+    "conceptmod/textsliders/tiny_llm_particle.py": "99096f5cbfeb9c29ac0fe6daa84d4892c286165055ef3b912437659bc0bb1ae7",
+    "conceptmod/textsliders/tiny_llm_pg09.py": "d25600393b9b79eb12b618334791cc0b6573e57f401061d5eb69fa7abccec2ad",
+    "scripts/qualify_tiny_pg09_cpu.py": "5ac9163dbe8738a379881bc1fb4ac582499d3d367bfd6183a9b059d2c9df548a"
+  },
+  "test_receipts": {
+    "release-tests": {
+      "tests": "65",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "17.582"
+    },
+    "overlay-compatibility-tests": {
+      "tests": "35",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "12.391"
+    },
+    "independent-native-tests": {
+      "tests": "41",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "13.538"
+    }
+  },
+  "qualified": "synthetic CPU software execution/replay only; no pretrained quality claim",
+  "actual_shared_game": "particle_sliders.pg09.ConditionalPG09",
+  "actual_native_router": "particle_sliders.reference.RoutedMLP",
+  "pretrained_weights_loaded": false,
+  "gpu_jobs_launched": false,
+  "installed_packages_changed": false,
+  "pinned_sources_changed": false,
+  "models_published": false,
+  "merged": false,
+  "remaining_gates": [
+    "reviewed task14 package wheel/exact pin and compatibility shims",
+    "Transformers native checkpoint public hook support owned by shared package audit",
+    "pretrained model/fingerprint/zero scale verification",
+    "live inference export identity verification",
+    "signed autoregressive outputs and held-out useful transfer",
+    "full-horizon training quality",
+    "native memory/throughput and sole coordinator admission",
+    "Ada review and parent exact-head integration"
+  ]
+}

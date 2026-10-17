@@ -21,6 +21,7 @@ from pathlib import Path
 
 import torch
 from torch import nn
+from particle_sliders.reference import RoutedMLP
 
 from conceptmod.textsliders import particle_bridge_gan as shared
 from conceptmod.textsliders.tiny_llm_backend import (
@@ -106,7 +107,7 @@ class TinyParticleProjection(nn.Module):
         nn.init.zeros_(self.lora_up.weight)
         # The cloud belongs to the root exactly once, not to every projection.
         object.__setattr__(self, "_particles", particles)
-        self.bridge = shared.RoutedMLP(rank, rank)
+        self.bridge = RoutedMLP(rank, rank)
         self.org_forward = module.forward
         module.forward = self.forward
 
@@ -146,7 +147,7 @@ class TinyParticleSlider(nn.Module):
             self.adapters[key] = adapter
         host_dtype = _module_param_dtype(model)
         if host_dtype is not None:
-            self.to(dtype=host_dtype)
+            self.to(device=device, dtype=host_dtype)
 
     @contextmanager
     def scaled(self, scale: float):
@@ -179,10 +180,18 @@ class TinyParticleSlider(nn.Module):
         path.with_suffix(".json").write_text(json.dumps(record, indent=2) + "\n")
 
     @classmethod
-    def load(cls, model, path):
+    def load(cls, model, path, *, adapter_dtype=None):
+        """Validate an export before attaching, optionally retaining its FP32 leaves.
+
+        The legacy default follows the host dtype. PG0.9 callers explicitly use
+        ``adapter_dtype=torch.float32`` so a BF16 host cannot round the saved
+        FP32 weights before the adapter is promoted back to FP32.
+        """
         from safetensors import safe_open
         from safetensors.torch import load_file
 
+        if adapter_dtype not in (None, torch.float32):
+            raise ValueError("adapter_dtype must be None or torch.float32")
         with safe_open(str(path), framework="pt", device="cpu") as handle:
             record = json.loads((handle.metadata() or {}).get("conceptmod", "{}"))
         required = dict(format=FORMAT, rank=8, alpha=8.0, particles=128,
@@ -209,9 +218,15 @@ class TinyParticleSlider(nn.Module):
             tuple(state[k].shape) != shape for k, shape in expected.items()
         ):
             raise ValueError("Incomplete tiny routed-particle tensors")
+        if any(not t.is_floating_point() or
+               (adapter_dtype is not None and t.dtype != adapter_dtype)
+               for t in state.values()):
+            raise ValueError("Invalid tiny routed-particle tensor dtype")
         if any(not torch.isfinite(t).all() for t in state.values()):
             raise ValueError("Non-finite tiny routed-particle tensors")
         network = cls(model)
+        if adapter_dtype is not None:
+            network.to(dtype=adapter_dtype)
         network.load_state_dict(state, strict=True)
         return network, record
 
