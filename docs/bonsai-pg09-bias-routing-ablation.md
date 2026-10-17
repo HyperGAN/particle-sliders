@@ -28,6 +28,15 @@ response_scale=1 assertions and fields; its bounded repeat returned identical
 measurements. Only script/hash/runtime metadata differ. Both executed sources
 and outputs are retained; neither constructed an optimizer or read held-out tensors.
 
+Independent QA source/algebra/hash review **PASS** is frozen at
+`27f5e1142fd0b355445429878ee8b02533cc1f6d`. It independently verified all 96
+source and 7 training-artifact hashes, both preserved executions, and equality
+of all common measurements. QA ran no forwards, optimizers or GPU actions.
+The receipt is preserved as
+`evidence/pg09-text-video/bonsai-bias-routing-independent-review.json`.
+This qualification does not change the original held-out FAIL or establish
+historical training causality.
+
 ## Bias and input dependence
 
 The native three edit norms are approximately 0.489, with **99.99976%** of their
@@ -44,6 +53,9 @@ total squared magnitude in the common mean component.
 
 Zero input retains 99.5% of the native edit norm, and only modestly changes its
 vector. Removing all bridge-decoder biases shrinks the norm by about **88%**.
+For the zero-input diagnostic, only the residual-head input is zeroed: the
+counterfactual residual is applied to the original neutral base when computing
+training metrics. The teacher and neutral base are not replaced with zeros.
 The final decoder bias alone maps through `up` to an additive vector of norm
 0.527654, cosine 0.914284 with the mean edit, and projection coefficient 0.986446
 along that mean. Its exact additive identity is verified within 3.73e-9.
