@@ -1,0 +1,25 @@
+{
+  "schema": "moss-runtime-parity-diagnosis-v1",
+  "diagnostic_commit": "296582f",
+  "optimizer_updates": 0,
+  "original_probe_updates": 0,
+  "unchanged_parity_threshold_relative_rms": 0.001,
+  "source_run": "/mnt/nvme/sliders/qualification/runs/moss-runtime-diagnostic-20261017",
+  "files": {
+    "/mnt/nvme/sliders/qualification/runs/moss-runtime-diagnostic-20261017/admission.json": "c9b2bdb1b184c119ed268036d3717d07a5ab6bd30c0ae1bf6d6f3911c5d00164",
+    "/mnt/nvme/sliders/qualification/runs/moss-runtime-diagnostic-20261017/original/report.json": "04b4d4d75bbac96772900b4c16463249d6df5f7d33e8892f16e2342db08a3d76",
+    "/mnt/nvme/sliders/qualification/runs/moss-runtime-diagnostic-20261017/original/raw-outputs.safetensors": "8565f8d3b34fcddfc14b2d32a707869c9828e8d6e822755c69957ea6adbff8d4",
+    "/mnt/nvme/sliders/qualification/runs/moss-runtime-diagnostic-20261017/original/buffers.safetensors": "19009bd5dca74a4625711ad053cb492e2c8923177dfac067c908537bec1c260c",
+    "/mnt/nvme/sliders/qualification/runs/moss-runtime-diagnostic-20261017/pg090/report.json": "8d18d8b439980ea8585850ff6ec09ca149ddfb028c250551c35ffeb362bb68e8",
+    "/mnt/nvme/sliders/qualification/runs/moss-runtime-diagnostic-20261017/pg090/raw-outputs.safetensors": "b1dbbbbc8c5445b8266617d41806f89d5133a67199f1d45c13ca6373a6e8c2a7",
+    "/mnt/nvme/sliders/qualification/runs/moss-runtime-diagnostic-20261017/pg090/buffers.safetensors": "19009bd5dca74a4625711ad053cb492e2c8923177dfac067c908537bec1c260c"
+  },
+  "same_parameters": true,
+  "same_buffers": true,
+  "frozen_parameter_sha256": "394b0dad3cc89f63c0a0cc6b1420316e496494973dc4c9b17d730e91fcf371d7",
+  "frozen_bases_unchanged": true,
+  "original_native_and_deterministic_exact": true,
+  "current_native_and_deterministic_differ": true,
+  "inference": "Native software stack/backend arithmetic differs with identical loaded parameters/buffers. Original stack exactly reproduces cached teacher outputs. This does not isolate a single package or kernel.",
+  "quality_qualified": false
+}

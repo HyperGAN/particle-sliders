@@ -474,7 +474,7 @@ def evaluate_common_protocol(run, recipe, output, guard, emit):
     return results
 
 
-def execute(recipe, output, mode, lease_fds):
+def execute(recipe, output, mode, lease_fds, *, initial_qualifier=None):
     """Called only by the guardian; importing this module never reaches this path."""
     recipe.verify_output(output)
     recipe.verify_sources()
@@ -521,6 +521,8 @@ def execute(recipe, output, mode, lease_fds):
         run, base_sha = load_admitted_run(recipe, guard)
         restore_latest(output, recipe, run, base_sha)
         parity = parity_diagnostics(run, emit=emit)
+        if initial_qualifier is not None and run.game.completed_steps == 0:
+            initial_qualifier(run, emit=emit)
         if not (output / 'LATEST.json').exists():
             save_checkpoint(output, recipe, run, base_sha)
         emit('teacher_parity', status='ready', latest_step=run.game.completed_steps, parity=parity,

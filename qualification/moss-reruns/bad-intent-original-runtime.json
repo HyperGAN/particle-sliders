@@ -1,0 +1,68 @@
+{
+  "schema": "moss-pg09-worker-v1",
+  "objective": "pg09_gan_only",
+  "concept": "bad-intent",
+  "model_revision": "fc5de0d56fc910cbca6f6625a70f5f582b26deb1",
+  "model_snapshot": "/mnt/nvme/sliders/cache/huggingface/hub/models--OpenMOSS-Team--MOSS-Image-SFT/snapshots/fc5de0d56fc910cbca6f6625a70f5f582b26deb1",
+  "cache_directory": "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/bad-intent",
+  "output_directory": "/mnt/nvme/sliders/qualification/runs/moss-pg09-original-runtime-20261017/bad-intent",
+  "old_mse_adapter": "/mnt/nvme/sliders/runs/moss-nonlighting-campaign-v1/bad-intent/checkpoints/step-001600/adapter",
+  "old_adapter_sha256": "f507cc74404754f07fd74d32bade4f438235b83711ba133aac19bdff07b34b73",
+  "old_manifest_sha256": "3b0c23465c8aac9a0ff5dc7b3cc158b131ba73225aa64add64ee8bba98613077",
+  "pg_version": "0.9.0",
+  "preset": "bispf_optimized",
+  "total_steps": 3840,
+  "batch_size": 8,
+  "training_seed": 1000,
+  "checkpoint_every": 80,
+  "wall_seconds": 604800,
+  "signed_rows": 15360,
+  "response_domain": "continuous_field",
+  "sampling": "balanced",
+  "response_scale": 0.18700603425178916,
+  "cache_identity_sha256": "72a43d028a98b95b1ec4259a529d42b106ffde2d29ee784ba5f4d10d956da650",
+  "resolved_recipe_sha256": "aae8528a9dbf859c380de401df5dba8b74b58c53c3a3f1a075441e9fb74b9ebd",
+  "source_pins": {
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_moss_campaign.py": "32f8f042d3a76af531b566e07c4048ec2557acb31cadcc8988ee0518dbc3d565",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_backends.py": "e540d77bf56810e2e2411fb5d0122de2a025cccfa8757671d9ea577c4d07e1fe",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src/particle_sliders/pg09.py": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src/moss_sliders/vendor/pipeline_moss_image.py": "1dac1aca9feb1bfdfc727a401e4b67d61a505d3190706d1b7d2d784f88678b31",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/moss-debug-dev/src/moss_sliders/lora.py": "6b8f76f202a01d1a42a5a4338a6127698f6eb63aef367a136adf41489ef23d4d",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/conceptmod/textsliders/pg09_moss_worker.py": "5bbfaefc3a3c02099aa9ae218702fb995224ff35d96108d0f9798ae5a9315190",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/packages/particle-sliders-core/src/particle_sliders/pg09_release_sources.json": "d7b9d5944207fe6421111d85d19311964aca22bfafa18563938c985ec0d03b5b",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts/guarded_moss_pg09.py": "8ef400fb87e1369ccacc703e5925e999f9f87730da53a7fdd22225fb455073e5",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts/guarded_pg09_canary.py": "1c296c002c7d3ccc67fa92f3f65f1a835433fc946ba301e9d110eb3a2482b28f",
+    "/mnt/nvme/sliders/qualification/ops-sana-kernel-fixed/kernel_gpu_guard.py": "aca3f882996d2f51f0bc4d8f4cc936be1e310e0fd8cc819bc725b8a4e5648e56",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts/moss_original_runtime.py": "b286266ad08aadcb3fa364db64bc51a4839dde56df22f4776ebd44958a9d6258",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts/guarded_moss_original_pg09.py": "b128b669f9cabc1bf5b51f186c51e28c5270d27093bc25ebc72247e2ac97d172"
+  },
+  "resource_guard": {
+    "path": "/mnt/nvme/sliders/qualification/ops-sana-kernel-fixed/music3_resources.py",
+    "sha256": "711249a0d9cc0a1f4b7982068f3b44e1d0c082426a65c7698d3266d53ec1a6c9"
+  },
+  "lease_paths": [
+    "/mnt/nvme/sliders/qualification/admission-gpu-0.lock",
+    "/mnt/nvme/sliders/locks/gpu-0.lock"
+  ],
+  "physical_gpu": 0,
+  "admission": "REVIEWED_GAN_RECIPE",
+  "integration_commit": "9f0447b0fc78ae84786af13b93c990e159854c9d",
+  "numeric_policy": {
+    "deterministic_algorithms": true,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "tf32_matmul": false,
+    "cublas_workspace_config": ":4096:8",
+    "cache_parity": "bit-exact original-runtime diagnostic under deterministic default SDPA"
+  },
+  "runtime_profile": {
+    "name": "moss-cache-producer-v1",
+    "executable": "/mnt/nvme/sliders/moss-image-sliders/.venv/bin/python",
+    "versions": {
+      "torch": "2.9.1+cu128",
+      "diffusers": "0.38.0",
+      "transformers": "5.3.0"
+    },
+    "pg_source_directory": "/mnt/nvme/sliders/qualification/pg09-audit/wheel"
+  }
+}

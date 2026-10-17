@@ -25,7 +25,10 @@ def test_tensor_identity_binds_dtype_shape_and_values():
     assert tensor_sha(value) == tensor_sha(value.clone())
 
 
-def test_diagnostic_card_scope_and_source_binding(tmp_path):
+def test_diagnostic_card_scope_and_source_binding(tmp_path, monkeypatch):
+    # Test this card gate independently of historical completed-run recipe pins.
+    from conceptmod.textsliders.pg09_moss_worker import BoundRecipe
+    monkeypatch.setattr(BoundRecipe, "verify_sources", lambda self: None)
     recipe = REPO/'qualification/moss-reruns/bad-intent.json'
     script = REPO/'scripts/diagnose_moss_runtime.py'
     card = dict(schema='moss-readonly-runtime-diagnostic-v1', runtimes=RUNTIMES,
