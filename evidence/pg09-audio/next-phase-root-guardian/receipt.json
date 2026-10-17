@@ -1,0 +1,14 @@
+{
+  "status": "CPU_ONLY_NOT_ADMITTED",
+  "scope": [
+    "Y20",
+    "M3S"
+  ],
+  "guardian_sha256": "81e4692b006c10d3061ee34cc139620ce449c43f688b7f6dffe3a6212f39bed5",
+  "root_launch_card_created": false,
+  "gpu_or_process_actions": false,
+  "host_running_floor_gib": 8,
+  "priority": "Both MOSS3840 matched evaluations required before audio phase",
+  "independent_source_review": "pending",
+  "linter": "ruff executable unavailable; AST parse and CPU tests used, no installation attempted"
+}
