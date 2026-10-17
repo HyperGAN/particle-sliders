@@ -9,8 +9,10 @@
   "gpu_or_process_actions": false,
   "host_running_floor_gib": 8,
   "priority": "Both MOSS3840 matched evaluations required before audio phase",
-  "independent_source_review": "pending",
+  "independent_source_review": "PASS44 CPU checks, no real subprocess/GPU/process controls",
   "linter": "ruff executable unavailable; AST parse and CPU tests used, no installation attempted",
   "cpu_tests_passed": 37,
-  "product_preload_gate": "exact product directory and9 source files required; alternate/missing product rejected"
+  "product_preload_gate": "exact product directory and9 source files required; alternate/missing product rejected",
+  "independent_qa_commit": "93455ba8eac0cdb2301e7b2db889958476b1e6b0",
+  "independent_cpu_tests": 44
 }

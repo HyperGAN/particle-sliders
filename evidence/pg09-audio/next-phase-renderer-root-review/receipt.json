@@ -1,0 +1,23 @@
+{
+  "status": "CPU_RANDOM_NATIVE_AR_SYNTHETIC_ACOUSTIC_PASS",
+  "owner_source_commit": "9262a930cd351459e93ac33cc542fa379c12fe52",
+  "canonical_commit": "b6e0755e",
+  "renderer_sha256": "2d1fd75f69b6e37392fb518e58a761a0f14fd79a58ef16c0f2bb1e2f5c25a1f1",
+  "root_tests_passed": 16,
+  "root_seconds": 12.25,
+  "skipped": 0,
+  "initial_test_invocation": "15passed/1failed: subprocess could not import test module because tests/ was omitted from PYTHONPATH; original XML preserved. Exact source rerun with tests path passes16.",
+  "independent_tests_reported": 16,
+  "independent_qa_commit": "93455ba8eac0cdb2301e7b2db889958476b1e6b0",
+  "proposal_validator_source_files_rehashed": 47,
+  "assets": "Owner hash receipt covers36312138722bytes; root validator rehashed47sources and small inputs, stat-checked large files against preserved hashes, did not deserialize pretrained assets.",
+  "native_pretrained_or_acoustic_execution": false,
+  "gpu_actions": false,
+  "root_render_card_created": false,
+  "missing": [
+    "Accepted20-step qualification/export hashes",
+    "Separate root render guardian and fresh process admission",
+    "Actual native acoustic/token/latent/waveform parity and independent listening"
+  ],
+  "active_moss_pins_unchanged": true
+}

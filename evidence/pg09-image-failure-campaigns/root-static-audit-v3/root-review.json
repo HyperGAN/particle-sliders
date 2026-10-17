@@ -1,0 +1,240 @@
+{
+  "schema": "root-image-checkpoint-audit-v3-review",
+  "recorded_utc": "2026-10-17T18:28:31.536861+00:00",
+  "source_commit": "4ee0d9df94fb0f78fed92037eb8f0cbca0b5f34d",
+  "canonical_commit": "e89a19c2",
+  "script_sha256": "8a92ce6a2d63ab11c9c2b40cd4f83bb4dda594b261bf72732338a69242071ce4",
+  "plan_sha256": "40534a425e868d7bd49c9d07ccae78ba3322e2ca6eccb36da02e716a8aabe706",
+  "status": "STATIC_AND_RESTRICTED_RNG_SCHEMA_PASS",
+  "immutable_receipts": {
+    "image-checkpoint-static-root-v3-20261017.json": "843b6966b7501068d8baf982fcd6f52561975684b0a690a6eee4cffac4c8aae1",
+    "image-checkpoint-rng-root-v3-20261017.json": "1ee854f66d368389b39c0cd08399a16b2ee0df4e873330c437e656c591cf9ed2",
+    "image-case-schema-4ee0d9d-root-review.xml": "32fb16e96652dbeb7ad1542831a6f61fab4e0dad922a1198777b7e0191051238"
+  },
+  "root_cpu_tests": 41,
+  "independent_cpu_tests_reported": 48,
+  "static_packets": 4,
+  "restricted_packets": 4,
+  "elapsed_seconds": 2.492078841998591,
+  "peak_rss_bytes": 534241280,
+  "budgets": {
+    "wall_seconds": 120,
+    "address_space_gib": 8,
+    "host_available_gib": 16,
+    "threads": 1,
+    "cuda_visible": ""
+  },
+  "packet_summaries": [
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000000.pt",
+      "sha256": "a3109995761bf5956e0d2a59564db9f19e238ca2c4fb95ff6b78ea6c24bd9c00",
+      "identity": "99dfbdd7cbeda5d63b3a444b7a7472ff798e2556b96e4c74da5cc00aee1043bc",
+      "step": 0,
+      "case": "sana",
+      "fields": [
+        "cuda_rng",
+        "identity",
+        "optimizer",
+        "python_rng",
+        "step",
+        "torch_rng",
+        "trainable"
+      ],
+      "trainable_tensors": 224,
+      "trainable_numel": 148764672,
+      "torch_rng": {
+        "shape": [
+          5056
+        ],
+        "dtype": "torch.uint8",
+        "sha256": "2b9c0b62adfb81346000f1bd1fb3fb08ae2311aeaa0e9ee1f889a6ce2cfa9929"
+      },
+      "cuda_rng": [
+        {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.uint8",
+          "sha256": "76108f84396dc2d72ce275fdb0e0ef37b229b2898bf5a31d576fea11a766a42b"
+        }
+      ],
+      "lr_scheduler": null,
+      "rng_restored": false,
+      "model_instantiated": false,
+      "optimizer_instantiated": false,
+      "native_forward": false,
+      "cuda_initialized": false
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000500.pt",
+      "sha256": "83c58be0d6f58c42b58e7a15c20a34f267da516f91ebf65e9cbef0c3c778636f",
+      "identity": "99dfbdd7cbeda5d63b3a444b7a7472ff798e2556b96e4c74da5cc00aee1043bc",
+      "step": 500,
+      "case": "sana",
+      "fields": [
+        "cuda_rng",
+        "identity",
+        "optimizer",
+        "python_rng",
+        "step",
+        "torch_rng",
+        "trainable"
+      ],
+      "trainable_tensors": 224,
+      "trainable_numel": 148764672,
+      "torch_rng": {
+        "shape": [
+          5056
+        ],
+        "dtype": "torch.uint8",
+        "sha256": "2b9c0b62adfb81346000f1bd1fb3fb08ae2311aeaa0e9ee1f889a6ce2cfa9929"
+      },
+      "cuda_rng": [
+        {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.uint8",
+          "sha256": "5c6940d1c85ee3f8dda096c3225c00ed3dadf6b360ac09790a289e1f0f0e29d5"
+        }
+      ],
+      "lr_scheduler": null,
+      "rng_restored": false,
+      "model_instantiated": false,
+      "optimizer_instantiated": false,
+      "native_forward": false,
+      "cuda_initialized": false
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000000.pt",
+      "sha256": "8ccf414c1ec32a614690a70f290e2ed7582faf570049ccb5edf6a80dd4b7fe42",
+      "identity": "d1227dc772592aa4e29640464401367262228b6456e0bcc7cb7af1d85e7ba149",
+      "step": 0,
+      "case": "sd3",
+      "fields": [
+        "cuda_rng",
+        "identity",
+        "lr_scheduler",
+        "optimizer",
+        "python_rng",
+        "step",
+        "torch_rng",
+        "trainable"
+      ],
+      "trainable_tensors": 192,
+      "trainable_numel": 1179648,
+      "torch_rng": {
+        "shape": [
+          5056
+        ],
+        "dtype": "torch.uint8",
+        "sha256": "a06c710135eb69da75f962b519ffa78e457c871b82a8c925483ef890f51a88b0"
+      },
+      "cuda_rng": [
+        {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.uint8",
+          "sha256": "76108f84396dc2d72ce275fdb0e0ef37b229b2898bf5a31d576fea11a766a42b"
+        }
+      ],
+      "lr_scheduler": {
+        "class_name": "torch.optim.lr_scheduler.CosineAnnealingLR",
+        "metadata": {
+          "T_max": 50,
+          "eta_min": 1e-06,
+          "base_lrs": [
+            0.0001
+          ],
+          "last_epoch": 0,
+          "_step_count": 1,
+          "_is_initial": false,
+          "_get_lr_called_within_step": false,
+          "_last_lr": [
+            0.0001
+          ]
+        },
+        "validation": "exact keys/types, pinned config and completed-step counters; no scheduler instantiated/applied",
+        "applied": false
+      },
+      "rng_restored": false,
+      "model_instantiated": false,
+      "optimizer_instantiated": false,
+      "native_forward": false,
+      "cuda_initialized": false
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000500.pt",
+      "sha256": "ce84161b379899cbb6ab2e31f7a02f4cbdd056af67d2bac46a57866cb3445a0b",
+      "identity": "d1227dc772592aa4e29640464401367262228b6456e0bcc7cb7af1d85e7ba149",
+      "step": 500,
+      "case": "sd3",
+      "fields": [
+        "cuda_rng",
+        "identity",
+        "lr_scheduler",
+        "optimizer",
+        "python_rng",
+        "step",
+        "torch_rng",
+        "trainable"
+      ],
+      "trainable_tensors": 192,
+      "trainable_numel": 1179648,
+      "torch_rng": {
+        "shape": [
+          5056
+        ],
+        "dtype": "torch.uint8",
+        "sha256": "7f8faeb946fbd9c6ad37ea7f6378e4685afa1462d0f4e1a523567459bb74c78b"
+      },
+      "cuda_rng": [
+        {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.uint8",
+          "sha256": "5c6940d1c85ee3f8dda096c3225c00ed3dadf6b360ac09790a289e1f0f0e29d5"
+        }
+      ],
+      "lr_scheduler": {
+        "class_name": "torch.optim.lr_scheduler.CosineAnnealingLR",
+        "metadata": {
+          "T_max": 50,
+          "eta_min": 1e-06,
+          "base_lrs": [
+            0.0001
+          ],
+          "last_epoch": 500,
+          "_step_count": 501,
+          "_is_initial": false,
+          "_get_lr_called_within_step": false,
+          "_last_lr": [
+            9.999999999999449e-05
+          ]
+        },
+        "validation": "exact keys/types, pinned config and completed-step counters; no scheduler instantiated/applied",
+        "applied": false
+      },
+      "rng_restored": false,
+      "model_instantiated": false,
+      "optimizer_instantiated": false,
+      "native_forward": false,
+      "cuda_initialized": false
+    }
+  ],
+  "historical_draw_replay_qualified": false,
+  "limits": [
+    "No global RNG restore, optimizer/scheduler/model construction, native forward or GPU initialization.",
+    "Sana7 and SD3eight schemas qualified only for exact source/plan/four checksum-bound packets.",
+    "RNG snapshots do not recover missing text encodings, exact per-step draw order or native CUDA noise.",
+    "Prior static v1 and failed RNG v2 cohorts remain immutable; no cross-plan proof reuse."
+  ],
+  "pending": [
+    "Source-reviewed private-generator draw-order reconstruction proposal",
+    "Source-bound numeric descriptor/noise/condition assets and reader/worker",
+    "Training-only scale calibration and native teacher/Off/mask/CFG/sampler/decoder parity",
+    "Snapshot memory/time measurement, separate-process GPU resume, full budget and heldouts"
+  ]
+}
