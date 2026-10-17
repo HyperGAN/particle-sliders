@@ -1,0 +1,20 @@
+{
+  "schema": "moss-readonly-runtime-diagnostic-v1",
+  "runtimes": {
+    "original": "/mnt/nvme/sliders/moss-image-sliders/.venv/bin/python",
+    "pg090": "/mnt/nvme/sliders/qualification/envs/pg090/bin/python"
+  },
+  "indices": [
+    0,
+    39
+  ],
+  "optimizer_updates": 0,
+  "wall_seconds": 900,
+  "admission": "REVIEWED_READONLY_DIAGNOSTIC",
+  "source_pins": {
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts/diagnose_moss_runtime.py": "e6efaee9201114b681d86d2135f1aee9c01c373f7e5642f645231e2e6acde3ab",
+    "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/scripts/guarded_pg09_canary.py": "1c296c002c7d3ccc67fa92f3f65f1a835433fc946ba301e9d110eb3a2482b28f"
+  },
+  "training_recipe_file_sha256": "e53dbd131d307c162c6fc97456ecbd96110887530f2ae85a8fa1f17806e4c3bb",
+  "output_directory": "/mnt/nvme/sliders/qualification/runs/moss-runtime-diagnostic-20261017"
+}
