@@ -28,12 +28,14 @@ def fixture(phase='Y20'):
         '--manifest':'/fixture/manifest.json', '--train-prompts':'/fixture/train.yaml',
         '--heldout-prompts':'/fixture/heldout.yaml', '--model-dir':'/fixture/model'}
     if phase=='Y20':
-        fields.update({'--until':'20', '--product':'/fixture/product',
+        fields.update({'--until':'20', '--product':str(guard.YUE_PRODUCT),
             '--resume':str(guard.ROOT/'runs/audio-pg09-reviewed-20261017/yue2-smoke/full3/checkpoint.pt')})
     source_names=[guard.AUDIO/'scripts/qualify_audio_pg09_live.py',
                   guard.AUDIO/'scripts/run_audio_pg09_smoke.py',
                   guard.AUDIO/'conceptmod/textsliders/pg09_audio.py',
                   guard.ROOT/'ops-music3/music3_resources.py']
+    if phase=='Y20':
+        source_names += [guard.YUE_PRODUCT/'yue2'/name for name in guard.YUE_PRODUCT_FILES]
     proposal=dict(schema='audio-pg09-next-stage-proposal-v1', phase=phase, family=fixed['family'],
         status='PROPOSED_NOT_ADMITTED', dispatch_allowed=False, admission_id=None,
         core_commit=guard.CORE, source_profile='alz-continuous-v1', penalty_input_domain='continuous',
@@ -65,7 +67,8 @@ def test_exact_new_scope_binds_card_command_and_physical_gpu(phase,monkeypatch):
 
 
 @pytest.mark.parametrize('kind',['renderer','wrong_gpu','wrong_uuid','wrong_lease','placeholder_id',
-    'four_gib','retry','parallel','site_overlay','fixture','new_flag','missing_input','missing_source','wrong_resume'])
+    'four_gib','retry','parallel','site_overlay','fixture','new_flag','missing_input','missing_source',
+    'wrong_resume','wrong_product','missing_product_source'])
 def test_scope_changes_fail_before_any_native_action(kind):
     card,p=fixture()
     if kind=='renderer':card['phase']='YR0'
@@ -81,6 +84,8 @@ def test_scope_changes_fail_before_any_native_action(kind):
     elif kind=='new_flag':p['command']+=['--render','1']
     elif kind=='missing_input':p['input_pins'].pop('/fixture/manifest.json')
     elif kind=='missing_source':p['source_pins'].pop(str(guard.AUDIO/'scripts/qualify_audio_pg09_live.py'))
+    elif kind=='wrong_product':p['command'][p['command'].index('--product')+1]='/fixture/other-product'
+    elif kind=='missing_product_source':p['source_pins'].pop(str(guard.YUE_PRODUCT/'yue2/backend.py'))
     else:p['command'][p['command'].index('--resume')+1]='/fixture/wrong.pt'
     with pytest.raises(ValueError):guard.validate_scope(card,p)
 

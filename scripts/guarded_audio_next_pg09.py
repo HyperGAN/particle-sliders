@@ -20,6 +20,9 @@ import guarded_pg09_canary as resources
 
 ROOT = Path('/mnt/nvme/sliders/qualification')
 AUDIO = Path('/mnt/nvme/sliders/audio-adapters-pg09-20261017')
+YUE_PRODUCT = Path('/mnt/nvme/sliders/audio-yue2-source-20261017')
+YUE_PRODUCT_FILES = ('__init__.py', 'stamp.py', 'defaults.py', 'samples.py',
+                     'backend.py', 'slider.py', 'infer.py', 'prompts.py', 'train.py')
 CORE = '3e94b13eb5d6cd1ceee3f018f019a68603f35696'
 PATCH = 'c6531a21f62fa96682f5aece517a6a862bb849ab971aa2766b3946b9a7543571'
 MOSS_RECIPES = {
@@ -123,6 +126,10 @@ def validate_scope(card, proposal):
                         str(ROOT/'ops-music3/music3_resources.py')}
     if phase == 'M3S':
         required_sources.add(str(AUDIO/'scripts/run_audio_pg09_smoke.py'))
+    else:
+        if argument(command, '--product') != str(YUE_PRODUCT):
+            raise ValueError('fixed native YuE2 product root required')
+        required_sources.update(str(YUE_PRODUCT/'yue2'/name) for name in YUE_PRODUCT_FILES)
     if not required_sources.issubset(proposal.get('source_pins', {})):
         raise ValueError('executed native worker/adapter/resource sources missing')
     if phase == 'Y20':
