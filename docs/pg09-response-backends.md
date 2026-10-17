@@ -48,3 +48,12 @@ export PYTHONPATH=/path/to/core/packages/particle-sliders-core/src:/path/to/moss
 The CPU command uses one shared `ConditionalPG09` game for all model fixtures, explicitly selects `get_recipe('bispf_optimized')` through core, verifies exact resume/reload, and writes a JSON receipt plus adapter-only exports. The base adapters are labeled **adapter-GAN only**: they do not contain a routed particle bank. The `anima-particles` example and dedicated native-bank test use the actual product ParticleAdapter/Mixer with a real CosmosTransformer3DModel at tiny random dimensions. They verify adapter/router/bank updates, a nonzero response gradient to the same128×4bank, frozen base weights, native5Dfield shape, and exact checkpoint/export continuation. This is software qualification, not pretrained image-quality evidence. Native fields must reach the PG penalty without flattening; flat continuous vectors of width170+ must fail closed until a qualified upstream domain API is installed.
 
 No GPU launch, cancellation, queue dispatch, merge, publication or model-quality qualification is performed by this branch.
+
+## Final frozen CPU qualification
+
+Adapter implementation: `182db8e885dec28f062f0fda4e882abe708de89b`.
+Shared core implementation: `7884c8dd87ad510be6cad2bdf88c0c8ba23bf0c4` (`particle-sliders-core`0.5.0).
+
+**92 tests passed with no skips or failures in5.33seconds**, combining this branch's21backend tests, the56core package tests and15independentQA core/runtime tests. All three base examples and the native Anima routed-bank example also pass exact resume and portable adapter reload. Lint passes. No CUDA runtime was initialized.
+
+Exact source hashes, resolved recipes, metrics and JUnit output are retained under `evidence/pg09-backends/`. The evidence-only follow-up commit changes no implementation. The core owner subsequently integrated the adapter commits into its checkout; the core module is byte-identical to7884c8d. GPU/full-model image-quality validation remains for parent admission; none was attempted here.
