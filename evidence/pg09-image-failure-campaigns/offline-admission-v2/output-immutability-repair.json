@@ -62,5 +62,26 @@
     "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission-v2/output-repair-combined-52-tests.xml",
     "bytes": 8015,
     "sha256": "e9c0e5ad59c7f7a6eacb72d40ed3ead787c38cb1834265a32389ec9a01cce4d3"
+  },
+  "independent_qa": {
+    "thread": "01a14a7b-d6da-7167-bd9a-bd8cd98e6029",
+    "implementation_commit": "247ac44ce3a06302f7656bef13a339f7dfffdaab",
+    "tests_passed": 22,
+    "skipped": 0,
+    "failed": 0,
+    "elapsed_seconds": 0.196,
+    "finding": "output overwrite CLOSED at source/synthetic CPU scope",
+    "source_review": "fresh/disjoint before packet access; pinned parent directory; exclusive fsynced temporary and atomic no-replace hard link; aliases/races/input preservation and strict same-plan gate confirmed",
+    "receipt": {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission-v2/image-audit-247ac44-output-repair-review.xml",
+      "sha256": "789c5ea4280f996f34bf64897c6d7595bf63109ceef2104af1a96b9ada98c57b"
+    },
+    "actual_packet_execution": false,
+    "actual_native_or_gpu_work": false,
+    "remaining_execution_gates": [
+      "root review/admission for fresh v2 static then same-plan RNG",
+      "8GiB address-space actual Torch import fit",
+      "actual restricted-load packet schema"
+    ]
   }
 }
