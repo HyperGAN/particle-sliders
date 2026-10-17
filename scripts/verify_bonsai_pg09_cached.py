@@ -1,9 +1,10 @@
 """Owner-admitted CPU verification using existing official cached readouts only.
 
-Preflight is metadata-only. Produce performs four shared updates, checkpointing
+Preflight is metadata-only. Historical produce/restore modes are retired in this
+package cohort. The archival implementation performed four shared updates, checkpointing
 after two; restore replays the final two in a separate process. An explicit
-source-pinned --plan instead declares1200 updates and final20-update replay;
-it requires a new coordinator admission. No server,
+source-pinned --plan declared1200 updates and final20-update replay. It remains
+available only for archival metadata preflight here. No server,
 GGUF/model loader, network, CUDA, legacy trainer or installed-package mutation.
 """
 import argparse
@@ -55,7 +56,7 @@ def preflight(core):
                 frozen_readout_identity=identity, preparation_sha256=digest(preparation),
                 archived_recipe_sha256=digest(recipe), cache=str(cache), cached_readouts=len(selected),
                 model_loaded=False, tensor_payload_loaded=False, gpu_used=False,
-                permitted_scope='pending owner admission: cached-real-readout head only, CPU one thread')
+                permitted_scope='archival metadata only; cached training retired in this package cohort')
 
 
 def equal(a, b):
@@ -354,6 +355,10 @@ def main():
     parser.add_argument('--preset', choices=['bispf', 'bispf_optimized'], default='bispf_optimized')
     parser.add_argument('--plan', type=Path, help='source-pinned owner-reviewed 1200-update proposal; no implicit admission')
     args = parser.parse_args()
+    if args.mode != 'preflight':
+        parser.error('legacy Bonsai cached-readout produce/restore training is retired; '
+                     'use an explicitly reviewed pinned installed-package worker/new cohort; '
+                     'metadata-only --mode preflight remains available')
     if args.plan:
         args.plan_data = load_plan(args.plan, args)
         args.plan_sha256 = digest(args.plan)
@@ -361,7 +366,7 @@ def main():
     if args.plan:
         receipt.update(long_run_recipe_sha256=args.plan_sha256,
                        plan_validated_before_tensor_payload=True,
-                       permitted_scope='pending new owner admission: fixed 1200-update CPU cached head')
+                       permitted_scope='archival source-plan metadata only; no training admission')
     if args.mode == 'preflight':
         if args.plan:
             receipt['resource_preflight'] = check_limits(args.plan_data, time.monotonic(),

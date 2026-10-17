@@ -1,0 +1,64 @@
+{
+  "schema": "text-package-pin-v1",
+  "core_repository": "https://github.com/HyperGAN/particle-sliders",
+  "core_source_commit": "42a2e371c537180bd189fd4a288b640f9f1c98fc",
+  "review_status": "pending_ada",
+  "artifacts": {
+    "particlegan": {
+      "version": "0.9.1",
+      "wheel": "particlegan-0.9.1-py3-none-any.whl",
+      "sha256": "b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec",
+      "import_package": "particlegan",
+      "critical_modules": {
+        "particlegan": {
+          "file": "particlegan/__init__.py",
+          "sha256": "607c6bb12acd631ae1ff98f6e61d990ff4ab5b60ec86f5a8cb5864cda7c11864"
+        }
+      }
+    },
+    "particle-sliders-core": {
+      "version": "0.6.0",
+      "wheel": "particle_sliders_core-0.6.0-py3-none-any.whl",
+      "sha256": "7418efe0d89782b2fd266c6a8e536539243d06dd42ff5d393e409bf4b0f2c872",
+      "import_package": "particle_sliders",
+      "critical_modules": {
+        "particle_sliders": {
+          "file": "particle_sliders/__init__.py",
+          "sha256": "2424d5a850d1f10734f452175b40caa9761d579e69eb8f0eb2b919776beb1d25"
+        },
+        "particle_sliders.pg09": {
+          "file": "particle_sliders/pg09.py",
+          "sha256": "89aca69c6ba1ea018dd2a0651a2264b36424b3159d97e5ac982fee48775120f9"
+        },
+        "particle_sliders.pg09_backends": {
+          "file": "particle_sliders/pg09_backends.py",
+          "sha256": "5db98918880af33f55ca7312975a0fd112bdae8a7c69a3e357433beb056e32c1"
+        },
+        "particle_sliders.pg09_text_video": {
+          "file": "particle_sliders/pg09_text_video.py",
+          "sha256": "6d4c60f0235573c944bfb12ecada0c45a774b419aefc10c73af8758ea62fb580"
+        },
+        "particle_sliders.pg09_readout_critic": {
+          "file": "particle_sliders/pg09_readout_critic.py",
+          "sha256": "b83322a2ef2192ac3693fe136d019259c7fd8bf26fba25bb254931ba25462a57"
+        },
+        "particle_sliders.tiny_native": {
+          "file": "particle_sliders/tiny_native.py",
+          "sha256": "336df6f61d12429420caa4a4bbe349e04021f7da594a3f185471a86e4d5f334e"
+        },
+        "particle_sliders.tiny_llm_backend": {
+          "file": "particle_sliders/tiny_llm_backend.py",
+          "sha256": "392344c0c2e966db72a46bd44fd4363c05914f6ab134414133e87bb983523186"
+        },
+        "particle_sliders.bonsai_native": {
+          "file": "particle_sliders/bonsai_native.py",
+          "sha256": "c46de3514a1169ba6d61dc0558975e498c1e7f2fab7d2d5710590c0687a57922"
+        },
+        "particle_sliders.reference": {
+          "file": "particle_sliders/reference.py",
+          "sha256": "2c5809edd3818fab9efdd0c5234ea6b5027de5fc0130155e537950471018a371"
+        }
+      }
+    }
+  }
+}

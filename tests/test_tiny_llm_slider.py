@@ -81,6 +81,22 @@ def test_game_is_the_shared_yue2_module_not_a_copy():
     assert yue2_game.noise_std(20000) == pytest.approx(0.03)
 
 
+def test_native_bridge_executes_shared_package_with_archival_state_parity():
+    from particle_sliders.reference import RoutedMLP
+
+    network = TinyParticleSlider(TinyLLMBackend(dummy=True).model)
+    assert all(type(adapter.bridge) is RoutedMLP for adapter in network.adapters.values())
+    torch.manual_seed(73)
+    former = yue2_game.RoutedMLP(8, 8)
+    torch.manual_seed(73)
+    shared = RoutedMLP(8, 8)
+    assert former.state_dict().keys() == shared.state_dict().keys()
+    for key, value in former.state_dict().items():
+        assert torch.equal(value, shared.state_dict()[key])
+    values, particles = torch.randn(2, 3, 8), torch.randn(128, 4)
+    assert torch.equal(former(values, particles), shared(values, particles))
+
+
 def test_build_game_uses_reference_lrs_and_betas():
     backend = TinyLLMBackend(device="cpu", dummy=True)
     rows = load_slider_rows("conceptmod/textsliders/data/prompts-tiny-llm.yaml")
@@ -122,6 +138,19 @@ def test_particle_branches_attach_only_to_attention_qkvo():
         assert torch.count_nonzero(adapter.lora_up.weight).item() == 0
 
 
+def test_router_and_bank_follow_host_device_without_gpu():
+    backend = TinyLLMBackend(dummy=True)
+    backend.model.to(device="meta", dtype=torch.bfloat16)
+    network = TinyParticleSlider(backend.model)
+    assert all(p.device.type == "meta" and p.dtype == torch.bfloat16
+               for p in network.parameters())
+    # The PG0.9 adapter promotion changes dtype while preserving placement.
+    network.float()
+    assert all(p.device.type == "meta" and p.dtype == torch.float32
+               for p in network.parameters())
+    assert not torch.cuda.is_initialized()
+
+
 def test_rank_alpha_pin_and_double_attach_guard():
     backend = TinyLLMBackend(device="cpu", dummy=True)
     with pytest.raises(ValueError, match="pins rank/alpha 8"):
@@ -137,33 +166,6 @@ def test_slider_rejects_non_attention_host():
         TinyParticleSlider(model, rank=8, alpha=8.0)
 
 
-def test_scale_zero_is_exact_base_before_and_after_train(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: garden caption\n  positive: a blooming rose garden at dawn\n"
-        "  neutral: a garden at dawn\n  unconditional: ''\n"
-        "- target: sea caption\n  positive: a calm turquoise sea\n"
-        "  neutral: a sea\n  unconditional: ''\n"
-    )
-    args = parse_args([
-        "--dummy", "--steps", "4", "--name", "tiny-zero",
-        "--save_dir", str(tmp_path), "--prompts_file", str(prompts),
-        "--seed", "0",
-    ])
-    sidecar = train(args)
-    assert sidecar["steps"] == 4
-    # Post-train live weights still bypass exactly at scale 0.
-    backend = TinyLLMBackend(device="cpu", dummy=True)
-    network, _ = TinyParticleSlider.load(
-        backend.model, resolve_particle_path(str(tmp_path)))
-    ids = backend.encode("a blooming rose garden at dawn").ids
-    teacher = backend.teacher_hidden(ids)
-    with network.scaled(0.0):
-        assert torch.equal(backend.hidden(ids), teacher)
-    with network.scaled(1.0):
-        assert not torch.equal(backend.hidden(ids), teacher)
-
-
 def test_shared_build_game_rejects_wrong_cloud_shape():
     backend = TinyLLMBackend(device="cpu", dummy=True)
     rows = load_slider_rows("conceptmod/textsliders/data/prompts-tiny-llm.yaml")
@@ -172,59 +174,6 @@ def test_shared_build_game_rejects_wrong_cloud_shape():
     network.particles = torch.nn.Parameter(torch.randn(16, 4))
     with pytest.raises(ValueError, match="128x4"):
         build_game(backend, network, fixed)
-
-
-def test_dummy_train_runs_shared_game_with_no_mse(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: garden caption\n  positive: a blooming rose garden at dawn\n"
-        "  neutral: a garden at dawn\n  unconditional: ''\n"
-        "- target: sea caption\n  positive: a calm turquoise sea\n"
-        "  neutral: a sea\n  unconditional: ''\n"
-    )
-    args = parse_args([
-        "--dummy", "--steps", "6", "--name", "tiny-game",
-        "--save_dir", str(tmp_path), "--prompts_file", str(prompts),
-        "--report_scales", "0,1", "--seed", "0",
-    ])
-    sidecar = train(args)
-    assert sidecar["recipe"] == "anneal-routed-particle-error-tiny-llm-v1"
-    assert sidecar["game_module"] == "conceptmod.textsliders.particle_bridge_gan"
-    assert sidecar["output_mse"] is False
-    assert sidecar["propose_only"] is True
-    assert sidecar["unipolar"] is True
-    ref = yue2_game.REFERENCE
-    for key in ("g_lr", "d_lr", "particle_lr", "ema", "vic_coeff",
-                "cap_coeff", "cap_kappa", "cap_every",
-                "noise_floor", "noise_decay_steps"):
-        assert sidecar[key] == ref[key], key
-    assert sidecar["optimizer_betas"] == list(ref["betas"])
-    assert sidecar["particles"] == [128, 4]
-    history = sidecar["history"]
-    assert len(history) == 6
-    for rec in history:
-        assert set(rec) >= {
-            "step", "loss", "g_adv", "particle_vic", "d_loss", "d_adv",
-            "d_pen", "grad_norm", "particle_grad_norm",
-            "particle_gan_grad_norm", "noise_std", "cos_pos",
-        }
-        assert "mse" not in json.dumps(rec).lower()
-        for num in ("loss", "g_adv", "particle_vic", "d_loss", "cos_pos"):
-            assert abs(rec[num]) != float("inf") and rec[num] == rec[num]
-        assert rec["noise_std"] == pytest.approx(
-            yue2_game.noise_std(rec["step"]))
-    assert history[0]["noise_std"] == pytest.approx(yue2_game.noise_std(1))
-    # EMA + live exports exist; report pins scale-0 exactness post-train.
-    assert (tmp_path / "tiny-game_last.safetensors").is_file()
-    assert (tmp_path / "tiny-game_live_last.safetensors").is_file()
-    report = json.loads((tmp_path / "report" / "hidden_delta.json").read_text())
-    assert len(report) == 4
-    by_scale = {}
-    for rec in report:
-        by_scale.setdefault(rec["scale"], []).append(rec)
-    for rec in by_scale[0.0]:
-        assert rec["delta_l2"] == pytest.approx(0.0, abs=1e-5)
-        assert rec["delta_cos"] == pytest.approx(1.0, abs=1e-4)
 
 
 def test_save_load_roundtrip_and_rejections(tmp_path):
@@ -262,30 +211,82 @@ def test_save_load_roundtrip_and_rejections(tmp_path):
         TinyParticleSlider.load(fresh.model, bad_path)
 
 
-def test_steps_zero_load_reports_without_training(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: garden caption\n  positive: a blooming rose garden at dawn\n"
-        "  neutral: a garden at dawn\n  unconditional: ''\n"
-        "- target: sea caption\n  positive: a calm turquoise sea\n"
-        "  neutral: a sea\n  unconditional: ''\n"
-    )
-    train_dir = tmp_path / "trained"
-    train(parse_args([
-        "--dummy", "--steps", "2", "--name", "tiny-load",
-        "--save_dir", str(train_dir), "--prompts_file", str(prompts),
-        "--no_report", "--seed", "1",
-    ]))
-    reload_dir = tmp_path / "reload"
-    sidecar = train(parse_args([
-        "--dummy", "--steps", "0", "--name", "tiny-reload",
-        "--save_dir", str(reload_dir), "--prompts_file", str(prompts),
-        "--load_tiny_lora", str(train_dir), "--report_scales", "0,1",
-    ]))
-    assert sidecar["steps"] == 0
-    assert sidecar["history"] == []
-    assert sidecar["load_tiny_lora"].endswith("_last.safetensors")
-    assert (reload_dir / "report" / "hidden_delta.json").is_file()
+@pytest.mark.parametrize("host_dtype", [torch.float32, torch.bfloat16])
+def test_explicit_fp32_reload_avoids_host_rounding(tmp_path, host_dtype):
+    torch.manual_seed(91)
+    original = TinyLLMBackend(dummy=True)
+    original.model.to(dtype=host_dtype)
+    network = TinyParticleSlider(original.model).float()
+    with torch.no_grad():
+        for parameter in network.parameters():
+            parameter.copy_(torch.rand_like(parameter) * .02)
+    path = tmp_path / "fp32.safetensors"
+    network.save(path, {})
+
+    torch.manual_seed(91)
+    fresh = TinyLLMBackend(dummy=True)
+    fresh.model.to(dtype=host_dtype)
+    base = {k: v.clone() for k, v in fresh.model.state_dict().items()}
+    loaded, _ = TinyParticleSlider.load(fresh.model, path, adapter_dtype=torch.float32)
+    for key, value in network.state_dict().items():
+        assert loaded.state_dict()[key].dtype == torch.float32
+        assert torch.equal(loaded.state_dict()[key], value)
+    assert all(p.dtype == host_dtype for p in fresh.model.parameters())
+    for key, value in base.items():
+        assert torch.equal(fresh.model.state_dict()[key], value)
+    ids = original.encode("a quiet garden").ids
+    assert ids == fresh.encode("a quiet garden").ids
+    for scale in (-1., 0., .5, 1.):
+        with network.scaled(scale), loaded.scaled(scale), torch.no_grad():
+            assert torch.equal(original.hidden(ids), fresh.hidden(ids))
+
+    # Preserve the archival loader's default of matching the frozen host dtype.
+    legacy = TinyLLMBackend(dummy=True)
+    legacy.model.to(dtype=host_dtype)
+    default, _ = TinyParticleSlider.load(legacy.model, path)
+    assert all(p.dtype == host_dtype for p in default.parameters())
+    assert not torch.cuda.is_initialized()
+
+
+@pytest.mark.parametrize("corruption", ["shape", "integer", "bf16", "nonfinite", "targets"])
+def test_fp32_load_rejects_before_binding_or_rng_mutation(tmp_path, corruption):
+    from safetensors import safe_open
+    from safetensors.torch import load_file, save_file
+
+    source = TinyParticleSlider(TinyLLMBackend(dummy=True).model)
+    path = tmp_path / "valid.safetensors"
+    source.save(path, {})
+    state = load_file(str(path))
+    with safe_open(str(path), framework="pt", device="cpu") as handle:
+        metadata = handle.metadata()
+    if corruption == "shape":
+        state["particles"] = state["particles"][:-1]
+    elif corruption == "integer":
+        state["particles"] = state["particles"].to(torch.int64)
+    elif corruption == "bf16":
+        state["particles"] = state["particles"].to(torch.bfloat16)
+    elif corruption == "nonfinite":
+        state["particles"][0, 0] = float("nan")
+    else:
+        record = json.loads(metadata["conceptmod"])
+        record["targets"] = ["unrelated"]
+        metadata["conceptmod"] = json.dumps(record)
+    corrupt = tmp_path / "corrupt.safetensors"
+    save_file(state, str(corrupt), metadata=metadata)
+
+    backend = TinyLLMBackend(dummy=True)
+    base = {k: v.clone() for k, v in backend.model.state_dict().items()}
+    forwards = {k: m.forward for k, m in _attention_targets(backend.model).items()}
+    rng = torch.get_rng_state().clone()
+    with pytest.raises(ValueError):
+        TinyParticleSlider.load(backend.model, corrupt, adapter_dtype=torch.float32)
+    assert torch.equal(torch.get_rng_state(), rng)
+    for key, module in _attention_targets(backend.model).items():
+        assert module.forward == forwards[key]
+    for key, value in base.items():
+        assert torch.equal(backend.model.state_dict()[key], value)
+    # Rejection leaves the host available for a valid attachment.
+    TinyParticleSlider.load(backend.model, path, adapter_dtype=torch.float32)
 
 
 def test_needs_two_rows(tmp_path):
@@ -409,13 +410,12 @@ def test_config_file_flows_into_train(tmp_path):
         f"prompts_file: {prompts}\n"
         "save:\n  name: tiny-llm-cfg\n"
     )
-    sidecar = train_main([
-        "--dummy",
-        "--config_file", str(cfg),
-        "--save_dir", str(tmp_path / "out"),
-        "--no_report",
-        "--seed", "0",
-    ])
-    assert sidecar["name"] == "tiny-llm-cfg"
-    assert sidecar["steps"] == 2
-    assert sidecar["recipe"] == "anneal-routed-particle-error-tiny-llm-v1"
+    with pytest.raises(ValueError, match="[Ll]egacy.*retired"):
+        train_main([
+            "--dummy",
+            "--config_file", str(cfg),
+            "--save_dir", str(tmp_path / "out"),
+            "--no_report",
+            "--seed", "0",
+        ])
+    assert not (tmp_path / "out").exists()

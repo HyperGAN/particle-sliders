@@ -1,0 +1,9 @@
+# Offline text package candidate; Ada review remains pending.
+# Supply the exact offline wheels with --find-links /path/to/wheels.
+# Prequalify Torch, NumPy and safetensors separately.
+# Run: python -m pip install --no-deps --find-links /path/to/wheels -r requirements-text-pg09.txt
+# --no-deps is a pip command flag, not a supported requirements-file option.
+--no-index
+--require-hashes
+particlegan==0.9.1 --hash=sha256:b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec
+particle-sliders-core==0.6.0 --hash=sha256:4abc83988fdeb6d7478de830e7ee8ec5d9bd99c20d52f89e4ce594d50dfd39a3

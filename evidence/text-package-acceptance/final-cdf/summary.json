@@ -1,0 +1,153 @@
+{
+  "status": "narrow_software_acceptance_passed_review_pending",
+  "core_source_commit": "cdfb80a76b882b4b73861b12f555263bd64ffeb7",
+  "pin_manifest_sha256": "d4733bb038c78c049274ffca8aaffdd8aa94ce4e47eda0c559300c07a186e104",
+  "review_status": "pending_ada",
+  "wheels": {
+    "particlegan": {
+      "filename": "particlegan-0.9.1-py3-none-any.whl",
+      "sha256": "b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec"
+    },
+    "particle-sliders-core": {
+      "filename": "particle_sliders_core-0.6.0-py3-none-any.whl",
+      "sha256": "4abc83988fdeb6d7478de830e7ee8ec5d9bd99c20d52f89e4ce594d50dfd39a3"
+    }
+  },
+  "installed_identity": {
+    "manifest_sha256": "d4733bb038c78c049274ffca8aaffdd8aa94ce4e47eda0c559300c07a186e104",
+    "core_source_commit": "cdfb80a76b882b4b73861b12f555263bd64ffeb7",
+    "review_status": "pending_ada",
+    "versions": {
+      "particlegan": "0.9.1",
+      "particle-sliders-core": "0.6.0"
+    },
+    "wheel_sha256": {
+      "particlegan": "b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec",
+      "particle-sliders-core": "4abc83988fdeb6d7478de830e7ee8ec5d9bd99c20d52f89e4ce594d50dfd39a3"
+    },
+    "critical_modules": {
+      "particlegan": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-13/acceptance/final-cdf/installed/particlegan/__init__.py",
+        "sha256": "607c6bb12acd631ae1ff98f6e61d990ff4ab5b60ec86f5a8cb5864cda7c11864"
+      },
+      "particle_sliders": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-13/acceptance/final-cdf/installed/particle_sliders/__init__.py",
+        "sha256": "2424d5a850d1f10734f452175b40caa9761d579e69eb8f0eb2b919776beb1d25"
+      },
+      "particle_sliders.pg09": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-13/acceptance/final-cdf/installed/particle_sliders/pg09.py",
+        "sha256": "190a7e6c3a8b53d7d495a577183deacce5c8a1250b674de87c349fb7aead84b3"
+      },
+      "particle_sliders.pg09_backends": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-13/acceptance/final-cdf/installed/particle_sliders/pg09_backends.py",
+        "sha256": "5db98918880af33f55ca7312975a0fd112bdae8a7c69a3e357433beb056e32c1"
+      },
+      "particle_sliders.pg09_text_video": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-13/acceptance/final-cdf/installed/particle_sliders/pg09_text_video.py",
+        "sha256": "6d4c60f0235573c944bfb12ecada0c45a774b419aefc10c73af8758ea62fb580"
+      },
+      "particle_sliders.pg09_readout_critic": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-13/acceptance/final-cdf/installed/particle_sliders/pg09_readout_critic.py",
+        "sha256": "b83322a2ef2192ac3693fe136d019259c7fd8bf26fba25bb254931ba25462a57"
+      },
+      "particle_sliders.tiny_native": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-13/acceptance/final-cdf/installed/particle_sliders/tiny_native.py",
+        "sha256": "336df6f61d12429420caa4a4bbe349e04021f7da594a3f185471a86e4d5f334e"
+      },
+      "particle_sliders.tiny_llm_backend": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-13/acceptance/final-cdf/installed/particle_sliders/tiny_llm_backend.py",
+        "sha256": "392344c0c2e966db72a46bd44fd4363c05914f6ab134414133e87bb983523186"
+      },
+      "particle_sliders.bonsai_native": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-13/acceptance/final-cdf/installed/particle_sliders/bonsai_native.py",
+        "sha256": "c46de3514a1169ba6d61dc0558975e498c1e7f2fab7d2d5710590c0687a57922"
+      },
+      "particle_sliders.reference": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-13/acceptance/final-cdf/installed/particle_sliders/reference.py",
+        "sha256": "2c5809edd3818fab9efdd0c5234ea6b5027de5fc0130155e537950471018a371"
+      }
+    },
+    "pg_source_profile": "release",
+    "penalty_input_domain": "auto",
+    "pg_sources_sha256": "04624298310cd4b28d5bf687a1eac8951efd9439fb0310709ba5b9703208ceab",
+    "resolved_penalty_domain": "continuous",
+    "domain": {
+      "pg_source_profile": "release",
+      "penalty_input_domain": "auto",
+      "pg_sources_sha256": "04624298310cd4b28d5bf687a1eac8951efd9439fb0310709ba5b9703208ceab",
+      "resolved_penalty_domain": "continuous"
+    }
+  },
+  "interpreter": "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+  "tests": {
+    "consumer-narrow.xml": {
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "15.057"
+    },
+    "optimizer-clocks.xml": {
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.498"
+    },
+    "initial-history.xml": {
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.863"
+    },
+    "native1024.xml": {
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.187"
+    }
+  },
+  "total_passed": 29,
+  "test_source_commit": "cdfb80a76b882b4b73861b12f555263bd64ffeb7",
+  "prior_receipts": {
+    "path": "../replacement-4be/summary.json",
+    "source_commit": "4be0b5b29d2e2c741431f468d71ba8a7c884b724",
+    "scope": "238 passed and2skipped apply only to that prior exact wheel; preserved without rebinding"
+  },
+  "changed_runtime_modules_from_4be": [
+    "particle_sliders/pg09.py",
+    "particle_sliders/pg09_images.py"
+  ],
+  "scope": "Narrow synthetic CPU final-wheel adoption; exact installed origin/hash, actual GAN updates, original Adam clock rejection and valid/sparse/initial resume, FP32 native export/reload, Bonsai selected-weight inference and explicit native1024 signed replay. Fresh fixtures only; no oldcheckpoint/cohortretarget, GPU, pretrained model, service or quality qualification.",
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "pytest_options": [
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "-o",
+    "pythonpath="
+  ],
+  "integration": {
+    "pull_request": "https://github.com/HyperGAN/particle-sliders/pull/139",
+    "branch": "audit/tinyqwen-shared-pg09",
+    "base": "audit/tinyqwen-source-7f018780",
+    "base_commit": "7f018780c073790e1d706c31716d720302750a08",
+    "merger": "Ada review then parent exact-head routing only"
+  },
+  "remaining_gates": [
+    "Ada review of exact CDF package and final consumer head",
+    "Parent source dependency and reviewed integration merge",
+    "Separate family owner pretrained generation/quality/live identity",
+    "Coordinator resource/process/GPU admission"
+  ]
+}

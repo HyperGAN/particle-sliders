@@ -321,88 +321,6 @@ def test_shared_build_game_rejects_wrong_cloud_shape():
         build_game(backend, network, fixed)
 
 
-def test_scale_zero_is_exact_base_before_and_after_train(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: garden caption\n  positive: a blooming rose garden at dawn\n"
-        "  neutral: a garden at dawn\n  unconditional: ''\n"
-        "- target: sea caption\n  positive: a calm turquoise sea\n"
-        "  neutral: a sea\n  unconditional: ''\n"
-    )
-    args = parse_args([
-        "--dummy", "--steps", "2", "--name", "bonsai-zero",
-        "--save_dir", str(tmp_path), "--prompts_file", str(prompts),
-        "--seed", "0",
-    ])
-    sidecar = train(args)
-    assert sidecar["steps"] == 2
-    backend = BonsaiGGUFBackend(device="cpu", dummy=True)
-    network, _ = BonsaiParticleHead.load(resolve_head_path(str(tmp_path)))
-    enc = backend.encode("a blooming rose garden at dawn")
-    teacher = backend.teacher_hidden(enc)
-    with network.scaled(0.0):
-        assert torch.equal(network(backend.hidden(enc)), teacher)
-    with network.scaled(1.0):
-        assert not torch.equal(network(backend.hidden(enc)), teacher)
-
-
-def test_dummy_train_runs_shared_game_with_no_mse(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: garden caption\n  positive: a blooming rose garden at dawn\n"
-        "  neutral: a garden at dawn\n  unconditional: ''\n"
-        "- target: sea caption\n  positive: a calm turquoise sea\n"
-        "  neutral: a sea\n  unconditional: ''\n"
-    )
-    args = parse_args([
-        "--dummy", "--steps", "4", "--name", "bonsai-game",
-        "--save_dir", str(tmp_path), "--prompts_file", str(prompts),
-        "--report_scales", "0,1", "--seed", "0",
-    ])
-    sidecar = train(args)
-    assert sidecar["recipe"] == "anneal-routed-particle-error-bonsai-gguf-v1"
-    assert sidecar["game_module"] == "conceptmod.textsliders.particle_bridge_gan"
-    assert sidecar["backend"] == "bonsai_gguf"
-    assert sidecar["model_repo"] == "prism-ml/Ternary-Bonsai-2-27B-gguf"
-    assert sidecar["model_file"] == "Ternary-Bonsai-2-27B-PTQ1_0.gguf"
-    assert sidecar["model_file_bytes"] == 5946648928
-    assert sidecar["model_hidden"] == 5120
-    assert sidecar["output_mse"] is False
-    assert sidecar["propose_only"] is True
-    assert sidecar["unipolar"] is True
-    ref = yue2_game.REFERENCE
-    for key in ("g_lr", "d_lr", "particle_lr", "ema", "vic_coeff",
-                "cap_coeff", "cap_kappa", "cap_every",
-                "noise_floor", "noise_decay_steps"):
-        assert sidecar[key] == ref[key], key
-    assert sidecar["optimizer_betas"] == list(ref["betas"])
-    assert sidecar["particles"] == [128, 4]
-    history = sidecar["history"]
-    assert len(history) == 4
-    for rec in history:
-        assert set(rec) >= {
-            "step", "loss", "g_adv", "particle_vic", "d_loss", "d_adv",
-            "d_pen", "grad_norm", "particle_grad_norm",
-            "particle_gan_grad_norm", "noise_std", "cos_pos",
-        }
-        assert "mse" not in json.dumps(rec).lower()
-        for num in ("loss", "g_adv", "particle_vic", "d_loss", "cos_pos"):
-            assert abs(rec[num]) != float("inf") and rec[num] == rec[num]
-        assert rec["noise_std"] == pytest.approx(
-            yue2_game.noise_std(rec["step"]))
-    assert history[0]["noise_std"] == pytest.approx(yue2_game.noise_std(1))
-    assert (tmp_path / "bonsai-game_last.safetensors").is_file()
-    assert (tmp_path / "bonsai-game_live_last.safetensors").is_file()
-    report = json.loads((tmp_path / "report" / "readout_delta.json").read_text())
-    assert len(report) == 4
-    by_scale = {}
-    for rec in report:
-        by_scale.setdefault(rec["scale"], []).append(rec)
-    for rec in by_scale[0.0]:
-        assert rec["delta_l2"] == pytest.approx(0.0, abs=1e-5)
-        assert rec["delta_cos"] == pytest.approx(1.0, abs=1e-4)
-
-
 def test_save_load_roundtrip_and_rejections(tmp_path):
     backend = BonsaiGGUFBackend(device="cpu", dummy=True)
     rows = load_slider_rows("conceptmod/textsliders/data/prompts-bonsai-gguf.yaml")
@@ -436,32 +354,6 @@ def test_save_load_roundtrip_and_rejections(tmp_path):
     save_file({k: v.cpu() for k, v in bad.items()}, str(bad_path), metadata=meta)
     with pytest.raises(ValueError, match="[Ii]ncomplete"):
         BonsaiParticleHead.load(bad_path)
-
-
-def test_steps_zero_load_reports_without_training(tmp_path):
-    prompts = tmp_path / "one.yaml"
-    prompts.write_text(
-        "- target: garden caption\n  positive: a blooming rose garden at dawn\n"
-        "  neutral: a garden at dawn\n  unconditional: ''\n"
-        "- target: sea caption\n  positive: a calm turquoise sea\n"
-        "  neutral: a sea\n  unconditional: ''\n"
-    )
-    train_dir = tmp_path / "trained"
-    train(parse_args([
-        "--dummy", "--steps", "2", "--name", "bonsai-load",
-        "--save_dir", str(train_dir), "--prompts_file", str(prompts),
-        "--no_report", "--seed", "1",
-    ]))
-    reload_dir = tmp_path / "reload"
-    sidecar = train(parse_args([
-        "--dummy", "--steps", "0", "--name", "bonsai-reload",
-        "--save_dir", str(reload_dir), "--prompts_file", str(prompts),
-        "--load_head", str(train_dir), "--report_scales", "0,1",
-    ]))
-    assert sidecar["steps"] == 0
-    assert sidecar["history"] == []
-    assert sidecar["load_head"].endswith("_last.safetensors")
-    assert (reload_dir / "report" / "readout_delta.json").is_file()
 
 
 def test_needs_two_rows(tmp_path):
@@ -516,16 +408,15 @@ def test_config_file_flows_into_train(tmp_path):
         f"prompts_file: {prompts}\n"
         "save:\n  name: bonsai-gguf-cfg\n"
     )
-    sidecar = train_main([
-        "--dummy",
-        "--config_file", str(cfg),
-        "--save_dir", str(tmp_path / "out"),
-        "--no_report",
-        "--seed", "0",
-    ])
-    assert sidecar["name"] == "bonsai-gguf-cfg"
-    assert sidecar["steps"] == 2
-    assert sidecar["recipe"] == "anneal-routed-particle-error-bonsai-gguf-v1"
+    with pytest.raises(ValueError, match="[Ll]egacy.*retired"):
+        train_main([
+            "--dummy",
+            "--config_file", str(cfg),
+            "--save_dir", str(tmp_path / "out"),
+            "--no_report",
+            "--seed", "0",
+        ])
+    assert not (tmp_path / "out").exists()
 
 
 def test_live_server_readout_when_present():
