@@ -1,0 +1,7 @@
+Proposed follow-up: an hourly heartbeat on this same local task while the two admitted MOSS GAN-only jobs run.
+
+Inspect the exact source-bound v2 recipes, live guardians, immutable checkpoints and qualification/LIVE-GAN-RERUN-STATUS.json. Do not alter active sources, restart failed jobs, waive parity, touch resident services, or dispatch historical MSE jobs. Report meaningful failures or completion; preserve healthy training quietly.
+
+After each case completes all3,840 steps, verify the frozen base, published checkpoint, two complete balanced D/G cycles and independent QA. Then finish the already requested matched held-out evaluation with the original-runtime guardian in evaluate mode under fresh resource/kernel/lease checks; use the same prompts, seed29001,512resolution,50steps,strengths-1/0/+1,teacher controls and oldMSE baseline rerendered under the common conditional-only CFG protocol. Audit receipts and inspect actual outputs; do not equate software checks with quality. No external publication or additional model GPU job is authorized by this follow-up. Stop after delivering matched results or pause on a blocker needing a new user decision.
+
+Status: NOT CREATED. Automatic approval review rejected the scheduling action because recurring execution was not explicitly authorized. No substitute scheduler/controller was created.
