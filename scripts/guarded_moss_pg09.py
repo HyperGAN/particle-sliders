@@ -6,6 +6,7 @@ automatic retry, model loader, training objective, or MSE fallback here.
 import argparse
 import datetime
 import fcntl
+import hashlib
 import importlib.util
 import json
 import os
@@ -28,6 +29,9 @@ CARDS = {
 def phase_reason(recipe, mode, progress):
     if recipe.get('admission') != 'REVIEWED_GAN_RECIPE':
         return 'recipe has not reached reviewed admission status'
+    identity = hashlib.sha256(json.dumps(recipe, sort_keys=True).encode()).hexdigest()
+    if mode in ('train', 'evaluate') and progress.get('recipe_sha256') != identity:
+        return 'prior phase belongs to a different recipe/source/output'
     if mode == 'probe':
         if progress:
             return 'prior probe outcome must be inspected; no automatic retry'
@@ -44,6 +48,26 @@ def phase_reason(recipe, mode, progress):
     else:
         return 'unknown worker phase'
     return None
+
+
+def verify_prior_checkpoint(contract, recipe, mode, progress, output):
+    """Verify immutable checkpoint proof without Torch/model imports."""
+    pointer = output / 'LATEST.json'
+    if mode == 'probe':
+        if pointer.exists() or (output / 'checkpoints').exists():
+            raise ValueError('fresh probe must not inherit an unreviewed checkpoint')
+        return
+    latest = json.loads(pointer.read_text())
+    step = 3 if mode == 'train' else 3840
+    if (latest.get('recipe_sha256') != recipe.identity or latest.get('step') != step
+            or latest.get('directory') != f'step-{step:06d}'):
+        raise ValueError('latest checkpoint differs from qualified phase/recipe')
+    metadata = contract.verify_checkpoint(output / 'checkpoints' / latest['directory'], recipe)
+    base = progress.get('frozen_base_sha256')
+    if (not isinstance(base, str) or len(base) != 64 or metadata.get('step') != step
+            or metadata.get('frozen_base_sha256') != base
+            or progress.get('frozen_base_after_sha256') != base):
+        raise ValueError('checkpoint frozen base differs from qualified phase proof')
 
 
 def worker_module():
@@ -82,6 +106,7 @@ def main(argv=None):
     reason = phase_reason(values, args.mode, prior)
     if reason:
         raise RuntimeError(reason)
+    verify_prior_checkpoint(contract, recipe, args.mode, prior, output)
     output.mkdir(parents=True, exist_ok=True)
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     admission = output / 'admission' / (args.mode + '-' + stamp)

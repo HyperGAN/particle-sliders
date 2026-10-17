@@ -487,6 +487,10 @@ def execute(recipe, output, mode, lease_fds):
     if not torch.cuda.is_available():
         raise RuntimeError('admitted CUDA device unavailable; no CPU/MSE fallback')
     torch.set_num_threads(4)
+    torch.use_deterministic_algorithms(True)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cuda.matmul.allow_tf32 = False
     torch.cuda.set_device(0)
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
