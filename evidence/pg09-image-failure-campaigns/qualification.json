@@ -1,0 +1,227 @@
+{
+  "recorded_utc": "2026-10-17T17:50:16.047435+00:00",
+  "status": "independently qualified CPU contract and frozen campaign proposals; root live admission pending",
+  "checkout": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017",
+  "branch": "campaigns/sana-happy-sd3-smile-pg09",
+  "initial_proposal_commit": "78087def8d6cd6888be7eec6cadadb7ee094215b",
+  "required_repair_commit": "d8272d9fd2554bf9e9a71711dbb45efcbf46de45",
+  "adapter_implementation_commit": "003bc6ff22c67e14e3f9fb17ae839d8049031b41",
+  "adapter_evidence_commit": "976822db4af89f0ffdd61d5adb594c5e2cfbd916",
+  "core": {
+    "commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
+    "module_sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+    "pg_source_profile": "release",
+    "penalty_input_domain": "auto",
+    "response_domain": "continuous_field",
+    "pg_math_changed": false,
+    "verified_pg_python_files": 49,
+    "pg_sources_sha256": "2eb837a727eee3a01d37e7c979c7d5b98bde6d061054bf12f6a226a5e59439b1"
+  },
+  "runtime_versions": {
+    "torch": "2.11.0+cu128",
+    "diffusers": "0.40.0.dev0",
+    "transformers": "5.15.0",
+    "particlegan": "0.9.0",
+    "safetensors": "0.8.0",
+    "numpy": "2.4.4",
+    "Pillow": "12.2.0"
+  },
+  "selected_cases": [
+    "sana-happy-20261017",
+    "sd3-smile-20261017"
+  ],
+  "unrelated_held_queues_added": false,
+  "source_files": [
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/conceptmod/textsliders/pg09_image_failure_campaigns.py",
+      "bytes": 26536,
+      "sha256": "9b2f60c6b7871bfb58f4ab0ca436bde406dc09bd13a7b35ba667d7be68605712"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/tests/test_pg09_image_failure_campaigns.py",
+      "bytes": 18924,
+      "sha256": "259dd08e99644717493dc9ca59a0a982d46e00aa1fdfed5eb04e34250974640a"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/prepare_image_failure_campaigns_pg09.py",
+      "bytes": 13627,
+      "sha256": "c05d15308cb40a262a3d79e69832be1c4d7a8f87377bd60428fb4c6b487d160b"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/docs/pg09-observed-image-failure-campaigns.md",
+      "bytes": 16999,
+      "sha256": "ad7020d9ba803e32fa17b2b0da21da90e60e1a8c3afb08002a4ee93df585806c"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/proposals.json",
+      "bytes": 51368,
+      "sha256": "884c97d59629a86871f4a371295e78a2db0295e4a01d45dc666b34fc46914e6a"
+    },
+    {
+      "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/test_online_snapshot_review.py",
+      "bytes": 4230,
+      "sha256": "9a8d0e5cc5492078337b20b54e71e4dc749579d14cb49da0a03e83caa704935f"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-campaign-core-pin-3e94/packages/particle-sliders-core/src/particle_sliders/pg09.py",
+      "bytes": 34783,
+      "sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256"
+    }
+  ],
+  "receipts": [
+    {
+      "original": {
+        "path": "/tmp/image-campaign-v2-tests.xml",
+        "bytes": 4505,
+        "sha256": "872b36132adfcc5c0363690092ceccbe4d504caebf022d36e0723d88f9b52362"
+      },
+      "archived": {
+        "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/owner-v2-30-tests.xml",
+        "bytes": 4505,
+        "sha256": "872b36132adfcc5c0363690092ceccbe4d504caebf022d36e0723d88f9b52362"
+      },
+      "test_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "30",
+          "time": "1.311",
+          "timestamp": "2026-10-17T11:48:29.024389-06:00",
+          "hostname": "pop-os"
+        }
+      ]
+    },
+    {
+      "original": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/online-snapshot-78087de-independent-review.xml",
+        "bytes": 4893,
+        "sha256": "6cf4d5fd2632c99c846def9f38bc87a54f8479a4e4ca6c4060b3ce59eba98344"
+      },
+      "archived": {
+        "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/qa-original-78087de-15pass-3fail.xml",
+        "bytes": 4893,
+        "sha256": "6cf4d5fd2632c99c846def9f38bc87a54f8479a4e4ca6c4060b3ce59eba98344"
+      },
+      "test_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "3",
+          "skipped": "0",
+          "tests": "18",
+          "time": "1.201",
+          "timestamp": "2026-10-17T11:41:22.371035-06:00",
+          "hostname": "pop-os"
+        }
+      ]
+    },
+    {
+      "original": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/online-snapshot-condition-drift-regression.xml",
+        "bytes": 927,
+        "sha256": "c7eeb74dbd5b05e677a6f5b5a53dd50cb297affce78542b9e4f92e8acc9c813a"
+      },
+      "archived": {
+        "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/qa-original-condition-drift-failure.xml",
+        "bytes": 927,
+        "sha256": "c7eeb74dbd5b05e677a6f5b5a53dd50cb297affce78542b9e4f92e8acc9c813a"
+      },
+      "test_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "1",
+          "skipped": "0",
+          "tests": "1",
+          "time": "1.038",
+          "timestamp": "2026-10-17T11:44:57.074598-06:00",
+          "hostname": "pop-os"
+        }
+      ]
+    },
+    {
+      "original": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/online-snapshot-pairing-rng-independent-review.xml",
+        "bytes": 867,
+        "sha256": "6a12f5d47d66efcf39fc9c0591cfc04abf12b52eccf42f592712788d14834f11"
+      },
+      "archived": {
+        "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/qa-pairing-rng-4pass.xml",
+        "bytes": 867,
+        "sha256": "6a12f5d47d66efcf39fc9c0591cfc04abf12b52eccf42f592712788d14834f11"
+      },
+      "test_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "4",
+          "time": "1.853",
+          "timestamp": "2026-10-17T11:44:34.806538-06:00",
+          "hostname": "pop-os"
+        }
+      ]
+    },
+    {
+      "original": {
+        "path": "/ml2/codex-storage/future-workspaces/2026-10-17/task-3/qa_pg09/online-snapshot-d8272d9-repaired-independent-review.xml",
+        "bytes": 4505,
+        "sha256": "3e846ac824592b786e2fcb2590c239df398a19d824ca244fd0edf3516cfb71a5"
+      },
+      "archived": {
+        "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/qa-repaired-d8272d9-30pass.xml",
+        "bytes": 4505,
+        "sha256": "3e846ac824592b786e2fcb2590c239df398a19d824ca244fd0edf3516cfb71a5"
+      },
+      "test_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "30",
+          "time": "1.356",
+          "timestamp": "2026-10-17T11:48:55.998321-06:00",
+          "hostname": "pop-os"
+        }
+      ]
+    }
+  ],
+  "closed_findings": [
+    "descriptor mutation under old identity",
+    "builder live-descriptor mutation",
+    "full generator state/buffer drift",
+    "condition identity drift after cached row"
+  ],
+  "independent_qa": {
+    "thread": "01a14a7b-d6da-7167-bd9a-bd8cd98e6029",
+    "original_regressions_commit": "3b3be3cc29c1b09ee3a3e973aa779945fcdb175c",
+    "result": "30 passed (22 owner + 8 independent), no skips; source-reviewed; all four provenance findings closed at CPU contract scope",
+    "core_step_ordering": "no conflict found: shared preflight/D/G union binds the armed start-of-step G",
+    "repair_evidence_commit": "23cbded33ea40f27efa5d730594f7ddc58bdc05b"
+  },
+  "campaign_budget": "proposal only: each of two cases has public bispf and bispf_optimized arms, each1000G+1000D updates, batch2,500fixed descriptors,4balanced cycles",
+  "actual_training_runs": 0,
+  "actual_model_forwards": 0,
+  "model_or_checkpoint_weight_content_reads": 0,
+  "gpu_used": false,
+  "worker_processes_dispatched": 0,
+  "shared_core_modified": false,
+  "active_moss_modified": false,
+  "objective": "unchanged shared GAN adversarial + required public prior only when actual bank exists; public D penalty; particles=None adapter GAN",
+  "quality_claim": false,
+  "canonical_integration": "pending core owner decision",
+  "live_admission": "pending, not denied and no uncertain execution",
+  "remaining_blockers": [
+    "Root owns all GPU/process admission; image extraction/probe/full training not admitted.",
+    "Source/checksum-bound production selected-row reader and exact noise/time/condition assets; complete collision gate.",
+    "Training-only response-scale calibration; actual native model architecture/runtime/source validation.",
+    "Actual frozen Off/teacher/native mask/CFG/sampler/512px decoder parity and adapter export/reload.",
+    "Actual gradients and device/host/wall-time budget including Sana ~595MB state snapshot +595MB readback/hash per logical step and per-fetch exact validation.",
+    "Separate-process file-backed GPU resume with exact subsequent rows/loss/state.",
+    "Adequately trained1000-update arms and matched held-out/fruit image-quality review; CPU fixtures do not fulfill this outcome."
+  ]
+}

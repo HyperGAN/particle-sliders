@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="18" time="1.201" timestamp="2026-10-17T11:41:22.371035-06:00" hostname="pop-os"><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_sana_preserves_raw_student_cfg_teacher_and_full_xattn" time="0.008" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_sana_native_render_preserves_actual_masks_seed_grid_and_restores_model" time="0.006" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_sd3_uses_native_scheduler_endpoint_and_bf16_teacher_arithmetic" time="0.963" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_online_snapshot_is_stable_within_step_and_current_adapter_between_steps" time="0.004" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_online_builder_rejects_hidden_rng" time="0.002" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_online_provider_core_owns_updates_and_rebuilds_exact_resume[bispf]" time="0.060" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_online_provider_core_owns_updates_and_rebuilds_exact_resume[bispf_optimized]" time="0.039" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_builder_cannot_change_generator_inside_snapshot" time="0.002" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_archived_proposals_preserve_cases_and_do_not_read_weights" time="0.015" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_sana_unqualified_native_checkpointing_rejects" time="0.001" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_sd3_prefix_builder_calls_original_algorithm_with_current_g_and_frozen_noise" time="0.005" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_sana_minus_canary_cannot_substitute_for_empty_teacher" time="0.002" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_campaign_conditions_include_empty_teacher_and_native_interval" time="0.007" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_native_evaluation_restores_all_training_rng_streams" time="0.002" /><testcase classname="tests.test_pg09_image_failure_campaigns" name="test_image_critic_uses_genuine_field_and_conditions_without_output_bound" time="0.002" /><testcase classname="" name="test_descriptor_change_cannot_keep_an_old_identity" time="0.001"><failure message="Failed: DID NOT RAISE any of (ValueError, RuntimeError)">def test_descriptor_change_cannot_keep_an_old_identity():
+        provider = make_provider(ContractBackend())
+        original = provider.identity()
+        provider.descriptors[0]['noise'] += 1
+&gt;       with pytest.raises((ValueError, RuntimeError), match='descriptor|identity|changed|immutable'):
+E       Failed: DID NOT RAISE any of (ValueError, RuntimeError)
+
+qa_pg09/test_online_snapshot_review.py:12: Failed</failure></testcase><testcase classname="" name="test_network_buffer_change_cannot_reuse_old_generator_version" time="0.002"><failure message="Failed: DID NOT RAISE any of (ValueError, RuntimeError)">def test_network_buffer_change_cannot_reuse_old_generator_version():
+        backend = ContractBackend()
+        backend.network.register_buffer('response_multiplier', torch.tensor(1.))
+        provider = make_provider(backend)
+        provider.begin_step(0)
+        provider[0]
+        with torch.no_grad():
+            backend.network.response_multiplier.add_(1.)
+&gt;       with pytest.raises((ValueError, RuntimeError), match='generator|version|changed'):
+E       Failed: DID NOT RAISE any of (ValueError, RuntimeError)
+
+qa_pg09/test_online_snapshot_review.py:26: Failed</failure></testcase><testcase classname="" name="test_builder_receives_no_mutable_live_descriptor" time="0.002"><failure message="AssertionError: builder changed supposedly immutable descriptor&#10;assert 2.0 == 1.0">def test_builder_receives_no_mutable_live_descriptor():
+        from test_pg09_image_failure_campaigns import build_contract_row
+        def mutation_builder(backend, descriptor, step):
+            descriptor['noise'] += 1
+            return build_contract_row(backend, descriptor, step)
+        provider = make_provider(ContractBackend(), mutation_builder)
+        before = provider.descriptors[0]['noise']
+        provider.begin_step(0)
+        try:
+            provider[0]
+        except (ValueError, RuntimeError, TypeError):
+            pass
+&gt;       assert provider.descriptors[0]['noise'] == before, 'builder changed supposedly immutable descriptor'
+E       AssertionError: builder changed supposedly immutable descriptor
+E       assert 2.0 == 1.0
+
+qa_pg09/test_online_snapshot_review.py:42: AssertionError</failure></testcase></testsuite></testsuites>
