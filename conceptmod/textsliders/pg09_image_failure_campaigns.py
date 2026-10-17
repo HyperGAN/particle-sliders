@@ -267,8 +267,12 @@ class OnlineSnapshotProvider:
     """
     def __init__(self, backend, descriptors, conditions, response_shape, builder, *, protocol_identity):
         self.backend = backend
-        self.descriptors = tuple(snapshot(descriptors))
+        self._descriptors = tuple(snapshot(descriptors))
+        # Public diagnostics are isolated and tamper-evident, never builder inputs.
+        self.descriptors = snapshot(self._descriptors)
         self._conditions = conditions.detach().clone()
+        self._descriptor_hashes = tuple(digest(row) for row in self._descriptors)
+        self._condition_hash = digest(self._conditions)
         if conditions.requires_grad or conditions.ndim != 2 or len(conditions) != len(descriptors):
             raise ValueError('complete fixed descriptor condition table required')
         if not torch.isfinite(conditions).all():
@@ -277,12 +281,13 @@ class OnlineSnapshotProvider:
         if len(self.response_shape) != 4 or self.response_shape[0] != 1:
             raise ValueError('these campaign responses are genuinely4D')
         self._builder = builder
-        self._identity = dict(schema='online-current-adapter-snapshot-proposal-v1',
-            algorithm=deepcopy(protocol_identity), descriptors_sha256=digest(self.descriptors),
+        self._identity = dict(schema='online-current-adapter-snapshot-proposal-v2',
+            algorithm=deepcopy(protocol_identity), descriptors_sha256=digest(self._descriptors),
             conditions_sha256=digest(self._conditions),
             builder_source=hashlib.sha256(Path(inspect.getsourcefile(builder)).read_bytes()).hexdigest(),
             builder_name=builder.__module__+'.'+builder.__qualname__,
-            snapshot='per-logical-update/version-checked/current-adapter-prefix/no-grad',
+            snapshot='per-logical-update/full-state-checked/current-adapter-prefix/no-grad',
+            generator_guard='complete state_dict plus all named buffers, schema and exact values',
             mutable_provider_rng=False)
         self._step = None
         self._cache = {}
@@ -294,22 +299,61 @@ class OnlineSnapshotProvider:
     def identity(self):
         return deepcopy(self._identity)
 
+    def _validate_fixed_identity(self, index=None):
+        if digest(self._conditions) != self._condition_hash:
+            raise RuntimeError('immutable descriptor conditions changed')
+        if len(self.descriptors) != len(self._descriptors):
+            raise RuntimeError('immutable descriptor changed')
+        indices = range(len(self._descriptors)) if index is None else (index,)
+        for i in indices:
+            if (digest(self._descriptors[i]) != self._descriptor_hashes[i] or
+                    digest(self.descriptors[i]) != self._descriptor_hashes[i]):
+                raise RuntimeError('immutable descriptor changed')
+
+    def _validate_generator(self, *, inside=False):
+        message = 'generator changed inside online row builder' if inside else 'generator changed while paired online snapshot was active'
+        parameters = tuple((name, id(p), p._version) for name, p in self.backend.network.named_parameters())
+        if parameters != self._versions:
+            raise RuntimeError(message)
+        # Counters miss buffers and .data writes. Device-local exact snapshots
+        # detect all state values/schema without repeated full CPU readbacks.
+        # Nonpersistent buffers participate in the guard too.
+        for current, frozen in ((self.backend.network.state_dict(), self._g_state),
+                                (dict(self.backend.network.named_buffers()), self._g_buffers)):
+            if current.keys() != frozen.keys():
+                raise RuntimeError(message)
+            for name, value in current.items():
+                old = frozen[name]
+                if (value.shape != old.shape or value.dtype != old.dtype or
+                        value.device != old.device or value.layout != old.layout or
+                        not torch.equal(value, old)):
+                    raise RuntimeError(message)
+
     def begin_step(self, completed_step):
         if self._step is not None:
             raise RuntimeError('previous online snapshot is still active')
         if type(completed_step) is not int or completed_step < 0:
             raise ValueError('nonnegative logical completed step required')
+        self._validate_fixed_identity()
+        state = self.backend.network.state_dict()
+        buffers = dict(self.backend.network.named_buffers())
+        if any(not isinstance(v, torch.Tensor) for v in (*state.values(), *buffers.values())):
+            raise ValueError('online generator state must consist of tensor entries')
+        self._g_state = snapshot(state)
+        self._g_buffers = snapshot(buffers)
+        self._g_version = digest(self._g_state)
+        self._g_buffers_version = digest(self._g_buffers)
+        self._versions = tuple((name, id(p), p._version) for name, p in self.backend.network.named_parameters())
+        self._validate_generator()
         self._step = completed_step
-        self._versions = tuple(p._version for p in self.backend.network.parameters())
-        self._g_version = digest(self.backend.network.state_dict())
         self._cache = {}
         self.audit = []
 
     def __getitem__(self, index):
         if self._step is None:
             raise RuntimeError('online rows require an explicit step snapshot')
-        if tuple(p._version for p in self.backend.network.parameters()) != self._versions:
-            raise RuntimeError('generator changed while paired online snapshot was active')
+        self._validate_fixed_identity(index)
+        self._validate_generator()
         if index not in self._cache:
             devices = sorted({p.device.index or 0 for p in self.backend.network.parameters()
                               if p.device.type == 'cuda'})
@@ -320,7 +364,8 @@ class OnlineSnapshotProvider:
                 import numpy as np
                 python_rng, numpy_rng = random.getstate(), np.random.get_state()
                 try:
-                    item = self._builder(self.backend, self.descriptors[index], self._step)
+                    builder_descriptor = snapshot(self._descriptors[index])
+                    item = self._builder(self.backend, builder_descriptor, self._step)
                 finally:
                     python_changed = random.getstate() != python_rng
                     current_numpy = np.random.get_state()
@@ -328,8 +373,10 @@ class OnlineSnapshotProvider:
                         not np.array_equal(current_numpy[1], numpy_rng[1]) or current_numpy[2:] != numpy_rng[2:])
                     random.setstate(python_rng)
                     np.random.set_state(numpy_rng)
-                if tuple(p._version for p in self.backend.network.parameters()) != self._versions:
-                    raise RuntimeError('generator changed inside online row builder')
+                self._validate_generator(inside=True)
+                self._validate_fixed_identity(index)
+                if digest(builder_descriptor) != self._descriptor_hashes[index]:
+                    raise RuntimeError('immutable descriptor changed inside builder defensive snapshot')
                 changed = python_changed or numpy_changed or (not torch.equal(cpu_rng, torch.get_rng_state()) or
                     any(not torch.equal(value, torch.cuda.get_rng_state(device))
                         for device, value in cuda_rng.items()))
@@ -340,19 +387,25 @@ class OnlineSnapshotProvider:
                     raise ValueError('online builder changed target shape or left a teacher graph')
                 item = snapshot(item)
             self._cache[index] = item
-            self.audit.append(dict(step=self._step, g_version_sha256=self._g_version, index=index,
-                descriptor=digest(self.descriptors[index]), prefix=digest(item.row.latent),
-                initial_noise=self.descriptors[index].get('initial_noise_sha256'),
+            self.audit.append(dict(step=self._step, g_version_sha256=self._g_version,
+                g_buffers_sha256=self._g_buffers_version, index=index,
+                descriptor=self._descriptor_hashes[index], prefix=digest(item.row.latent),
+                initial_noise=self._descriptors[index].get('initial_noise_sha256'),
                 paired_state=digest(item.row), target=digest(item.target), neutral=digest(item.neutral)))
         return self._cache[index]
 
     def conditions(self, indices):
+        if self._step is None:
+            raise RuntimeError('online conditions require an explicit step snapshot')
+        self._validate_fixed_identity()
+        self._validate_generator()
         for index in set(indices.tolist()):
             self[index]
         return self._conditions[indices.to(self._conditions.device)]
 
     def end_step(self):
         self._cache = {}
+        self._g_state = self._g_buffers = None
         self._step = None
 
 

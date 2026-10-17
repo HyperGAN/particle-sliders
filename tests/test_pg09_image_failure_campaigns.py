@@ -125,7 +125,7 @@ class ContractBackend:
         return item.row.latent * self.network.weight.reshape(1,1,1,1)
 
     def metadata(self):
-        return dict(qualification='cpu-contract-only', protocol='online-current-adapter-snapshot-proposal-v1')
+        return dict(qualification='cpu-contract-only', protocol='online-current-adapter-snapshot-proposal-v2')
 
 
 def build_contract_row(backend, descriptor, step):
@@ -222,12 +222,12 @@ def test_online_provider_core_owns_updates_and_rebuilds_exact_resume(preset):
     online_campaign_step(game,provider)
     online_campaign_step(game,provider)
     state = deepcopy(game.state_dict())
-    expected = online_campaign_step(game,provider)
+    expected = [online_campaign_step(game,provider) for _ in range(3)]
     final = deepcopy(game.state_dict())
     row_receipts = deepcopy(provider.audit)
     other,other_provider = make_game(preset)
     other.load_state_dict(state)
-    equal(expected,online_campaign_step(other,other_provider))
+    equal(expected,[online_campaign_step(other,other_provider) for _ in range(3)])
     equal(final,other.state_dict())
     equal(row_receipts,other_provider.audit)
     assert not torch.cuda.is_initialized()
@@ -368,3 +368,66 @@ def test_image_critic_uses_genuine_field_and_conditions_without_output_bound():
     assert critic.score_bound==0
     with pytest.raises(ValueError,match='native4D'):
         ImageFailureCritic((1,8192),3)
+
+
+def test_online_descriptor_and_conditions_remain_checkpoint_bound():
+    backend=ContractBackend()
+    provider=make_provider(backend)
+    provider.begin_step(0)
+    provider.descriptors[0]['noise']=999.
+    with pytest.raises(RuntimeError,match='immutable descriptor changed'):
+        provider[0]
+    provider.end_step()
+    provider=make_provider(backend)
+    provider._conditions.add_(1.)
+    with pytest.raises(RuntimeError,match='conditions changed'):
+        provider.begin_step(0)
+
+
+def descriptor_mutating_builder(backend, descriptor, step):
+    descriptor['noise'] += 1
+    return build_contract_row(backend, descriptor, step)
+
+
+def test_builder_descriptor_mutation_is_rejected_without_changing_bound_inputs():
+    provider = make_provider(ContractBackend(), descriptor_mutating_builder)
+    before = deepcopy(provider.descriptors)
+    provider.begin_step(0)
+    with pytest.raises(RuntimeError, match='descriptor changed'):
+        provider[0]
+    equal(before, provider.descriptors)
+    equal(before, provider._descriptors)
+    assert not provider.audit
+    provider.end_step()
+
+
+@pytest.mark.parametrize('kind', ['parameter_data', 'persistent_buffer', 'nonpersistent_buffer', 'new_buffer'])
+def test_complete_generator_state_guard_includes_data_writes_and_all_buffers(kind):
+    backend = ContractBackend()
+    backend.network.register_buffer('persistent', torch.tensor(1.))
+    backend.network.register_buffer('transient', torch.tensor(2.), persistent=False)
+    provider = make_provider(backend)
+    provider.begin_step(0)
+    provider[0]
+    if kind == 'parameter_data':
+        backend.network.weight.data.add_(1.)
+    elif kind == 'persistent_buffer':
+        backend.network.persistent.data.add_(1.)
+    elif kind == 'nonpersistent_buffer':
+        backend.network.transient.add_(1.)
+    else:
+        backend.network.register_buffer('new', torch.tensor(3.))
+    with pytest.raises(RuntimeError, match='generator changed'):
+        provider[0]
+    provider.end_step()
+    assert provider._g_state is None and provider._g_buffers is None
+
+
+def test_conditions_reject_drift_even_after_row_was_cached():
+    provider = make_provider(ContractBackend())
+    provider.begin_step(0)
+    provider[0]
+    provider._conditions[0].add_(1.)
+    with pytest.raises(RuntimeError, match='conditions changed'):
+        provider.conditions(torch.tensor([0]))
+    provider.end_step()
