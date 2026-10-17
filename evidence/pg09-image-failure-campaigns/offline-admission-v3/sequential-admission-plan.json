@@ -1,0 +1,290 @@
+{
+  "schema": "image-failure-sequential-admission-v1",
+  "sole_admission_owner": "01a147d7-f540-778e-ad79-4d8eb267403d",
+  "root_reported_canonical_integration": "42ba82f6",
+  "immutable_core": {
+    "commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
+    "module_sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256",
+    "pg_source_profile": "release",
+    "penalty_input_domain": "auto",
+    "response_domain": "continuous_field",
+    "pg_math_changed": false,
+    "verified_pg_python_files": 49,
+    "pg_sources_sha256": "2eb837a727eee3a01d37e7c979c7d5b98bde6d061054bf12f6a226a5e59439b1"
+  },
+  "dispatch_allowed": false,
+  "automation": false,
+  "all_actual_content_stages_not_run": true,
+  "ordering": "Sana stages to qualification then each full arm sequentially, then SD3 stages/arms; root may reorder by capacity through a newly frozen plan; never overlap an image stage with prioritized MOSS",
+  "native_worker_path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/run_image_failure_campaigns_pg09.py",
+  "native_worker_exists": false,
+  "native_stage_command_status": "execution_argv null truthfully: native stage CLI/reader/guardian orchestration is not implemented; commands cannot be frozen as executable until source reviewed",
+  "required_future_cli_contract": [
+    "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+    "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/run_image_failure_campaigns_pg09.py",
+    "--plan",
+    "<final reviewed calibrated plan path>",
+    "--plan-sha256",
+    "<frozen SHA>",
+    "--case",
+    "sana|sd3",
+    "--stage",
+    "native-assets|native-off-teacher-parity|calibrate-and-probe|fresh-process-resume|full1000-arms|matched-heldout-review",
+    "--preset",
+    "bispf|bispf_optimized",
+    "--root-lease",
+    "<root-issued exact process/GPU guardian lease>",
+    "--output",
+    "/mnt/nvme/sliders/qualification/runs/image-failure-pg09-proposed-20261017/<case>/<preset>/<stage>"
+  ],
+  "stages": [
+    {
+      "id": "native-assets",
+      "depends_on": [
+        "reviewed-static-rng-audit",
+        "separate root lease"
+      ],
+      "status": "not executed; root admission pending",
+      "caps_proposed_not_authorized": {
+        "threads": 1,
+        "gpu_count": 1,
+        "host_available_min_gib": 16,
+        "host_rss_max_gib": 8,
+        "gpu_peak_allocated_max_gib": 24,
+        "gpu_free_reserve_min_gib": 6,
+        "disk_free_min_gib": 100,
+        "thermal_soft_c": 76,
+        "thermal_resume_c": 70,
+        "thermal_hard_c": 82,
+        "max_cooling_seconds": 180,
+        "retries": 0,
+        "concurrent_image_workers": 1,
+        "network": false,
+        "guardian": "root-owned; implementation binding required",
+        "wall_seconds": 1800,
+        "optimizer_updates": 0
+      },
+      "required_gate": "local-only exact model revisions; native encoder arguments incl Sana clean_caption=False/complex_human_instruction=None and SD3 noT5; no old MSE trainer; source/module origin gate before loading",
+      "outputs": [
+        "conditions/native prompt encodings+masks/pooled tensors and checksums",
+        "500 training draw descriptors/noise hashes/time-index plan",
+        "native scheduler50 timesteps/51 sigmas (SD3)",
+        "full condition collision receipt"
+      ],
+      "execution_argv": null,
+      "worker_implementation_available": false,
+      "blocked_on": [
+        "root authorization",
+        "MOSS-priority capacity",
+        "native worker implementation/source freeze"
+      ]
+    },
+    {
+      "id": "native-off-teacher-parity",
+      "depends_on": [
+        "native-assets"
+      ],
+      "status": "not executed; root admission pending",
+      "caps_proposed_not_authorized": {
+        "threads": 1,
+        "gpu_count": 1,
+        "host_available_min_gib": 16,
+        "host_rss_max_gib": 8,
+        "gpu_peak_allocated_max_gib": 24,
+        "gpu_free_reserve_min_gib": 6,
+        "disk_free_min_gib": 100,
+        "thermal_soft_c": 76,
+        "thermal_resume_c": 70,
+        "thermal_hard_c": 82,
+        "max_cooling_seconds": 180,
+        "retries": 0,
+        "concurrent_image_workers": 1,
+        "network": false,
+        "guardian": "root-owned; implementation binding required",
+        "wall_seconds": 1800,
+        "optimizer_updates": 0
+      },
+      "required_gate": "exact archived15 frozen baseline PNG replay with true512 decoder; same CFG/sampler/masks/empty negative; zero-strength native model response and teacher endpoint equality; fail closed on any mismatch",
+      "outputs": [
+        "off-teacher-native-parity.json",
+        "matched baseline PNG checksums",
+        "actual imported module architecture/source/runtime receipt"
+      ],
+      "execution_argv": null,
+      "worker_implementation_available": false,
+      "blocked_on": [
+        "root authorization",
+        "MOSS-priority capacity",
+        "native worker implementation/source freeze"
+      ]
+    },
+    {
+      "id": "calibrate-and-probe",
+      "depends_on": [
+        "native-off-teacher-parity"
+      ],
+      "status": "not executed; root admission pending",
+      "caps_proposed_not_authorized": {
+        "threads": 1,
+        "gpu_count": 1,
+        "host_available_min_gib": 16,
+        "host_rss_max_gib": 8,
+        "gpu_peak_allocated_max_gib": 24,
+        "gpu_free_reserve_min_gib": 6,
+        "disk_free_min_gib": 100,
+        "thermal_soft_c": 76,
+        "thermal_resume_c": 70,
+        "thermal_hard_c": 82,
+        "max_cooling_seconds": 180,
+        "retries": 0,
+        "concurrent_image_workers": 1,
+        "network": false,
+        "guardian": "root-owned; implementation binding required",
+        "wall_seconds": 1800,
+        "optimizer_updates_max": 5
+      },
+      "required_gate": "training-only complete500 descriptor initial G target-neutral RMS scalar, finite and strictly positive; freeze scalar before any update; both presets preflight D/G connectivity and4th public penalty; measured snapshot/hash/identity validation cost fits caps",
+      "outputs": [
+        "calibration.json",
+        "final calibrated recipes+SHA",
+        "probe metrics/selected-row receipts/gradient norms and GPU+RSS+hash/snapshot phase timings"
+      ],
+      "execution_argv": null,
+      "worker_implementation_available": false,
+      "blocked_on": [
+        "root authorization",
+        "MOSS-priority capacity",
+        "native worker implementation/source freeze"
+      ]
+    },
+    {
+      "id": "fresh-process-resume",
+      "depends_on": [
+        "calibrate-and-probe"
+      ],
+      "status": "not executed; root admission pending",
+      "caps_proposed_not_authorized": {
+        "threads": 1,
+        "gpu_count": 1,
+        "host_available_min_gib": 16,
+        "host_rss_max_gib": 8,
+        "gpu_peak_allocated_max_gib": 24,
+        "gpu_free_reserve_min_gib": 6,
+        "disk_free_min_gib": 100,
+        "thermal_soft_c": 76,
+        "thermal_resume_c": 70,
+        "thermal_hard_c": 82,
+        "max_cooling_seconds": 180,
+        "retries": 0,
+        "concurrent_image_workers": 1,
+        "network": false,
+        "guardian": "root-owned; implementation binding required",
+        "wall_seconds_per_process": 900,
+        "optimizer_updates_per_preset": 5
+      },
+      "required_gate": "separate disk save/exit/load: uninterrupted5 vs2+3 for each preset; exact next selected row/startG/buffer/prefix/target receipts, losses, adapter/critic/optimizer/regularizer/RNG; export/reload native response and heldout pixels; evaluation restores all RNG",
+      "outputs": [
+        "uninterrupted and resumed receipt+checkpoint hashes",
+        "fresh-resume-exact.json",
+        "native export-reload parity.json"
+      ],
+      "execution_argv": null,
+      "worker_implementation_available": false,
+      "blocked_on": [
+        "root authorization",
+        "MOSS-priority capacity",
+        "native worker implementation/source freeze"
+      ]
+    },
+    {
+      "id": "full1000-arms",
+      "depends_on": [
+        "fresh-process-resume",
+        "root accepts calibrated final recipe and measured wall projection"
+      ],
+      "status": "not executed; root admission pending",
+      "caps_proposed_not_authorized": {
+        "threads": 1,
+        "gpu_count": 1,
+        "host_available_min_gib": 16,
+        "host_rss_max_gib": 8,
+        "gpu_peak_allocated_max_gib": 24,
+        "gpu_free_reserve_min_gib": 6,
+        "disk_free_min_gib": 100,
+        "thermal_soft_c": 76,
+        "thermal_resume_c": 70,
+        "thermal_hard_c": 82,
+        "max_cooling_seconds": 180,
+        "retries": 0,
+        "concurrent_image_workers": 1,
+        "network": false,
+        "guardian": "root-owned; implementation binding required",
+        "wall_seconds_per_arm": 21600,
+        "g_updates_per_arm": 1000,
+        "d_updates_per_arm": 1000,
+        "batch_size": 2,
+        "descriptor_count": 500
+      },
+      "required_gate": "root separately admits each case/preset sequentially; both bispf and bispf_optimized; no tiny gate substitutes for full horizon;1000 steps/2000exposures/4complete D+Gcycles; no automatic extension or retries",
+      "outputs": [
+        "full shared-core checkpoints at0/20/250/500/750/1000",
+        "all row receipts/coverage/finite metrics/telemetry",
+        "adapter export+complete source/input/output checksum manifest"
+      ],
+      "execution_argv": null,
+      "worker_implementation_available": false,
+      "blocked_on": [
+        "root authorization",
+        "MOSS-priority capacity",
+        "native worker implementation/source freeze"
+      ]
+    },
+    {
+      "id": "matched-heldout-review",
+      "depends_on": [
+        "completed full1000 case arm"
+      ],
+      "status": "not executed; root admission pending",
+      "caps_proposed_not_authorized": {
+        "threads": 1,
+        "gpu_count": 1,
+        "host_available_min_gib": 16,
+        "host_rss_max_gib": 8,
+        "gpu_peak_allocated_max_gib": 24,
+        "gpu_free_reserve_min_gib": 6,
+        "disk_free_min_gib": 100,
+        "thermal_soft_c": 76,
+        "thermal_resume_c": 70,
+        "thermal_hard_c": 82,
+        "max_cooling_seconds": 180,
+        "retries": 0,
+        "concurrent_image_workers": 1,
+        "network": false,
+        "guardian": "root-owned; implementation binding required",
+        "wall_seconds": 1800,
+        "optimizer_updates": 0
+      },
+      "required_gate": "exact archived prompts/seeds/noise policy/native CFG/steps/strengths; preserve fruit controls and frozen positive teacher; baseline and GAN images plus source-bound old MSE exports only after separate permission to load them; independent quality judgment",
+      "outputs": [
+        "matched full resolution images and panels",
+        "fruit/control/heldout provenance audit",
+        "independent quality report; failure retained honestly"
+      ],
+      "execution_argv": null,
+      "worker_implementation_available": false,
+      "blocked_on": [
+        "root authorization",
+        "MOSS-priority capacity",
+        "native worker implementation/source freeze"
+      ]
+    }
+  ],
+  "audit_script_sha256": "8a92ce6a2d63ab11c9c2b40cd4f83bb4dda594b261bf72732338a69242071ce4",
+  "blocker_classes": {
+    "capacity": "both MOSS GPUs prioritized; freeing capacity alone does not resolve below",
+    "authorization": "no native loading/forward/cache/GPU/worker/audit packet execution admitted",
+    "assets": "noise/selected-time/numeric condition/scale assets missing in audited scopes",
+    "implementation": "source-bound production reader/native stage worker/guardian+persistence+resume orchestration not implemented",
+    "qualification": "native original parity, fullstate cost measurements, GPU fresh resume and adequately trained quality not yet observed"
+  }
+}

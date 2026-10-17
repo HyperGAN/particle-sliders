@@ -56,7 +56,7 @@ def test_static_pickle_inventory_never_executes_globals_or_reads_storage(tmp_pat
         assert member.endswith('/data.pkl')
         return original(archive,name,*args,**kwargs)
     monkeypatch.setattr(zipfile.ZipFile,'read',guarded_read)
-    result=audit.static_inventory(path)
+    result=audit.static_inventory(path,case='sana',expected_schema=audit.expected_case_schema('sana'))
     assert result['global_references']==['forbidden_module forbidden_callable']
     assert not result['pickle_executed'] and not result['tensor_storage_members_read']
     assert result['opcode_counts']['GLOBAL']==1
@@ -68,7 +68,7 @@ def test_static_inventory_rejects_ambiguous_or_oversized_pickle(tmp_path):
         archive.writestr('a/data.pkl',b'N.')
         archive.writestr('b/data.pkl',b'N.')
     with pytest.raises(ValueError,match='exactly one'):
-        audit.static_inventory(path)
+        audit.static_inventory(path,case='sana',expected_schema=audit.expected_case_schema('sana'))
 
 
 def toy_packet(torch):
@@ -89,7 +89,7 @@ def test_restricted_rng_schema_uses_cpu_weights_only_mmap_and_does_not_restore_r
         return original(path,**kwargs)
     monkeypatch.setattr(torch,'load',guarded_load)
     before=torch.get_rng_state().clone()
-    result=audit.rng_schema(path,identity='synthetic-only',step=0)
+    result=audit.rng_schema(path,identity='synthetic-only',step=0,case='sana',expected_schema=audit.expected_case_schema('sana'))
     assert len(calls)==1 and torch.equal(before,torch.get_rng_state())
     assert not result['cuda_initialized'] and not result['rng_restored']
     assert result['trainable_schema']['toy']['numel']==2 and result['cuda_rng']==[]
@@ -103,11 +103,11 @@ def test_restricted_rng_schema_rejects_wrong_identity_and_rng_type(tmp_path):
     packet=toy_packet(torch)
     torch.save(packet,path)
     with pytest.raises(ValueError,match='identity'):
-        audit.rng_schema(path,identity='wrong',step=0)
+        audit.rng_schema(path,identity='wrong',step=0,case='sana',expected_schema=audit.expected_case_schema('sana'))
     packet['torch_rng']=torch.zeros(4)
     torch.save(packet,path)
     with pytest.raises(ValueError,match='uint8'):
-        audit.rng_schema(path,identity='synthetic-only',step=0)
+        audit.rng_schema(path,identity='synthetic-only',step=0,case='sana',expected_schema=audit.expected_case_schema('sana'))
 
 
 @pytest.mark.parametrize('role', ['plan','reviewed-static','source','packet','sidecar'])
@@ -250,3 +250,126 @@ def test_revised_plan_cannot_reuse_old_static_receipt_before_rng_load(tmp_path,m
         audit.main()
     assert not output.exists()
     assert json.loads(static.read_text())['plan_sha256']=='old-v1-plan'
+
+
+
+def toy_scheduler(step):
+    return dict(T_max=50,eta_min=1e-6,base_lrs=[1e-4],last_epoch=step,
+        _step_count=step+1,_is_initial=False,_get_lr_called_within_step=False,_last_lr=[1e-4])
+
+
+@pytest.mark.parametrize('case', ['sana','sd3'])
+def test_exact_case_schema_matches_actual_pinned_save_source_ast(case):
+    checkout='particle-sliders-sana-cached-negative' if case=='sana' else 'particle-sliders-sd3'
+    source=prepare.ROOT/'checkouts'/checkout/'conceptmod/textsliders/qualification_state.py'
+    policy=audit.expected_case_schema(case)
+    assert prepare.save_schema_fields(source)==policy['exact_fields']
+    assert len(policy['exact_fields'])==(7 if case=='sana' else 8)
+
+
+@pytest.mark.parametrize('step',[0,500])
+def test_sd3_exact_eight_field_packet_reports_scheduler_without_apply(tmp_path,step):
+    import torch
+    path=tmp_path/'synthetic-sd3.pt'
+    packet=toy_packet(torch)
+    packet.update(step=step,lr_scheduler=toy_scheduler(step))
+    torch.save(packet,path)
+    before=torch.get_rng_state().clone()
+    result=audit.rng_schema(path,identity='synthetic-only',step=step,
+        case='sd3',expected_schema=audit.expected_case_schema('sd3'))
+    assert len(result['fields'])==8
+    assert result['lr_scheduler']['metadata']==packet['lr_scheduler']
+    assert result['lr_scheduler']['applied'] is False
+    assert result['rng_restored'] is False and torch.equal(before,torch.get_rng_state())
+
+
+@pytest.mark.parametrize('actual,declared',[('sana','sd3'),('sd3','sana')])
+def test_cross_case_packet_schema_is_rejected(tmp_path,actual,declared):
+    import torch
+    path=tmp_path/'synthetic.pt'
+    packet=toy_packet(torch)
+    if actual=='sd3':
+        packet['lr_scheduler']=toy_scheduler(0)
+    torch.save(packet,path)
+    with pytest.raises(ValueError,match='checkpoint schema differs'):
+        audit.rng_schema(path,identity='synthetic-only',step=0,
+            case=declared,expected_schema=audit.expected_case_schema(declared))
+
+
+@pytest.mark.parametrize('case',['sana','sd3'])
+def test_any_unknown_extra_packet_field_is_rejected(tmp_path,case):
+    import torch
+    path=tmp_path/'synthetic.pt'
+    packet=toy_packet(torch)
+    if case=='sd3':
+        packet['lr_scheduler']=toy_scheduler(0)
+    packet['unknown_extra']='must not be ignored'
+    torch.save(packet,path)
+    with pytest.raises(ValueError,match='checkpoint schema differs'):
+        audit.rng_schema(path,identity='synthetic-only',step=0,
+            case=case,expected_schema=audit.expected_case_schema(case))
+
+
+@pytest.mark.parametrize('kind',['not-dict','missing-key','extra-key','counter','lr-type','nan','config','flag'])
+def test_sd3_scheduler_dictionary_is_strict_and_never_applied(tmp_path,kind):
+    import torch
+    path=tmp_path/'synthetic.pt'
+    packet=toy_packet(torch)
+    scheduler=toy_scheduler(0)
+    if kind=='not-dict':
+        scheduler=[]
+    elif kind=='missing-key':
+        del scheduler['_last_lr']
+    elif kind=='extra-key':
+        scheduler['unknown']='reject'
+    elif kind=='counter':
+        scheduler['last_epoch']=500
+    elif kind=='lr-type':
+        scheduler['_last_lr']=[torch.tensor(1e-4)]
+    elif kind=='nan':
+        scheduler['_last_lr']=[float('nan')]
+    elif kind=='config':
+        scheduler['T_max']=500
+    else:
+        scheduler['_is_initial']=0
+    packet['lr_scheduler']=scheduler
+    torch.save(packet,path)
+    with pytest.raises(ValueError,match='lr_scheduler'):
+        audit.rng_schema(path,identity='synthetic-only',step=0,
+            case='sd3',expected_schema=audit.expected_case_schema('sd3'))
+
+
+def test_plan_case_policy_mismatch_rejects_before_tensor_load(tmp_path,monkeypatch):
+    def forbidden_load(*_,**__):
+        raise AssertionError('case policy validation followed tensor access')
+    import torch
+    monkeypatch.setattr(torch,'load',forbidden_load)
+    policy=audit.expected_case_schema('sana')
+    with pytest.raises(ValueError,match='case/field policy mismatch'):
+        audit.rng_schema(tmp_path/'unopened.pt',identity='unused',step=0,
+            case='sd3',expected_schema=policy)
+    with pytest.raises(ValueError,match='unknown checkpoint case'):
+        audit.rng_schema(tmp_path/'unopened.pt',identity='unused',step=0,
+            case='unknown',expected_schema=policy)
+
+
+def test_static_field_inventory_includes_bound_sd3_lr_scheduler_without_unpickling(tmp_path):
+    import pickle
+    path=tmp_path/'synthetic.pt'
+    with zipfile.ZipFile(path,'w') as archive:
+        archive.writestr('archive/data.pkl',pickle.dumps(dict(lr_scheduler=toy_scheduler(0))))
+    result=audit.static_inventory(path,case='sd3',expected_schema=audit.expected_case_schema('sd3'))
+    assert result['expected_field_string_hits']==['lr_scheduler']
+    assert result['case']=='sd3' and not result['pickle_executed']
+
+
+
+def test_declared_case_policy_preserves_numeric_and_boolean_types():
+    policy=audit.expected_case_schema('sd3')
+    policy['lr_scheduler']['T_max']=50.0
+    with pytest.raises(ValueError,match='case/field policy mismatch'):
+        audit.validate_case_schema('sd3',policy)
+    policy=audit.expected_case_schema('sd3')
+    policy['lr_scheduler']['inactive_flags']=0
+    with pytest.raises(ValueError,match='case/field policy mismatch'):
+        audit.validate_case_schema('sd3',policy)

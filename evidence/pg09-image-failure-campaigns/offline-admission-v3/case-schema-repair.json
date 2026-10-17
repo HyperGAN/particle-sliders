@@ -1,0 +1,121 @@
+{
+  "status": "strict per-case v3 schema repair, synthetic/source qualified only; root actual cohort review pending",
+  "prior_defect": "wrong common7 top-level schema omitted SD3 lr_scheduler",
+  "implementation": "Sana exact7; SD3 exact8 including strictly validated LR scheduler dictionary; packet case/policy/save-source bindings and save-source AST checks; unknown extras rejected",
+  "scheduler_action": "validated plain metadata report only; no optimizer/scheduler instantiate, step or apply",
+  "preserved_v2": {
+    "source_commit": "247ac44ce3a06302f7656bef13a339f7dfffdaab",
+    "source_sha256": "92abb56187a05b8f342b7d876f8db698c0440563caba0ae0f7d7672fd5a423a3",
+    "plan_sha256": "77112107a6907bb2aed1e15dbeed517e0704b361edb7f752105efc4395881fe0",
+    "root_static_receipt": {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission-v3/prior-root-static-v2.json",
+      "bytes": 344743,
+      "sha256": "06d72a31c46126f52b456ea59fa55a5586932679873465851bcd960b9f992be8"
+    },
+    "root_static_seconds": 19.107,
+    "root_static_peak_rss_reported": "21.8MB",
+    "root_restricted_rng_outcome": "FAILED CLOSED ValueError checkpoint schema differs from frozen TrainingState save contract",
+    "root_restricted_rng_effects": "no output or input write, RNG restore, model/optimizer instantiate, native forward or GPU; no complete-family acceptance",
+    "failure_source": "core owner delegation; actual old stages not rerun by this agent"
+  },
+  "case_schemas": {
+    "sana": {
+      "case": "sana",
+      "policy": "archive-sana-exact-save-schema-v1",
+      "exact_fields": [
+        "cuda_rng",
+        "identity",
+        "optimizer",
+        "python_rng",
+        "step",
+        "torch_rng",
+        "trainable"
+      ],
+      "lr_scheduler": null
+    },
+    "sd3": {
+      "case": "sd3",
+      "policy": "archive-sd3-exact-save-schema-v1",
+      "exact_fields": [
+        "cuda_rng",
+        "identity",
+        "lr_scheduler",
+        "optimizer",
+        "python_rng",
+        "step",
+        "torch_rng",
+        "trainable"
+      ],
+      "lr_scheduler": {
+        "class_name": "torch.optim.lr_scheduler.CosineAnnealingLR",
+        "exact_fields": [
+          "T_max",
+          "_get_lr_called_within_step",
+          "_is_initial",
+          "_last_lr",
+          "_step_count",
+          "base_lrs",
+          "eta_min",
+          "last_epoch"
+        ],
+        "T_max": 50,
+        "eta_min": 1e-06,
+        "base_lrs": [
+          0.0001
+        ],
+        "parameter_groups": 1,
+        "last_epoch": "packet step",
+        "step_count": "packet step +1",
+        "inactive_flags": false
+      }
+    }
+  },
+  "tests": "71CPU passed:41offline guards including19new case/source/scheduler regressions +30campaign/independent contract checks; no skips",
+  "sources": [
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/audit_image_checkpoint_rng_pg09.py",
+      "bytes": 16813,
+      "sha256": "8a92ce6a2d63ab11c9c2b40cd4f83bb4dda594b261bf72732338a69242071ce4"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/prepare_image_failure_admission_pg09.py",
+      "bytes": 21780,
+      "sha256": "ec65d0d5a79c93ad1a0e51e3412f7f214df1ba5957a7a4a951ceaa03d9a36a7b"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/tests/test_image_failure_offline_admission_pg09.py",
+      "bytes": 17292,
+      "sha256": "178e1c42602e28e0364dae04c7fe0d1b38a8fde6f04ebcb48c8d91dc11ce9828"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/docs/pg09-image-audit-case-schemas.md",
+      "bytes": 4415,
+      "sha256": "5876022d062b89342de45d6814cd65feb2393716be429ba023c963ffe29e40d4"
+    }
+  ],
+  "plan": {
+    "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission-v3/rng-audit-plan.json",
+    "bytes": 20373,
+    "sha256": "40534a425e868d7bd49c9d07ccae78ba3322e2ca6eccb36da02e716a8aabe706"
+  },
+  "commands": {
+    "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission-v3/stage-commands.json",
+    "bytes": 2639,
+    "sha256": "a9cbdebfacbe96b6c40c7b7b294ebbc9a30cc43aebb2dad0a761d2e8cc3b3125"
+  },
+  "receipt": {
+    "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/offline-admission-v3/cpu-71-tests.xml",
+    "bytes": 10981,
+    "sha256": "1c60bb051720f565e369e3d552d02c31c26b0a8a0168daf7706a329da959d68d"
+  },
+  "actual_packet_bodies_read_by_this_agent": 0,
+  "actual_v3_audit_executed": false,
+  "root_actual_admission": false,
+  "unchanged_guards": [
+    "strict SAME-plan static gate; no inherited evidence waiver",
+    "fresh/disjoint pre-read output and no-replace race-safe publication",
+    "weights_only CPU mmap, no allowlist/fallback",
+    "120s1thread/CUDAhidden8GiBAS/RSS cap and16GiBavailable",
+    "no actual packet retry, native forward/GPU/process dispatch, activeMOSS/core edits"
+  ]
+}

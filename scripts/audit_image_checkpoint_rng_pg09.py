@@ -9,6 +9,7 @@ from collections import Counter
 import gc
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import pickletools
@@ -18,7 +19,9 @@ import time
 import zipfile
 import uuid
 
-FIELDS = {'identity', 'step', 'trainable', 'optimizer', 'torch_rng', 'python_rng', 'cuda_rng'}
+COMMON_FIELDS = {'identity', 'step', 'trainable', 'optimizer', 'torch_rng', 'python_rng', 'cuda_rng'}
+SCHEDULER_FIELDS = {'T_max', 'eta_min', 'base_lrs', 'last_epoch', '_step_count',
+                    '_is_initial', '_get_lr_called_within_step', '_last_lr'}
 MAX_PACKET_BYTES = 2 * 1024**3
 MAX_PICKLE_BYTES = 16 * 1024**2
 MAX_ADDRESS_SPACE = 8 * 1024**3
@@ -40,8 +43,47 @@ def available_bytes():
     raise RuntimeError('MemAvailable unavailable')
 
 
-def static_inventory(path):
+def expected_case_schema(case):
+    if case not in ('sana', 'sd3'):
+        raise ValueError('unknown checkpoint case policy')
+    return dict(case=case, policy='archive-'+case+'-exact-save-schema-v1',
+        exact_fields=sorted(COMMON_FIELDS | ({'lr_scheduler'} if case == 'sd3' else set())),
+        lr_scheduler=(dict(class_name='torch.optim.lr_scheduler.CosineAnnealingLR',
+            exact_fields=sorted(SCHEDULER_FIELDS), T_max=50, eta_min=1e-6,
+            base_lrs=[1e-4], parameter_groups=1, last_epoch='packet step',
+            step_count='packet step +1', inactive_flags=False) if case == 'sd3' else None))
+
+
+def validate_case_schema(case, expected_schema):
+    if (json.dumps(expected_schema,sort_keys=True,allow_nan=False) !=
+            json.dumps(expected_case_schema(case),sort_keys=True,allow_nan=False)):
+        raise ValueError('declared checkpoint case/field policy mismatch')
+
+
+def scheduler_metadata(value, *, step):
+    if type(value) is not dict or set(value) != SCHEDULER_FIELDS:
+        raise ValueError('SD3 lr_scheduler exact dictionary schema required')
+    if (type(value['T_max']) is not int or value['T_max'] != 50 or
+            type(value['eta_min']) is not float or value['eta_min'] != 1e-6 or
+            type(value['last_epoch']) is not int or value['last_epoch'] != step or
+            type(value['_step_count']) is not int or value['_step_count'] != step + 1 or
+            value['_is_initial'] is not False or value['_get_lr_called_within_step'] is not False):
+        raise ValueError('SD3 lr_scheduler configuration/counter/flag schema differs')
+    for key in ('base_lrs', '_last_lr'):
+        values = value[key]
+        if (type(values) is not list or len(values) != 1 or
+                any(type(x) is not float or not math.isfinite(x) or x < 0 for x in values)):
+            raise ValueError('SD3 lr_scheduler finite single-group float LR list required')
+    if value['base_lrs'] != [1e-4]:
+        raise ValueError('SD3 lr_scheduler base LR differs from pinned archive')
+    return dict(class_name='torch.optim.lr_scheduler.CosineAnnealingLR', metadata=value,
+        validation='exact keys/types, pinned config and completed-step counters; no scheduler instantiated/applied',
+        applied=False)
+
+
+def static_inventory(path, *, case, expected_schema):
     """Never execute a pickle opcode or read tensor-storage ZIP members."""
+    validate_case_schema(case, expected_schema)
     with zipfile.ZipFile(path) as archive:
         infos = archive.infolist()
         if len(infos) > 20000 or len({i.filename for i in infos}) != len(infos):
@@ -57,10 +99,11 @@ def static_inventory(path):
             counts[opcode.name] += 1
             if opcode.name == 'GLOBAL':
                 globals_found.add(arg)
-            if isinstance(arg, str) and arg in FIELDS:
+            if isinstance(arg, str) and arg in expected_schema['exact_fields']:
                 field_strings.add(arg)
         return dict(members=[dict(name=i.filename, bytes=i.file_size, compressed_bytes=i.compress_size,
                                   compression=i.compress_type) for i in infos],
+            case=case, expected_case_schema=expected_schema,
             data_pickle_sha256=hashlib.sha256(data).hexdigest(), opcode_counts=dict(counts),
             global_references=sorted(globals_found), expected_field_string_hits=sorted(field_strings),
             stack_global_requires_review=bool(counts['STACK_GLOBAL']),
@@ -68,16 +111,19 @@ def static_inventory(path):
             pickle_executed=False, tensor_storage_members_read=False)
 
 
-def rng_schema(path, *, identity, step):
+def rng_schema(path, *, identity, step, case, expected_schema):
+    validate_case_schema(case, expected_schema)
     import torch
     # No allowlist expansion, safe_globals, unrestricted fallback, or CUDA map.
     state = torch.load(str(path), weights_only=True, map_location='cpu', mmap=True)
-    if type(state) is not dict or set(state) != FIELDS:
+    if type(state) is not dict or set(state) != set(expected_schema['exact_fields']):
         raise ValueError('checkpoint schema differs from frozen TrainingState save contract')
-    if state['identity'] != identity or state['step'] != step:
+    if (type(state['identity']) is not str or type(state['step']) is not int or
+            state['identity'] != identity or state['step'] != step):
         raise ValueError('packet logical identity/step mismatch')
     if type(state['trainable']) is not dict or type(state['optimizer']) is not dict:
         raise ValueError('trainable/optimizer dictionary schema required')
+    scheduler = scheduler_metadata(state['lr_scheduler'], step=step) if case == 'sd3' else None
     if type(state['cuda_rng']) is not list:
         raise ValueError('CUDA RNG list schema required')
     def rng_record(value):
@@ -98,7 +144,8 @@ def rng_schema(path, *, identity, step):
             not all(type(x) is int for x in python_rng[1]) or
             (python_rng[2] is not None and type(python_rng[2]) is not float)):
         raise ValueError('unexpected Python RNG schema')
-    result = dict(identity=identity, step=step, fields=sorted(state), trainable_schema=trainable,
+    result = dict(identity=identity, step=step, case=case, expected_case_schema=expected_schema,
+        fields=sorted(state), trainable_schema=trainable, lr_scheduler=scheduler,
         optimizer_keys=sorted(state['optimizer']), torch_rng=rng_record(state['torch_rng']),
         cuda_rng=[rng_record(x) for x in state['cuda_rng']],
         python_rng=dict(version=python_rng[0], integer_count=len(python_rng[1]),
@@ -209,6 +256,10 @@ def main():
             *[p['path'] for p in plan['known_packets']],
             *[p['sidecar']['path'] for p in plan['known_packets']],
             *[p['path'] for p in plan['source_bindings']]])
+        for packet in plan['known_packets']:
+            validate_case_schema(packet['case'], packet['expected_schema'])
+            if packet['schema_source'] not in plan['source_bindings']:
+                raise ValueError('per-case save schema source is not bound')
         for binding in plan['source_bindings']:
             source = Path(binding['path'])
             if source.suffix in {'.pt','.pth','.bin','.safetensors','.ckpt','.model','.npz','.npy'}:
@@ -241,12 +292,13 @@ def main():
                 raise ValueError('known checkpoint packet changed')
             item = dict(path=str(path), sha256=packet['declared_sha256'], identity=packet['identity'], step=packet['step'])
             if args.mode == 'static':
-                item['static'] = static_inventory(path)
+                item['static'] = static_inventory(path, case=packet['case'], expected_schema=packet['expected_schema'])
             else:
                 matching = [p for p in reviewed['packets'] if p['path'] == str(path) and p['sha256'] == packet['declared_sha256']]
                 if len(matching) != 1 or matching[0]['static']['stack_global_requires_review']:
                     raise ValueError('static packet review missing or unresolved STACK_GLOBAL')
-                item['rng_schema'] = rng_schema(path, identity=packet['identity'], step=packet['step'])
+                item['rng_schema'] = rng_schema(path, identity=packet['identity'], step=packet['step'],
+                    case=packet['case'], expected_schema=packet['expected_schema'])
             output['packets'].append(item)
             if resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024 > MAX_ADDRESS_SPACE:
                 raise RuntimeError('8GiB RSS cap exceeded')

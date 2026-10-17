@@ -5,10 +5,16 @@ or accesses GPU. Model/checkpoint tensors are stat-only; old declared checksums
 are labeled separately from fresh metadata/source checksum verification.
 """
 import argparse
+import ast
 import hashlib
 from importlib import metadata
 import json
 from pathlib import Path
+
+if __package__:
+    from .audit_image_checkpoint_rng_pg09 import expected_case_schema
+else:
+    from audit_image_checkpoint_rng_pg09 import expected_case_schema
 
 ROOT = Path('/mnt/nvme/sliders/qualification')
 CHECKOUT = Path(__file__).resolve().parents[1]
@@ -65,6 +71,19 @@ def runtime_metadata():
         archive_pg_absent=True, native_runtime_parity='source/metadata only; actual import and numerical parity pending')
 
 
+def save_schema_fields(path):
+    tree = ast.parse(Path(path).read_text())
+    owners = [node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == 'TrainingState']
+    saves = [node for owner in owners for node in owner.body if isinstance(node, ast.FunctionDef) and node.name == 'save']
+    states = [node.value for method in saves for node in method.body if isinstance(node, ast.Assign)
+              and any(isinstance(target, ast.Name) and target.id == 'state' for target in node.targets)]
+    if (len(states) != 1 or not isinstance(states[0], ast.Call) or
+            not isinstance(states[0].func, ast.Name) or states[0].func.id != 'dict' or
+            states[0].args or any(keyword.arg is None for keyword in states[0].keywords)):
+        raise ValueError('unknown pinned TrainingState.save syntax')
+    return sorted(keyword.arg for keyword in states[0].keywords)
+
+
 def inventory(proposal):
     verified = []
     for record in proposal['source_bindings'] + [r for c in proposal['campaigns']
@@ -103,12 +122,17 @@ def inventory(proposal):
         all_files = [p for p in sorted(run.rglob('*')) if p.is_file()]
         candidates = [stat_record(p) for p in all_files if any(k in p.name.lower() for k in
             ('noise','embed','condition','latent','descriptor','cache','rng'))]
+        save_source = ROOT/'checkouts'/('particle-sliders-sana-cached-negative' if family == 'sana' else 'particle-sliders-sd3')/'conceptmod/textsliders/qualification_state.py'
+        policy = expected_case_schema(family)
+        if save_schema_fields(save_source) != policy['exact_fields']:
+            raise ValueError('per-case pinned save source/schema mismatch')
         for step in (0,500):
             sidecar = run/f'checkpoints/step-{step:06d}.json'
             record = json.loads(sidecar.read_text())
             path = sidecar.parent/record['file']
             packets.append(dict(**stat_record(path), sidecar=source_record(sidecar),
                 declared_sha256=record['sha256'], identity=record['identity'],step=step,
+                case=family,expected_schema=policy,schema_source=source_record(save_source),
                 checksum_refreshed=False, packet_opened=False))
         cases.append(dict(id=case['id'], archive=str(run), scanned_archive_files=len(all_files),
             archive_name_scan_scope='this exact run tree only; binary file bodies never opened',
@@ -136,14 +160,15 @@ def inventory(proposal):
         ('particle-sliders-sd3','conceptmod/textsliders/lora.py'),
         ('particle-sliders-sd3','scripts/sd3_qualification_images.py'),
     )]
-    return dict(schema='observed-image-offline-assets-v1', metadata_only=True,
+    extra_sources.append(source_record(metadata.distribution('torch').locate_file('torch/optim/lr_scheduler.py')))
+    return dict(schema='observed-image-offline-assets-v2', metadata_only=True,
         additional_source_bindings=extra_sources,
         verified_frozen_sources_and_inputs=verified, cases=cases, known_packets=packets,
         runtime=runtime_metadata(), active_moss_files_modified=False, gpu_queries_or_calls=0,
         checkpoint_or_weight_bodies_opened=0, native_model_imports_or_forwards=0,
-        archive_schema_source='TrainingState.save: identity,step,trainable,optimizer,torch_rng,python_rng,cuda_rng; no descriptor/cache payload',
+        archive_schema_source='Source AST verified: Sana exact7 identity,step,trainable,optimizer,torch_rng,python_rng,cuda_rng; SD3 exact8 adds lr_scheduler. No descriptor/cache payload',
         source_save_timing=dict(sana='step0 after model/optimizer setup+text/render encoding, before diagnostics/render; every20 after optimizer, before checkpoint diagnostics/render',
-            sd3='step0 after model/optimizer setup+training/heldout encoding+restore, before evaluate; later checkpoints after optimizer',
+            sd3='step0 after model/optimizer/LR scheduler setup+training/heldout encoding+restore, before evaluate; later checkpoints after optimizer AND LR scheduler update',
             limitation='RNG hash presence alone does not establish draw replay. Baseline/render/source/runtime RNG consumption must be audited; CUDA RNG bytes cannot be replaced with CPU seed7.'))
 
 
@@ -210,16 +235,16 @@ def main():
     audit_path=CHECKOUT/'scripts/audit_image_checkpoint_rng_pg09.py'
     audit_sha=source_record(audit_path)['sha256']
     args.output_dir.mkdir(parents=True,exist_ok=True)
-    audit=dict(schema='image-known-checkpoint-rng-audit-proposal-v2',execution_admitted=False,
+    audit=dict(schema='image-known-checkpoint-rng-audit-proposal-v3',execution_admitted=False,
         audit_script_sha256=audit_sha,known_packets=result['known_packets'],
         receipt_output_policy='fresh absent nonsymlink output in an existing nonsymlink directory, disjoint from all inputs before packet access; directory-fd-pinned fsynced temporary file plus atomic exclusive hard-link publication, never replace',
-        static_review_policy='strict same-plan static receipt only; completed v1 evidence is preserved and cannot qualify revised v2 RNG stage',
+        static_review_policy='strict same-plan static receipt only; completed v1/v2 evidence is preserved and cannot qualify revised v3 RNG stage',
         caps=dict(threads=1,CUDA_VISIBLE_DEVICES='',wall_seconds=120,rss_max_gib=8,
                   address_space_hard_cap_gib=8,host_available_min_gib=16,packet_max_bytes=2*1024**3,
                   caveat='RLIMIT_AS is stronger than RSS cap and may reject Torch import; fail closed; owner must review/import-qualify before actual packet audit'),
         next_stage='static ZIP/pickle opcode inventory before any restricted tensor load; root must review static receipt separately',
         packet_payloads_opened=False,static_executed=False,rng_extracted=False,
-        output_policy='schema/RNG hashes only; no trainable/optimizer values, model instantiation, native forward or RNG restoration',
+        output_policy='exact per-case schema/RNG hashes and validated SD3 LR scheduler metadata only; no scheduler apply, trainable/optimizer values, model instantiation, native forward or RNG restoration',
         source_schema_and_timing={k:result[k] for k in ('archive_schema_source','source_save_timing')},
         source_bindings=result['verified_frozen_sources_and_inputs']+result['additional_source_bindings'])
     for name,doc in [('offline-assets.json',result),('rng-audit-plan.json',audit),('sequential-admission-plan.json',admission(result,audit_sha))]:

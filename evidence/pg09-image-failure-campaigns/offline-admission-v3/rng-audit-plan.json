@@ -1,0 +1,466 @@
+{
+  "schema": "image-known-checkpoint-rng-audit-proposal-v3",
+  "execution_admitted": false,
+  "audit_script_sha256": "8a92ce6a2d63ab11c9c2b40cd4f83bb4dda594b261bf72732338a69242071ce4",
+  "known_packets": [
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000000.pt",
+      "exists": true,
+      "content_read": false,
+      "bytes": 595139771,
+      "resolved_path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000000.pt",
+      "sidecar": {
+        "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000000.json",
+        "bytes": 206,
+        "sha256": "bb03afd54116981398c07bef6f6b70af3e4c64fb4aebf25785c2db1ee19f0f7f"
+      },
+      "declared_sha256": "a3109995761bf5956e0d2a59564db9f19e238ca2c4fb95ff6b78ea6c24bd9c00",
+      "identity": "99dfbdd7cbeda5d63b3a444b7a7472ff798e2556b96e4c74da5cc00aee1043bc",
+      "step": 0,
+      "case": "sana",
+      "expected_schema": {
+        "case": "sana",
+        "policy": "archive-sana-exact-save-schema-v1",
+        "exact_fields": [
+          "cuda_rng",
+          "identity",
+          "optimizer",
+          "python_rng",
+          "step",
+          "torch_rng",
+          "trainable"
+        ],
+        "lr_scheduler": null
+      },
+      "schema_source": {
+        "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/conceptmod/textsliders/qualification_state.py",
+        "bytes": 3827,
+        "sha256": "7d0e3c9251b5337330e4790c6559f522563b16b28e2ffc34d5a43f7c39104d1d"
+      },
+      "checksum_refreshed": false,
+      "packet_opened": false
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000500.pt",
+      "exists": true,
+      "content_read": false,
+      "bytes": 1785438459,
+      "resolved_path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000500.pt",
+      "sidecar": {
+        "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000500.json",
+        "bytes": 208,
+        "sha256": "c7e838452f8563a3c94789bf282954e6c64ea0870091c1965409a29fd9cb7386"
+      },
+      "declared_sha256": "83c58be0d6f58c42b58e7a15c20a34f267da516f91ebf65e9cbef0c3c778636f",
+      "identity": "99dfbdd7cbeda5d63b3a444b7a7472ff798e2556b96e4c74da5cc00aee1043bc",
+      "step": 500,
+      "case": "sana",
+      "expected_schema": {
+        "case": "sana",
+        "policy": "archive-sana-exact-save-schema-v1",
+        "exact_fields": [
+          "cuda_rng",
+          "identity",
+          "optimizer",
+          "python_rng",
+          "step",
+          "torch_rng",
+          "trainable"
+        ],
+        "lr_scheduler": null
+      },
+      "schema_source": {
+        "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/conceptmod/textsliders/qualification_state.py",
+        "bytes": 3827,
+        "sha256": "7d0e3c9251b5337330e4790c6559f522563b16b28e2ffc34d5a43f7c39104d1d"
+      },
+      "checksum_refreshed": false,
+      "packet_opened": false
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000000.pt",
+      "exists": true,
+      "content_read": false,
+      "bytes": 2434171,
+      "resolved_path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000000.pt",
+      "sidecar": {
+        "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000000.json",
+        "bytes": 206,
+        "sha256": "efa8b6be30ff9cf7c6eccce7d8c80bb8cc002c0ece5542a440709327eb1a99d9"
+      },
+      "declared_sha256": "8ccf414c1ec32a614690a70f290e2ed7582faf570049ccb5edf6a80dd4b7fe42",
+      "identity": "d1227dc772592aa4e29640464401367262228b6456e0bcc7cb7af1d85e7ba149",
+      "step": 0,
+      "case": "sd3",
+      "expected_schema": {
+        "case": "sd3",
+        "policy": "archive-sd3-exact-save-schema-v1",
+        "exact_fields": [
+          "cuda_rng",
+          "identity",
+          "lr_scheduler",
+          "optimizer",
+          "python_rng",
+          "step",
+          "torch_rng",
+          "trainable"
+        ],
+        "lr_scheduler": {
+          "class_name": "torch.optim.lr_scheduler.CosineAnnealingLR",
+          "exact_fields": [
+            "T_max",
+            "_get_lr_called_within_step",
+            "_is_initial",
+            "_last_lr",
+            "_step_count",
+            "base_lrs",
+            "eta_min",
+            "last_epoch"
+          ],
+          "T_max": 50,
+          "eta_min": 1e-06,
+          "base_lrs": [
+            0.0001
+          ],
+          "parameter_groups": 1,
+          "last_epoch": "packet step",
+          "step_count": "packet step +1",
+          "inactive_flags": false
+        }
+      },
+      "schema_source": {
+        "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/qualification_state.py",
+        "bytes": 5236,
+        "sha256": "02ca08df1756e9df4d50c221ca86af0517270bf9ddf6a32fadc539aeeb255eb9"
+      },
+      "checksum_refreshed": false,
+      "packet_opened": false
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000500.pt",
+      "exists": true,
+      "content_read": false,
+      "bytes": 7308923,
+      "resolved_path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000500.pt",
+      "sidecar": {
+        "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000500.json",
+        "bytes": 208,
+        "sha256": "17db889960022611f761ebb7b29aa31ca26501b5f4a31e99f4c1c04fba9f77c1"
+      },
+      "declared_sha256": "ce84161b379899cbb6ab2e31f7a02f4cbdd056af67d2bac46a57866cb3445a0b",
+      "identity": "d1227dc772592aa4e29640464401367262228b6456e0bcc7cb7af1d85e7ba149",
+      "step": 500,
+      "case": "sd3",
+      "expected_schema": {
+        "case": "sd3",
+        "policy": "archive-sd3-exact-save-schema-v1",
+        "exact_fields": [
+          "cuda_rng",
+          "identity",
+          "lr_scheduler",
+          "optimizer",
+          "python_rng",
+          "step",
+          "torch_rng",
+          "trainable"
+        ],
+        "lr_scheduler": {
+          "class_name": "torch.optim.lr_scheduler.CosineAnnealingLR",
+          "exact_fields": [
+            "T_max",
+            "_get_lr_called_within_step",
+            "_is_initial",
+            "_last_lr",
+            "_step_count",
+            "base_lrs",
+            "eta_min",
+            "last_epoch"
+          ],
+          "T_max": 50,
+          "eta_min": 1e-06,
+          "base_lrs": [
+            0.0001
+          ],
+          "parameter_groups": 1,
+          "last_epoch": "packet step",
+          "step_count": "packet step +1",
+          "inactive_flags": false
+        }
+      },
+      "schema_source": {
+        "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/qualification_state.py",
+        "bytes": 5236,
+        "sha256": "02ca08df1756e9df4d50c221ca86af0517270bf9ddf6a32fadc539aeeb255eb9"
+      },
+      "checksum_refreshed": false,
+      "packet_opened": false
+    }
+  ],
+  "receipt_output_policy": "fresh absent nonsymlink output in an existing nonsymlink directory, disjoint from all inputs before packet access; directory-fd-pinned fsynced temporary file plus atomic exclusive hard-link publication, never replace",
+  "static_review_policy": "strict same-plan static receipt only; completed v1/v2 evidence is preserved and cannot qualify revised v3 RNG stage",
+  "caps": {
+    "threads": 1,
+    "CUDA_VISIBLE_DEVICES": "",
+    "wall_seconds": 120,
+    "rss_max_gib": 8,
+    "address_space_hard_cap_gib": 8,
+    "host_available_min_gib": 16,
+    "packet_max_bytes": 2147483648,
+    "caveat": "RLIMIT_AS is stronger than RSS cap and may reject Torch import; fail closed; owner must review/import-qualify before actual packet audit"
+  },
+  "next_stage": "static ZIP/pickle opcode inventory before any restricted tensor load; root must review static receipt separately",
+  "packet_payloads_opened": false,
+  "static_executed": false,
+  "rng_extracted": false,
+  "output_policy": "exact per-case schema/RNG hashes and validated SD3 LR scheduler metadata only; no scheduler apply, trainable/optimizer values, model instantiation, native forward or RNG restoration",
+  "source_schema_and_timing": {
+    "archive_schema_source": "Source AST verified: Sana exact7 identity,step,trainable,optimizer,torch_rng,python_rng,cuda_rng; SD3 exact8 adds lr_scheduler. No descriptor/cache payload",
+    "source_save_timing": {
+      "sana": "step0 after model/optimizer setup+text/render encoding, before diagnostics/render; every20 after optimizer, before checkpoint diagnostics/render",
+      "sd3": "step0 after model/optimizer/LR scheduler setup+training/heldout encoding+restore, before evaluate; later checkpoints after optimizer AND LR scheduler update",
+      "limitation": "RNG hash presence alone does not establish draw replay. Baseline/render/source/runtime RNG consumption must be audited; CUDA RNG bytes cannot be replaced with CPU seed7."
+    }
+  },
+  "source_bindings": [
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/scripts/qualify_sana.py",
+      "bytes": 19858,
+      "sha256": "de7bf1f737557fdd01aa156d1f25c961099b6b404b26b549557a837e290321b4"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/conceptmod/textsliders/train_lora_sana.py",
+      "bytes": 28399,
+      "sha256": "6f96c64971daa9b50d3b1451a2cbe626bf9e2c632615343c0d252c17064256a0"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/conceptmod/textsliders/slider_targets.py",
+      "bytes": 116293,
+      "sha256": "5db3a2cdc9635a0f15f6bc59c80f00700ef04d35241650b935b373f610a85412"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/scripts/qualify_sd3.py",
+      "bytes": 15301,
+      "sha256": "e43dfbe734e33463c762d649b4457cef28e1a6f1c8572788fe4e7abef85cd390"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/scripts/sd3_qualification_images.py",
+      "bytes": 1655,
+      "sha256": "99605fb1df844ca332a27e61f0e2551c2b019410ce573ab45a2d5e19be1bf5b4"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/train_lora_sd3.py",
+      "bytes": 19263,
+      "sha256": "ae4d6704f071091900e6392b9f33c8edfe48fb88378bb25a7b68bef1bbfc9a38"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/train_util.py",
+      "bytes": 38893,
+      "sha256": "3f74682481b6a796ded8c6f6929974c74dfa021bdc8c50633803d1b5f7db0995"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/prompt_util.py",
+      "bytes": 6270,
+      "sha256": "c47d2158b95cf1470aadc071270057c1f63eccc9fa49effdd4c7a31ae510b1f4"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/model_util.py",
+      "bytes": 14631,
+      "sha256": "04bc060609d2cc96a3bd19b8b0b23feddad41cd01a2ada53462f26c214ed8523"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/pipelines/sana/pipeline_sana.py",
+      "bytes": 46056,
+      "sha256": "0ef2c0bb6a9e90bbd2716dca88121cfece7f23b95820cb6ecdaf45754eb2cc6a"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/pipelines/stable_diffusion_3/pipeline_stable_diffusion_3.py",
+      "bytes": 56978,
+      "sha256": "b1299e0549145df66c98f9b2260545076d08038dc074b58480c65fc5793061c5"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+      "bytes": 26832,
+      "sha256": "1af27be5b2f92b7d139d3c50239be5ce3eafc4a7eddf59c2d30689f8ec31e93d"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/diffusers/schedulers/scheduling_dpmsolver_multistep.py",
+      "bytes": 62211,
+      "sha256": "0dd5333bd7b900b117d34f151adfc4b181dbb2062ca860105658037a0fe5dc06"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-campaign-core-pin-3e94/packages/particle-sliders-core/src/particle_sliders/pg09.py",
+      "bytes": 34783,
+      "sha256": "426abc25323aea96be91e92f1f4101063d5b3c4062f042e869c729027b4f9256"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/recipe.json",
+      "bytes": 1456,
+      "sha256": "6b6809e4819c222d1f821925c588e6f5ac0478085a52b5b8b3212454154a3dde"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/checkpoints/step-000000.json",
+      "bytes": 206,
+      "sha256": "bb03afd54116981398c07bef6f6b70af3e4c64fb4aebf25785c2db1ee19f0f7f"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/objective-disposition.json",
+      "bytes": 378,
+      "sha256": "919d7502a99d5b42f678dc23ae4227a7e2a41aac38ee0e585f075d18fcfc1160"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/progress.json",
+      "bytes": 1499,
+      "sha256": "dc84680d10dc8f5c0d1bd9f779e5105b52eed69f12aeb7cfcad5452e8ebc78d0"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/quality-review.json",
+      "bytes": 4829,
+      "sha256": "42da2de2e5997c333f6e2de4bd6e242eb3670637cea9ed9f2bec4d9f7a257488"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/real-baseline-validation.json",
+      "bytes": 2850,
+      "sha256": "2ef7e7733b5ecceef183c26238b4dbb36012c722d156188cf7adc978e41ee55a"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/implementation-repair-20261017.json",
+      "bytes": 1111,
+      "sha256": "2da09f2bc8846d568792aa6b797b3aa90ebf572c6d1cbbd2775d4dd5f4fc0c6c"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/model-manifest.json",
+      "bytes": 1386,
+      "sha256": "e172cb6330e49046ecbf70f28e18c2cda4da67c5dd90e35a863571b5d036c964"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-123-off.png",
+      "bytes": 339109,
+      "sha256": "693278a9761cb136fc64da4b824e6f9ae895625c03dc5f17b2483ba026382495"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-123-teacher.png",
+      "bytes": 385802,
+      "sha256": "4502be01d93f957f568c7cab2828b6aab318e1eecdb73ef2b7c1c4810abd198e"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-456-off.png",
+      "bytes": 335974,
+      "sha256": "8e09a9a75ac743353c96deac66a6fd703c1e5bb8e348b03e52e7928a3ed1859d"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-0-seed-456-teacher.png",
+      "bytes": 342187,
+      "sha256": "c6a1312428711f49714931170db7ce3a682ea696b33d717d90f13bdee20f53ef"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-123-off.png",
+      "bytes": 361635,
+      "sha256": "c6ed68659484ee5d76444307c25b14ce2c1eba67a346150ac73b8b7e2c421ace"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-123-teacher.png",
+      "bytes": 362979,
+      "sha256": "7e3c03612e0e80b5b22f49b979dda2dff075a703b3b4c3099bc4629535116f7c"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-456-off.png",
+      "bytes": 349994,
+      "sha256": "eb0c6e7ce1900e64780418080486cf67a6f33d30361e9a738d3c6c3e7fa6c3be"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-1-seed-456-teacher.png",
+      "bytes": 350801,
+      "sha256": "737c6e92af19138c101273e6f8044f51f366512d0566f45f26d3f82bd3d9e372"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sana-happy-20261017/samples/baselines/case-2-seed-789-off.png",
+      "bytes": 376598,
+      "sha256": "573cd71aef18da88cc7284e7fe5b4cbb991fcd1a54717eb8591397f70579667e"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/recipe.json",
+      "bytes": 4501,
+      "sha256": "75f8d744cc0fbe55f926ab047411032c4a7a80b7cc9737d5bd7b3b7d20fcd2b7"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/checkpoints/step-000000.json",
+      "bytes": 206,
+      "sha256": "efa8b6be30ff9cf7c6eccce7d8c80bb8cc002c0ece5542a440709327eb1a99d9"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/objective-disposition.json",
+      "bytes": 378,
+      "sha256": "919d7502a99d5b42f678dc23ae4227a7e2a41aac38ee0e585f075d18fcfc1160"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/progress.json",
+      "bytes": 694,
+      "sha256": "da3520922bd5c1dc718b0ffd874f5682edd84ef9f91a0fc4cbc793f95752d562"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/models/sd3-ea42f8c/qualification-manifest.json",
+      "bytes": 3562,
+      "sha256": "a53d185fdd330aa5f019be93fc7972832270ab9e23f787f86588b47b18fcb838"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/receipts/full.json",
+      "bytes": 694,
+      "sha256": "da3520922bd5c1dc718b0ffd874f5682edd84ef9f91a0fc4cbc793f95752d562"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-0-Off.png",
+      "bytes": 410512,
+      "sha256": "b4c3f3e88c648d37d7b621c674499dbc8d6113bd5b6aaef7359cef2233453754"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-0-Frozen_positive_CFG3.png",
+      "bytes": 417399,
+      "sha256": "b11792b6932b47bfed37869fe94adf09f2ee4152f2aad60654958108cfb2db83"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-1-Off.png",
+      "bytes": 449034,
+      "sha256": "d1e6fbce5b4dff462ef02f2a56eb3a3a83a82a6ccd87c5e175d21e41c8799587"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-1-Frozen_positive_CFG3.png",
+      "bytes": 454075,
+      "sha256": "35de923cba832764875c409011938043e8fb6fc68d6d0354980ee0cef160e718"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-2-Off.png",
+      "bytes": 297877,
+      "sha256": "32443b82feb7ef3b9a9b5aa5ae73a05aea786eb5ddc10917a6e9a291dee8f941"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/runs/sd3-smile-20261017/samples/step-000000/case-2-Frozen_positive_CFG3.png",
+      "bytes": 297877,
+      "sha256": "32443b82feb7ef3b9a9b5aa5ae73a05aea786eb5ddc10917a6e9a291dee8f941"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sana-cached-negative/conceptmod/textsliders/qualification_state.py",
+      "bytes": 3827,
+      "sha256": "7d0e3c9251b5337330e4790c6559f522563b16b28e2ffc34d5a43f7c39104d1d"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/qualification_state.py",
+      "bytes": 5236,
+      "sha256": "02ca08df1756e9df4d50c221ca86af0517270bf9ddf6a32fadc539aeeb255eb9"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/conceptmod/textsliders/lora.py",
+      "bytes": 14672,
+      "sha256": "2bcf1a1267ca0369e0e2d4e2584db6821b2ab518c9cd3c535292d20a5e25d85d"
+    },
+    {
+      "path": "/mnt/nvme/sliders/qualification/checkouts/particle-sliders-sd3/scripts/sd3_qualification_images.py",
+      "bytes": 1655,
+      "sha256": "99605fb1df844ca332a27e61f0e2551c2b019410ce573ab45a2d5e19be1bf5b4"
+    },
+    {
+      "path": "/mnt/nvme/ai/conda/anaconda3/envs/minimax-music3/lib/python3.11/site-packages/torch/optim/lr_scheduler.py",
+      "bytes": 103616,
+      "sha256": "e5618b99182cb3fcbf6155e5b6f00fd471a0933272db098c375bdb90a64b2084"
+    }
+  ]
+}
