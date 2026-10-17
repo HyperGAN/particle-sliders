@@ -1,0 +1,15 @@
+{
+  "schema": "video-wheel-candidate-composition-v1",
+  "core_head": "cdfb80a76b882b4b73861b12f555263bd64ffeb7",
+  "video_head": "397c69c2f1cdaf2b06098bc2649e04d6e4673b2e",
+  "video_sources": {
+    "packages/particle-sliders-core/src/particle_sliders/ltx25_backend.py": "b798f7008d9c4aceb4a3f85db08b886e048fe217cc2aaaebde748d9574665124",
+    "packages/particle-sliders-core/src/particle_sliders/ltx25_uni.py": "77bb72d84d5af0e220241639e910ebeabbbe95ef582ac8a05c68475f48b0e61d",
+    "packages/particle-sliders-core/src/particle_sliders/ltx25_cli.py": "e55bacbb0186c3b228895a779ba2c6114a27239624bf94baaf94165900bf0ac2",
+    "packages/particle-sliders-core/src/particle_sliders/pg09_ltx_embed.py": "adfebed8c57db97ee964f9647e8f58d078eee092d80b5e1d609da79e939d6b58"
+  },
+  "wheel": "particle_sliders_core-0.6.0-py3-none-any.whl",
+  "wheel_sha256": "b1b12c081620198a9876394c5ac5b6ea1e33a5f67200ec1dedd223dbeb9d247c",
+  "review_candidate_only": true,
+  "runtime_admission": false
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "embedded-video-dependency-lock-v1",
+  "status": "consumer-qualified-review-candidate",
+  "shared_package_commit": "4be0b5b29d2e2c741431f468d71ba8a7c884b724",
+  "shared_package_version": "0.6.0",
+  "shared_producer_wheel_sha256": "2e7621c370e790f65702acf76cfa2f428b393cd3f863245aa26d8a76ff096ada",
+  "video_modules_commit": "397c69c2f1cdaf2b06098bc2649e04d6e4673b2e",
+  "video_module_sha256": {
+    "packages/particle-sliders-core/src/particle_sliders/ltx25_backend.py": "b798f7008d9c4aceb4a3f85db08b886e048fe217cc2aaaebde748d9574665124",
+    "packages/particle-sliders-core/src/particle_sliders/ltx25_uni.py": "77bb72d84d5af0e220241639e910ebeabbbe95ef582ac8a05c68475f48b0e61d",
+    "packages/particle-sliders-core/src/particle_sliders/ltx25_cli.py": "e55bacbb0186c3b228895a779ba2c6114a27239624bf94baaf94165900bf0ac2",
+    "packages/particle-sliders-core/src/particle_sliders/pg09_ltx_embed.py": "adfebed8c57db97ee964f9647e8f58d078eee092d80b5e1d609da79e939d6b58"
+  },
+  "composed_consumer_wheel_sha256": "f56eb2da52809ecbcd5ade6f6dca27c615f917d70e8f4db54d75aff6e905c209",
+  "particlegan_version": "0.9.1",
+  "particlegan_official_wheel_sha256": "b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec",
+  "pg_source_profile": "alz-continuous-v1",
+  "penalty_input_domain": "continuous",
+  "profile_sources_bound_in": "replacement-4be0b5b/sourcefree-receipt.json",
+  "acceptance_receipt": "replacement-4be0b5b/acceptance-receipt.json",
+  "supersedes": {
+    "shared_package_commit": "42a2e371c537180bd189fd4a288b640f9f1c98fc",
+    "consumer_wheel_sha256": "0941edb3a8467139ab49fb4ddb6a29ab59401c4cccb1504935bc10c5297c8641",
+    "reason": "optimizer-state restore integrity bug",
+    "preserved_receipt": "audit-receipt.json"
+  },
+  "active_cohort_retarget": false,
+  "ada_approved": false,
+  "merged": false,
+  "native_runtime_qualified": false
+}

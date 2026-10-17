@@ -61,6 +61,12 @@ def single_cpu_thread():
     # Adam cannot legitimately lack its history after two completed updates.
     ("opt_g", "absent_history", "optimizer|Adam"),
     ("opt_g", "empty_history", "optimizer|Adam"),
+] + [
+    ("opt_g", f"integer_clock_{count}", "completed updates")
+    for count in (0, 1, 3)
+] + [
+    ("opt_d", f"integer_clock_{count}", "completed updates")
+    for count in (0, 3)
 ])
 def test_cli_resume_rejects_corrupt_adam_before_live_mutation(
     optimizer, corruption, error, tmp_path, monkeypatch,
@@ -73,11 +79,14 @@ def test_cli_resume_rejects_corrupt_adam_before_live_mutation(
     history = checkpoint["game"][optimizer]
     key = history["param_groups"][0]["params"][0]
     slots = history["state"][key]
+    assert checkpoint["game"]["completed_steps"] == int(slots["step"].item()) == 2
     assert {"step", "exp_avg", "exp_avg_sq"} <= slots.keys()
     if corruption == "negative_second_moment":
         slots["exp_avg_sq"].fill_(-1.)
     elif corruption == "fractional_clock":
         slots["step"] = torch.tensor(.5)
+    elif corruption.startswith("integer_clock_"):
+        slots["step"].fill_(int(corruption.rsplit("_", 1)[1]))
     elif corruption == "absent_history":
         del history["state"][key]
     elif corruption == "empty_history":

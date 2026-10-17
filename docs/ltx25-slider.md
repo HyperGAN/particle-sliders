@@ -69,8 +69,8 @@ inference probe reload exactly, and reject altered source signatures before
 writing output. The receipt records the exact wheel and source hashes; the
 first task14 wheel alone does not include this video delta.
 
-Current acceptance uses replacement shared core
-`4be0b5b29d2e2c741431f468d71ba8a7c884b724`; the earlier `42a2e371` candidate is
-superseded. Exact producer/consumer wheel hashes and preserved prior lineage are
+Current acceptance uses frozen shared core
+`cdfb80a76b882b4b73861b12f555263bd64ffeb7`. Earlier `42a2e371` and `4be0b5b`
+receipts remain preserved; the final delta receives narrow consumer checks. Exact producer/consumer wheel hashes and preserved prior lineage are
 in `evidence/video-audit/current-dependency-lock.json`. The four video module
 sources are unchanged. No active cohort or historical checkpoint is retargeted.

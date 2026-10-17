@@ -1,0 +1,47 @@
+{
+  "schema": "embedded-video-final-consumer-acceptance-v1",
+  "shared_core_commit": "cdfb80a76b882b4b73861b12f555263bd64ffeb7",
+  "shared_producer_wheel_sha256": "4abc83988fdeb6d7478de830e7ee8ec5d9bd99c20d52f89e4ce594d50dfd39a3",
+  "video_implementation_commit": "397c69c2f1cdaf2b06098bc2649e04d6e4673b2e",
+  "consumer_wheel_sha256": "b1b12c081620198a9876394c5ac5b6ea1e33a5f67200ec1dedd223dbeb9d247c",
+  "scope": "narrow consumer delta checks only; no broad unrelated rerun",
+  "narrow_cpu_tests": {
+    "passed": 16,
+    "seconds": 8.45,
+    "failures": 0,
+    "skips": 0
+  },
+  "independent_restore_tests": {
+    "passed": 13,
+    "seconds": 5.56,
+    "failures": 0,
+    "skips": 0
+  },
+  "sourcefree": {
+    "presets": [
+      "bispf",
+      "bispf_optimized"
+    ],
+    "exact_full4_vs_fresh_process2plus2": true,
+    "export_probe_reload_exact": true,
+    "source_tamper_rejected_before_output": true,
+    "installed_sources_match_wheel": true
+  },
+  "previous_4be_checkpoint_rejected": true,
+  "video_implementation_unchanged": true,
+  "all_28_shared_python_sources_preserved": true,
+  "native_runtime": "pending separate source/assets/license/hardware/protocol/AV qualification and coordinator admission",
+  "active_cohort_retarget": false,
+  "gpu_execution": false,
+  "merge": false,
+  "receipts": {
+    "ancestry.json": "d3a119ed821eef9064cd5c1897d982b9ce3524ae5a6b99b2670cbf11f66aaa81",
+    "cross-candidate-rejection.json": "87a7fee28c50889df3e8828e1d1534e2565be34f816d7362c5776ab99d1f7fcf",
+    "independent-restore-tests.xml": "af2c61c84a83131639a5df4b1b4d35cc0328a9a26aa3366ad5c152695fcbc501",
+    "narrow-cpu-tests.xml": "de40592824a651dcf62d6e014c989aec7677c72e6d7e300c4005bfbd40c87bfd",
+    "previous-dependency-lock-4be0b5b.json": "296083b20ff4e850035289ab49787f0a94af8e40a7bf6b8634306d7c45d6d4ae",
+    "source-integrity.json": "9a386f01baa57450c9371055ca13cc9723436383b938603fc6a606bd464dc10b",
+    "sourcefree-receipt.json": "7634429eedebd8a7cd889fdf0b5cc00daf3194b43e1980e140a982266ae886bf",
+    "wheel-composition.json": "07746d510364aebc095206478dd46d42ced0323daa1a036331a700b433b774ae"
+  }
+}

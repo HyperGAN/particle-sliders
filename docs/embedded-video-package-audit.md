@@ -2,7 +2,7 @@
 
 The video implementation is commit `397c69c2f1cdaf2b06098bc2649e04d6e4673b2e`,
 stacked on family source `ed3e4a9a724aaaf9acc657be63f6d4556ebc45be`. It requires
-replacement shared package candidate `4be0b5b29d2e2c741431f468d71ba8a7c884b724` and released
+replacement shared package candidate `cdfb80a76b882b4b73861b12f555263bd64ffeb7` and released
 ParticleGAN **0.9.1**. Neither candidate is implicitly Ada-approved or merged.
 All active family/core pins remain untouched. The earlier `42a2e371` candidate
 is superseded because its optimizer-state restore could accept corrupt history.
@@ -36,11 +36,11 @@ honest closure, **not an H3 GAN runtime migration or qualification**.
 ## Exact installation and tests
 
 The replacement producer wheel SHA256 is
-`2e7621c370e790f65702acf76cfa2f428b393cd3f863245aa26d8a76ff096ada`.
+`4abc83988fdeb6d7478de830e7ee8ec5d9bd99c20d52f89e4ce594d50dfd39a3`.
 It does not include video. The review composition combines that exact frozen
 core Git head with the unchanged four video modules from `397c69c`. Result:
 `particle_sliders_core-0.6.0-py3-none-any.whl`, SHA256
-`f56eb2da52809ecbcd5ade6f6dca27c615f917d70e8f4db54d75aff6e905c209`.
+`b1b12c081620198a9876394c5ac5b6ea1e33a5f67200ec1dedd223dbeb9d247c`.
 Every shared Python source matches the producer wheel byte for byte; installed
 core and video module fingerprints match the composed wheel. This is a local
 review artifact, not a published package release or an Ada-approved merge.
@@ -48,8 +48,10 @@ review artifact, not a published package release or an Ada-approved merge.
 The replacement rejects negative second moments, invalid optimizer clocks,
 incomplete Adam fields and erased histories before live restore. Its history
 schema distinguishes legitimately unused critic parameters from erased state.
-Eight video CLI regressions check full receiver state, parameter identity,
+Thirteen video CLI regressions check full receiver state, parameter identity,
 ambient RNG, critic thermal cache and absent output after rejected resume.
+The final delta binds original Adam G clocks to completed updates and validates
+sparse D clock bounds. Its Iris import change does not affect the video path.
 No video implementation or shared loss mathematics changed during adoption.
 
 The official PG 0.9.1 wheel SHA256 is
@@ -59,9 +61,12 @@ explicitly use the exact task14 `alz-continuous-v1`/`continuous` profile, copied
 only into isolated test processes. No global/active environment is patched.
 Release/auto rejects wide connector responses before backend construction.
 
-- **139 CPU tests and 12 subtests pass**, no skips or failures, 16.22 seconds.
-  All nine native adapter review cases re-pass within this installed-wheel suite.
-- **8 independent restore regressions pass**, no skips, 4.29 seconds.
+- **16 narrow consumer tests pass**, no skips or failures, 8.45 seconds:
+  thirteen corrupt-history/clock cases, both presets' actual train/resume/export
+  paths, and source/kind rejection.
+- **13 independent restore regressions pass**, no skips, 5.56 seconds.
+- The earlier broad **139 tests plus 12 subtests** remain preserved evidence
+  against `4be0b5b`; unrelated suites were not rerun for the narrow final delta.
 - Source-free installed-wheel tests run with isolated Python from an empty
   temporary directory. All video imports originate from site-packages, with no
   `conceptmod` import. Both presets match four uninterrupted updates to separate
@@ -74,10 +79,10 @@ Release/auto rejects wide connector responses before backend construction.
   Torch or the repository, and reject blocked routes before runtime imports.
 
 Receipts, source hashes and exact composition are under
-[`evidence/video-audit/replacement-4be0b5b`](../evidence/video-audit/replacement-4be0b5b/).
-The original receipts at `evidence/video-audit/` describe the superseded wheel.
-The replacement wheel remains at
-`/ml2/codex-storage/future-workspaces/2026-10-17/task-22/video-candidate-replacement-4be0b5b/`.
+[`evidence/video-audit/final-cdfb80a`](../evidence/video-audit/final-cdfb80a/).
+Earlier `42a2e371` and `4be0b5b` receipts remain unchanged in their original
+locations. The final consumer wheel remains at
+`/ml2/codex-storage/future-workspaces/2026-10-17/task-22/video-candidate-cdfb80a/`.
 Reproduction helpers are `scripts/build_video_candidate_wheel.py` and
 `scripts/verify_ltx25_sourcefree.py`.
 
@@ -97,3 +102,22 @@ assets/variant identity and hardware fit. These actions are **pending**, not
 executed or denied. Coordinator `01a147d7-f540-778e-ad79-4d8eb267403d` alone owns
 runtime admission. No model/GPU job, service change, credential change, external
 model publication or merge occurred.
+
+## Historical base and main integration
+
+Historical main `20fdf98d25455582e7e7191eef8ef51cf73173ae` is the merge base
+of the frozen family base `ed3e4a9a724aaaf9acc657be63f6d4556ebc45be` and CDF.
+The family base is 22 commits ahead of that main; CDF is 101 commits ahead.
+Neither branch contains the other. Exact ancestry is recorded in
+`evidence/video-audit/final-cdfb80a/ancestry.json`.
+
+PR #140 targets the historical family base. Merging that target PR alone does
+not deliver video to main. Parent/Ada must first approve and reconcile the
+main-to-core prerequisites, including the historical content outside PR #141's
+narrow base comparison. Then apply only the reviewed video delta
+`ed3e4a9..audit/embedded-video-shared-pg09` to the isolated CDF release stage.
+A clean `git apply --check` against a detached CDF checkout verifies this delta
+can be staged without merging the 22 historical family commits. Revalidate the
+assembled candidate before the parent-controlled main merge. No merge has run.
+The separately pending image `6aef` payload and the three launcher gates owned
+by the Tiny/Bonsai audit are excluded from this video delta.

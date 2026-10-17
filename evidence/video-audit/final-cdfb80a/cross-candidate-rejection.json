@@ -1,0 +1,12 @@
+{
+  "schema": "ltx25-real-cross-candidate-rejection-v1",
+  "previous_core": "4be0b5b29d2e2c741431f468d71ba8a7c884b724",
+  "replacement_core": "cdfb80a76b882b4b73861b12f555263bd64ffeb7",
+  "previous_checkpoint_sha256": "91b0c1e684c565fccb6e1ca3bb4ece384eb8340e56ab028b89f8120b7dba1edf",
+  "receiver_pg09_sha256": "190a7e6c3a8b53d7d495a577183deacce5c8a1250b674de87c349fb7aead84b3",
+  "rejected": true,
+  "error": "checkpoint objective, recipe, domain, source or conditioning mismatch",
+  "output_created": false,
+  "source_unchanged": true,
+  "cuda_initialized": false
+}
