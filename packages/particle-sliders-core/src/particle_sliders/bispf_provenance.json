@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/255BITS/ParticleGAN",
+  "commit": "b5d2372f2739d7579ab66d6dba6e220d2eb776d9",
+  "version": "0.8.0",
+  "entry_point": "get_recipe(\"bispf\") component factories",
+  "variant": "SRpGAN + formulation-owned Adam + EBI/TCR + gauge + SBNP",
+  "files_sha256": {
+    "particlegan/bispf.py": "19555a93c01706a6ffb898b06f98b3dca7e4cdbe0b47cbd7c222acfddfeace58",
+    "particlegan/recipes.py": "77496eaad30ccec06f099c83c8ed6e2a15b863dc833029fe1b936fe1d6cc50fd",
+    "particlegan/k3p.py": "45ceabdc067fb420e163d3d4ac5a4edb0bb47d154c38c73865f95dabeaefcad7",
+    "particlegan/gan_loss.py": "f73cc593aef5d7507dc1a468ee261cc186c8dbfbee3a0aad769b6e252c2c143f",
+    "particlegan/moment_tether.py": "16bc50edae9ca43464240c84ffd20cb93691194f2b285a1056b56ff3a98c0e5a",
+    "particlegan/grad_regularizers.py": "a540d05a4a992540b6a5f3b5ff7ccc11ebaf18592135b87c95638adbe68aa747"
+  }
+}

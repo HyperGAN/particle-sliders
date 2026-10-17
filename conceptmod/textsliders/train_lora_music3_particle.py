@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Train Music 3 with the Yue2 winning particle-bridge formulation."""
+"""Train Music 3 routed particles with BISPF (or the explicit legacy game)."""
 from __future__ import annotations
 
 import argparse
@@ -44,11 +44,23 @@ def source_hashes():
     ]
     paths = [ROOT / "conceptmod/textsliders" / name for name in names]
     paths += [ROOT / "analysis/slider2d" / name for name in ("adv.py", "grad_regularizers.py")]
+    paths += [ROOT / "packages/particle-sliders-core/src/particle_sliders/bispf_game.py"]
     return {str(path.relative_to(ROOT)): file_digest(path) for path in paths}
 
 
 def train(args):
     recipe = dict(game.RECIPE)
+    formulation = getattr(args, "formulation", "bispf")
+    if formulation == "bispf":
+        from particle_sliders.bispf_game import UPSTREAM_COMMIT
+        recipe.update(name="paired-error-bispf-v1", formulation="bispf",
+            particlegan_commit=UPSTREAM_COMMIT,
+            generator_objective="sinkhorn_relativistic_plus_sbnp",
+            g_optimizer="K3PGeneratorAdam", d_optimizer="BISPFCriticAdam",
+            vicreg_weight=0., prior_reg=.05, penalty_lazy_k=1,
+            critic_score_bound=0., ema=0., adv_batch=getattr(args, "batch_size", 8),
+            noise_start=1., noise_floor=1., noise_decay_steps=None,
+            target_normalization="paired_edit_per_coordinate_std_median_rms_gain")
     if getattr(args, "critic", None):
         recipe["critic"] = args.critic
     if getattr(args, "critic_patch", None) is not None:
@@ -67,14 +79,12 @@ def train(args):
         recipe["critic_rank"] = args.critic_rank
     if getattr(args, "critic_score_bound", None) is not None:
         recipe["critic_score_bound"] = args.critic_score_bound
+    if formulation == "bispf" and recipe["critic_score_bound"] != 0:
+        raise ValueError("BISPF requires --critic_score_bound 0 (raw critic scores)")
     if getattr(args, "d_lr", None) is not None:
         recipe["d_lr"] = args.d_lr
-    # build_game reads module RECIPE; keep it aligned with this run.
-    game.RECIPE.update(
-        {k: recipe[k] for k in recipe if k.startswith("critic") or k == "d_lr"}
-    )
-    if recipe["parts"] != 128 or recipe["vicreg_weight"] != 1 or recipe["particle_dim"] != 4:
-        raise ValueError("Particle bridge requires 128x4 particles and VIC weight 1")
+    if recipe["parts"] != 128 or recipe["particle_dim"] != 4:
+        raise ValueError("Particle bridge requires 128x4 particles")
     rows, meta = game.load_prompts(args.prompts_file)
     if len(rows) < 2:
         raise ValueError("Particle bridge needs at least two prompt rows")
@@ -118,9 +128,18 @@ def _train_locked(args, rows, meta, recipe):
     fixed = saved["prepared"] if saved else game.prepare(backend, rows, meta, args.max_seq_len)
     torch.manual_seed(args.seed + 1000)
     network = game.ParticleNetwork(backend.model, rank=8, alpha=8.0)
-    critic, g, d = game.build_game(backend, network, fixed)
-    for group in g.param_groups:
-        group["lr"] = recipe["particle_lr"] if group.get("role") == "particles" else recipe["g_lr"]
+    critic, g, d = game.build_game(backend, network, fixed, recipe=recipe)
+    bispf = None
+    if recipe.get("formulation") == "bispf":
+        from particle_sliders import BISPFGame
+        targets = torch.cat([row["targets"] for row in fixed]).to(critic.target_mean.device)
+        bispf = BISPFGame(network, critic, targets, seed=args.seed,
+            batch_size=recipe["adv_batch"], g_lr=recipe["g_lr"],
+            d_lr=recipe["d_lr"], particle_lr=recipe["particle_lr"], total_steps=args.steps)
+        g, d = bispf.opt_g, bispf.opt_d
+    if bispf is None:
+        for group in g.param_groups:
+            group["lr"] = recipe["particle_lr"] if group.get("role") == "particles" else recipe["g_lr"]
     for group in d.param_groups:
         group["lr"] = recipe["d_lr"]
     device = next(network.parameters()).device
@@ -128,10 +147,15 @@ def _train_locked(args, rows, meta, recipe):
     completed = 0
     history = []
     if saved:
-        network.load_state_dict(saved["network"], strict=True)
-        critic.load_state_dict(saved["critic"], strict=True)
-        g.load_state_dict(saved["g_optimizer"])
-        d.load_state_dict(saved["d_optimizer"])
+        if bispf is not None:
+            bispf.load_state_dict(saved["bispf"])
+            if bispf.completed_steps != saved["completed"]:
+                raise ValueError("BISPF and run update counters differ")
+        else:
+            network.load_state_dict(saved["network"], strict=True)
+            critic.load_state_dict(saved["critic"], strict=True)
+            g.load_state_dict(saved["g_optimizer"])
+            d.load_state_dict(saved["d_optimizer"])
         sampler.load_state_dict(saved["sampler"])
         completed = saved["completed"]
         history = saved["history"]
@@ -234,6 +258,7 @@ def _train_locked(args, rows, meta, recipe):
             ema=_cpu(ema),
             rng=torch.get_rng_state(),
             cuda_rng=torch.cuda.get_rng_state_all() if device.type == "cuda" else [],
+            bispf=_cpu(bispf.state_dict()) if bispf is not None else None,
         )
         temporary = path.with_suffix(".pt.tmp")
         torch.save(blob, temporary)
@@ -242,7 +267,8 @@ def _train_locked(args, rows, meta, recipe):
         record = dict(metadata, step=completed, prompt_draws=len(counted), row_counts=dict(Counter(counted)))
         export = run / f"{args.name}_last.safetensors"
         tmp = run / f"{args.name}_pending.safetensors"
-        network.save(tmp, dict(record, weights_kind="ema"), state=ema)
+        export_kind = "ema" if bispf is None else "live"
+        network.save(tmp, dict(record, weights_kind=export_kind), state=ema)
         tmp.replace(export)
         tmp.with_suffix(".json").replace(export.with_suffix(".json"))
         live = run / f"{args.name}_live_last.safetensors"
@@ -254,7 +280,7 @@ def _train_locked(args, rows, meta, recipe):
             if not pinned.exists():
                 os.link(path, pinned)
                 os.link(export, run / f"{args.name}_step{completed}.safetensors")
-                write_json(run / f"{args.name}_step{completed}.json", dict(record, weights_kind="ema"))
+                write_json(run / f"{args.name}_step{completed}.json", dict(record, weights_kind=export_kind))
                 os.link(live, run / f"{args.name}_live_step{completed}.safetensors")
                 write_json(run / f"{args.name}_live_step{completed}.json", dict(record, weights_kind="live"))
         status(
@@ -292,8 +318,13 @@ def _train_locked(args, rows, meta, recipe):
                     sampler=sampler,
                     step=step,
                     checkpointing=not args.no_checkpointing,
+                    bispf=bispf,
                 )
-                particle_game.update_ema(ema, network)
+                if bispf is None:
+                    particle_game.update_ema(ema, network)
+                else:
+                    # BISPF serves live weights; keep the historical export filenames.
+                    ema = particle_game.initialize_ema(network)
                 completed = step
                 record = dict(
                     metrics,
@@ -332,6 +363,8 @@ def parse_args(argv=None):
     parser.add_argument("--model_dir", type=Path, default=game.DEFAULT_MODEL)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--dummy", action="store_true")
+    parser.add_argument("--formulation", choices=["bispf", "legacy"], default="bispf")
+    parser.add_argument("--batch_size", type=int, default=8, help="BISPF full Sinkhorn batch (2..512)")
     parser.add_argument("--no_checkpointing", action="store_true")
     parser.add_argument(
         "--critic",
@@ -353,7 +386,9 @@ def parse_args(argv=None):
         parser.error("Invalid checkpoint name")
     if not 1 <= args.until <= args.steps or min(args.save_every, args.max_seq_len) < 1:
         parser.error("Invalid budget")
-    if not 0 <= args.seed < 2**63:
+    if not 2 <= args.batch_size <= 512:
+        parser.error("BISPF batch_size must be in [2, 512]")
+    if not 0 <= args.seed < 2**63 - 100:
         parser.error("Invalid seed")
     for key in (
         "critic_patch", "critic_width", "critic_layers", "critic_heads",

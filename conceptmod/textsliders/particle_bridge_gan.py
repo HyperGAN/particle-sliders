@@ -703,6 +703,19 @@ CRITIC_CONFIG_KEYS = frozenset({
 })
 
 
+CRITIC_CONFIG_BY_KIND = {
+    'mlp': set(),
+    'sn_mlp': {'width', 'layers'},
+    'patch': {'patch', 'width', 'layers', 'heads'},
+    'mix': {'tokens', 'width', 'layers', 'heads'},
+    'gmix': {'tokens', 'width', 'layers', 'heads'},
+    'bottleneck': {'tokens', 'width', 'layers', 'heads'},
+    'lowrank': {'tokens', 'width', 'layers', 'heads', 'rank'},
+    'hybrid': {'tokens', 'width', 'layers', 'heads'},
+    'query': {'tokens', 'queries', 'width', 'layers', 'heads'},
+    'bquery': {'tokens', 'queries', 'width', 'layers', 'heads'},
+}
+
 def make_critic(targets, kind=None, config=None, *, neutrals=None):
     kind = REFERENCE['critic'] if kind is None else kind
     config = dict(config or {})
@@ -710,18 +723,7 @@ def make_critic(targets, kind=None, config=None, *, neutrals=None):
     if unknown:
         raise ValueError(f'Unknown critic config keys: {sorted(unknown)}')
     score_bound = config.pop('score_bound', None)
-    accepted = {
-        'mlp': set(),
-        'sn_mlp': {'width', 'layers'},
-        'patch': {'patch', 'width', 'layers', 'heads'},
-        'mix': {'tokens', 'width', 'layers', 'heads'},
-        'gmix': {'tokens', 'width', 'layers', 'heads'},
-        'bottleneck': {'tokens', 'width', 'layers', 'heads'},
-        'lowrank': {'tokens', 'width', 'layers', 'heads', 'rank'},
-        'hybrid': {'tokens', 'width', 'layers', 'heads'},
-        'query': {'tokens', 'queries', 'width', 'layers', 'heads'},
-        'bquery': {'tokens', 'queries', 'width', 'layers', 'heads'},
-    }
+    accepted = CRITIC_CONFIG_BY_KIND
     if kind not in accepted:
         raise ValueError(
             f"Unknown particle-bridge critic {kind!r}; "
