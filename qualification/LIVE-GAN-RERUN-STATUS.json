@@ -1,9 +1,9 @@
 {
   "schema": "root-gan-rerun-handoff-v1",
-  "updated_utc": "2026-10-17T17:50:40.173249+00:00",
+  "updated_utc": "2026-10-17T17:59:17.151099+00:00",
   "integration_checkout": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core",
   "integration_branch": "integration/pg09-conditional-core",
-  "integration_head": "bd7029cb88f1e8b01e1e8ac46959cbb43cc1ccaa",
+  "integration_head": "40f1d5de469d92ac2d5ea174945760f529bc938e",
   "shared_core_commit": "3e94b13eb5d6cd1ceee3f018f019a68603f35696",
   "file_restore_repair_commit": "c053b33a6b84b35c52f9860455942f60da95b3a6",
   "jobs": {
@@ -325,6 +325,26 @@
       "finding": "Incomplete/unstable training fit and almost common-direction generated edits; weak effective critic context sensitivity. Sign/strength/checkpoint pairing correct; no specific causal implementation defect established.",
       "report": "docs/bonsai-pg09-readonly-diagnosis.md",
       "smallest_next_test": "Proposed training-only zero-update bias/input/router ablation; NOT executed as part of this review."
+    },
+    "bias_routing_ablation": {
+      "source_commit": "c20315493e580c1bb2a6fa1f52ff754bb593160f",
+      "qa_commit": "27f5e1142fd0b355445429878ee8b02533cc1f6d",
+      "all_values_root_reproduced_exactly_except_elapsed": true,
+      "optimizer_updates": 0,
+      "heldout_tensor_reads": 0,
+      "report": "docs/bonsai-pg09-bias-routing-ablation.md",
+      "finding": "Common edit magnitude largely carried by decoder biases with weak row-specific routing. Bias removal alone leaves almost parallel edits. Frozen critic preference is snapshot evidence, not historical causality or a public formula defect. No selected repair/new training arm."
     }
+  },
+  "sequential_admission_plan": {
+    "status": "PLANNING_ONLY_NO_NEW_GPU_ADMISSION",
+    "human_scope_authorized": true,
+    "missing_human_permission": false,
+    "markdown": "qualification/SEQUENTIAL-CAMPAIGN-ADMISSION-PLAN.md",
+    "machine_readable": "qualification/SEQUENTIAL-CAMPAIGN-ADMISSION-PLAN.json",
+    "offline_check": "qualification/campaign-admission-offline-check.json",
+    "priority": "ExistingMOSS3840 thenverifiedmatchedMOSS evaluation; defaultserialize subsequentnewphases",
+    "owners_cpu_work": "FinalForm/Supra newfiles-onlyworker shells, image metadata/RNGaudit proposals, audio nextphase cards under preparation",
+    "no_automation": true
   }
 }

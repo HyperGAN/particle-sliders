@@ -1,0 +1,228 @@
+{
+  "schema": "root-sequential-corrected-campaign-plan-v1",
+  "status": "PLANNING_ONLY_NO_DISPATCH",
+  "recorded_utc": "2026-10-17T17:57:51.518216+00:00",
+  "parent_scope": "FinishsafeCPU/offlinevalidation and explicitsequentialadmissionplan; bothMOSS retainpriority; noautomation.",
+  "user_scope_authorized": true,
+  "new_gpu_admissions_granted": false,
+  "automation": false,
+  "capacity_policy": "No newGPUwork while bothMOSS training slots occupied. CompletedMOSS checkpoint+matched evaluation takes priority. Defaultserialize newstages inlistedorder; anyreordering/concurrentcontinuation needs separate explicitrootresourceadmission, neverautomatic fallback.",
+  "global_gates": [
+    "Exact immutable command/environment/source/input/output card and independent source review before each new phase",
+    "Root acquires BOTH card lease paths; fresh physical UUID/resident/kernel/resource checks; no preemption or permission expansion",
+    "One new CUDA child or explicitly owned serial child group at a time; no automatic retries/fallbacks/sweeps",
+    "NVMe output on /dev/nvme0n1p2, >=100GiB free; host reserve >=8GiB and stricter per-card requirements; no /tmp training output",
+    "Soft76C/coolto70C/hard82C; card free floor>=6GiB; preserve resident3196 GPU1 and5556/9450 GPU0; own-group-only graceful stop",
+    "Actual imported native runtime origins before model load, exact49 release or explicitly reviewed ALZ profile; no whole-site overlay",
+    "Strict frozen teacher/cache and initial grad-enabled/no-grad parity before first update; no tolerance waiver",
+    "G=publicGANadversarial+required publicbankprior only; D=publicadversarial+publicpenalty; no optimizedMSE",
+    "Actual G/D/(participatingbank) movement, frozenbase SHA, zero/export reload, CPU-mapped checkpoint RNG, separate-process file-backed GPU replay",
+    "Full fixed budget and coverage before quality claim; exact matched heldouts/fruit/teacher controls, independent rawreceipt and visual/listening review"
+  ],
+  "offline_check": {
+    "path": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/qualification/campaign-admission-offline-check.json",
+    "sha256": "15e55a497c22348eddaa64391923496bb99c654b937ef408aac8754c79b0f156"
+  },
+  "stages": [
+    {
+      "order": 0,
+      "id": "active-moss-full-training",
+      "cases": [
+        "bad-intent",
+        "afterimage"
+      ],
+      "status": "ALREADY_ADMITTED_RUNNING",
+      "capacity": "Both physical GPUs reserved by existing guardians; do not change pins or restart.",
+      "next_gate": "Each completes3840, terminalfrozenbase, checksum-safe checkpoint and30720 D/G exposures each.",
+      "new_admission": false
+    },
+    {
+      "order": 1,
+      "id": "moss-matched-evaluation",
+      "cases": [
+        "bad-intent",
+        "afterimage"
+      ],
+      "status": "WAITING_COMPLETED_CHECKPOINTS",
+      "implementation": "Existing reviewed original-runtime guardian evaluate mode; unchanged exactv2recipes.",
+      "preferred_gpu": "Same card as completed training; other MOSS remains prioritized.",
+      "command_template": [
+        "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+        "scripts/guarded_moss_original_pg09.py",
+        "--recipe",
+        "EXACT_V2_RECIPE",
+        "--mode",
+        "evaluate"
+      ],
+      "preconditions": [
+        "Immutable3840 checkpoint audit PASS without requiring export",
+        "Terminalfrozenbase +completedguardian +two balanced cycles verified",
+        "Fresh leases/UUID/residents/resources; no old worker on targetcard"
+      ],
+      "outcome": "Finalexport+reloadaudit;20images/case,40total; oldMSE1600 rerendered under commonconditional-onlyCFG/no-skip; independent visualreview.",
+      "launch_now": false
+    },
+    {
+      "order": 2,
+      "id": "final-form",
+      "status": "IMPLEMENTATION_AND_CAPACITY_PENDING",
+      "user_scope_authorized": true,
+      "launch_now": false,
+      "preferred_gpu": 0,
+      "offline": "384trainbundles/15360signedrows audited; scale0.2522578997899252; nativeTorch2.9.1/releasePG0.9.",
+      "missing": [
+        "New case-specific worker/phasecard binding actualMSE200/254, not existing2case1600 restriction",
+        "Actualimport pins and loader/native frozen-cache+grad parity",
+        "Separateprocess GPU file-resume and memory/timing qualification"
+      ],
+      "phases": [
+        "CPU/offline source/cache/oldexport metadata verification",
+        "New source-bound3step probe on3840/b8 recipe, then separateprocess resume-check",
+        "If successful, separately admit3840/b8 fullbudget/80checkpoint intervals;30720 exposures perarm",
+        "Finalchecksum/frozenbase/export then30commonprotocol images overGAN3840/MSE200/MSE254"
+      ],
+      "probe_wall_cap_seconds": 1800,
+      "full_wall_cap_seconds": 604800,
+      "resource_rule": "First unknown/model phase requires>=36GiB fresh free onGPU0; native measuredprobe must fit freefloor6GiB and host8GiB reserve. Fullbudgetwallforecast reviewed before admission.",
+      "command_vector": null,
+      "command_missing_reason": "New isolated worker/card under CPU implementation; no executable approved yet."
+    },
+    {
+      "order": 3,
+      "id": "supra-final-boss",
+      "status": "MISSING_CONTEXT_ASSET_AND_IMPLEMENTATION",
+      "user_scope_authorized": true,
+      "launch_now": false,
+      "preferred_gpu": 0,
+      "hf_home": "/mnt/nvme/ai/caches/huggingface/main",
+      "offline": "Native model/T5/VAE revisions and cache manifests local;240edit+30hold cachedresponses; scale0.32844100447280516.",
+      "missing": [
+        "19required contexts notarchived; genuine nativeT5/storedunconditional export required",
+        "New source-bound context worker +training/checkpoint/render shells",
+        "Frozen batchedCFG2 versus splitbranch arithmetic parity and native CUDA-noise provenance"
+      ],
+      "phases": [
+        "Metadata/source/weightstat checks now, no weights loaded",
+        "Separately admit<=19nativeencode calls (18T5 when storedempty),0updates; exact19/config/model/T5 +everytensordigest receipt",
+        "Native parity/no-updateprobe then3GANsteps on28800/b4 recipe +disk-backed separateprocess replay/export",
+        "If projectedbudget fits6h, separately admit28800/b4/checkpoint400 and1600milestone;192cycles/115200exposures each",
+        "CompareGAN28800/MSE1600/MSEselected27200:96fixedimages inclbridge/fruit, sameconditional-onlyCFG/nativeCUDAseeds"
+      ],
+      "context_or_probe_wall_cap_seconds": 1800,
+      "training_wall_cap_seconds": 21600,
+      "budget_rule": "Full28800 must fit measured6h hardcap includingcheckpoint cost; if not, STOP and report, no shortening/extension.",
+      "command_vector": null,
+      "command_missing_reason": "Shells +frozencontextasset notyetready; no launch card."
+    },
+    {
+      "order": 4,
+      "id": "sana-happy",
+      "status": "ASSET_REPLAY_AND_NATIVE_QUALIFICATION_PENDING",
+      "user_scope_authorized": true,
+      "launch_now": false,
+      "preferred_gpu": 0,
+      "offline": "Repairedv2onlineCPUcontract30checks; same148M fullattn2 functionclass,rawt500/CFG4.5empty-positive teacher.",
+      "missing": [
+        "Historical text/noise/draws notarchived as standaloneassets; initial/500 checkpoint RNG/source timing audit proposed but notexecuted",
+        "Frozen selecteddescriptor/noise/contextreader +globalcollisiongate",
+        "Training-only response-scale scalar and native Off/teacher/mask/sampler/decoder/export parity",
+        "595MB native snapshot +595MB fullreadback/hash and fullG/D memory/timing measured",
+        "GPU diskresumetest"
+      ],
+      "phases": [
+        "Finish metadata validation +review boundedCPU weights_only/mmap RNGaudit proposal before packet reads",
+        "Freeze truthful common training descriptor plan; historical byte replay only if actually proven",
+        "Calibrate training-only editRMS; nativezero-updateparity +3step probe/full1000recipe +separateprocessdiskreplay",
+        "Separately admit each fixed publicpreset arm:1000G+1000D,batch2,500descriptors,4cycles; checkpoints/panels0/20/250/500/750/1000",
+        "Exactarchived female/male seeds123/456 plusfruit789 at0/.5/1/teacher; independentqualityreview"
+      ],
+      "probe_wall_cap_seconds": 1800,
+      "full_wall_cap_seconds": null,
+      "wall_cap_reason": "Must be frozen from admitted nativeprofile before fullarm; no unboundedfullrun.",
+      "command_vector": null,
+      "command_missing_reason": "Production assetreader/calibration/liveworker/card pending; CPUprototype not a dispatch entrypoint."
+    },
+    {
+      "order": 5,
+      "id": "sd3-smile",
+      "status": "ASSET_REPLAY_AND_NATIVE_QUALIFICATION_PENDING",
+      "user_scope_authorized": true,
+      "launch_now": false,
+      "preferred_gpu": 0,
+      "offline": "Repairedv2onlineCPUcontract30checks; nativeBF16 schedulerendpoint with currentadapter no-gradprefix1..49/50.",
+      "missing": [
+        "Historical draws/textencodings notstandalonearchived; checkpointRNGaudit proposal pending",
+        "Fixeddescriptor/noise/completecondition reader +collisiongate",
+        "Training-only responsescale and actual nativeBF16endpoint/CFG/mask/decoder parity",
+        "Snapshot/memory/timing and separateprocessGPUdiskresume"
+      ],
+      "phases": [
+        "Finish metadata +boundedCPU RNGaudit proposal; no arbitrarypicklefallback",
+        "Freeze explicit onlineprefix algorithm/currentG version/rowhashes; never silently substitute frozenprefix",
+        "Nativezero-updateparity +trainingonlycalibration +3step probe/full1000recipe +separateprocessdiskresume",
+        "Separately admit both publicpreset1000/b2 arms,4cycles; panels0/20/250/500/750/1000",
+        "Exactfemale123/male124/fruit125,28steps/CFG3/scales0/-1/.5/1/teacher; independentqualityreview"
+      ],
+      "probe_wall_cap_seconds": 1800,
+      "full_wall_cap_seconds": null,
+      "wall_cap_reason": "Requires measurednativeprofile then frozenhardcap, no unboundedadmission.",
+      "command_vector": null,
+      "command_missing_reason": "Productionreader/calibration/liveworker/card notready."
+    },
+    {
+      "order": 6,
+      "id": "audio-yue2-next",
+      "status": "NEXT_PHASE_CARD_AND_CAPACITY_PENDING",
+      "user_scope_authorized": true,
+      "launch_now": false,
+      "preferred_gpu": 1,
+      "offline": "Actualpretrained3vs1+2 smoke passed bank/critic/frozenbase/export/fullGPUresume; nativeTorch2.10/TF4.57 retained.",
+      "missing": [
+        "New phase-specific immutablecard/guardian; oldguardian permits ONLY completed3childsmoke",
+        "Matched nativeaudio renderer/importedexport identity and duration/decoder/zero controls qualified"
+      ],
+      "phases": [
+        "Offlineasset/runtime/sourcevalidation and new20step/rendercards now",
+        "Separately admit continuation fromqualifiedfull3 todeclared20total, same4train/2heldout/token512/b2/rank8/native128x4bank,checkpoint2",
+        "Independentfrozenbase/bank/G/D/export/heldoutresponseaudit; noqualityfromloss",
+        "Separately admit boundedmatched YuE<=200semantic-token renders, base/off/.5/1/teacher on2heldouts, thenindependentlistening"
+      ],
+      "training_wall_cap_seconds": 900,
+      "minimum_fresh_gpu_free_gib": 16,
+      "render_wall_cap_seconds": null,
+      "render_cap_reason": "Separateboundedrenderer proposal required, no rendering implied.",
+      "command_vector": null,
+      "command_missing_reason": "Oldsmokecard consumed/restricted; newphase command+source+resumeasset pins awaitingownerfreeze."
+    },
+    {
+      "order": 7,
+      "id": "audio-music3-smoke",
+      "status": "UNQUALIFIED_NATIVE_GPU_AND_NEW_GUARDIAN_PENDING",
+      "user_scope_authorized": true,
+      "launch_now": false,
+      "preferred_gpu": 0,
+      "offline": "Actual4096width/Qwen3+nativebank CPUexplicitprofile/freshprocess checks passed; staged LM/decoder manifests.",
+      "missing": [
+        "NativeGPU full3vs1+2 smoke and phase-specificguard/card",
+        ">=26GiB freshfree plus6GiB runningreserve; memoryfit notassumed",
+        "Any20stepcontinuation or<=8smatchedwaveform render is a laterseparatephase"
+      ],
+      "phases": [
+        "Finishofflinemodule/asset/hash/cardvalidation",
+        "Separately admit3serialCUDAchildren max1concurrent, full3vs1+2 withcompletepacket/loss/probe/exportequality onreviewed20totalrecipe",
+        "Stop aftersoftwareproof; inspectrawreceipts beforeany20step/nativeaudioadmission"
+      ],
+      "smoke_wall_cap_seconds": 900,
+      "minimum_fresh_gpu_free_gib": 26,
+      "command_vector": null,
+      "command_missing_reason": "YuE-specific oldguardian cannotadmitMusic3; separatefrozencard+nativecommandrequired."
+    }
+  ],
+  "authorization_distinction": "Originalcorrectedrerun/validation scopeauthorized. Pendingrootphaseadmission is anoperationaltechnicalgate, not a missinghumanpermissionrequest. No rejectedlaunch retried; no newpermissions/downloads/services. Missing assets/worker/parity cannot be labeled capacity-only.",
+  "owners": {
+    "backend": "01a14a7b-ae04-7336-8631-a9b4b3fbd039",
+    "images": "01a14a93-1095-749d-8d95-e5ab4bb84027",
+    "audio": "01a14a92-eaa0-71c3-9505-57e27103302c",
+    "qa": "01a14a7b-d6da-7167-bd9a-bd8cd98e6029"
+  }
+}

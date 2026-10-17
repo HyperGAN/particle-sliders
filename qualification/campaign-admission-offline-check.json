@@ -1,0 +1,53 @@
+{
+  "schema": "root-sequential-admission-offline-check-v1",
+  "recorded_utc": "2026-10-17T17:54:24.690527+00:00",
+  "active_moss": [
+    {
+      "case": "bad-intent",
+      "source_pins_verified": 12,
+      "recipe_sha256": "f4ca175543f01b02801d459c626a7b0081b9ad34add1808ba81a489163e2bb67",
+      "status": "training",
+      "latest_step": 112
+    },
+    {
+      "case": "afterimage",
+      "source_pins_verified": 12,
+      "recipe_sha256": "7bb1cff4d82337b4674ffe770edb46965498a42d9f42e137aa8b7bddf0eecfa3",
+      "status": "training",
+      "latest_step": 103
+    }
+  ],
+  "remaining_campaign_proposals": {
+    "final_form": {
+      "path": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/evidence/pg09-remaining-campaigns/proposals/final_form.proposal.json",
+      "sha256": "89c97687c9ebcc8b994d83e85bba7b54f5421a5d7c13188d91e4cf1f5b39a7e5",
+      "source_pins_verified": 6,
+      "status": "DRAFT_NOT_ADMITTED"
+    },
+    "supra_final_boss": {
+      "path": "/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core/evidence/pg09-remaining-campaigns/proposals/supra_final_boss.proposal.json",
+      "sha256": "38c4515dec0e1a34a5b3e8659ede5d776c304556e6608cd4bec49fd7ca173443",
+      "source_pins_verified": 7,
+      "status": "DRAFT_NOT_ADMITTED"
+    }
+  },
+  "image_metadata_and_source_pins_verified": 7,
+  "image_receipt_hashes_verified": 5,
+  "audio_completed_card_sources_verified": 38,
+  "audio_completed_card_inputs_verified": 3,
+  "host_mem_available_kib": 36416836,
+  "filesystems": {
+    "/mnt/nvme/sliders": {
+      "device": 66306,
+      "available_bytes": 2120057921536
+    },
+    "/tmp": {
+      "device": 43,
+      "available_bytes": 11590344704
+    }
+  },
+  "model_or_checkpoint_tensor_payloads_read": false,
+  "torch_imported": false,
+  "gpu_or_process_actions": false,
+  "admission_granted": false
+}

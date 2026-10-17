@@ -1,0 +1,14 @@
+{
+  "source_commit": "c20315493e580c1bb2a6fa1f52ff754bb593160f",
+  "canonical_commit": "fe71f330",
+  "script_sha256": "301ed3477a81cff357d72c7ac83457e608a373a085f6bbd8cd91f7993891ba8f",
+  "independent_qa_commit": "27f5e1142fd0b355445429878ee8b02533cc1f6d",
+  "all_diagnostic_values_exact_except_elapsed": true,
+  "root_elapsed_seconds": 1.1687609159998829,
+  "optimizer_updates": 0,
+  "heldout_tensor_reads": 0,
+  "gpu_used": false,
+  "source_pins_unchanged": 96,
+  "training_artifacts_unchanged": 7,
+  "no_training_extension": true
+}
