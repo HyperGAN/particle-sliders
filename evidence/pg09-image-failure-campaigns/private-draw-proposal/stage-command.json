@@ -1,0 +1,22 @@
+{
+  "cwd": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017",
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017"
+  },
+  "execution_admitted": false,
+  "argv": [
+    "/mnt/nvme/sliders/qualification/envs/pg090/bin/python",
+    "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/verify_image_draw_replay_pg09.py",
+    "--plan",
+    "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/private-draw-proposal/private-draw-plan.json",
+    "--plan-sha256",
+    "48a3035da4dc229a63f872eacd4fae1e4c7eec0d6d84c0a18999467ea7a60122",
+    "--output",
+    "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/private-draw-proposal/actual-private-draw-check.json"
+  ]
+}

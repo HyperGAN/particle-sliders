@@ -1,0 +1,143 @@
+{
+  "scope": "NEWFILES CPU-only private draw reconstruction proposal and synthetic file-backed asset/provider seam",
+  "state": "source and CPU fixtures complete; actual archived-state reload/private assignment/cohort unexecuted and unadmitted",
+  "prior_root_v3_static_sha256": "843b6966b7501068d8baf982fcd6f52561975684b0a690a6eee4cffac4c8aae1",
+  "prior_root_v3_rng_sha256": "1ee854f66d368389b39c0cd08399a16b2ee0df4e873330c437e656c591cf9ed2",
+  "prior_v3_qa_commit": "93455ba8eac0cdb2301e7b2db889958476b1e6b0",
+  "metadata_observations": {
+    "sana": {
+      "initial_cpu": {
+        "shape": [
+          5056
+        ],
+        "dtype": "torch.uint8",
+        "sha256": "2b9c0b62adfb81346000f1bd1fb3fb08ae2311aeaa0e9ee1f889a6ce2cfa9929"
+      },
+      "final_cpu": {
+        "shape": [
+          5056
+        ],
+        "dtype": "torch.uint8",
+        "sha256": "2b9c0b62adfb81346000f1bd1fb3fb08ae2311aeaa0e9ee1f889a6ce2cfa9929"
+      },
+      "initial_python": {
+        "version": 3,
+        "integer_count": 625,
+        "sha256": "1830f2b9d84c43b9fa6f322135febfee8fa8743449332548392698a8ed6defce"
+      },
+      "final_python": {
+        "version": 3,
+        "integer_count": 625,
+        "sha256": "1830f2b9d84c43b9fa6f322135febfee8fa8743449332548392698a8ed6defce"
+      },
+      "cpu_hash_unchanged": true,
+      "python_hash_unchanged": true,
+      "cuda_hash_unchanged": false,
+      "actual_private_draw_schedule_executed": false
+    },
+    "sd3": {
+      "initial_cpu": {
+        "shape": [
+          5056
+        ],
+        "dtype": "torch.uint8",
+        "sha256": "a06c710135eb69da75f962b519ffa78e457c871b82a8c925483ef890f51a88b0"
+      },
+      "final_cpu": {
+        "shape": [
+          5056
+        ],
+        "dtype": "torch.uint8",
+        "sha256": "7f8faeb946fbd9c6ad37ea7f6378e4685afa1462d0f4e1a523567459bb74c78b"
+      },
+      "initial_python": {
+        "version": 3,
+        "integer_count": 625,
+        "sha256": "e9c954504f0ab33be368c2fd7e814a91a5324d67e695f4a74d12fbe3c072b5d2"
+      },
+      "final_python": {
+        "version": 3,
+        "integer_count": 625,
+        "sha256": "e9c954504f0ab33be368c2fd7e814a91a5324d67e695f4a74d12fbe3c072b5d2"
+      },
+      "cpu_hash_unchanged": false,
+      "python_hash_unchanged": true,
+      "cuda_hash_unchanged": false,
+      "actual_private_draw_schedule_executed": false
+    }
+  },
+  "implementation": [
+    "private CPU torch.Generator and local random.Random only; compare source-order500draw CPU/Python endpoints, report mismatch without repair",
+    "bounded restricted known-packet reader code prepared but not run against archives; root recovered metadata/source/input hashes bound",
+    "lazy source/checksum-bound CPU noise/condition reader prototype, selected files only, no cached targets/model/GPU/evolving RNG",
+    "both presets shared online provider/core fixture exact in-process5 vs2+3 continuation, fourth penalty, native field shape retained"
+  ],
+  "qualification": {
+    "combined_tests_passed": 89,
+    "new_tests_passed": 18,
+    "skipped": 0,
+    "failed": 0,
+    "seconds": 2.08,
+    "tests": {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/private-draw-proposal/cpu-89-tests.xml",
+      "bytes": 13678,
+      "sha256": "2584bd491d83472281ab6b78e3dbdd25eeb4391f41ac39be2727d8f45ee636a6"
+    },
+    "ruff": "passed",
+    "whitespace": "passed",
+    "changed_tracked_files_before_staging": 0
+  },
+  "sources": [
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/conceptmod/textsliders/pg09_image_draw_replay.py",
+      "bytes": 11283,
+      "sha256": "3181eb360d6bac149d4d023dc1f85a8f0d6a653e367e981ad4743ac8eb91b737"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/prepare_image_draw_replay_pg09.py",
+      "bytes": 6568,
+      "sha256": "bc55b88b47ec4a5eb67b262d47f3dbef90da83b8f35f160fd9237b77ec460d68"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/scripts/verify_image_draw_replay_pg09.py",
+      "bytes": 8108,
+      "sha256": "509e6460cf210732747eef15b24865993d541b3ff5140e88702bb6615796ff75"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/tests/test_pg09_image_draw_replay.py",
+      "bytes": 14232,
+      "sha256": "289f7aeae7079ac4882c30bd059ec1a66cc0320a1e4d944b56668768df4357e0"
+    },
+    {
+      "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/docs/pg09-image-private-draw-proposal.md",
+      "bytes": 9276,
+      "sha256": "2fd23c12220788f3efc0d2796c6396066518a12b33b0b994061d5f7486e728a1"
+    }
+  ],
+  "plan": {
+    "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/private-draw-proposal/private-draw-plan.json",
+    "bytes": 23792,
+    "sha256": "48a3035da4dc229a63f872eacd4fae1e4c7eec0d6d84c0a18999467ea7a60122"
+  },
+  "command": {
+    "path": "/mnt/nvme/sliders/image-failure-campaigns-pg09-20261017/evidence/pg09-image-failure-campaigns/private-draw-proposal/stage-command.json",
+    "bytes": 963,
+    "sha256": "79d473d276ad8daa905a73f208b13144e45599d20de1fd61761ea80716ac2577"
+  },
+  "actual_archive_packet_bodies_read_by_this_agent": 0,
+  "actual_private_archived_state_assignment": false,
+  "actual_historical_cpu_endpoint_match_qualified": false,
+  "historical_draw_replay_qualified": false,
+  "no_global_rng_restoration_in_private_engine": true,
+  "actual_cuda_noise_or_text_encoding": false,
+  "no_model_optimizer_scheduler_native_gpu_worker_or_automation": true,
+  "old_core_audit_active_moss_files_edited": false,
+  "remaining": [
+    "root source/plan review and newCPUcohort admission",
+    "actual private CPU/Python endstate match or reported mismatch",
+    "hidden random consumers/save/evaluation/resume timing limitations",
+    "separate tinyGPU CUDA-noise admission and native text conditions",
+    "actual source-bound collision gate and scale calibration; native worker/guardian wiring",
+    "native parity/resource/GPU diskresume/full1000arms+heldout quality"
+  ]
+}
