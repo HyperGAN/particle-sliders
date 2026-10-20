@@ -117,3 +117,12 @@ has no new domain gate. A stamp import or dependency update does not migrate
 an actual trainer. New GAN-only products call `ConditionalPG09.step()`.
 Historical provenance JSON describes the original arms, not current dependency
 selection. See [shared architecture](../../docs/shared-core.md).
+
+## Fibo 2.0 Edit Turbo
+
+`particle_sliders.fibo_native` adds an experimental EDIT-only routed-particle
+backend using the existing `ConditionalPG09` native API. It preserves official
+reference/mask/VGL conditioning and four-step CFG1 inference. CPU contracts
+do not establish native model quality; the official card recommends Dev for
+fine-tuning. See the [Fibo guide](../../docs/fibo-particle-slider.md) for exact
+sources, gated noncommercial licensing, API and unscheduled GPU requirements.

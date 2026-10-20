@@ -106,7 +106,7 @@ from particle_sliders import pg09
 for name in ('pg09_backends', 'pg09_audio', 'pg09_images', 'pg09_readout_critic',
              'pg09_moss_campaign', 'pg09_remaining_campaigns', 'supra_model',
              'native_lora', 'music3_native', 'tiny_llm_backend', 'tiny_native',
-             'bonsai_native', 'pg09_text_video', 'pg09_hndl', 'hypergan_diagnostics'):
+             'bonsai_native', 'pg09_text_video', 'pg09_hndl', 'hypergan_diagnostics', 'fibo_native'):
     backend = importlib.import_module(f'particle_sliders.{name}')
     assert Path(backend.__file__).resolve().is_relative_to(Path.cwd() / 'installed')
 assert 'conceptmod' not in sys.modules
@@ -122,9 +122,11 @@ assert all(getattr(concept_slider_core, name) is getattr(particle_sliders, name)
            for name in particle_sliders.__all__)
 assert particle_sliders.__version__ == concept_slider_core.__version__ == version('particle-sliders-core')
 for name in ('provenance.json', 'locked_provenance.json', 'bispf_provenance.json',
-             'pg09_release_sources.json', 'pg09_continuous_profile.json'):
+             'pg09_release_sources.json', 'pg09_continuous_profile.json', 'fibo_provenance.json'):
     json.loads(files('particle_sliders').joinpath(name).read_text())
 assert files('particle_sliders').joinpath('LICENSE').read_text()
+import torch
+assert not torch.cuda.is_initialized()
 print(json.dumps({'version': particle_sliders.__version__,
                   'pg_version': version('particlegan'),
                   'verified_sources': pg09._released_sources()}))

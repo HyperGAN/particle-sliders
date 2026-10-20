@@ -14,6 +14,7 @@ prompt files, and 2-D exams.
 
 | if you need | read |
 |---|---|
+| Fibo 2.0 Edit Turbo routed particle backend, source/license pins and GPU qualification plan | [Fibo-particle-slider](fibo-particle-slider.md) |
 | installable shared core for product repos (`winning_formulation()`, `FormulationGame`) | [particle-sliders-core](../packages/particle-sliders-core/README.md) · [winning-formulation.md](winning-formulation.md) · [shared-core.md](shared-core.md) |
 | YuE2 / Music 3 published weights, install, current train command, CPU tests | [README.md](../README.md) |
 | YuE2 math, training evidence, Music 3 / image objectives, evaluation | [math.md](math.md) |
