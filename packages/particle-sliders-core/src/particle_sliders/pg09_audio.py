@@ -48,6 +48,21 @@ def require_audio_width(width, *, pg_source_profile='release', penalty_input_dom
         pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain)
 
 
+def _close_checkpoint_handles(handles):
+    """Attempt all handles in LIFO order; keep failures for an explicit retry."""
+    first_error = None
+    for index in range(len(handles) - 1, -1, -1):
+        try:
+            handles[index].close()
+        except BaseException as error:
+            if first_error is None:
+                first_error = error
+        else:
+            del handles[index]
+    if first_error is not None:
+        raise first_error
+
+
 class ARLastHiddenResponseAdapter:
     """Wrap an already attached native slider; retain its actual routed bank."""
     family = 'abstract_audio_ar'
@@ -75,19 +90,30 @@ class ARLastHiddenResponseAdapter:
             raise ValueError('duplicate checkpoint modules')
         if any(id(m) not in registered or getattr(m, '_pg09_scale_checkpoint', False) for m in modules):
             raise ValueError('checkpoint modules must be unwrapped native host modules')
-        from contextlib import ExitStack
-        with ExitStack() as checkpointing:
+        handles = []
+        try:
             for module in modules:
-                checkpointing.enter_context(checkpoint_with_adapter_scale(module, self.network))
-            self._checkpointing = checkpointing.pop_all()
+                handle = checkpoint_with_adapter_scale(module, self.network)
+                try:
+                    handles.append(handle)
+                except BaseException:
+                    handle.close()
+                    raise
+            # Keep the local rollback ledger until assignment has succeeded.
+            self._checkpointing = handles
+        except BaseException:
+            _close_checkpoint_handles(handles)
+            raise
 
     def close_checkpointing(self):
         """Release only this adapter's block wrappers; repeated calls are safe.
 
         The native factory still owns model modes, slider attachment and device
-        lifetime. Register this cleanup before restoring those broader owners.
+        lifetime. Run this cleanup before restoring those broader owners. Failed
+        handles remain owned for retry after resolving an ownership conflict;
+        every handle is attempted, then the first failure is raised.
         """
-        self._checkpointing.close()
+        _close_checkpoint_handles(self._checkpointing)
 
     @property
     def particles(self):

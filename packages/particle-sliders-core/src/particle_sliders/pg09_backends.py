@@ -463,10 +463,10 @@ def checkpoint_with_adapter_scale(module, network):
     try:
         module.forward = forward
         module._pg09_scale_checkpoint = True
+        return AdapterScaleCheckpoint(module, forward, saved)
     except BaseException:
         _restore_checkpoint_attributes(module, saved)
         raise
-    return AdapterScaleCheckpoint(module, forward, saved)
 
 
 def bind_native_gradient_checkpointing(root, network):

@@ -183,3 +183,166 @@ def test_ar_adapter_partial_constructor_unwinds_wrappers():
         ARLastHiddenResponseAdapter(model, slider,
             model_identity={'fixture': 'checkpoint-owner'}, checkpoint_modules=model.blocks)
     assert all(ownership(block) == {} for block in model.blocks)
+
+
+def record_closes(monkeypatch, blocks, events):
+    from particle_sliders import pg09_backends
+    original = pg09_backends.AdapterScaleCheckpoint.close
+    labels = {id(block): index for index, block in enumerate(blocks)}
+
+    def close(handle):
+        label = labels[id(handle._module)]
+        events.append(('attempt', label))
+        try:
+            original(handle)
+        except BaseException:
+            events.append(('refused', label))
+            raise
+        events.append(('closed', label))
+
+    monkeypatch.setattr(pg09_backends.AdapterScaleCheckpoint, 'close', close)
+
+
+@pytest.mark.parametrize('changed', ['forward', '_pg09_scale_checkpoint'])
+@pytest.mark.parametrize('conflict_index', [0, 1])
+def test_ar_adapter_retains_failed_handle_until_resolved_retry(monkeypatch, changed, conflict_index):
+    model, slider = audio_fixture()
+    adapter = ARLastHiddenResponseAdapter(model, slider,
+        model_identity={'fixture': 'retry-owner'}, checkpoint_modules=model.blocks)
+    block = model.blocks[conflict_index]
+    wrapped = ownership(block)
+    setattr(block, changed, (lambda value: value) if changed == 'forward' else False)
+    external = ownership(block)
+    events = []
+    record_closes(monkeypatch, model.blocks, events)
+    with pytest.raises(RuntimeError, match='ownership changed'):
+        adapter.close_checkpointing()
+    assert [index for event, index in events if event == 'attempt'] == [1, 0]
+    assert ownership(block) == external
+    assert ownership(model.blocks[1 - conflict_index]) == {}
+    assert len(adapter._checkpointing) == 1
+    assert adapter._checkpointing[0]._module is block
+    assert ('refused', conflict_index) in events
+    assert ('closed', 1 - conflict_index) in events
+
+    vars(block).update(wrapped)
+    events.clear()
+    adapter.close_checkpointing()
+    assert events == [('attempt', conflict_index), ('closed', conflict_index)]
+    assert all(ownership(block) == {} for block in model.blocks)
+    assert adapter._checkpointing == []
+    events.clear()
+    adapter.close_checkpointing()
+    assert events == []
+
+
+@pytest.mark.parametrize('error_type', [KeyboardInterrupt, MemoryError])
+def test_handle_construction_fault_rolls_back_installed_attributes(monkeypatch, error_type):
+    from particle_sliders import pg09_backends
+    block = Block(Scale())
+    block._pg09_scale_checkpoint = False
+    before = ownership(block)
+
+    def fail_handle(module, forward, saved):
+        assert module is block
+        assert module.forward is forward
+        assert module._pg09_scale_checkpoint is True
+        raise error_type('handle construction')
+
+    monkeypatch.setattr(pg09_backends, 'AdapterScaleCheckpoint', fail_handle)
+    with pytest.raises(error_type, match='handle construction'):
+        checkpoint_with_adapter_scale(block, block.scale_owner)
+    assert ownership(block) == before
+
+
+def test_ar_later_handle_construction_fault_closes_earlier_owner(monkeypatch):
+    from particle_sliders import pg09_backends
+    model, slider = audio_fixture()
+    events = []
+    record_closes(monkeypatch, model.blocks, events)
+    original = pg09_backends.AdapterScaleCheckpoint
+
+    def make_handle(module, forward, saved):
+        index = next(i for i, block in enumerate(model.blocks) if block is module)
+        events.append(('construct', index))
+        if index == 1:
+            assert module.forward is forward
+            raise KeyboardInterrupt('later handle construction')
+        return original(module, forward, saved)
+
+    monkeypatch.setattr(pg09_backends, 'AdapterScaleCheckpoint', make_handle)
+    with pytest.raises(KeyboardInterrupt, match='later handle construction'):
+        ARLastHiddenResponseAdapter(model, slider,
+            model_identity={'fixture': 'partial-owner'}, checkpoint_modules=model.blocks)
+    assert all(ownership(block) == {} for block in model.blocks)
+    assert events == [('construct', 0), ('construct', 1), ('attempt', 0), ('closed', 0)]
+
+
+@pytest.mark.parametrize('after_assignment', [False, True])
+@pytest.mark.parametrize('error_type', [KeyboardInterrupt, MemoryError])
+def test_adapter_owner_assignment_fault_keeps_rollback_ledger(monkeypatch, after_assignment, error_type):
+    model, slider = audio_fixture()
+    events = []
+    record_closes(monkeypatch, model.blocks, events)
+
+    class FailTransfer(ARLastHiddenResponseAdapter):
+        def __setattr__(self, name, value):
+            if name == '_checkpointing':
+                assert all(block._pg09_scale_checkpoint is True for block in model.blocks)
+                events.append(('transfer', after_assignment))
+                if after_assignment:
+                    super().__setattr__(name, value)
+                raise error_type('adapter ownership transfer')
+            super().__setattr__(name, value)
+
+    with pytest.raises(error_type, match='adapter ownership transfer'):
+        FailTransfer(model, slider,
+            model_identity={'fixture': 'transfer-owner'}, checkpoint_modules=model.blocks)
+    assert all(ownership(block) == {} for block in model.blocks)
+    assert events == [('transfer', after_assignment),
+                      ('attempt', 1), ('closed', 1), ('attempt', 0), ('closed', 0)]
+
+
+def test_adapter_cleanup_closes_wrappers_lifo_before_broader_owner(monkeypatch):
+    model, slider = audio_fixture()
+    adapter = ARLastHiddenResponseAdapter(model, slider,
+        model_identity={'fixture': 'cleanup-order'}, checkpoint_modules=model.blocks)
+    events = []
+    record_closes(monkeypatch, model.blocks, events)
+
+    def close_native():
+        adapter.close_checkpointing()
+        assert all(ownership(block) == {} for block in model.blocks)
+        events.append(('broader', None))
+
+    with pytest.raises(KeyboardInterrupt, match='operation'):
+        try:
+            raise KeyboardInterrupt('operation')
+        finally:
+            close_native()
+    assert events == [('attempt', 1), ('closed', 1), ('attempt', 0), ('closed', 0),
+                      ('broader', None)]
+
+
+def test_adapter_conflict_defers_broader_cleanup_until_resolved(monkeypatch):
+    model, slider = audio_fixture()
+    adapter = ARLastHiddenResponseAdapter(model, slider,
+        model_identity={'fixture': 'cleanup-retry-order'}, checkpoint_modules=model.blocks)
+    events = []
+    record_closes(monkeypatch, model.blocks, events)
+    block = model.blocks[1]
+    wrapper = block.forward
+    block.forward = lambda value: value
+
+    def close_native():
+        adapter.close_checkpointing()
+        events.append(('broader', None))
+
+    with pytest.raises(RuntimeError, match='ownership changed'):
+        close_native()
+    assert events == [('attempt', 1), ('refused', 1), ('attempt', 0), ('closed', 0)]
+    assert ownership(model.blocks[0]) == {}
+    block.forward = wrapper
+    close_native()
+    assert events[-3:] == [('attempt', 1), ('closed', 1), ('broader', None)]
+    assert all(ownership(block) == {} for block in model.blocks)

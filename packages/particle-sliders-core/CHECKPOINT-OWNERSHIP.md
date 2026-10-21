@@ -22,7 +22,9 @@ with ExitStack() as checkpoints:
 `native_blocks` are selected native modules; `adapter.network` is the existing
 scale owner exposing `scale` and `scaled(value)`. No model import or selection
 policy is added. ExitStack unwinds earlier blocks if a later installation or
-the operation raises, including interruption. Nested distinct blocks unwind in
+the operation raises, including interruption. Retain the individual handles if
+cleanup may encounter an ownership conflict: ExitStack itself discards failed
+callbacks and cannot serve as a retry ledger. Nested distinct blocks unwind in
 reverse order. Nested installation on the same block is refused while preserving
 the outer wrapper. Nested scopes of the same open handle close only at the outer
 exit. Ignoring the return keeps the previous eager lifetime.
@@ -36,17 +38,32 @@ An already built autograd graph retains its captured scale even after close;
 closing does not cancel pending work or provide concurrency synchronization.
 
 `ARLastHiddenResponseAdapter` installs its selected blocks transactionally and
-owns their handles. Register `adapter.close_checkpointing` in the native factory's
-cleanup stack **after** registering broader model/slider restoration, so wrappers
-close first. Both inherited Music3/YuE2 adapters expose this method:
+owns a ledger of their handles. `close_checkpointing()` attempts all remaining
+handles in reverse installation order. Successfully closed handles are removed;
+failed ones remain owned. The first failure is raised after all attempts. Resolve
+the external ownership conflict, then call the same adapter method again; closed
+siblings are not replayed. Both inherited Music3/YuE2 adapters expose this method.
+Handle construction and adapter owner assignment are protected by rollback; a
+failed final transfer cannot discard the local cleanup ledger.
+
+The native factory must retain the adapter while cleanup is unresolved and run
+wrapper cleanup before broader model/slider restoration. A sequential close
+callback makes that ordering explicit:
 
 ```python
-with ExitStack() as native_owner:
-    native_owner.callback(restore_native_owner)  # product already owns this
-    adapter = make_existing_native_response_adapter()
-    native_owner.callback(adapter.close_checkpointing)
-    # Yield the existing Binding; its close must close native_owner.pop_all().
+adapter = make_existing_native_response_adapter()
+
+def close_native():
+    adapter.close_checkpointing()  # may raise; retains unfinished handles
+    restore_native_owner()        # run only after all wrappers have closed
+
+# Supply close_native as the existing Binding's close callback. On conflict,
+# retain the adapter/native owner, resolve the conflict and retry this cleanup.
 ```
+
+Do not rely on a disposable ExitStack callback to remember an unresolved adapter
+cleanup or continue broader native restoration after that cleanup refuses. The
+adapter method is retryable; this does not change session/factory close policies.
 
 The factory still owns modes, device placement, native checkpoint flags and LoRA
 attachment. This helper restores only its own two attributes. The separate
