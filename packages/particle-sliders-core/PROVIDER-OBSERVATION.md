@@ -11,5 +11,6 @@ network through their explicit hook; the core does not copy an entire native bas
 This narrow patch introduces no training-provider or GAN math change. Its four
 regressions cover successful repeated seeded observation, fetch and forward
 failures, and invalid bounds, including native state and ambient RNG restoration.
-They are authored but unrun pending a parent-admitted CPU slot. This source change
-creates a new source cohort; reviewed `da4bae3` and `32f6830` remain untouched.
+These cases have installed offline CPU coverage on this source line.
+They do not qualify a native provider or permit checkpoint source rebinding;
+reviewed `da4bae3` and `32f6830` remain untouched.

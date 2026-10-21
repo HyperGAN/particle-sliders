@@ -1,12 +1,14 @@
 {
   "schema": "particle-sliders-audio-source-closure-v1",
-  "status": "source-only; CPU qualification pending",
+  "status": "packaged source closure; CPU qualification is receipt- and exact-source-bound, not native media qualification",
   "scope": "AR hidden responses only; no media renderer or campaign stack",
   "sources": {
     "pg09_audio.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-21/task-2/shared/packages/particle-sliders-core/src/particle_sliders/pg09_audio.py",
       "original_sha256": "b46a66c56fe237510f06b5d963c084c34bdb1ea87b2732c361f2665c9d221a79",
-      "packaged_sha256": "b46a66c56fe237510f06b5d963c084c34bdb1ea87b2732c361f2665c9d221a79"
+      "packaged_sha256": "e9baa879a6ee59ca0507dbce3a3d0d1cad15dc318dcbada846198080a1d773ab",
+      "packaged_source_commit": "f6807a91546e43e198645a3f8925d2dc7c9e03b4",
+      "packaged_change": "Reviewed reversible checkpoint ownership, including failed-handle retention and transactional owner transfer; no GAN mathematics change."
     },
     "music3_native.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-21/task-2/shared/packages/particle-sliders-core/src/particle_sliders/music3_native.py",
