@@ -18,6 +18,11 @@ an explicit reason; an explicit unsupported Gram request rejects. Supported
 selectors are `auto`, `default`, `gram_fp64_svd_diagnostic_v2` and the stricter
 `gram_fp64_guarded_v1` (which deliberately has no rank fallback).
 
+The public `particlegan_get_recipe(name, optimizer_dense_profile='auto', **overrides)`
+helper applies the same policy before returning the upstream Recipe. Its optimizer
+builders therefore receive the resolved profile. `BISPFGame` also resolves through
+the shared policy and retains its original Adam law.
+
 Dense FP32 CPU/CUDA two-dimensional DualNorm leaves participate. Bank rownorm,
 1D/vector updates, convolution/quintic/per-offset paths and Adam/formulation arms
 retain upstream implementations. No formulation, matrix shape, rank, smoothing,
@@ -126,3 +131,18 @@ only the new artifact's receipt states modern qualification actually executed.
 No GPU benchmark or pretrained training is part of this change. CPU numerical
 fixtures do not establish CUDA speed, native fit, convergence, edit quality or
 waveform generation. No performance improvement is claimed without measurements.
+
+## Runtime qualification limits and precision declarations
+
+Package metadata allows Python>=3.10 and Torch>=2.6,<3, matching the official PG
+requirements. Executed qualification is Python3.12.15/Torch2.14.1+cpu only; the
+Python3.10/Torch2.6 runtime floor and other version combinations are untested.
+The HNDL0.9 extras require Python>=3.11,<3.15 and are not supported on Python3.10.
+No dependency installation or broader version-matrix qualification is implied.
+
+The upstream Recipe's training_precision declaration is preserved, including
+bf16_channels_last where specified. ConditionalPG09 does not execute upstream
+GANTrainer autocast: its host_training_precision is separately bound as float32,
+and all trainable leaves/device checks still require FP32. This does not promise
+BF16 host execution. Both declaration and actual host precision enter checkpoint
+identity; differing declarations cannot silently resume one another.

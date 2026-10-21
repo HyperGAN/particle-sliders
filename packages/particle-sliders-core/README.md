@@ -14,7 +14,9 @@ lifecycles plus a narrow legacy compatibility layer. It is not a package release
 Install a full reviewed Git pin using `#subdirectory=packages/particle-sliders-core`
 or its exact wheel; retain that pin, source map and receipts. Dependency is exact
 `particlegan==0.9.3`, Torch>=2.6,<3 (also required by upstream), Python>=3.10.
-Earlier core0.8/0.10 source pins remain immutable. See [LEGACY-MIGRATION.md](LEGACY-MIGRATION.md)
+Executed qualification uses Python3.12.15/Torch2.14.1+cpu; the declared lower
+bounds and other runtime combinations are untested. Modern HNDL extras require
+Python>=3.11,<3.15. Earlier core0.8/0.10 source pins remain immutable. See [LEGACY-MIGRATION.md](LEGACY-MIGRATION.md)
 for preserved constructors/stamp fields, explicit retired-kernel refusals and
 runnable old/core0.3 instructions; this upgrade does not migrate checkpoints.
 

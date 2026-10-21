@@ -14,6 +14,7 @@ from torch import nn
 from particlegan import get_recipe
 
 from ._training import preserve_parameter_flags, require_connected_response
+from .optimizer_policy import configure_dense_profile
 
 UPSTREAM_COMMIT = "b5d2372f2739d7579ab66d6dba6e220d2eb776d9"
 
@@ -72,9 +73,9 @@ class BISPFGame:
         if not torch.isfinite(self.targets).all():
             raise ValueError("normalized targets must be finite")
         self.batch_size, self.sigma = batch_size, float(sigma)
-        self.recipe = get_recipe("bispf", num_particles=particles.shape[0],
+        self.recipe, self.optimizer_policy = configure_dense_profile(get_recipe("bispf", num_particles=particles.shape[0],
             z_dim=particles.shape[1], batch_size=batch_size, total_steps=total_steps,
-            lr=g_lr, d_lr_mult=d_lr/g_lr, prior_lr_mult=particle_lr/g_lr)
+            lr=g_lr, d_lr_mult=d_lr/g_lr, prior_lr_mult=particle_lr/g_lr))
         # Alias, never copy/reinitialize the adapter's existing particle Parameter.
         # Component APIs allow caller-owned priors; A2 is explicitly off in BISPF.
         self.prior = nn.Module()

@@ -243,3 +243,34 @@ def test_modern_fibo_hndl_factory_uses_gram_and_preserves_exact_resume(tmp_path)
     assert full.optimizer_diagnostics['generator']['aggregate']['calls'] > 0
     assert full.optimizer_diagnostics['critic']['aggregate']['calls'] > 0
     assert not torch.cuda.is_initialized()
+
+
+@pytest.mark.parametrize('selector,expected', [('auto', GRAM_PROFILE),
+    ('default', 'default'), ('gram_fp64_guarded_v1', 'gram_fp64_guarded_v1')])
+def test_public_recipe_helper_applies_shared_policy_to_actual_dense_update(selector, expected):
+    from particle_sliders import particlegan_get_recipe
+    from particle_sliders.optimizer_policy import optimizer_diagnostics
+    recipe = particlegan_get_recipe('bispf_optimized', total_steps=3,
+                                   optimizer_dense_profile=selector)
+    original = get_recipe('bispf_optimized', total_steps=3)
+    assert asdict(recipe) == asdict(replace(original, optimizer_dense_profile=expected))
+    with torch.random.fork_rng():
+        torch.manual_seed(13)
+        model = torch.nn.Linear(5, 3)
+        optimizer = recipe.make_critic_optimizer(model)
+        model(torch.randn(2, 5)).square().sum().backward()
+        optimizer.step()
+    diagnostics = optimizer_diagnostics(optimizer)
+    assert diagnostics['eligible_dense_leaves'] == 1
+    assert recipe.optimizer_dense_profile == diagnostics['profile'] == expected
+    if expected != 'default':
+        assert diagnostics['aggregate']['calls'] == diagnostics['aggregate']['gram_passes'] == 1
+    else:
+        assert diagnostics.get('aggregate', {}).get('calls', 0) == 0
+
+
+def test_public_recipe_helper_retains_adam_law_and_rejects_unsupported_explicit_gram():
+    from particle_sliders import particlegan_get_recipe
+    assert asdict(particlegan_get_recipe('bispf')) == asdict(get_recipe('bispf'))
+    with pytest.raises(ValueError, match='Gram requires'):
+        particlegan_get_recipe('bispf', optimizer_dense_profile=GRAM_PROFILE)
