@@ -394,24 +394,79 @@ def _checkpoint_contexts(network, scale):
     return _RepeatableScaleContext(network, scale), _RepeatableScaleContext(network, scale)
 
 
+class AdapterScaleCheckpoint:
+    """Undo handle for one eagerly installed, scale-capturing checkpoint.
+
+    Use as a context manager or call ``close()`` after the owning operation.
+    Closing twice is safe. A different owner's replacement is never overwritten.
+    """
+
+    def __init__(self, module, forward, saved):
+        self._module, self._forward, self._saved = module, forward, saved
+        self._closed = False
+        self._context_depth = 0
+
+    def close(self):
+        if self._closed:
+            return
+        values = vars(self._module)
+        if (values.get("forward") is not self._forward or
+                values.get("_pg09_scale_checkpoint") is not True):
+            raise RuntimeError("checkpoint ownership changed; restore the owned wrapper before closing")
+        _restore_checkpoint_attributes(self._module, self._saved)
+        self._closed = True
+
+    def __enter__(self):
+        if self._closed:
+            raise RuntimeError("checkpoint handle is already closed")
+        self._context_depth += 1
+        return self
+
+    def __exit__(self, *exc):
+        self._context_depth -= 1
+        if not self._context_depth:
+            self.close()
+
+
+def _restore_checkpoint_attributes(module, saved):
+    # Restore instance ownership exactly: a class-defined forward must remain a
+    # descriptor, rather than becoming a permanent bound-method override.
+    values = vars(module)
+    for name in ("forward", "_pg09_scale_checkpoint"):
+        if name in saved:
+            values[name] = saved[name]
+        else:
+            values.pop(name, None)
+
+
 def checkpoint_with_adapter_scale(module, network):
     """Checkpoint a block with the forward scale captured for recomputation.
 
     Install instead of an existing checkpoint wrapper. Double wrapping is refused.
+    Returns an eagerly installed :class:`AdapterScaleCheckpoint` undo handle.
+    Existing callers may ignore the return and retain the prior installation
+    lifetime. New owners should use a context manager or register ``close``.
     Caller owns which blocks to checkpoint; no global service/model mutation.
     """
     from torch.utils.checkpoint import checkpoint
     if getattr(module, "_pg09_scale_checkpoint", False):
         raise ValueError("block already checkpointed with adapter scale")
     original = module.forward
+    saved = {name: vars(module)[name] for name in ("forward", "_pg09_scale_checkpoint")
+             if name in vars(module)}
 
     def forward(*args, **kwargs):
         scale = network.scale
         return checkpoint(original, *args, use_reentrant=False,
                           context_fn=lambda: _checkpoint_contexts(network, scale), **kwargs)
 
-    module.forward = forward
-    module._pg09_scale_checkpoint = True
+    try:
+        module.forward = forward
+        module._pg09_scale_checkpoint = True
+    except BaseException:
+        _restore_checkpoint_attributes(module, saved)
+        raise
+    return AdapterScaleCheckpoint(module, forward, saved)
 
 
 def bind_native_gradient_checkpointing(root, network):

@@ -163,3 +163,9 @@ Music3/YuE2 owners. Each owner changes its own registration, source lock, comple
 factory and native-only inference factory, retains old pins/results, and tests a
 new cohort. Shared interfaces do not waive their native loader/history/token,
 actual-bank, response width, source, admission or HNDL/HyperGAN requirements.
+
+## Owned checkpoint wrappers (local follow-up)
+
+For reversible block checkpoint setup and AR adapter cleanup, see
+[CHECKPOINT-OWNERSHIP.md](CHECKPOINT-OWNERSHIP.md). This follow-up is
+a source proposal; the earlier response wheel receipts do not qualify it.

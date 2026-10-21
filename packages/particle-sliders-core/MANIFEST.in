@@ -6,3 +6,4 @@ recursive-include tests *.py
 include RESPONSE-SESSIONS.md
 include CLI-ARTIFACTS.md
 include PROVIDER-OBSERVATION.md
+include CHECKPOINT-OWNERSHIP.md

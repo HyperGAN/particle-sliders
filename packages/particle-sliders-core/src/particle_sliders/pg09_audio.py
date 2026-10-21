@@ -75,8 +75,19 @@ class ARLastHiddenResponseAdapter:
             raise ValueError('duplicate checkpoint modules')
         if any(id(m) not in registered or getattr(m, '_pg09_scale_checkpoint', False) for m in modules):
             raise ValueError('checkpoint modules must be unwrapped native host modules')
-        for module in modules:
-            checkpoint_with_adapter_scale(module, self.network)
+        from contextlib import ExitStack
+        with ExitStack() as checkpointing:
+            for module in modules:
+                checkpointing.enter_context(checkpoint_with_adapter_scale(module, self.network))
+            self._checkpointing = checkpointing.pop_all()
+
+    def close_checkpointing(self):
+        """Release only this adapter's block wrappers; repeated calls are safe.
+
+        The native factory still owns model modes, slider attachment and device
+        lifetime. Register this cleanup before restoring those broader owners.
+        """
+        self._checkpointing.close()
 
     @property
     def particles(self):
