@@ -20,4 +20,5 @@ Rendering additionally requires that factory's qualified render capability.
 V1 continues through its original session loader with the matching configuration.
 New source pins require new cohorts; old receipts remain owned by old pins.
 
-This additive source change and its regressions await a parent-admitted CPU slot.
+This additive contract has offline installed CPU regression coverage; native
+rendering and product-specific capabilities still require their own qualification.

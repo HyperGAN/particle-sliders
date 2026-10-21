@@ -102,9 +102,10 @@ flowchart TD
 
 The intended consumer flow is to select a registered model backend and its local
 configuration, then use shared train/resume/evaluate/export/inference operations.
-The product's complete factory owns native object construction and cleanup. Those
-new lifecycle entrypoints are not available from current `main`; use the public
-API below or a separately reviewed product pin with its matching instructions.
+The product's complete factory owns native object construction and cleanup. This source revision includes
+the lifecycle entrypoints described in the [package guide](packages/particle-sliders-core/README.md).
+Install a full reviewed source pin and the product with its matching instructions;
+this change does not publish a package or qualify pretrained/native behavior.
 
 Common interfaces do not require co-installing incompatible native libraries.
 Keep each product's tested environment and runtime lock; Qwen Image and Fibo, for
@@ -113,50 +114,54 @@ arms: Krea2's adapter-only GAN has no routed particle bank, while routed models
 must use their actual participating bank. Iris's PG rendering route remains gated
 pending native solver parity. A hidden response is not an image or waveform.
 
-### Public code versus review candidates
+### Source API, preserved legacy pins and qualification
 
-The source package on current `main` is **core 0.3.0**, with ParticleGAN Git pin
-`82b72661c03377f348ccb76de37cd4ca02d45a8d` in its
-[package metadata](packages/particle-sliders-core/pyproject.toml). Its stamp/game
-instructions below remain the public source API; neither of the newer cohorts
-below is an implicit upgrade of that API or its checkpoints.
+This source line provides **core0.8.3**, exact official `particlegan==0.9.1`
+and Torch>=2.6,<3. It integrates the reviewed lifecycle history from a clean
+main-based branch; it does not merge the unrelated audit/campaign stack. See
+[legacy migration](packages/particle-sliders-core/LEGACY-MIGRATION.md) for
+preserved stamp fields/imports/constructors and the explicit limits of retired
+regularizer kernels. The original core0.3.0/ParticleGAN82b726 API remains at
+[`17cd484`](https://github.com/HyperGAN/particle-sliders/tree/17cd484ef00601389256a30f6d52fc79991bcb3d).
+No existing checkpoint or result receipt is rebound to a different source pin.
 
-The newer lifecycle candidates maintain two explicit dependency lines:
-
-| Candidate cohort | Exact ParticleGAN dependency | Availability |
+| Source cohort | Exact ParticleGAN dependency | Boundary |
 |---|---|---|
-| PG 0.9.1 lineage (local core 0.8.2 lifecycle candidate) | `particlegan==0.9.1` | Local review candidate; not merged into `main` or published as this repository's current API. |
-| PG 0.9.3 lineage (local core 0.10.0 lifecycle candidate) | `particlegan==0.9.3` | Separate local review candidate for the later upstream/research contract; not an automatic replacement for 0.9.1 cohorts. |
+| This core0.8.3 line and reviewed core0.8.1/0.8.2 ancestors | `particlegan==0.9.1` | Shared image/numerical response lifecycle; keep each product's tested exact commit. No package release implied. |
+| Separate core0.10.0 review line | `particlegan==0.9.3` | Later research/MOSS contract; not an automatic replacement for PG0.9.1 cohorts. |
+| Original core0.3.0 at17cd484 | ParticleGAN Git82b726 | Exact old environment for retired regularizer kernels/class identity and historical receipts. |
 
-Use exact source/profile/runtime identities. A new pin does not silently rebind an
-old checkpoint or turn one research cohort's result into another's qualification.
-Official released auto profiles still cannot be used for this contract's native
-wide continuous Music3/YuE2 hidden responses. Explicit continuous-domain upstream
-work is an **unofficial local proposal**, not a feature released in ParticleGAN
-0.9.3. Keep unsupported operations gated until the exact profile is reviewed and
-qualified.
+Installed CPU evidence exists for six image products (Anima, Krea2, Supra, Iris,
+Qwen Image and Fibo) and two numerical response products (Music3/YuE2), each at
+its own exact source pin. Those product draft integrations remain separate
+reviews; this common-core change does not merge them. MOSS product evidence is
+source-only; Ming has no native implementation and declares unsupported
+operations. Sana's shared-repository migration is separate work. See the
+[qualification boundaries](docs/stable-lane-qualification.md).
 
-Local CPU contract checks cover small-fixture updates, restore, observation
-isolation and raw/EMA inference loading. They do not establish pretrained/native
-quality, waveform generation or completion of every derivative migration. The
-published samples above belong to their original release receipts; they are not
-qualification of the candidate lifecycle. Native rendering/listening and product
-integration evidence must name the source/model/protocol they actually tested.
+CPU fixtures establish updates, strict restore, raw/EMA exports, observation
+isolation and data-free inference loading. They do not establish pretrained
+quality, waveform generation, accelerator admission or completion of every
+backend migration. Iris's native PG image rendering remains disabled pending
+FlowDPMSolver parity; Krea2 remains adapter-only. Qwen and Fibo keep their own
+native sampler, reference packing and isolated Diffusers environments.
 
-Public review references include [shared-core PR141](https://github.com/HyperGAN/particle-sliders/pull/141)
-and [Fibo integration PR142](https://github.com/HyperGAN/particle-sliders/pull/142).
-Both target audit branches, so their presence does not make the new API available
-on `main`. Derivative drafts are tracked in
+Official released auto profiles still refuse native wide continuous Music3/YuE2
+hidden responses. Explicit continuous-domain upstream work is an **unofficial
+separate proposal**, neither included nor activated here. Published samples above
+retain their original receipts and are not qualification of this lifecycle.
+
+Historical [shared-core PR141](https://github.com/HyperGAN/particle-sliders/pull/141)
+and [Fibo integration PR142](https://github.com/HyperGAN/particle-sliders/pull/142)
+retain their audit targets. Derivative reviews include
 [Iris PR1](https://github.com/HyperGAN/iris-particle-sliders/pull/1),
 [Krea2 PR4](https://github.com/HyperGAN/krea2-particle-sliders/pull/4),
 [Qwen Image PR1](https://github.com/HyperGAN/qwen-image-particle-sliders/pull/1) and
 [Fibo PR1](https://github.com/HyperGAN/Fibo-particle-slider/pull/1).
-Use each reviewed head's own pin and receipts; local follow-up candidates are
-separate from those public PR snapshots.
 
 ## How it works
 
-This section describes the historical published paths and the current stamp API.
+This section describes the historical published paths and the preserved stamp API.
 The newer lifecycle preserves each backend's declared formulation and capability.
 
 Each adapted layer becomes $f_s(x)=f_0(x)+s\,\Delta(x)$. Here
@@ -184,7 +189,7 @@ and language-model objectives used by the other backends.
 
 ## Use the shared core
 
-For the **current public stamp API**, pin `particle-sliders-core` and use
+For the **preserved historical stamp API**, pin `particle-sliders-core` and use
 `winning_formulation()` / `FormulationGame` rather than copying the stamp's game.
 The older [product follow-ups](docs/winning-formulation.md#product-follow-ups)
 describe that migration's scope; they are not a completion report for the newer
@@ -195,7 +200,7 @@ that source; substituting a newer upstream release changes the contract.
 
 ```bash
 python -m pip install \
-  "particle-sliders-core @ git+https://github.com/HyperGAN/particle-sliders.git@<commit>#subdirectory=packages/particle-sliders-core"
+  "particle-sliders-core @ git+https://github.com/HyperGAN/particle-sliders.git@17cd484ef00601389256a30f6d52fc79991bcb3d#subdirectory=packages/particle-sliders-core"
 ```
 
 ```python
@@ -220,7 +225,15 @@ pin/cohort. The runnable reference for this public API is
 
 - [Package README](packages/particle-sliders-core/README.md): install, API and `FormulationGame` train step
 - [Winning formulation](docs/winning-formulation.md): the product stamp and what products may override
-- [Historical stamp architecture](docs/shared-core.md): ownership in the current public stamp API; see the migration contract above for the newer lifecycle
+- [Shared ownership](docs/shared-core.md): product factories, common lifecycle and upstream boundaries
+
+
+For new products, use [the lifecycle guide](packages/particle-sliders-core/README.md):
+install the full reviewed core/product pins in one backend environment, then call
+shared train/resume/evaluate/export/inference with that product's local options.
+The complete offline [numerical response example](examples/response_fixture/README.md)
+needs only two local text files; consumers never assemble a game/critic/provider.
+Do not co-install incompatible native libraries or substitute source profiles.
 
 `concept-slider-core` / `concept_slider_core` is a deprecated alias from the
 Anima extraction. Formulation toys live in

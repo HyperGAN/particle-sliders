@@ -1,0 +1,26 @@
+{
+  "repository": "https://github.com/255BITS/ParticleGAN",
+  "commit": "82b72661c03377f348ccb76de37cd4ca02d45a8d",
+  "path": "particlegan/locked_shared.py",
+  "sha256": "d6e0b484691de311b31866b3fa52d6f388809648117926d2d47d25f302316610",
+  "fields": {
+    "loss_type": "logistic",
+    "gan_mode": "rp",
+    "reg_arm": "b_cap",
+    "reg_coeff": 1.0,
+    "reg_kappa": 1.0,
+    "reg_norm": "l2",
+    "lazy_k": 1,
+    "reg_method": "autograd",
+    "target_anneal": "none",
+    "fm_weight": 0.0,
+    "cover_weight": 1.5,
+    "cover_posture": "demo",
+    "n_particles": 12,
+    "particle_l2": 0.02,
+    "z_dim": 2,
+    "pairing": "live",
+    "critic": "host",
+    "reg_impl": "grad_regularizer"
+  }
+}

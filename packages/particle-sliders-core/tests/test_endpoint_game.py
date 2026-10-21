@@ -27,7 +27,8 @@ def test_reference_sources_exact():
     wrapper = (package / "grad_regularizers.py").read_text()
     assert "from particlegan" in wrapper
     assert "class GradRegularizer" not in wrapper
-    assert wrapper.count("\n") < 40
+    assert "def _grad_norm" not in wrapper
+    assert "def _fixed_penalty" not in wrapper
     source = ROOT / meta["teacher_source"]
     if not source.is_file():
         pytest.skip("historical teacher source is not included in the installed package")

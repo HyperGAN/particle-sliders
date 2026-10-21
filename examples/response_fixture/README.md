@@ -1,7 +1,7 @@
-# Installed numerical response example (source proposal)
+# Installed numerical response example (offline fixture)
 
 Synthetic adapter-only vector example. No native model, token or audio renderer.
-Runtime qualification is pending; build/install only in a parent-admitted CPU slot.
+The fixture has installed CPU qualification; it makes no native media claim.
 Use a separate environment with this branch's exact core/ParticleGAN dependency.
 Build this tiny plugin with `python -m pip wheel --no-deps --no-build-isolation .`,
 then install its wheel alongside the reviewed core wheel. Outside the source tree:

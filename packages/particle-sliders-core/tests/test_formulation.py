@@ -100,7 +100,8 @@ def test_locked_shared_stays_a_named_recipe():
     assert recipe.vicreg_weight == 0.0
     assert isinstance(recipe.regularizer(), GradientPenalty)
     pg = particlegan_locked_shared()
-    assert pg["stamp"] == "legacy-fixed-bcap"  # upstream 0.8 retired LOCKED_SHARED
+    assert pg["stamp"].cover_weight == 1.5
+    assert pg["stamp"].reg_norm == "l2"
     assert isinstance(pg["b_cap"], GradientPenalty)
 
 

@@ -24,7 +24,7 @@ def test_legacy_cap_uses_upstream_kernel():
     assert isinstance(regularizer, UpstreamGradientPenalty)
     assert regularizer.arm == "b_cap"
     assert regularizer.lazy_k == 4
-    with pytest.raises(ValueError, match="L2/autograd"):
+    with pytest.raises(ValueError, match="does not implement legacy"):
         GradientPenalty(norm="rms")
 
 

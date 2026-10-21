@@ -1,9 +1,10 @@
 # Numerical response sessions: source proposal
 
-This additive contract is **source-only and unqualified** until the parent
-admits serial CPU validation. Reviewed core0.8.1/PG0.9.1 (`32f6830`) and
-core0.9.0/PG0.9.3 (`da4bae3`) remain unchanged. This proposal is a new source
-cohort on each exact dependency line, not a checkpoint migration or a new GAN law.
+This additive contract is included in this official-PG0.9.1 source line and
+qualified with small offline CPU fixtures. Each product still needs its own
+installed integration receipt; this does not qualify native wide audio or
+waveform rendering. Existing source cohorts retain their exact pins; this is
+not a checkpoint migration or a new GAN law.
 
 ## Ownership and bounded implementation
 

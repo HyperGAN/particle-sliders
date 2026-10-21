@@ -371,15 +371,16 @@ def locked_shared_recipe():
 
 
 def particlegan_locked_shared():
-    """Compatibility cap/loss builders after upstream retired LOCKED_SHARED.
+    """Historical frozen stamp fields plus upstream fixed cap/RpGAN builders.
 
-    The stamp field is now the label 'legacy-fixed-bcap'; fixed cap and paired
-    relativistic losses retain their equations. Use get_recipe for new games.
+    The retired upstream stamp is metadata, not a PG0.9.1 training profile.
+    No legacy checkpoint is migrated by calling this helper.
     """
     from particlegan import GANLoss
+    from .legacy_compat import LEGACY_LOCKED_SHARED
 
     return {
-        "stamp": "legacy-fixed-bcap",
+        "stamp": LEGACY_LOCKED_SHARED,
         "b_cap": GradientPenalty(arm="b_cap", coeff=1., kappa=1.),
         "gan_loss": GANLoss("relativistic"),
     }
