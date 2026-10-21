@@ -1,4 +1,4 @@
-# Native-only inference, core 0.8.0
+# Native-only inference, core 0.8.1
 
 Dependency direction is product -> particle-sliders -> ParticleGAN/HyperGAN.
 Products register `particle_sliders.inference_backends` separately from
@@ -94,3 +94,17 @@ manifest/artifact references with its supported external RunReporter, in a
 separate reporting subdirectory. Core does not depend on HyperGAN Execution
 internals or introduce another renderer. HNDL matched-weight network migrations
 remain separate. Native pretrained backbones remain native.
+
+
+## Observation isolation correction (0.8.1)
+
+Both session types now share buffer/mode/state restoration. All registered
+adapter buffers, including nonpersistent and nested buffers, are restored on
+successful and failed observations, retaining original buffer references and
+persistence registrations. Product observation hooks still own native state
+outside binding.network. CUDA RNG device collection includes adapter buffers
+and explicit local runtime/request devices, alongside parameters. CPU-only
+FakeTensor probes verify collection/fork/seed control flow without executing
+CUDA; they do not qualify GPU RNG, memory or mixed-device native backends.
+The held 0.8.0 commit and artifact receipts remain available. Source changes
+require newly reviewed pins/cohorts; no training checkpoint is rebound here.

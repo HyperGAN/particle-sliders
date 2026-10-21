@@ -53,5 +53,7 @@
   "docs/compact-inference-plan.md",
   "packages/particle-sliders-core/README.md",
   "packages/particle-sliders-core/src/particle_sliders/locked_provenance.json",
-  "docs/clean-main-integration.md"
+  "docs/clean-main-integration.md",
+  "packages/particle-sliders-core/tests/test_observation_isolation.py",
+  "docs/observation-review-followup.md"
 ]

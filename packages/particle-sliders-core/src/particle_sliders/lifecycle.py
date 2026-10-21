@@ -3,7 +3,7 @@
 Importing this module never imports a product, downloads weights or selects a
 GPU. See IMAGE-LIFECYCLE.md for packet/cohort and backend isolation contracts.
 """
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 import hashlib
@@ -205,6 +205,56 @@ def _rng_devices(*values):
     for value in values:
         visit(value)
     return sorted(devices)
+
+
+def _seed_observation(seed, devices):
+    torch.set_rng_state(torch.Generator().manual_seed(seed).get_state())
+    for device in devices:
+        torch.cuda.set_rng_state(torch.Generator(device=f'cuda:{device}').manual_seed(seed).get_state(), device)
+
+
+@contextmanager
+def _network_observation(network, seed, *, devices, observation=None):
+    """Preserve every registered adapter buffer, including nonpersistent ones.
+
+    Buffer references/registrations are retained independently of state_dict,
+    which intentionally excludes nonpersistent buffers. Native state outside
+    this network remains the product observation context's responsibility.
+    """
+    state = deepcopy(network.state_dict())
+    modes = [(module, module.training) for module in network.modules()]
+    buffers = [(module, dict(module._buffers), set(module._non_persistent_buffers_set))
+               for module in network.modules()]
+    values = {id(buffer): (buffer, buffer.detach().clone())
+              for _, registered, _ in buffers for buffer in registered.values() if buffer is not None}
+    def restore_buffers():
+        with torch.no_grad():
+            for buffer, saved in values.values():
+                if (buffer.shape, buffer.dtype, buffer.device) == (saved.shape, saved.dtype, saved.device):
+                    buffer.copy_(saved)
+                else:
+                    buffer.data = saved.clone()
+            for module, registered, nonpersistent in buffers:
+                module._buffers.clear()
+                module._buffers.update(registered)
+                module._non_persistent_buffers_set.clear()
+                module._non_persistent_buffers_set.update(nonpersistent)
+    try:
+        with torch.random.fork_rng(devices=devices), torch.no_grad():
+            _seed_observation(seed, devices)
+            network.eval()
+            with observation() if observation else nullcontext():
+                yield
+    finally:
+        try:
+            restore_buffers()
+            network.load_state_dict(state, strict=True)
+        finally:
+            try:
+                restore_buffers()
+            finally:
+                for module, training in modes:
+                    module.training = training
 
 
 def native_cleanup(root):
@@ -533,25 +583,12 @@ class SliderSession:
         self.inference_only = True
 
     @contextmanager
-    def _observation(self, seed):
+    def _observation(self, seed, request=None):
         self._open()
         network = self.game.network
-        state = deepcopy(network.state_dict())
-        modes = [(module, module.training) for module in network.modules()]
-        devices = [self.game.device.index or 0] if self.game.device.type == 'cuda' else []
-        try:
-            with torch.random.fork_rng(devices=devices), torch.no_grad():
-                torch.set_rng_state(torch.Generator().manual_seed(seed).get_state())
-                if devices:
-                    torch.cuda.set_rng_state(torch.Generator(device=self.game.device).manual_seed(seed).get_state(), self.game.device)
-                network.eval()
-                from contextlib import nullcontext
-                with self.binding.observation() if self.binding.observation else nullcontext():
-                    yield
-        finally:
-            network.load_state_dict(state)
-            for module, training in modes:
-                module.training = training
+        devices = _rng_devices(network, self.game.device, self.config.options, request)
+        with _network_observation(network, seed, devices=devices, observation=self.binding.observation):
+            yield
 
     def evaluate(self, index=0, *, seed=0, strength=1.):
         """Return a native velocity response, never an image or a generic solver."""
@@ -570,7 +607,7 @@ class SliderSession:
                                 precision=self.capabilities.base_precisions[0],
                                 output_type=native.get('output_type', next(iter(self.capabilities.render_outputs), None)))
         native.setdefault('output_type', next(iter(self.capabilities.render_outputs), None))
-        with self._observation(seed):
+        with self._observation(seed, dict(native, images=images)):
             return self.binding.render(strength=strength, seed=seed, images=images, **native)
 
     def close(self):

@@ -18,7 +18,7 @@ from torch import nn
 
 from .lifecycle import (
     BackendUnavailable, Capabilities, CheckpointError, LifecycleError,
-    UnsupportedOperation, atomic_save, _rng_devices,
+    UnsupportedOperation, atomic_save, _rng_devices, _network_observation,
 )
 from .pg09 import _architectures, _hash, _identity, _validate_module
 
@@ -291,7 +291,7 @@ def open_inference(artifact, *, options=None, backend=None, operation='render', 
             if native_backend.preflight is not None:
                 native_backend.preflight(deepcopy(options), dict(operation=operation, strength=strength,
                     references=references, output_type=output_type, native=deepcopy(native)), spec)
-        return InferenceSession(binding, capabilities, packet, output_type, preflight)
+        return InferenceSession(binding, capabilities, packet, output_type, preflight, rng_devices=devices)
     except BaseException:
         if callable(getattr(binding, 'close', None)):
             binding.close()
@@ -300,12 +300,13 @@ def open_inference(artifact, *, options=None, backend=None, operation='render', 
 
 class InferenceSession:
     """Native base/adapter only; no game, rows, critic or optimizer attributes."""
-    def __init__(self, binding, capabilities, packet, output_type, preflight):
+    def __init__(self, binding, capabilities, packet, output_type, preflight, *, rng_devices=()):
         self.binding, self.capabilities = binding, capabilities
         self._receipt = {key: deepcopy(value) for key, value in packet.items() if key != 'network'}
         self.closed = False
         self._output_type = output_type
         self._preflight = preflight
+        self._rng_devices = tuple(rng_devices)
 
     @property
     def selection(self):
@@ -316,33 +317,20 @@ class InferenceSession:
         return deepcopy(self._receipt)
 
     @contextmanager
-    def _observation(self, seed):
+    def _observation(self, seed, request=None):
         if self.closed:
             raise LifecycleError('inference session is closed')
         network = self.binding.network
-        devices = sorted({value.device.index or 0 for value in network.parameters() if value.is_cuda})
-        state = deepcopy(network.state_dict())
-        modes = [(module, module.training) for module in network.modules()]
-        try:
-            with torch.random.fork_rng(devices=devices), torch.no_grad():
-                torch.set_rng_state(torch.Generator().manual_seed(seed).get_state())
-                for device in devices:
-                    torch.cuda.set_rng_state(torch.Generator(device=f'cuda:{device}').manual_seed(seed).get_state(), device)
-                network.eval()
-                from contextlib import nullcontext
-                with self.binding.observation() if self.binding.observation else nullcontext():
-                    yield
-        finally:
-            network.load_state_dict(state, strict=True)
-            for module, training in modes:
-                module.training = training
+        devices = sorted(set(self._rng_devices) | set(_rng_devices(network, request)))
+        with _network_observation(network, seed, devices=devices, observation=self.binding.observation):
+            yield
 
     def render(self, *, strength=1., seed=0, images=None, output_type=None, **native):
         output_type = output_type or self._output_type
         self.capabilities.check('render', strength=strength, references=bool(images),
                                 output_type=output_type)
         self._preflight('render', strength, bool(images), output_type, dict(native, images=images))
-        with self._observation(seed):
+        with self._observation(seed, dict(native, images=images)):
             return self.binding.render(strength=strength, seed=seed, images=images, output_type=output_type, **native)
 
     def response(self, *, strength=1., seed=0, **native):
@@ -350,7 +338,7 @@ class InferenceSession:
         if self.binding.response is None:
             raise UnsupportedOperation('native response callback is unavailable')
         self._preflight('response', strength, False, None, native)
-        with self._observation(seed):
+        with self._observation(seed, native):
             return self.binding.response(strength=strength, seed=seed, **native)
 
     def train(self, **kwargs):

@@ -1,4 +1,4 @@
-# particle-sliders-core 0.8.0 clean image lifecycle candidate
+# particle-sliders-core 0.8.1 clean image lifecycle candidate
 
 Product -> particle-sliders -> ParticleGAN/HyperGAN. Native model dependencies
 remain isolated in each product environment. The exact released ParticleGAN

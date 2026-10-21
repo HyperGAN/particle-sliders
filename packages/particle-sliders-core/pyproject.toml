@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "particle-sliders-core"
-version = "0.8.0"
+version = "0.8.1"
 description = "Conditional ParticleGAN 0.9 slider core with native response backends"
 readme = "README.md"
 requires-python = ">=3.10"

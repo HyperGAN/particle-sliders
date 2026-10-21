@@ -47,4 +47,3 @@ class TinyParticleProjection(nn.Module):
         routed = self.bridge(features, self._particles)
         delta = self.lora_up(routed).to(device=x.device, dtype=x.dtype)
         return self.org_forward(x) + delta * (self.multiplier * self.scale)
-

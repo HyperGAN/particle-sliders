@@ -30,4 +30,3 @@ class FieldCritic(nn.Module):
         gain, bias = self.condition(condition).chunk(2, dim=1)
         field = torch.nn.functional.silu(field * (1 + gain[:, :, None, None]) + bias[:, :, None, None])
         return self.score(field.mean((2, 3))).squeeze(-1)
-

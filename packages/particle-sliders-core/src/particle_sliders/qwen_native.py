@@ -23,4 +23,3 @@ def with_encoding(kwargs, encoding):
         "encoder_hidden_states_mask": encoding["prompt_embeds_mask"],
         "img_mask": torch.cat([image_mask, image_mask.new_ones(image_mask.shape[0], tokens // 4)], dim=1),
     }
-
