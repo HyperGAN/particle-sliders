@@ -65,7 +65,7 @@ def test_adam_arm_keeps_original_law_and_reports_why_gram_is_unavailable():
         configure_dense_profile(original, GRAM_PROFILE)
 
 
-@pytest.mark.parametrize('change', [dict(optimizer_momentum=.5), dict(optimizer_smoothing=.02),
+@pytest.mark.parametrize('change', [dict(optimizer_momentum=.5, constraint_geometry_mode='none'), dict(optimizer_smoothing=.02),
                                     dict(optimizer_svd_backend='cpu', optimizer_convolution_rule='polar')])
 def test_unsupported_optimizer_config_is_not_rewritten(change):
     recipe = replace(get_recipe('bispf_optimized'), **change)
