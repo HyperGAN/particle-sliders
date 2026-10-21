@@ -82,6 +82,19 @@ transferred provider; the common session closes it once. CLI supports
 `particle-slider evaluate --split dev ...`; output receipts identify split/row/
 seed/strength. This exposes native fields, not a media renderer.
 
+Native products with their own guarded field-fetch path can instead supply
+`Binding(..., response=observations.response, observation=observe_native)`.
+The callback signature is `response(index=0, *, split='train', strength=1., seed=0)`.
+The core enters the same observation transaction before invoking it. The callback
+must validate supported splits and bounds before fetch, preserve native admission
+and return guards, and return a detached response snapshot. Negative/noninteger
+indices and empty/nonstring splits reject centrally before invocation. Other
+unsupported splits reject inside the native transaction before provider access.
+Do not combine `response` and `evaluation_rows`. Callback source hash and qualified
+name enter the manifest; native DEV data/protocol identity must be explicit in
+factory config. No private training-provider substitution is required. This is
+an observation callback, not a second training lifecycle.
+
 Rendering remains `Binding.render` with allocation-free request preflight and
 capability gates. MOSS owns its native four-step sampling/Off reference; the
 shared core does not invent a sampler or own a competing run renderer. HyperGAN

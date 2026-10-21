@@ -76,3 +76,70 @@ def test_evaluation_identity_is_bound_to_resume_manifest():
     with pytest.raises(CheckpointError):second.restore(first.checkpoint())
     equal(before,second.checkpoint())
     first.close();second.close()
+
+
+@pytest.mark.parametrize('failure', [None, 'fetch', 'forward'])
+def test_native_response_callback_runs_inside_observation_and_preserves_guards(failure):
+    active = session(particles=False, render=False)
+    original_rows = active.game.rows
+    events, native = [], {'cache': 1}
+    @contextmanager
+    def observe():
+        before = deepcopy(native)
+        events.append('enter')
+        try:
+            yield
+        finally:
+            native.clear(); native.update(before); events.append('exit')
+    def response(index=0, *, split='train', strength=1., seed=0):
+        assert events[-1] == 'enter'
+        if split not in ('train', 'dev'):
+            raise UnsupportedOperation('unsupported native split')
+        if index >= len(original_rows):
+            raise ValueError('native bounds')
+        events.append('guard-fetch')
+        native['cache'] += 1
+        torch.rand(())
+        if failure == 'fetch':
+            raise RuntimeError('native fetch failure')
+        from dataclasses import replace
+        prepared = original_rows[index]
+        prepared = replace(prepared, row=replace(prepared.row, scale=strength))
+        result = active.game.backend.generated(prepared).detach().clone()
+        if failure == 'forward':
+            raise RuntimeError('native forward failure')
+        events.append('guard-return')
+        return result
+    active.binding.response = response
+    active.binding.observation = observe
+    active = SliderSession(active.config, active.capabilities, active.binding)
+    before, rng = active.checkpoint(), torch.get_rng_state().clone()
+    if failure:
+        with pytest.raises(RuntimeError, match='native'):
+            active.evaluate(split='dev', strength=.5, seed=17)
+    else:
+        assert torch.equal(active.evaluate(split='dev', strength=.5, seed=17),
+                           active.evaluate(split='dev', strength=.5, seed=17))
+        assert 'guard-return' in events
+    equal(before, active.checkpoint())
+    assert torch.equal(rng, torch.get_rng_state()) and native == {'cache': 1}
+    assert active.game.rows is original_rows and events[-1] == 'exit'
+    assert active.manifest['native_response']['source_sha256']
+    events.clear()
+    with pytest.raises(UnsupportedOperation):
+        active.evaluate(split='missing')
+    assert events == ['enter', 'exit']
+    events.clear()
+    with pytest.raises(ValueError):
+        active.evaluate(-1, split='dev')
+    assert not events
+    active.close()
+
+
+def test_native_response_cannot_ambiguously_override_named_providers():
+    active = session(particles=False, render=False)
+    active.binding.evaluation_rows = {'dev': EvaluationRows(active.game.rows, {'data': 'dev'})}
+    active.binding.response = lambda **request: None
+    with pytest.raises(ValueError, match='cannot combine'):
+        SliderSession(active.config, active.capabilities, active.binding)
+    active.close()

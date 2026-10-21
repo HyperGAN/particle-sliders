@@ -136,6 +136,7 @@ class Binding:
     before_update: Callable | None = None
     observation: Callable | None = None
     evaluation_rows: dict | None = None
+    response: Callable | None = None
 
 
 @dataclass(frozen=True)
@@ -495,6 +496,16 @@ class SliderSession:
         self.inference_only = False
         self.last_metrics = None
         self._evaluation_rows = dict(binding.evaluation_rows or {})
+        if binding.response is not None and (not callable(binding.response) or self._evaluation_rows):
+            raise ValueError('native response must be callable and cannot combine with evaluation_rows')
+        response_identity = None
+        if binding.response is not None:
+            import inspect
+            source = inspect.getsourcefile(binding.response)
+            if source is None:
+                raise ValueError('native response requires inspectable Python source')
+            response_identity = dict(source_sha256=hashlib.sha256(Path(source).read_bytes()).hexdigest(),
+                                     callable=binding.response.__qualname__)
         if any(not isinstance(name, str) or not name or name == 'train'
                or not isinstance(value, EvaluationRows) or not isinstance(value.identity, dict)
                or not value.identity for name, value in self._evaluation_rows.items()):
@@ -502,6 +513,7 @@ class SliderSession:
         self._manifest = dict(api=self.api, config=config.as_dict(), capabilities=asdict(capabilities),
             lifecycle_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             game_signature=deepcopy(self.game._signature),
+            native_response=response_identity,
             evaluation_splits={name: _hash(value.identity)
                                for name, value in self._evaluation_rows.items()})
 
@@ -645,11 +657,16 @@ class SliderSession:
         self.capabilities.check('response', strength=strength)
         if type(index) is not int or index < 0:
             raise ValueError('response row index out of bounds')
-        if not isinstance(split, str) or split != 'train' and split not in self._evaluation_rows:
+        if (not isinstance(split, str) or not split
+                or self.binding.response is None and split != 'train' and split not in self._evaluation_rows):
             raise UnsupportedOperation('unknown/unavailable evaluation split: ' + str(split))
-        rows = self.game.rows if split == 'train' else self._evaluation_rows[split].rows
         from dataclasses import replace
         with self._observation(seed, dict(split=split, index=index)):
+            if self.binding.response is not None:
+                # Native callbacks retain product admission and fetch guards. They
+                # validate supported split/bounds before fetching and own no loop.
+                return self.binding.response(index=index, split=split, strength=strength, seed=seed)
+            rows = self.game.rows if split == 'train' else self._evaluation_rows[split].rows
             # Lazy providers can mutate native caches/buffers or consume RNG even
             # during bounds checks and row capture. The product observation hook
             # must own those operations as well as the differentiable response.
