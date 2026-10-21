@@ -9,6 +9,7 @@ import torch.nn.functional as F
 
 from .reference import rp_d_loss, rp_g_loss
 from .teachers import lm_faithful_guard_e
+from ._training import preserve_parameter_flags
 
 
 def teacher_poles(recipe, positive, negative, neutral, *, leak_dir=None, slider_dir=None):
@@ -51,7 +52,7 @@ class EndpointGame:
                            for i, phase in enumerate(("d", "g"))}
         self.g = torch.optim.Adam([p for p in adapter.parameters() if p.requires_grad],
             lr=recipe.g_lr, betas=(recipe.beta1, recipe.beta2), weight_decay=0)
-        self.d = torch.optim.Adam(critic.parameters(), lr=recipe.d_lr,
+        self.d = torch.optim.Adam([p for p in critic.parameters() if p.requires_grad], lr=recipe.d_lr,
             betas=(recipe.beta1, recipe.beta2), weight_decay=0)
         self.capper = recipe.regularizer()
 
@@ -62,6 +63,10 @@ class EndpointGame:
         checkpoint recomputation). A context manager per sign avoids retaining
         two transformer graphs at once.
         """
+        with preserve_parameter_flags(self.critic):
+            return self._update(predict, targets, step, prefetch)
+
+    def _update(self, predict, targets, step, prefetch=None):
         if step < 1:
             raise ValueError("Updates start at one")
         rows = {p: torch.randint(self.count, (self.recipe.batch,), generator=g).tolist()
@@ -69,7 +74,6 @@ class EndpointGame:
         if prefetch:
             prefetch(rows["d"] + rows["g"])
         totals = dict(d_adv=0., d_penalty=0., g_adv=0., pole=0., cover=0.)
-        self.critic.requires_grad_(True)
         self.d.zero_grad(set_to_none=True)
         for start in range(0, self.recipe.batch, self.microbatch):
             ids = rows["d"][start:start+self.microbatch]

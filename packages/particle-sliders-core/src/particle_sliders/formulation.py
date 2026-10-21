@@ -371,18 +371,18 @@ def locked_shared_recipe():
 
 
 def particlegan_locked_shared():
-    """ParticleGAN develop ``LOCKED_SHARED`` builders (``make_b_cap``, ``make_gan_loss``).
+    """Historical frozen stamp fields plus upstream fixed cap/RpGAN builders.
 
-    Distinct from :func:`locked_shared_recipe`, which is the Music Arm B
-    endpoint ``SliderRecipe`` (cover_weight 1.0). ParticleGAN's demo lock uses
-    cover_weight 1.5 and is refused by ``require_locked_shared`` here.
+    The retired upstream stamp is metadata, not a PG0.9.1 training profile.
+    No legacy checkpoint is migrated by calling this helper.
     """
-    from particlegan import LOCKED_SHARED, make_b_cap, make_gan_loss
+    from particlegan import GANLoss
+    from .legacy_compat import LEGACY_LOCKED_SHARED
 
     return {
-        "stamp": LOCKED_SHARED,
-        "b_cap": make_b_cap(),
-        "gan_loss": make_gan_loss(),
+        "stamp": LEGACY_LOCKED_SHARED,
+        "b_cap": GradientPenalty(arm="b_cap", coeff=1., kappa=1.),
+        "gan_loss": GANLoss("relativistic"),
     }
 
 

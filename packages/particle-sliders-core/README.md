@@ -1,138 +1,44 @@
-# particle-sliders-core
+# particle-sliders-core 0.8.3 — official PG0.9.1 lifecycle
 
-Installable shared core for HyperGAN slider products. Import `particle_sliders`.
-The pip name `concept-slider-core` and the import `concept_slider_core` are
-deprecated aliases from the Anima extraction. `concept_slider_core` still
-re-exports this API and warns on import.
+Model product -> particle-sliders -> HyperGAN / ParticleGAN. Products own native
+loading, packing, schedulers, adapter attachment and their complete factory;
+particle-sliders owns session preparation, admission, train/resume, EMA,
+evaluation, export/native-only inference and cleanup. Upstream ParticleGAN owns
+GAN mathematics. HyperGAN/HNDL reporting and matched-weight network migration
+remain separate integration work; native pretrained backbones stay native.
 
-Source repository: [HyperGAN/particle-sliders](https://github.com/HyperGAN/particle-sliders).
-Pin this repository. Do not pin `mikkel/sliders-conceptmod` for new installs.
+This source integration includes the reviewed image and numerical response
+lifecycles plus a narrow legacy compatibility layer. It is not a package release.
+Install a full reviewed Git pin using `#subdirectory=packages/particle-sliders-core`
+or its exact wheel; retain that pin, source map and receipts. Dependency is exact
+`particlegan==0.9.1`, Torch>=2.6,<3 (also required by upstream), Python>=3.10.
+Core0.8.1/0.8.2 source pins remain immutable. See [LEGACY-MIGRATION.md](LEGACY-MIGRATION.md)
+for preserved constructors/stamp fields, explicit retired-kernel refusals and
+runnable old/core0.3 instructions; this upgrade does not migrate checkpoints.
 
-Product repositories depend on this package and train
-`winning_formulation()`. They do not re-implement routed particles,
-`locked_shared`, or `GradRegularizer` locally. Formulation toys and the DSL
-board stay in [HyperGAN/conceptmod](https://github.com/HyperGAN/conceptmod).
+Start with [IMAGE-LIFECYCLE.md](IMAGE-LIFECYCLE.md) for the complete product factory
+and common image session. [RESPONSE-SESSIONS.md](RESPONSE-SESSIONS.md) documents
+numerical response registration; a hidden response is not an image or waveform.
+The independent installed `examples/response_fixture` plugin needs only local
+scalar files and demonstrates the entire train/resume/export/data-free inference
+flow. Core imports do not load pretrained models or initialize CUDA.
 
-This package **depends on ParticleGAN develop** (`particlegan` 0.6.0 API).
-Cap, RpGAN loss, and particle VIC come from that public API
-(`GradientPenalty`, `GANLoss`, `ParticleRegularizer`, `make_b_cap`,
-`make_gan_loss`, `get_recipe`). `GradRegularizer` remains a thin
-compatibility alias for anima and other products that still import that name
-from `particle_sliders`. Gmix architecture (RoutedMLP, global-mix critic,
-product game structure) stays in this package.
+- [NATIVE-INFERENCE.md](NATIVE-INFERENCE.md): loading base and adapter without
+  teacher data, critic, optimizer or training configuration.
+- [CLI-ARTIFACTS.md](CLI-ARTIFACTS.md): v1 default versus explicit v2/both exports.
+- [PROVIDER-OBSERVATION.md](PROVIDER-OBSERVATION.md): observation covers provider
+  fetch as well as forward, with state/RNG restoration.
+- [CHECKPOINT-OWNERSHIP.md](CHECKPOINT-OWNERSHIP.md): reversible native wrappers.
+- [CONDITIONAL-PG09-CONTRACT.md](CONDITIONAL-PG09-CONTRACT.md): strict game/resume.
 
-`particlegan` is a **transitive dependency**: pin `particle-sliders-core` and
-you get the ParticleGAN develop SHA recorded in this package's
-`pyproject.toml` (and in `locked_provenance.json`).
+Software evidence covers synthetic CPU contracts, not pretrained convergence,
+accelerator fit, native image quality or acoustic rendering. Iris rendering stays
+disabled pending native solver parity; Krea2 is adapter-only (`particles=None`).
+Qwen/Fibo native dependencies remain in separate environments. Official PG0.9.1
+wide continuous audio states remain refused; no unofficial upstream proposal is
+included or activated. MOSS uses its separate officialPG0.9.3 line. Mere backend
+registration does not qualify a product migration.
 
-## Install
-
-Pin a full commit of HyperGAN/particle-sliders. Install the product's tested
-PyTorch build first; then install this package (it pulls `particlegan`).
-
-```bash
-python -m pip install \
-  "particle-sliders-core @ git+https://github.com/HyperGAN/particle-sliders.git@<commit>#subdirectory=packages/particle-sliders-core"
-```
-
-From a checkout of this repository (editable ParticleGAN + core):
-
-```bash
-python -m pip install -e /path/to/ParticleGAN
-python -m pip install -e ./packages/particle-sliders-core
-python -m pytest packages/particle-sliders-core/tests tests/test_particle_sliders_formulation.py
-```
-
-The retired subdirectory `packages/concept-slider-core` is a pointer, not the
-package. Commits at or before `beaffeb` still contain the old tree.
-
-## Winning formulation
-
-Minimal train-loop surface (stamp + ParticleGAN-backed primitives):
-
-```python
-from particle_sliders import winning_formulation
-
-stamp = winning_formulation()
-stamp.require({**stamp.as_dict(), "g_lr": 2e-5})  # g_lr is a model surface
-bridge = stamp.bridge()            # gmix RoutedMLP
-critic = stamp.critic(training_targets, neutrals=training_neutrals)
-regularizer = stamp.regularizer()  # particlegan.GradientPenalty (b_cap)
-d_loss, g_loss, vic = stamp.losses()  # particlegan GANLoss + ParticleRegularizer
-sigma = stamp.noise_std_at(step, edit_rms)
-
-# optional: ParticleGAN develop recipes / locked builders
-from particle_sliders import particlegan_get_recipe, particlegan_locked_shared
-recipe = particlegan_get_recipe("gan")
-locked = particlegan_locked_shared()  # make_b_cap + make_gan_loss
-```
-
-Architecture is gmix (`stamp.architecture_id`). Formulation parameters are
-provisional: today's overlay id is `particle-gmix-1600-v2`
-(`stamp.formulation_id`, `stamp.formulation_provisional` true). The next
-parameter set is whatever
-[ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38) crowns on
-the full live leaderboard (9 toys and all 29 bounds; partial wins do not
-count) and is plugged into this same gmix architecture. Related search:
-[ParticleGAN #39](https://github.com/255BITS/ParticleGAN/pull/39).
-Replace `CURRENT_FORMULATION_ID` and `CURRENT_FORMULATION` in
-`particle_sliders.formulation` when that search finishes. Do not replace
-`gmix_architecture()`. Products pick up the new overlay by bumping the commit
-pin and still call `winning_formulation()`. Copying the knobs into anima,
-krea2, or supra is a fork: `require()` raises on formulation drift.
-
-Model surfaces a product may override without forking the game: generator,
-critic, and particle learning rates, batch size, and the data-budget fields
-listed on `stamp.model_surface_keys`. Hub model ids, Comfy class names, and
-the train/infer wiring around this stamp stay in the product repo.
-
-`gmix_architecture()` / `gmix_recipe()` is the fixed structure.
-`particle_gmix_1600_v2()` is the provisional formulation overlay
-(`CURRENT_FORMULATION`). `locked_shared_recipe()` remains a named endpoint
-recipe. It is not the product architecture. #38's crowned caps, coefficients,
-learning rates, particle counts, and schedules land on gmix through
-`CURRENT_FORMULATION`.
-
-The long-term product pattern is this dependency. A self-contained product
-that forbids a particle-sliders checkout (`PARTICLE_SLIDERS_ROOT` or an
-equivalent "do not depend on particle-sliders" rule) is the wrong
-architecture. Prefer this git subdirectory pin over an ad-hoc source root.
-
-See [docs/winning-formulation.md](../../docs/winning-formulation.md) and
-[docs/shared-core.md](../../docs/shared-core.md).
-
-## What stays in the product
-
-Projection lists, hooks, prompt cards, checkpoint schemas, sampling, Hub
-ids, Comfy nodes, and release evidence. The shared code is the routed
-adapter, the global-mix critic, relativistic paired losses, particle VIC,
-the noise schedule, the gradient regularizer (via ParticleGAN), ordinary
-LoRA fitting, and the winning-formulation stamp.
-
-## Product train step
-
-Call ``winning_formulation()`` then ``FormulationGame`` for the shared
-feature-space D/G step (bridge, critic, losses, regularizer, particle VIC).
-Products project model residuals into ``adapter_rank`` features; they do not
-reimplement the optimizer loop. ``EndpointGame`` remains the bipolar
-teacher/predict path. Distillation stays in ``fit_routed_down``.
-
-
-```python
-from particle_sliders import winning_formulation, FormulationGame
-
-stamp = winning_formulation()
-config = {**stamp.as_dict(), "g_lr": 2e-5}  # only stamp.model_surface_keys may differ
-stamp.require(config)
-
-# targets / neutrals: [N, adapter_rank] paired positive and neutral features.
-# Without them the critic falls back to a random paired bank.
-game = FormulationGame(stamp, config, critic_targets=targets, critic_neutrals=neutrals,
-                       extra_generator=product_params)  # optional trainable product params
-for step in range(1, steps + 1):            # steps count from 1
-    stats = game.step(step, features)       # features: [batch, adapter_rank]
-```
-
-`step()` compares shared noise with noise plus `bridge(features, particles)`
-and returns `d_loss`, `g_loss`, `vic` and `sigma`. The runnable reference is
-[`tests/test_formulation_game.py`](tests/test_formulation_game.py).
+Optional `[serialization]` adds safetensors for native adapter/cache IO;
+`[hndl]` adds the distinct optional conditional readout critic. No campaign
+launchers or reverse product imports enter this package closure.

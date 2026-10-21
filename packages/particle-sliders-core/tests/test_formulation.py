@@ -45,7 +45,7 @@ def test_package_exports_the_stamp_and_regularizer():
     assert isinstance(regularizer, GradientPenalty)
     assert regularizer.arm == "b_cap"
     assert regularizer.lazy_k == 4
-    assert regularizer.__class__.__module__.startswith("particlegan")
+    assert isinstance(regularizer, __import__("particlegan.grad_regularizers", fromlist=["GradientPenalty"]).GradientPenalty)
 
 
 def test_require_locks_the_game_and_allows_model_surfaces():
@@ -100,7 +100,8 @@ def test_locked_shared_stays_a_named_recipe():
     assert recipe.vicreg_weight == 0.0
     assert isinstance(recipe.regularizer(), GradientPenalty)
     pg = particlegan_locked_shared()
-    assert pg["stamp"].cover_weight == 1.5  # ParticleGAN demo lock, not Music Arm B
+    assert pg["stamp"].cover_weight == 1.5
+    assert pg["stamp"].reg_norm == "l2"
     assert isinstance(pg["b_cap"], GradientPenalty)
 
 
