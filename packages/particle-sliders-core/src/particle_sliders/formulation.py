@@ -371,18 +371,17 @@ def locked_shared_recipe():
 
 
 def particlegan_locked_shared():
-    """ParticleGAN develop ``LOCKED_SHARED`` builders (``make_b_cap``, ``make_gan_loss``).
+    """Compatibility cap/loss builders after upstream retired LOCKED_SHARED.
 
-    Distinct from :func:`locked_shared_recipe`, which is the Music Arm B
-    endpoint ``SliderRecipe`` (cover_weight 1.0). ParticleGAN's demo lock uses
-    cover_weight 1.5 and is refused by ``require_locked_shared`` here.
+    The stamp field is now the label 'legacy-fixed-bcap'; fixed cap and paired
+    relativistic losses retain their equations. Use get_recipe for new games.
     """
-    from particlegan import LOCKED_SHARED, make_b_cap, make_gan_loss
+    from particlegan import GANLoss
 
     return {
-        "stamp": LOCKED_SHARED,
-        "b_cap": make_b_cap(),
-        "gan_loss": make_gan_loss(),
+        "stamp": "legacy-fixed-bcap",
+        "b_cap": GradientPenalty(arm="b_cap", coeff=1., kappa=1.),
+        "gan_loss": GANLoss("relativistic"),
     }
 
 

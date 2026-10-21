@@ -1,0 +1,210 @@
+{
+  "model_id": "briaai/Fibo-2.0-edit-turbo",
+  "model_revision": "177f2d4a06b6587144ef5c2b8452a4f1fe2ab4b7",
+  "model_card_url": "https://huggingface.co/briaai/Fibo-2.0-edit-turbo",
+  "diffusers_repository": "https://github.com/muhammadali-afridi/diffusers",
+  "diffusers_commit": "60f95274bf07ed705d675eb09d99b6ae125b601e",
+  "diffusers_pr": "https://github.com/huggingface/diffusers/pull/14991",
+  "official_space": "https://huggingface.co/spaces/briaai/Fibo-2.0-editing",
+  "official_space_revision": "3e7091360e6c1fa2be7f00ee03fb94d8d42b7171",
+  "diffusers_sources_sha256": {
+    "pipeline_bria_fibo2.py": "02025f1f94b22a57650225d50770b501b2a30370e9aa6d0d3a6e0a3ef03efb47",
+    "transformer_bria_fibo2.py": "b5a691fe4994da8cc7503642f9ce15efc63094f76dad411207e8ac7ae8d72f42",
+    "scheduling_flow_match_euler_discrete.py": "5448bbfe15324ea8034470e742c7782b1de3864c0836d98ef3dade65e30df6a7"
+  },
+  "official_space_sources_sha256": {
+    "space-app.py": "85a59605dd953d37b1757e92840d9493338b0df9e0cf89d0b9239d78f0acc98c",
+    "space-pipelines.py": "572187b39a85cf62705c2e6ae382b794b61c95c8683e20019b965dada0029882",
+    "space-requirements.txt": "fe77d57464ed180498fc76f31509d90d8ccf8b5f8c53452f0ee7b6acdb61041f"
+  },
+  "shared_core_commit": "cdfb80a76b882b4b73861b12f555263bd64ffeb7",
+  "shared_core_pr": "https://github.com/HyperGAN/particle-sliders/pull/141",
+  "particlegan_version": "0.9.1",
+  "particlegan_wheel_sha256": "b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec",
+  "model_license": "CC-BY-NC-4.0; commercial agreement required for commercial use",
+  "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+  "gate_status": "public card inspected; raw README 401; no form submitted or agreement accepted; pretrained files unavailable",
+  "model_card_caution": "Edit Turbo is not intended for fine-tuning; start from Fibo 2.0 Dev instead. Requested Turbo target retained as experimental.",
+  "defaults": {
+    "num_inference_steps": 4,
+    "guidance_scale": 1.0,
+    "dtype": "bfloat16",
+    "max_references": 4
+  },
+  "qualification": "CPU fixtures only; no pretrained or GPU execution",
+  "model_files": {
+    ".gitattributes": {
+      "bytes": 1979,
+      "git_blob_sha1": "32b6a81fdaba9a14edb864fd521258508768ffe9",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "README.md": {
+      "bytes": 14756,
+      "git_blob_sha1": "701121a95641286aa9cc4260514d8df2b9060e8c",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "assets/benchmarks/aa_image_editing_v2.1.png": {
+      "bytes": 368303,
+      "git_blob_sha1": "995790501fc79173ce0dac19e654384a7db20e0f",
+      "lfs_sha256": null,
+      "is_lfs": true,
+      "sha256_visibility": "redacted by gated public API; verify staged content via upstream Git LFS pointer SHA1"
+    },
+    "assets/edit/masked_suitcase.png": {
+      "bytes": 2099371,
+      "git_blob_sha1": "273d27fca58ddfdc6f0be0dfe503cc8e39eb5672",
+      "lfs_sha256": null,
+      "is_lfs": true,
+      "sha256_visibility": "redacted by gated public API; verify staged content via upstream Git LFS pointer SHA1"
+    },
+    "assets/edit/multiref_dress.png": {
+      "bytes": 2143747,
+      "git_blob_sha1": "71852854b5c5146cf2703beff49ca95f47d4eea4",
+      "lfs_sha256": null,
+      "is_lfs": true,
+      "sha256_visibility": "redacted by gated public API; verify staged content via upstream Git LFS pointer SHA1"
+    },
+    "assets/edit/red_jacket.png": {
+      "bytes": 1462967,
+      "git_blob_sha1": "5c06394077b8f2c5cc300851ef1bda12dbce335f",
+      "lfs_sha256": null,
+      "is_lfs": true,
+      "sha256_visibility": "redacted by gated public API; verify staged content via upstream Git LFS pointer SHA1"
+    },
+    "assets/fibo2_edit_strip.jpg": {
+      "bytes": 630577,
+      "git_blob_sha1": "75c16760e3ca637c300e6622e277622db8e3f12a",
+      "lfs_sha256": null,
+      "is_lfs": true,
+      "sha256_visibility": "redacted by gated public API; verify staged content via upstream Git LFS pointer SHA1"
+    },
+    "fonts/Aileron-Regular.otf": {
+      "bytes": 27644,
+      "git_blob_sha1": "4248f6ff3efb5ec0be0e5ef9055c6d16134604aa",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "fonts/DejaVuSans.ttf": {
+      "bytes": 757076,
+      "git_blob_sha1": "83f0bb734d1a4e8b069fc13c2dad5de5ce5483bf",
+      "lfs_sha256": null,
+      "is_lfs": true,
+      "sha256_visibility": "redacted by gated public API; verify staged content via upstream Git LFS pointer SHA1"
+    },
+    "fonts/LICENSE-Aileron.txt": {
+      "bytes": 673,
+      "git_blob_sha1": "fd71d1133b300e3fe855171e335f694b975b656e",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "fonts/LICENSE-DejaVu.txt": {
+      "bytes": 3844,
+      "git_blob_sha1": "746d06306361f071b3a67226dce6c5971563fa50",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "fonts/README.md": {
+      "bytes": 1059,
+      "git_blob_sha1": "dfc96a940e968426e24188938781df7ce2e871e9",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "model_index.json": {
+      "bytes": 438,
+      "git_blob_sha1": "e9cb915b39418f62c7be1e2435279ac77f509c72",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "processor/chat_template.jinja": {
+      "bytes": 5292,
+      "git_blob_sha1": "124386803f142761528f710e77ae483f5f8c4fc4",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "processor/processor_config.json": {
+      "bytes": 1218,
+      "git_blob_sha1": "cad4b8dd372047a9660ae8763f68cc111dd19ee6",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "processor/tokenizer.json": {
+      "bytes": 11422650,
+      "git_blob_sha1": "c7afbed2efcdf019f88ab0572ec29d3bf595dfe2",
+      "lfs_sha256": null,
+      "is_lfs": true,
+      "sha256_visibility": "redacted by gated public API; verify staged content via upstream Git LFS pointer SHA1"
+    },
+    "processor/tokenizer_config.json": {
+      "bytes": 734,
+      "git_blob_sha1": "42bc491eccb6f2ad617f7fe78ea277b8d37c44fc",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "scheduler/scheduler_config.json": {
+      "bytes": 486,
+      "git_blob_sha1": "9570e9eaa10d0aba9020b0adc8431d0ee321d70a",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "text_encoder/config.json": {
+      "bytes": 1674,
+      "git_blob_sha1": "b05250e498c109e7ce0c59df65f50f026844f0cb",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "text_encoder/generation_config.json": {
+      "bytes": 242,
+      "git_blob_sha1": "72036625a2e5d41aec4a700c71acc6c5f72c889d",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "text_encoder/model.safetensors": {
+      "bytes": 8875719408,
+      "git_blob_sha1": "431ac79fc03e5336825508b7d0fb9e378147d76b",
+      "lfs_sha256": null,
+      "is_lfs": true,
+      "sha256_visibility": "redacted by gated public API; verify staged content via upstream Git LFS pointer SHA1"
+    },
+    "transformer/config.json": {
+      "bytes": 623,
+      "git_blob_sha1": "346391123dfa8bfeab1183f6f6da5297e57fc862",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "transformer/diffusion_pytorch_model-00001-of-00002.safetensors": {
+      "bytes": 9991176550,
+      "git_blob_sha1": "6f00d8ec3477d24b40704a5f5b41f802d0fb5f2d",
+      "lfs_sha256": null,
+      "is_lfs": true,
+      "sha256_visibility": "redacted by gated public API; verify staged content via upstream Git LFS pointer SHA1"
+    },
+    "transformer/diffusion_pytorch_model-00002-of-00002.safetensors": {
+      "bytes": 6263592868,
+      "git_blob_sha1": "7dd370c5b60ff6fd838fadc9415c8709f3f0abc4",
+      "lfs_sha256": null,
+      "is_lfs": true,
+      "sha256_visibility": "redacted by gated public API; verify staged content via upstream Git LFS pointer SHA1"
+    },
+    "transformer/diffusion_pytorch_model.safetensors.index.json": {
+      "bytes": 73887,
+      "git_blob_sha1": "e8669c03243cc00e38345c5e13e2bf727ea7c4a9",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "vae/config.json": {
+      "bytes": 915,
+      "git_blob_sha1": "ce1200bb3d7afcd985fdef25d43bd63f5002c041",
+      "lfs_sha256": null,
+      "is_lfs": false
+    },
+    "vae/diffusion_pytorch_model.safetensors": {
+      "bytes": 336213556,
+      "git_blob_sha1": "1fd5b4913b6a9147a73b62f1ffcaf6fdc892a0df",
+      "lfs_sha256": null,
+      "is_lfs": true,
+      "sha256_visibility": "redacted by gated public API; verify staged content via upstream Git LFS pointer SHA1"
+    }
+  }
+}

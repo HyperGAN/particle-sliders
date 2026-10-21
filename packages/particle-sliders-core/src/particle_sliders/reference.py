@@ -18,7 +18,7 @@ def _rp_gan_loss():
     if _RP_GAN_LOSS is None:
         from particlegan import GANLoss
 
-        _RP_GAN_LOSS = GANLoss(loss_type="logistic", mode="rp")
+        _RP_GAN_LOSS = GANLoss("relativistic")
     return _RP_GAN_LOSS
 
 
