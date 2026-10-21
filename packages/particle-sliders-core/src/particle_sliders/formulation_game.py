@@ -14,6 +14,8 @@ from typing import Any, Callable, Iterable, Sequence
 import torch
 from torch import nn
 
+from ._training import preserve_parameter_flags
+
 
 def _paired_bank(rank: int, seed: int) -> dict[str, torch.Tensor]:
     generator = torch.Generator().manual_seed(int(seed) + 17)
@@ -95,10 +97,15 @@ class FormulationGame:
             param_groups.append({"params": generator_params, "lr": float(declared["g_lr"])})
         param_groups.append({"params": [self.particles], "lr": float(declared["particle_lr"])})
         self.opt_g = torch.optim.Adam(param_groups, betas=betas)
-        self.opt_d = torch.optim.Adam(self.critic.parameters(), lr=float(declared["d_lr"]), betas=betas)
+        self.opt_d = torch.optim.Adam([p for p in self.critic.parameters() if p.requires_grad],
+                                      lr=float(declared["d_lr"]), betas=betas)
         self.edit_rms = float(getattr(self.critic, "edit_rms", 1.0))
 
     def step(self, index: int, features: torch.Tensor) -> dict[str, float]:
+        with preserve_parameter_flags(self.critic):
+            return self._step(index, features)
+
+    def _step(self, index: int, features: torch.Tensor) -> dict[str, float]:
         if index < 1:
             raise ValueError("steps are numbered starting at 1")
         if features.ndim != 2 or features.shape[1] != self.rank:
@@ -107,7 +114,6 @@ class FormulationGame:
         sigma = float(self.stamp.noise_std_at(index - 1, self.edit_rms))
         noise = torch.randn(features.shape[0], self.rank, device=self.device) * sigma
 
-        self.critic.requires_grad_(True)
         self.opt_d.zero_grad(set_to_none=True)
         with torch.no_grad():
             fake_detached = noise + self.bridge(features, self.particles)
