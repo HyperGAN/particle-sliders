@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "slider-vector-example"
 version = "1.0.0"
 requires-python = ">=3.10"
-dependencies = ["particle-sliders-core==0.8.3"]
+dependencies = ["particle-sliders-core==0.11.0"]
 
 [tool.setuptools]
 py-modules = ["vector_example"]

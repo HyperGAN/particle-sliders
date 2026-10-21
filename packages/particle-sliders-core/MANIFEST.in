@@ -2,9 +2,11 @@ include CONDITIONAL-PG09-CONTRACT.md
 include requirements-pg09.txt
 include IMAGE-LIFECYCLE.md
 include NATIVE-INFERENCE.md
-recursive-include tests *.py
+recursive-include tests *.py *.json
 include RESPONSE-SESSIONS.md
 include CLI-ARTIFACTS.md
 include PROVIDER-OBSERVATION.md
 include CHECKPOINT-OWNERSHIP.md
 include LEGACY-MIGRATION.md
+include FIBO-NETWORK-PROVENANCE.json
+include MODERN-GRAM.md

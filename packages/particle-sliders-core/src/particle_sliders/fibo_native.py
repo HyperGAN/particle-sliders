@@ -62,15 +62,27 @@ def _identity(identity):
     return identity
 
 
-def _export_metadata(targets, model_identity):
+def _export_metadata(targets, model_identity, network_profile='legacy'):
     from .reference import RoutedMLP
-    return dict(format=FORMAT, model_identity=_identity(model_identity), targets=list(targets),
+    result = dict(format=FORMAT, model_identity=_identity(model_identity), targets=list(targets),
                 rank=8, alpha=8., particles=128, particle_dim=4, bridge_width=48, router_width=16,
                 defaults=DEFAULTS, range=[0., 1.], frozen_base_exported=False,
                 implementation=dict(backend_sha256=_digest(__file__),
                     projection_sha256=_digest(inspect.getsourcefile(TinyParticleProjection)),
                     bridge_sha256=_digest(inspect.getsourcefile(RoutedMLP)),
                     provenance_sha256=_digest(Path(__file__).with_name('fibo_provenance.json'))))
+    if network_profile != 'legacy':
+        from .fibo_hndl import PROFILE, HNDLParticleProjection, verified_builder
+        if network_profile != PROFILE:
+            raise ValueError('unknown Fibo network profile')
+        _, identity = verified_builder()
+        result['network_profile'] = identity
+        result['implementation'].pop('projection_sha256')
+        result['implementation'].pop('bridge_sha256')
+        result['implementation'].update(
+            hndl_binding_sha256=_digest(inspect.getsourcefile(HNDLParticleProjection)),
+            projection_hndl_sha256=identity['projection_sha256'])
+    return result
 
 
 def target_modules(model):
@@ -93,15 +105,23 @@ def target_modules(model):
         raise ValueError('Fibo attention target architecture differs')
     if len({id(m) for m in actual.values()}) != len(actual):
         raise ValueError('aliased Fibo attention projections')
-    if any(isinstance(getattr(m.forward, '__self__', None), TinyParticleProjection) for m in actual.values()):
+    from .fibo_hndl import HNDLParticleProjection
+    if any(isinstance(getattr(m.forward, '__self__', None),
+                      (TinyParticleProjection, HNDLParticleProjection)) for m in actual.values()):
         raise ValueError('Fibo particle slider already attached')
     return {name: actual[name] for name in expected}
 
 
 class FiboParticleSlider(nn.Module):
     """Same routed rank8/alpha8/128x4 architecture as the reviewed tiny sibling."""
-    def __init__(self, model, *, seed=7):
+    def __init__(self, model, *, seed=7, network_profile='legacy'):
         super().__init__()
+        from .fibo_hndl import PROFILE, HNDLParticleProjection, verified_builder
+        if network_profile not in ('legacy', PROFILE):
+            raise ValueError('unknown Fibo network profile')
+        builder, identity = verified_builder() if network_profile == PROFILE else (None, None)
+        self.network_profile = network_profile
+        self.network_identity = identity
         targets = target_modules(model)
         model.eval().requires_grad_(False)
         self.target_names = list(targets)
@@ -114,8 +134,12 @@ class FiboParticleSlider(nn.Module):
             self.adapters = nn.ModuleDict()
             for name, module in targets.items():
                 key = name.replace('.', '-')
-                self.adapters[key] = TinyParticleProjection(key, module, self.particles, 8, 8.).to(
-                    device=device, dtype=torch.float32)
+                if network_profile == PROFILE:
+                    projection = HNDLParticleProjection(key, module, self.particles, 8, 8.,
+                                                        builder=builder, identity=identity)
+                else:
+                    projection = TinyParticleProjection(key, module, self.particles, 8, 8.)
+                self.adapters[key] = projection.to(device=device, dtype=torch.float32)
         self.scale = 0.
 
     @contextmanager
@@ -134,7 +158,7 @@ class FiboParticleSlider(nn.Module):
                 module.multiplier = previous
 
     def metadata(self, model_identity):
-        return _export_metadata(self.target_names, model_identity)
+        return _export_metadata(self.target_names, model_identity, self.network_profile)
 
     def save(self, path, *, model_identity):
         from safetensors.torch import save_file
@@ -144,7 +168,7 @@ class FiboParticleSlider(nn.Module):
         save_file(state, str(path), metadata={'fibo_slider': json.dumps(self.metadata(model_identity), sort_keys=True)})
 
     @classmethod
-    def load(cls, model, path, *, model_identity):
+    def load(cls, model, path, *, model_identity, network_profile='legacy'):
         """Preflight the full export before attaching hooks or changing the host."""
         from safetensors import safe_open
         from safetensors.torch import load_file
@@ -152,15 +176,23 @@ class FiboParticleSlider(nn.Module):
         targets = target_modules(model)
         with safe_open(str(path), framework='pt', device='cpu') as handle:
             meta = json.loads((handle.metadata() or {}).get('fibo_slider', '{}'))
-        expected_meta = _export_metadata(targets, model_identity)
+        expected_meta = _export_metadata(targets, model_identity, network_profile)
         if meta != _canonical(expected_meta):
             raise ValueError('Fibo export protocol/model/target identity differs')
         state = load_file(str(path), device='cpu')
-        with torch.random.fork_rng(devices=[]):
-            bridge_shapes = {k: tuple(v.shape) for k, v in RoutedMLP(8, 8).state_dict().items()}
+        if network_profile == 'legacy':
+            with torch.random.fork_rng(devices=[]):
+                bridge_shapes = {k: tuple(v.shape) for k, v in RoutedMLP(8, 8).state_dict().items()}
         expected = {'particles': (128, 4)}
         for name, module in targets.items():
             prefix = 'adapters.' + name.replace('.', '-')
+            if network_profile != 'legacy':
+                from .fibo_hndl import HNDLParticleProjection
+                with torch.random.fork_rng(devices=[]):
+                    projection = HNDLParticleProjection(prefix, module,
+                        nn.Parameter(torch.zeros(128, 4)), 8, 8., attach=False)
+                expected.update({prefix + '.' + k: tuple(v.shape) for k, v in projection.state_dict().items()})
+                continue
             expected[prefix + '.lora_down.weight'] = (8, module.in_features)
             expected[prefix + '.lora_up.weight'] = (module.out_features, 8)
             expected.update({prefix + '.bridge.' + k: shape for k, shape in bridge_shapes.items()})
@@ -168,7 +200,7 @@ class FiboParticleSlider(nn.Module):
                 or state[k].dtype != torch.float32 or not torch.isfinite(state[k]).all()
                 for k, shape in expected.items()):
             raise ValueError('invalid Fibo FP32 export tensors')
-        slider = cls(model)
+        slider = cls(model, network_profile=network_profile)
         slider.load_state_dict(state, strict=True)
         return slider
 
@@ -290,6 +322,8 @@ class FiboEditResponseAdapter(FrozenResponseAdapter):
                       scheduler_config=normalize(dict(scheduler_config)),
                       targets=self.slider.target_names,
                       qualification='CPU contract only; Turbo fine-tuning not recommended by model card')
+        if self.slider.network_profile != 'legacy':
+            result['custom_networks'] = self.slider.network_identity
         return result
 
     def _validate_condition(self, condition, latent):
@@ -527,14 +561,15 @@ def write_cache(folder, prepared, *, model_identity):
     return _digest(path)
 
 
-def build_fibo_game(adapter, provider, *, response_scale, total_steps, batch_size=2, seed=7):
+def build_fibo_game(adapter, provider, *, response_scale, total_steps, batch_size=2, seed=7,
+                    optimizer_dense_profile='auto'):
     """Build the existing public PG game, preserving its optimized native recipe.
 
     A resource owner must separately admit any pretrained/GPU execution. This
     function neither loads a model nor schedules a process. The caller supplies
     a declared response scale; no product normalization/loss is introduced.
     """
-    from .pg09 import ConditionalPG09
+    from .pg09 import ConditionalPG09, PG_SOURCE_PROFILE
     from .field_critic import FieldCritic, seed_initialization_rng
     if provider.index['model_identity'] != adapter.model_identity:
         raise ValueError('Fibo cache and backend staged model identity differ')
@@ -547,8 +582,14 @@ def build_fibo_game(adapter, provider, *, response_scale, total_steps, batch_siz
     devices = [device.index or 0] if device.type == 'cuda' else []
     with torch.random.fork_rng(devices=devices):
         seed_initialization_rng(seed, devices)
-        critic = FieldCritic(shape[1], provider.conditions([0]).shape[1]).to(device=device, dtype=torch.float32)
+        if adapter.slider.network_profile == 'legacy':
+            critic = FieldCritic(shape[1], provider.conditions([0]).shape[1])
+        else:
+            from .fibo_hndl import HNDLFieldCritic
+            critic = HNDLFieldCritic(shape[1], provider.conditions([0]).shape[1], shape[2:])
+        critic = critic.to(device=device, dtype=torch.float32)
     return ConditionalPG09(adapter, provider, critic, conditions=None, particles=adapter.slider.particles,
         response_domain='continuous_field', response_scale=response_scale, preset='bispf_optimized',
         batch_size=batch_size, seed=seed, total_steps=total_steps,
-        pg_source_profile='release', penalty_input_domain='auto')
+        pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto',
+        optimizer_dense_profile=optimizer_dense_profile)

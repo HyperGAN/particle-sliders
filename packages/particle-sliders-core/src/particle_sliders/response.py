@@ -123,9 +123,9 @@ class ResponseSession(SliderSession):
             raise ValueError('actual game response geometry/profile contradicts declared capabilities')
         self._manifest['response_contract_sha256'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
-    def evaluate(self, index=0, *, seed=0, strength=1.):
+    def evaluate(self, index=0, *, seed=0, strength=1., split='train'):
         """Return the declared numerical native response; never media or tokens."""
-        return super().evaluate(index, seed=seed, strength=strength)
+        return super().evaluate(index, seed=seed, strength=strength, split=split)
 
 
 def response_backend(name):

@@ -1,3 +1,8 @@
+Historical guide: the0.8.3/PG0.9.1 record below remains frozen context.
+This modern0.11 target uses officialPG0.9.3; fixed-arm helper behavior remains,
+while exact old identities/checkpoints require their original pins.
+See MODERN-GRAM.md for the current target.
+
 # Legacy stamp API and the official PG0.9.1 lifecycle line
 
 This source line is core **0.8.3**, depending on exact `particlegan==0.9.1`.

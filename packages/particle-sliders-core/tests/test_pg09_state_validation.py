@@ -17,14 +17,46 @@ def single_thread():
     torch.set_num_threads(before)
 
 
-def test_caller_owned_training_precision_matches_actual_float32_execution():
-    game = fixture(overrides={'training_precision': 'float32'})
-    assert game.recipe.training_precision == 'float32'
+@pytest.mark.parametrize('precision', ['float32', 'bf16_channels_last'])
+def test_recipe_precision_is_preserved_separately_from_actual_float32_host_execution(precision):
+    game = fixture(overrides={'training_precision': precision})
+    assert game.recipe.training_precision == precision
     assert game.recipe.optimizer_svd_backend == 'batched'
-    assert game._signature['recipe']['training_precision'] == 'float32'
-    assert all(parameter.dtype == torch.float32 for parameter in game.network.parameters())
-    with pytest.raises(ValueError, match='contradicts actual training_precision'):
-        fixture(overrides={'training_precision': 'bf16_channels_last'})
+    assert game._signature['recipe']['training_precision'] == precision
+    assert game._signature['host_training_precision'] == 'float32'
+    parameters = [p for module in (game.network, game.critic)
+                  for p in module.parameters() if p.requires_grad]
+    assert all(parameter.dtype == torch.float32 for parameter in parameters)
+    gradients = []
+    hooks = [p.register_hook(lambda grad: gradients.append(grad.dtype)) for p in parameters]
+    try:
+        game.step()
+    finally:
+        for hook in hooks:
+            hook.remove()
+    assert gradients and all(dtype == torch.float32 for dtype in gradients)
+    assert all(p.dtype == torch.float32 for group in game.opt_g.param_groups + game.opt_d.param_groups
+               for p in group['params'])
+
+
+@pytest.mark.parametrize('owner', ['network', 'critic'])
+@pytest.mark.parametrize('dtype', [torch.float64, torch.bfloat16])
+def test_non_float32_trainables_remain_rejected_before_optimizer_construction(owner, dtype):
+    game = fixture()
+    getattr(game, owner).to(dtype=dtype)
+    with pytest.raises(ValueError, match='all trainables must share float32 dtype and device'):
+        ConditionalPG09(game.backend, game.rows, game.critic, conditions=game.conditions,
+                        particles=game.network.particles, batch_size=4, total_steps=5)
+
+
+def test_recipe_precision_identity_change_rejects_restore_without_mutation():
+    source = fixture(overrides={'training_precision': 'bf16_channels_last'})
+    source.step()
+    target = fixture(overrides={'training_precision': 'float32'})
+    before = target.state_dict()
+    with pytest.raises(ValueError):
+        target.load_state_dict(source.state_dict())
+    equal(before, target.state_dict())
 
 
 @pytest.mark.parametrize('preset', ['bispf', 'bispf_optimized'])

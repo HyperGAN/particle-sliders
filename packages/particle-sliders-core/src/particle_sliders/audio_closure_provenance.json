@@ -6,9 +6,9 @@
     "pg09_audio.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-21/task-2/shared/packages/particle-sliders-core/src/particle_sliders/pg09_audio.py",
       "original_sha256": "b46a66c56fe237510f06b5d963c084c34bdb1ea87b2732c361f2665c9d221a79",
-      "packaged_sha256": "e9baa879a6ee59ca0507dbce3a3d0d1cad15dc318dcbada846198080a1d773ab",
+      "packaged_sha256": "dc7bb1288d6f2a534e6b08eacb2fc0b2066f82e767da4dca4e07cf17f9d38a73",
       "packaged_source_commit": "f6807a91546e43e198645a3f8925d2dc7c9e03b4",
-      "packaged_change": "Reviewed reversible checkpoint ownership, including failed-handle retention and transactional owner transfer; no GAN mathematics change."
+      "packaged_change": "Modern release-profile defaults plus reviewed reversible ownership; GAN/optimizer math remains upstream"
     },
     "music3_native.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-21/task-2/shared/packages/particle-sliders-core/src/particle_sliders/music3_native.py",
@@ -31,5 +31,6 @@
       "packaged_sha256": "4f054ba97afe4b8cf238646764f0d803f9c5abc03a1967003a29cae61f1a8f4a"
     }
   },
-  "legacy_boundary": "audio-pg091 entrypoints only on PG0.9.1; YuE2 model allocation remains product-owned"
+  "legacy_boundary": "audio-pg091 entrypoints only on PG0.9.1; YuE2 model allocation remains product-owned",
+  "modern_profile": "release-0.9.3"
 }

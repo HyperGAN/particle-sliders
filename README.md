@@ -13,10 +13,12 @@ for model-specific slider products. The intended common base covers image,
 music, audio and video models, including Anima, Krea, YuE2, MOSS and Sana.
 Integration status varies by model and source pin.
 
-**Current public API:** `main` contains the older core 0.3.0 stamp / `FormulationGame`
-API documented below. The complete shared lifecycle, native-only inference and
-newer ParticleGAN pin cohorts are review candidates; they are not shipped on
-`main`. Existing published sliders retain their own release recipes and loaders.
+**Current public source:** `main` contains core0.8.3 with the shared lifecycle,
+native-only inference and exact official ParticleGAN0.9.1. This branch proposes
+core0.11.0/officialPG0.9.3 with eligible dense Gram enabled by default; it is
+not yet merged or a package release. Historical stamp/FormulationGame helpers
+remain available within their documented limits. Existing sliders retain their
+own exact release recipes and loaders.
 See [Architecture and availability](#architecture-and-availability) before choosing
 an integration path.
 
@@ -114,9 +116,17 @@ arms: Krea2's adapter-only GAN has no routed particle bank, while routed models
 must use their actual participating bank. Iris's PG rendering route remains gated
 pending native solver parity. A hidden response is not an image or waveform.
 
-### Source API, preserved legacy pins and qualification
+### Modern PG0.9.3/Gram source candidate
 
-This source line provides **core0.8.3**, exact official `particlegan==0.9.1`
+This branch proposes core0.11.0 with exact officialPG0.9.3 and a supported
+upstream Gram default. See [the modernization contract](packages/particle-sliders-core/MODERN-GRAM.md).
+It is a new reviewed-cohort target; the prior merged091 API, release receipts
+and product pins below remain historical and unchanged until explicit adoption.
+No package release, native activation or old-checkpoint rebinding is implied.
+
+### Previously merged PG0.9.1 API and preserved qualification
+
+The previously merged source line provides **core0.8.3**, exact official `particlegan==0.9.1`
 and Torch>=2.6,<3. It integrates the reviewed lifecycle history from a clean
 main-based branch; it does not merge the unrelated audit/campaign stack. See
 [legacy migration](packages/particle-sliders-core/LEGACY-MIGRATION.md) for
@@ -127,14 +137,15 @@ No existing checkpoint or result receipt is rebound to a different source pin.
 
 | Source cohort | Exact ParticleGAN dependency | Boundary |
 |---|---|---|
-| This core0.8.3 line and reviewed core0.8.1/0.8.2 ancestors | `particlegan==0.9.1` | Shared image/numerical response lifecycle; keep each product's tested exact commit. No package release implied. |
+| Preserved core0.8.3 line and reviewed core0.8.1/0.8.2 ancestors | `particlegan==0.9.1` | Shared image/numerical response lifecycle; keep each product's tested exact commit. No package release implied. |
 | Separate core0.10.0 review line | `particlegan==0.9.3` | Later research/MOSS contract; not an automatic replacement for PG0.9.1 cohorts. |
 | Original core0.3.0 at17cd484 | ParticleGAN Git82b726 | Exact old environment for retired regularizer kernels/class identity and historical receipts. |
 
 Installed CPU evidence exists for six image products (Anima, Krea2, Supra, Iris,
 Qwen Image and Fibo) and two numerical response products (Music3/YuE2), each at
-its own exact source pin. Those product draft integrations remain separate
-reviews; this common-core change does not merge them. MOSS has31 installed packaging/session checks on its separate officialPG0.9.3
+its own exact source pin. Seven product source integrations have merged independently; Qwen Image remains
+a separate draft review. None of those older tested product pins is upgraded
+by this common-core proposal. MOSS has31 installed packaging/session checks on its separate officialPG0.9.3
 line, with native sampling and compact inference still gated; Ming has no native
 implementation and declares unsupported
 operations. Sana's shared-repository migration is separate work. See the
@@ -420,7 +431,7 @@ models and recovery artifacts. Most backend guides list their own tests and a
 
 | Path | What it is |
 |---|---|
-| [packages/particle-sliders-core](packages/particle-sliders-core) | Current public core 0.3.0 source package and `winning_formulation()`; newer lifecycle candidates remain under review |
+| [packages/particle-sliders-core](packages/particle-sliders-core) | Shared lifecycle and preserved `winning_formulation()` helpers; this branch proposes the modern PG0.9.3/Gram target |
 | [conceptmod/textsliders/](conceptmod/textsliders/) | Trainers, backends, adapters, objectives and inference for every model |
 | [conceptmod/textsliders/gan_v2/](conceptmod/textsliders/gan_v2/) | Music 3 span critics, game updates and recovery states |
 | [conceptmod/textsliders/reward_game/](conceptmod/textsliders/reward_game/) | Reward-model research with its own [acceptance checks](conceptmod/textsliders/reward_game/README.md) |

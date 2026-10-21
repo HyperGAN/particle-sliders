@@ -17,7 +17,7 @@ from typing import Callable
 
 import torch
 
-from .pg09 import ConditionalPG09, _hash, _validate_module
+from .pg09 import ConditionalPG09, PG_SOURCE_PROFILE, _hash, _validate_module
 
 API = 'particle-sliders-image-session-v1'
 TRAINING = API + '-training'
@@ -115,6 +115,17 @@ def capabilities_from_dict(value):
     return Capabilities(**value)
 
 
+@dataclass(frozen=True)
+class EvaluationRows:
+    """Product-owned read-only split plus explicit stable data/protocol identity.
+
+    The factory retains this provider until Binding.close; all len/fetch/forward
+    calls run inside the common observation transaction and product native hook.
+    """
+    rows: object
+    identity: dict
+
+
 @dataclass
 class Binding:
     """A factory transfers ownership of one prepared game and cleanup callback."""
@@ -124,6 +135,8 @@ class Binding:
     inference: object | None = None
     before_update: Callable | None = None
     observation: Callable | None = None
+    evaluation_rows: dict | None = None
+    response: Callable | None = None
 
 
 @dataclass(frozen=True)
@@ -187,7 +200,12 @@ class Backend:
         from importlib.metadata import version
         if version('particlegan') != PG_VERSION:
             raise BackendUnavailable('install the exact released ParticleGAN ' + PG_VERSION)
-        _released_sources()
+        if options.get('pg_version', PG_VERSION) != PG_VERSION:
+            raise BackendUnavailable('requested PG version differs from exact core release ' + PG_VERSION)
+        profile = options.get('pg_source_profile', PG_SOURCE_PROFILE)
+        if profile != PG_SOURCE_PROFILE or options.get('penalty_input_domain', 'auto') != 'auto':
+            raise BackendUnavailable('this core admits only ' + PG_SOURCE_PROFILE + '/auto')
+        _released_sources(profile)
 
 
 def _rng_devices(*values):
@@ -477,9 +495,27 @@ class SliderSession:
         self.closed = False
         self.inference_only = False
         self.last_metrics = None
+        self._evaluation_rows = dict(binding.evaluation_rows or {})
+        if binding.response is not None and (not callable(binding.response) or self._evaluation_rows):
+            raise ValueError('native response must be callable and cannot combine with evaluation_rows')
+        response_identity = None
+        if binding.response is not None:
+            import inspect
+            source = inspect.getsourcefile(binding.response)
+            if source is None:
+                raise ValueError('native response requires inspectable Python source')
+            response_identity = dict(source_sha256=hashlib.sha256(Path(source).read_bytes()).hexdigest(),
+                                     callable=binding.response.__qualname__)
+        if any(not isinstance(name, str) or not name or name == 'train'
+               or not isinstance(value, EvaluationRows) or not isinstance(value.identity, dict)
+               or not value.identity for name, value in self._evaluation_rows.items()):
+            raise ValueError('evaluation split needs a non-train name, EvaluationRows and stable identity')
         self._manifest = dict(api=self.api, config=config.as_dict(), capabilities=asdict(capabilities),
             lifecycle_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-            game_signature=deepcopy(self.game._signature))
+            game_signature=deepcopy(self.game._signature),
+            native_response=response_identity,
+            evaluation_splits={name: _hash(value.identity)
+                               for name, value in self._evaluation_rows.items()})
 
     @property
     def manifest(self):
@@ -615,20 +651,28 @@ class SliderSession:
         with _network_observation(network, seed, devices=devices, observation=self.binding.observation):
             yield
 
-    def evaluate(self, index=0, *, seed=0, strength=1.):
+    def evaluate(self, index=0, *, seed=0, strength=1., split='train'):
         """Return a native velocity response, never an image or a generic solver."""
         self.capabilities.check('evaluate', strength=strength)
         self.capabilities.check('response', strength=strength)
-        if type(index) is not int:
+        if type(index) is not int or index < 0:
             raise ValueError('response row index out of bounds')
+        if (not isinstance(split, str) or not split
+                or self.binding.response is None and split != 'train' and split not in self._evaluation_rows):
+            raise UnsupportedOperation('unknown/unavailable evaluation split: ' + str(split))
         from dataclasses import replace
-        with self._observation(seed):
+        with self._observation(seed, dict(split=split, index=index)):
+            if self.binding.response is not None:
+                # Native callbacks retain product admission and fetch guards. They
+                # validate supported split/bounds before fetching and own no loop.
+                return self.binding.response(index=index, split=split, strength=strength, seed=seed)
+            rows = self.game.rows if split == 'train' else self._evaluation_rows[split].rows
             # Lazy providers can mutate native caches/buffers or consume RNG even
             # during bounds checks and row capture. The product observation hook
             # must own those operations as well as the differentiable response.
-            if not 0 <= index < len(self.game.rows):
+            if not 0 <= index < len(rows):
                 raise ValueError('response row index out of bounds')
-            prepared = self.game.rows[index]
+            prepared = rows[index]
             prepared = replace(prepared, row=replace(prepared.row, scale=strength))
             return self.game.backend.generated(prepared).detach().clone()
 

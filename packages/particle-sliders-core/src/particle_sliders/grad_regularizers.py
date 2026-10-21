@@ -5,6 +5,7 @@ norms, arms, finite differences and annealing fail before touching a critic.
 Use the frozen legacy source pin documented in LEGACY-MIGRATION.md for those.
 """
 import math
+from importlib.metadata import version
 from particlegan import grad_regularizers as _upstream
 
 _LEGACY_PIN = "17cd484ef00601389256a30f6d52fc79991bcb3d"
@@ -16,7 +17,7 @@ class UnsupportedLegacyRegularizer(ValueError):
 
 def _unsupported(option):
     return UnsupportedLegacyRegularizer(
-        f"ParticleGAN 0.9.1 does not implement legacy {option}; "
+        f"ParticleGAN {version('particlegan')} does not implement legacy {option}; "
         f"use particle-sliders-core at {_LEGACY_PIN} in its separate legacy "
         "environment (LEGACY-MIGRATION.md). No substitute kernel was selected."
     )
