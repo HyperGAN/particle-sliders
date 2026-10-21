@@ -13,12 +13,13 @@ for model-specific slider products. The intended common base covers image,
 music, audio and video models, including Anima, Krea, YuE2, MOSS and Sana.
 Integration status varies by model and source pin.
 
-**Current public source:** `main` contains core0.8.3 with the shared lifecycle,
-native-only inference and exact official ParticleGAN0.9.1. This branch proposes
-core0.11.0/officialPG0.9.3 with eligible dense Gram enabled by default; it is
-not yet merged or a package release. Historical stamp/FormulationGame helpers
-remain available within their documented limits. Existing sliders retain their
-own exact release recipes and loaders.
+**Current public source:** `main` contains core0.11.0 with the shared lifecycle,
+native-only inference and exact official ParticleGAN0.9.3. Eligible dense
+DualNorm leaves use the upstream guarded Gram profile by default.
+[PR145](https://github.com/HyperGAN/particle-sliders/pull/145) merged this source;
+it did not publish a package, activate native models or qualify pretrained quality.
+Historical stamp/FormulationGame helpers remain available within their documented
+limits. Existing sliders retain their own exact release recipes and loaders.
 See [Architecture and availability](#architecture-and-availability) before choosing
 an integration path.
 
@@ -116,13 +117,17 @@ arms: Krea2's adapter-only GAN has no routed particle bank, while routed models
 must use their actual participating bank. Iris's PG rendering route remains gated
 pending native solver parity. A hidden response is not an image or waveform.
 
-### Modern PG0.9.3/Gram source candidate
+### Merged modern PG0.9.3/Gram source
 
-This branch proposes core0.11.0 with exact officialPG0.9.3 and a supported
-upstream Gram default. See [the modernization contract](packages/particle-sliders-core/MODERN-GRAM.md).
-It is a new reviewed-cohort target; the prior merged091 API, release receipts
-and product pins below remain historical and unchanged until explicit adoption.
-No package release, native activation or old-checkpoint rebinding is implied.
+Core0.11.0 is merged on `main` with exact officialPG0.9.3 and a supported upstream
+Gram default. See [the modernization contract](packages/particle-sliders-core/MODERN-GRAM.md).
+Install a reviewed source pin or its exact qualified artifact; this source merge
+did not publish a package. It defines a new source/optimizer-policy cohort;
+prior091 API pins, result receipts and product locks remain unchanged until
+explicit adoption. No native activation or old-checkpoint rebinding is implied.
+Executed CPU qualification covers Python3.12.15/Torch2.14.1+cpu; the declared
+Python3.10/Torch2.6 floors are untested at runtime. Modern HNDL extras require
+Python>=3.11,<3.15. CPU evidence does not qualify native models or pretrained quality.
 
 ### Previously merged PG0.9.1 API and preserved qualification
 
@@ -137,6 +142,7 @@ No existing checkpoint or result receipt is rebound to a different source pin.
 
 | Source cohort | Exact ParticleGAN dependency | Boundary |
 |---|---|---|
+| Merged core0.11.0 on `main` | `particlegan==0.9.3` | Shared lifecycle and eligible dense Gram default; fresh source/policy cohort. Source merge only; native/product adoption requires separate qualification. |
 | Preserved core0.8.3 line and reviewed core0.8.1/0.8.2 ancestors | `particlegan==0.9.1` | Shared image/numerical response lifecycle; keep each product's tested exact commit. No package release implied. |
 | Separate core0.10.0 review line | `particlegan==0.9.3` | Later research/MOSS contract; not an automatic replacement for PG0.9.1 cohorts. |
 | Original core0.3.0 at17cd484 | ParticleGAN Git82b726 | Exact old environment for retired regularizer kernels/class identity and historical receipts. |
@@ -145,7 +151,7 @@ Installed CPU evidence exists for six image products (Anima, Krea2, Supra, Iris,
 Qwen Image and Fibo) and two numerical response products (Music3/YuE2), each at
 its own exact source pin. Seven product source integrations have merged independently; Qwen Image remains
 a separate draft review. None of those older tested product pins is upgraded
-by this common-core proposal. MOSS has31 installed packaging/session checks on its separate officialPG0.9.3
+by this source merge. MOSS has31 installed packaging/session checks on its separate officialPG0.9.3
 line, with native sampling and compact inference still gated; Ming has no native
 implementation and declares unsupported
 operations. Sana's shared-repository migration is separate work. See the
@@ -205,7 +211,7 @@ For the **preserved historical stamp API**, pin `particle-sliders-core` and use
 `winning_formulation()` / `FormulationGame` rather than copying the stamp's game.
 The older [product follow-ups](docs/winning-formulation.md#product-follow-ups)
 describe that migration's scope; they are not a completion report for the newer
-lifecycle candidates. Install your product's tested PyTorch build first, then pin
+shared lifecycle. Install your product's tested PyTorch build first, then pin
 a full reviewed commit of this repository. The git revision, not the package
 version alone, identifies the stamp. Keep the transitive ParticleGAN pin from
 that source; substituting a newer upstream release changes the contract.
@@ -431,7 +437,7 @@ models and recovery artifacts. Most backend guides list their own tests and a
 
 | Path | What it is |
 |---|---|
-| [packages/particle-sliders-core](packages/particle-sliders-core) | Shared lifecycle and preserved `winning_formulation()` helpers; this branch proposes the modern PG0.9.3/Gram target |
+| [packages/particle-sliders-core](packages/particle-sliders-core) | Shared lifecycle and preserved `winning_formulation()` helpers; merged core0.11.0/PG0.9.3 source with eligible dense Gram |
 | [conceptmod/textsliders/](conceptmod/textsliders/) | Trainers, backends, adapters, objectives and inference for every model |
 | [conceptmod/textsliders/gan_v2/](conceptmod/textsliders/gan_v2/) | Music 3 span critics, game updates and recovery states |
 | [conceptmod/textsliders/reward_game/](conceptmod/textsliders/reward_game/) | Reward-model research with its own [acceptance checks](conceptmod/textsliders/reward_game/README.md) |
