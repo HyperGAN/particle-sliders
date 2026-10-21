@@ -196,7 +196,7 @@ def _rng_devices(*values):
                 visit(tensor)
         elif isinstance(value, dict):
             for key, child in value.items():
-                visit(child, key in ('device', 'torch_device', 'execution_device'))
+                visit(child, key in ('device', 'torch_device', 'execution_device', 'text_device'))
         elif isinstance(value, (tuple, list)):
             for child in value:
                 visit(child)
