@@ -247,11 +247,18 @@ def test_modern_fibo_hndl_factory_uses_gram_and_preserves_exact_resume(tmp_path)
 
 @pytest.mark.parametrize('selector,expected', [('auto', GRAM_PROFILE),
     ('default', 'default'), ('gram_fp64_guarded_v1', 'gram_fp64_guarded_v1')])
-def test_public_recipe_helper_applies_shared_policy_to_actual_dense_update(selector, expected):
+def test_public_recipe_helper_applies_shared_policy_to_actual_dense_update(selector, expected, monkeypatch):
     from particle_sliders import particlegan_get_recipe
     from particle_sliders.optimizer_policy import optimizer_diagnostics
     recipe = particlegan_get_recipe('bispf_optimized', total_steps=3,
                                    optimizer_dense_profile=selector)
+    import particlegan.optim.dualnorm as native_dualnorm
+    strict_calls = []
+    strict_solver = native_dualnorm.guarded_gram_polar
+    def observe_strict(*args, **kwargs):
+        strict_calls.append(True)
+        return strict_solver(*args, **kwargs)
+    monkeypatch.setattr(native_dualnorm, 'guarded_gram_polar', observe_strict)
     original = get_recipe('bispf_optimized', total_steps=3)
     assert asdict(recipe) == asdict(replace(original, optimizer_dense_profile=expected))
     with torch.random.fork_rng():
@@ -263,10 +270,16 @@ def test_public_recipe_helper_applies_shared_policy_to_actual_dense_update(selec
     diagnostics = optimizer_diagnostics(optimizer)
     assert diagnostics['eligible_dense_leaves'] == 1
     assert recipe.optimizer_dense_profile == diagnostics['profile'] == expected
-    if expected != 'default':
+    if expected == GRAM_PROFILE:
         assert diagnostics['aggregate']['calls'] == diagnostics['aggregate']['gram_passes'] == 1
+        assert not strict_calls
+    elif expected == 'gram_fp64_guarded_v1':
+        # Upstream v1 bypasses the v2 telemetry counters; observe its real call.
+        assert strict_calls == [True]
+        assert diagnostics['aggregate']['calls'] == 0
     else:
         assert diagnostics.get('aggregate', {}).get('calls', 0) == 0
+        assert not strict_calls
 
 
 def test_public_recipe_helper_retains_adam_law_and_rejects_unsupported_explicit_gram():

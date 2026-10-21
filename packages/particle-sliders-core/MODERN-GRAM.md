@@ -39,6 +39,8 @@ with open_session(config) as run:
 
 Diagnostics expose actual upstream calls/Gram passes/rank ambiguities/SVD
 fallbacks, eligible dense-leaf counts and original group roles/algorithms.
+Strict guarded-v1 uses upstream direct solver calls without v2 telemetry counters;
+zero v2 counters do not indicate that strict Gram was skipped.
 A profile flag is not proof of a Gram call: a vector-only adapter can have zero
 eligible matrices. Detached diagnostic counters/timers are not checkpoint state
 and upstream resets them after a successful load; rejected loads preserve them.
