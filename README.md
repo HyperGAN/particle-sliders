@@ -8,13 +8,23 @@ MiniMax Music 3 generate songs from a style caption and lyrics. Image and video
 backends follow.
 
 This repository also ships
-[`particle-sliders-core`](packages/particle-sliders-core), the installable
-training core that HyperGAN slider products are meant to pin.
+[`particle-sliders-core`](packages/particle-sliders-core), the shared dependency
+for model-specific slider products. The intended common base covers image,
+music, audio and video models, including Anima, Krea, YuE2, MOSS and Sana.
+Integration status varies by model and source pin.
+
+**Current public API:** `main` contains the older core 0.3.0 stamp / `FormulationGame`
+API documented below. The complete shared lifecycle, native-only inference and
+newer ParticleGAN pin cohorts are review candidates; they are not shipped on
+`main`. Existing published sliders retain their own release recipes and loaders.
+See [Architecture and availability](#architecture-and-availability) before choosing
+an integration path.
 
 | I want to… | Start here |
 |---|---|
 | Hear or use a published slider | [Listen](#listen) |
-| Build a slider product on the shared core | [Use the shared core](#use-the-shared-core) |
+| Choose the common-base architecture and check availability | [Architecture and availability](#architecture-and-availability) |
+| Use the current public shared-core API | [Use the shared core](#use-the-shared-core) |
 | Train a new slider on a supported model | [Train a slider](#train-a-slider) |
 | Run the tests | [Tests](#tests) |
 | Understand the math and the evidence | [docs/math.md](docs/math.md) |
@@ -67,7 +77,87 @@ reggaeton and afrobeats.
 
 Start with one adapter at strengths 0 and 1.
 
+## Architecture and availability
+
+The dependency direction is **model product → particle-sliders → upstream
+HyperGAN / ParticleGAN**. Products should install a reviewed core pin and provide
+thin native adapters. They should not vendor a second GAN implementation or make
+the shared core import product packages. This is the architecture contract for
+the ongoing migration; it does not mean every backend has migrated.
+
+```mermaid
+flowchart TD
+  product[Model-specific slider product] --> core[particle-sliders-core]
+  product --> native[Native runtime and pretrained backbone]
+  core --> pg[ParticleGAN: GAN mathematics]
+  core --> hg[HyperGAN / HNDL: networks and run display]
+```
+
+| Owner | Responsibility |
+|---|---|
+| Model product | Verified native loading, projection/packing geometry, tokenization or scheduler behavior, native admission checks, sampling callbacks and model-specific user inputs. |
+| `particle-sliders-core` | Shared configuration/capabilities and complete lifecycle orchestration: preparation, steps, checkpoint/resume, EMA selection, evaluation, export and inference entrypoints. This complete lifecycle is under review. |
+| [ParticleGAN](https://github.com/255BITS/ParticleGAN) | GAN objectives, regularizers, prior and optimizer mathematics. A product or core integration calls the upstream API and preserves its exact formulation/profile. |
+| [HyperGAN](https://github.com/HyperGAN/HyperGAN) / HNDL | Network definitions and run reporting/display. Matched-weight network migration and reporting integration are separate work; pretrained native backbones keep their native boundary. |
+
+The intended consumer flow is to select a registered model backend and its local
+configuration, then use shared train/resume/evaluate/export/inference operations.
+The product's complete factory owns native object construction and cleanup. Those
+new lifecycle entrypoints are not available from current `main`; use the public
+API below or a separately reviewed product pin with its matching instructions.
+
+Common interfaces do not require co-installing incompatible native libraries.
+Keep each product's tested environment and runtime lock; Qwen Image and Fibo, for
+example, can require different Diffusers revisions. Preserve legitimate model
+arms: Krea2's adapter-only GAN has no routed particle bank, while routed models
+must use their actual participating bank. Iris's PG rendering route remains gated
+pending native solver parity. A hidden response is not an image or waveform.
+
+### Public code versus review candidates
+
+The source package on current `main` is **core 0.3.0**, with ParticleGAN Git pin
+`82b72661c03377f348ccb76de37cd4ca02d45a8d` in its
+[package metadata](packages/particle-sliders-core/pyproject.toml). Its stamp/game
+instructions below remain the public source API; neither of the newer cohorts
+below is an implicit upgrade of that API or its checkpoints.
+
+The newer lifecycle candidates maintain two explicit dependency lines:
+
+| Candidate cohort | Exact ParticleGAN dependency | Availability |
+|---|---|---|
+| PG 0.9.1 lineage (local core 0.8.2 lifecycle candidate) | `particlegan==0.9.1` | Local review candidate; not merged into `main` or published as this repository's current API. |
+| PG 0.9.3 lineage (local core 0.10.0 lifecycle candidate) | `particlegan==0.9.3` | Separate local review candidate for the later upstream/research contract; not an automatic replacement for 0.9.1 cohorts. |
+
+Use exact source/profile/runtime identities. A new pin does not silently rebind an
+old checkpoint or turn one research cohort's result into another's qualification.
+Official released auto profiles still cannot be used for this contract's native
+wide continuous Music3/YuE2 hidden responses. Explicit continuous-domain upstream
+work is an **unofficial local proposal**, not a feature released in ParticleGAN
+0.9.3. Keep unsupported operations gated until the exact profile is reviewed and
+qualified.
+
+Local CPU contract checks cover small-fixture updates, restore, observation
+isolation and raw/EMA inference loading. They do not establish pretrained/native
+quality, waveform generation or completion of every derivative migration. The
+published samples above belong to their original release receipts; they are not
+qualification of the candidate lifecycle. Native rendering/listening and product
+integration evidence must name the source/model/protocol they actually tested.
+
+Public review references include [shared-core PR141](https://github.com/HyperGAN/particle-sliders/pull/141)
+and [Fibo integration PR142](https://github.com/HyperGAN/particle-sliders/pull/142).
+Both target audit branches, so their presence does not make the new API available
+on `main`. Derivative drafts are tracked in
+[Iris PR1](https://github.com/HyperGAN/iris-particle-sliders/pull/1),
+[Krea2 PR4](https://github.com/HyperGAN/krea2-particle-sliders/pull/4),
+[Qwen Image PR1](https://github.com/HyperGAN/qwen-image-particle-sliders/pull/1) and
+[Fibo PR1](https://github.com/HyperGAN/Fibo-particle-slider/pull/1).
+Use each reviewed head's own pin and receipts; local follow-up candidates are
+separate from those public PR snapshots.
+
 ## How it works
+
+This section describes the historical published paths and the current stamp API.
+The newer lifecycle preserves each backend's declared formulation and capability.
 
 Each adapted layer becomes $f_s(x)=f_0(x)+s\,\Delta(x)$. Here
 $f_0$ is the frozen layer, $\Delta$ is the learned correction and $s$ is the
@@ -94,16 +184,14 @@ and language-model objectives used by the other backends.
 
 ## Use the shared core
 
-Products such as
-[anima-particle-sliders](https://github.com/HyperGAN/anima-particle-sliders),
-[krea2-particle-sliders](https://github.com/HyperGAN/krea2-particle-sliders) and
-[supra-concept-sliders](https://github.com/HyperGAN/supra-concept-sliders) are
-meant to pin `particle-sliders-core` and train `winning_formulation()`, not
-re-implement the routed particles, critic or losses. Each product's migration
-status is in
-[docs/winning-formulation.md](docs/winning-formulation.md#product-follow-ups).
-Install your PyTorch build first, then pin a full commit of `main`. The git
-revision, not the package version, identifies the stamp.
+For the **current public stamp API**, pin `particle-sliders-core` and use
+`winning_formulation()` / `FormulationGame` rather than copying the stamp's game.
+The older [product follow-ups](docs/winning-formulation.md#product-follow-ups)
+describe that migration's scope; they are not a completion report for the newer
+lifecycle candidates. Install your product's tested PyTorch build first, then pin
+a full reviewed commit of this repository. The git revision, not the package
+version alone, identifies the stamp. Keep the transitive ParticleGAN pin from
+that source; substituting a newer upstream release changes the contract.
 
 ```bash
 python -m pip install \
@@ -123,16 +211,16 @@ for step in range(1, steps + 1):            # steps count from 1
     stats = game.step(step, features)       # features: [batch, stamp.spec["adapter_rank"]]
 ```
 
-The **architecture** (gmix: routed particles plus a global-mix critic) is
-fixed. Its **tuning parameters** (`particle-gmix-1600-v2`) are provisional
-until [ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38) picks a
-winner. Products get new values by bumping the pin, never by editing them
-locally. The runnable reference is
+This pinned stamp fixes its gmix architecture and declares the historical
+`particle-gmix-1600-v2` tuning overlay. [ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38)
+has since merged; a newer upstream default does not change this already-pinned
+stamp or migrate its results. Adopt new settings through an explicit reviewed
+pin/cohort. The runnable reference for this public API is
 [test_formulation_game.py](packages/particle-sliders-core/tests/test_formulation_game.py).
 
 - [Package README](packages/particle-sliders-core/README.md): install, API and `FormulationGame` train step
 - [Winning formulation](docs/winning-formulation.md): the product stamp and what products may override
-- [Shared-core architecture](docs/shared-core.md): what lives in the core and what stays in each product
+- [Historical stamp architecture](docs/shared-core.md): ownership in the current public stamp API; see the migration contract above for the newer lifecycle
 
 `concept-slider-core` / `concept_slider_core` is a deprecated alias from the
 Anima extraction. Formulation toys live in
@@ -318,7 +406,7 @@ models and recovery artifacts. Most backend guides list their own tests and a
 
 | Path | What it is |
 |---|---|
-| [packages/particle-sliders-core](packages/particle-sliders-core) | **Stable.** Installable shared core and `winning_formulation()` |
+| [packages/particle-sliders-core](packages/particle-sliders-core) | Current public core 0.3.0 source package and `winning_formulation()`; newer lifecycle candidates remain under review |
 | [conceptmod/textsliders/](conceptmod/textsliders/) | Trainers, backends, adapters, objectives and inference for every model |
 | [conceptmod/textsliders/gan_v2/](conceptmod/textsliders/gan_v2/) | Music 3 span critics, game updates and recovery states |
 | [conceptmod/textsliders/reward_game/](conceptmod/textsliders/reward_game/) | Reward-model research with its own [acceptance checks](conceptmod/textsliders/reward_game/README.md) |
