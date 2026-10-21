@@ -134,8 +134,9 @@ No existing checkpoint or result receipt is rebound to a different source pin.
 Installed CPU evidence exists for six image products (Anima, Krea2, Supra, Iris,
 Qwen Image and Fibo) and two numerical response products (Music3/YuE2), each at
 its own exact source pin. Those product draft integrations remain separate
-reviews; this common-core change does not merge them. MOSS product evidence is
-source-only; Ming has no native implementation and declares unsupported
+reviews; this common-core change does not merge them. MOSS has31 installed packaging/session checks on its separate officialPG0.9.3
+line, with native sampling and compact inference still gated; Ming has no native
+implementation and declares unsupported
 operations. Sana's shared-repository migration is separate work. See the
 [qualification boundaries](docs/stable-lane-qualification.md).
 
