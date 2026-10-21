@@ -619,12 +619,17 @@ class SliderSession:
         """Return a native velocity response, never an image or a generic solver."""
         self.capabilities.check('evaluate', strength=strength)
         self.capabilities.check('response', strength=strength)
-        if type(index) is not int or not 0 <= index < len(self.game.rows):
+        if type(index) is not int:
             raise ValueError('response row index out of bounds')
         from dataclasses import replace
-        prepared = self.game.rows[index]
-        prepared = replace(prepared, row=replace(prepared.row, scale=strength))
         with self._observation(seed):
+            # Lazy providers can mutate native caches/buffers or consume RNG even
+            # during bounds checks and row capture. The product observation hook
+            # must own those operations as well as the differentiable response.
+            if not 0 <= index < len(self.game.rows):
+                raise ValueError('response row index out of bounds')
+            prepared = self.game.rows[index]
+            prepared = replace(prepared, row=replace(prepared.row, scale=strength))
             return self.game.backend.generated(prepared).detach().clone()
 
     def render(self, *, strength=1., seed=0, images=None, **native):
