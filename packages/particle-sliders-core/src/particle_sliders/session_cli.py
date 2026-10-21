@@ -20,12 +20,16 @@ def main(argv=None):
     parser.add_argument('--resume', type=Path)
     parser.add_argument('--artifact', type=Path)
     parser.add_argument('--stop-after', type=int)
+    parser.add_argument('--export-format', choices=('v1', 'v2', 'both'), default='v1',
+                        help='train exports: v1 adapter.pt, v2 native-only adapter-v2.pt, or both')
     parser.add_argument('--selection', choices=('raw', 'ema'), default='raw')
     parser.add_argument('--row', type=int, default=0)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--strength', type=float, default=1.)
     parser.add_argument('--native', type=Path, help='JSON native render arguments; images are local paths')
     args = parser.parse_args(argv)
+    if args.operation != 'train' and args.export_format != 'v1':
+        parser.error('--export-format applies only to train')
     if args.operation == 'infer':
         return infer(args, parser)
     if args.config is None:
@@ -43,14 +47,24 @@ def main(argv=None):
     with open_session(config, resume=args.resume, artifact=args.artifact,
                       operation=args.operation, strength=args.strength, references=bool(references), output_type=native.get('output_type'), native_request=native) as session:
         if args.operation == 'train':
+            if args.export_format in ('v2', 'both'):
+                from .inference import InferenceSpec
+                from .lifecycle import UnsupportedOperation
+                if not isinstance(session.binding.inference, InferenceSpec):
+                    raise UnsupportedOperation('v2 export requires a product native-only InferenceSpec before training')
             args.out.mkdir(parents=True, exist_ok=True)
             with (args.out / 'metrics.jsonl').open('a') as stream:
                 session.train(stop_after=args.stop_after,
                     on_step=lambda metrics: stream.write(json.dumps(metrics, allow_nan=False) + '\n'))
             session.checkpoint(args.out / 'training.pt')
-            session.export(args.out / 'adapter.pt', selection=args.selection)
-            files = {name: hashlib.sha256((args.out / name).read_bytes()).hexdigest()
-                     for name in ('training.pt', 'adapter.pt', 'metrics.jsonl')}
+            names = ['training.pt', 'metrics.jsonl']
+            if args.export_format in ('v1', 'both'):
+                session.export(args.out / 'adapter.pt', selection=args.selection)
+                names.append('adapter.pt')
+            if args.export_format in ('v2', 'both'):
+                session.export_inference(args.out / 'adapter-v2.pt', selection=args.selection)
+                names.append('adapter-v2.pt')
+            files = {name: hashlib.sha256((args.out / name).read_bytes()).hexdigest() for name in names}
             atomic_json(args.out / 'manifest.json', dict(manifest=session.manifest,
                 completed_steps=session.game.completed_steps, files=files))
         elif args.operation == 'evaluate':
