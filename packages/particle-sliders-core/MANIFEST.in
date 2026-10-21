@@ -3,3 +3,6 @@ include requirements-pg09.txt
 include IMAGE-LIFECYCLE.md
 include NATIVE-INFERENCE.md
 recursive-include tests *.py
+include RESPONSE-SESSIONS.md
+include CLI-ARTIFACTS.md
+include PROVIDER-OBSERVATION.md
