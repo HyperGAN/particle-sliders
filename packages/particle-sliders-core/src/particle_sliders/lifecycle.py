@@ -107,6 +107,14 @@ class Capabilities:
             raise UnsupportedOperation('unsupported base precision: ' + precision)
 
 
+def capabilities_from_dict(value):
+    """Decode explicit response descriptors or the original image descriptor."""
+    if isinstance(value, dict) and 'schema' in value:
+        from .response import ResponseCapabilities
+        return ResponseCapabilities.from_dict(value)
+    return Capabilities(**value)
+
+
 @dataclass
 class Binding:
     """A factory transfers ownership of one prepared game and cleanup callback."""
@@ -154,11 +162,7 @@ class Backend:
                 self.preflight(deepcopy(options), deepcopy(request), staged)
         except ImportError as exc:
             raise BackendUnavailable(self.name + ': missing backend dependency; use its isolated environment') from exc
-        from .pg09 import _released_sources, PG_VERSION
-        from importlib.metadata import version
-        if version('particlegan') != PG_VERSION:
-            raise BackendUnavailable('install the exact released ParticleGAN ' + PG_VERSION)
-        _released_sources()
+        self._check_pg(options, capabilities)
         devices = _rng_devices(config.options, staged)
         try:
             with torch.random.fork_rng(devices=devices):
@@ -166,7 +170,7 @@ class Backend:
         except ImportError as exc:
             raise BackendUnavailable(self.name + ': missing backend dependency; use its isolated environment') from exc
         try:
-            session = SliderSession(config, capabilities, binding)
+            session = self._session(config, capabilities, binding)
             import inspect
             session._manifest['factory_sha256'] = hashlib.sha256(Path(inspect.getsourcefile(self.prepare)).read_bytes()).hexdigest()
             return session
@@ -174,6 +178,16 @@ class Backend:
             if callable(getattr(binding, 'close', None)):
                 binding.close()
             raise
+
+    def _session(self, config, capabilities, binding):
+        return SliderSession(config, capabilities, binding)
+
+    def _check_pg(self, options, capabilities):
+        from .pg09 import _released_sources, PG_VERSION
+        from importlib.metadata import version
+        if version('particlegan') != PG_VERSION:
+            raise BackendUnavailable('install the exact released ParticleGAN ' + PG_VERSION)
+        _released_sources()
 
 
 def _rng_devices(*values):
@@ -297,21 +311,28 @@ def backend(name):
         result = matches[0].load()
     except ImportError as exc:
         raise BackendUnavailable(f'{name}: incompatible or missing backend dependency; use its isolated environment') from exc
-    if not isinstance(result, Backend) or result.name != name:
+    if not isinstance(result, Backend) or not isinstance(result.capabilities, Capabilities) or result.name != name:
         raise BackendUnavailable('backend registration must expose a matching Backend contract')
     return result
 
 
 def open_session(config, *, resume=None, artifact=None, operation='train', **request):
     """Load/preflight a packet before constructing the native backend."""
+    return _open_registered(config, resume=resume, artifact=artifact, operation=operation,
+                            request=request, resolve=backend, training_schema=TRAINING,
+                            inference_schema=INFERENCE)
+
+
+def _open_registered(config, *, resume, artifact, operation, request, resolve,
+                     training_schema, inference_schema):
     if resume is not None and artifact is not None:
         raise ValueError('choose a training checkpoint or inference artifact')
     packet = read_packet(resume or artifact) if resume is not None or artifact is not None else None
     if packet is not None:
-        expected = TRAINING if resume is not None else INFERENCE
+        expected = training_schema if resume is not None else inference_schema
         if packet['schema'] != expected or packet['manifest']['config'] != config.as_dict():
             raise CheckpointError('packet kind/config/cohort differs; use its original pin or explicit migration')
-    session = backend(config.backend).open(config, operation=operation, **request)
+    session = resolve(config.backend).open(config, operation=operation, **request)
     try:
         if resume is not None:
             session.restore(packet)
@@ -361,7 +382,9 @@ def read_packet(path):
 
 
 def _check_packet(packet):
-    if (not isinstance(packet, dict) or packet.get('schema') not in (TRAINING, INFERENCE)
+    if (not isinstance(packet, dict) or packet.get('schema') not in (TRAINING, INFERENCE,
+                'particle-sliders-response-session-v1-training',
+                'particle-sliders-response-session-v1-inference')
             or set(packet) != {'schema', 'manifest', 'payload', 'sha256'}):
         raise CheckpointError('unsupported session packet version; no automatic migration')
     try:
@@ -440,9 +463,11 @@ def checkpoint_cleanup(root):
 
 
 class SliderSession:
+    api, training_schema, inference_schema = API, TRAINING, INFERENCE
+
     def __init__(self, config, capabilities, binding):
         if not isinstance(binding.game, ConditionalPG09):
-            raise TypeError('image sessions require ConditionalPG09')
+            raise TypeError('slider sessions require ConditionalPG09')
         self.config, self.capabilities, self.binding = config, capabilities, binding
         self.game = binding.game
         actual_arm = 'routed_particle_gan' if self.game.prior is not None else 'adapter_gan'
@@ -452,7 +477,7 @@ class SliderSession:
         self.closed = False
         self.inference_only = False
         self.last_metrics = None
-        self._manifest = dict(api=API, config=config.as_dict(), capabilities=asdict(capabilities),
+        self._manifest = dict(api=self.api, config=config.as_dict(), capabilities=asdict(capabilities),
             lifecycle_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             game_signature=deepcopy(self.game._signature))
 
@@ -517,7 +542,7 @@ class SliderSession:
 
     def checkpoint(self, path=None):
         self._training()
-        result = self._packet(TRAINING, dict(game=self.game.state_dict(), ema=self.ema.state_dict(),
+        result = self._packet(self.training_schema, dict(game=self.game.state_dict(), ema=self.ema.state_dict(),
                                              last_metrics=deepcopy(self.last_metrics)))
         if path is not None:
             atomic_save(path, result)
@@ -533,7 +558,7 @@ class SliderSession:
     def restore(self, packet):
         self._training()
         self.capabilities.check('resume')
-        payload = self._validate(packet, TRAINING)
+        payload = self._validate(packet, self.training_schema)
         try:
             if not isinstance(payload, dict) or set(payload) != {'game', 'ema', 'last_metrics'}:
                 raise CheckpointError('invalid training packet fields')
@@ -560,7 +585,7 @@ class SliderSession:
         state = self.game.export_state_dict()
         if selection == 'ema':
             state['network'] = deepcopy(self.ema.values)
-        result = self._packet(INFERENCE, dict(adapter=state, selection=selection))
+        result = self._packet(self.inference_schema, dict(adapter=state, selection=selection))
         if path is not None:
             atomic_save(path, result)
         return result
@@ -571,7 +596,7 @@ class SliderSession:
         return export_inference(self, path, selection=selection, specification=specification)
 
     def load_inference(self, packet):
-        payload = self._validate(packet, INFERENCE)
+        payload = self._validate(packet, self.inference_schema)
         if not isinstance(payload, dict) or set(payload) != {'selection', 'adapter'}:
             raise CheckpointError('invalid inference packet fields')
         if payload['selection'] not in ('raw', 'ema'):

@@ -7,7 +7,7 @@ import particle_sliders
 
 PRODUCTS = {'iris_sliders', 'qwen_image_sliders', 'krea2', 'fibo_particle_slider',
             'moss_sliders', 'anima', 'anima_sliders', 'lumen_studio', 'supra',
-            'yue2_sliders', 'sana_sliders'}
+            'yue2_sliders', 'sana_sliders', 'music3', 'yue2'}
 # One exact pre-existing campaign bridge is inventoried, not a migrated session.
 # It stays outside the new image/lifecycle dependency closure and active old pins
 # are untouched. Remove this exception when its product injects a slider factory.
@@ -44,6 +44,7 @@ def test_core_has_no_uninventoried_product_imports():
 @pytest.mark.parametrize('source', [
     'from iris_sliders.train import build_game', 'import krea2',
     'from qwen_image_sliders.projection import predict', 'import future_model_sliders',
+    'import music3', 'from yue2 import lifecycle',
 ])
 def test_guard_detects_new_reverse_edges(source):
     assert reverse_imports(source, 'new_backend.py')

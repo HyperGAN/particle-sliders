@@ -18,7 +18,7 @@ from torch import nn
 
 from .lifecycle import (
     BackendUnavailable, Capabilities, CheckpointError, LifecycleError,
-    UnsupportedOperation, atomic_save, _rng_devices, _network_observation,
+    UnsupportedOperation, atomic_save, _rng_devices, _network_observation, capabilities_from_dict,
 )
 from .pg09 import _architectures, _hash, _identity, _validate_module
 
@@ -108,7 +108,7 @@ class InferenceSpec:
             if digest is not None and (not isinstance(digest, str) or len(digest) != 64
                                        or any(c not in '0123456789abcdef' for c in digest)):
                 raise ValueError('invalid native source digest')
-        Capabilities(**value['capabilities'])
+        capabilities_from_dict(value['capabilities'])
         object.__setattr__(self, '_json', json.dumps(_json(value), sort_keys=True, allow_nan=False))
 
     def as_dict(self):

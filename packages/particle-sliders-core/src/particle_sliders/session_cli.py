@@ -13,6 +13,7 @@ from .lifecycle import SessionConfig, atomic_save, atomic_json, backend, open_se
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('operation', choices=('capabilities', 'train', 'evaluate', 'render', 'infer'))
+    parser.add_argument('--interface', choices=('image', 'response'), default='image')
     parser.add_argument('--config', type=Path, help='training/session configuration; not used by infer')
     parser.add_argument('--runtime', type=Path, help='native-only local runtime options JSON for infer')
     parser.add_argument('--mode', choices=('render', 'response'), default='render', help='native-only inference operation')
@@ -35,8 +36,12 @@ def main(argv=None):
     if args.config is None:
         parser.error('--config is required for session operations')
     config = SessionConfig.from_dict(json.loads(args.config.read_text()))
+    resolve, open_registered = backend, open_session
+    if args.interface == 'response':
+        from .response import response_backend, open_response
+        resolve, open_registered = response_backend, open_response
     if args.operation == 'capabilities':
-        print(json.dumps(asdict(backend(config.backend).describe(config)), indent=2))
+        print(json.dumps(asdict(resolve(config.backend).describe(config)), indent=2))
         return
     if args.out is None:
         parser.error('--out is required')
@@ -44,7 +49,7 @@ def main(argv=None):
         raise ValueError('training output must be a new empty directory to preserve existing receipts')
     native = json.loads(args.native.read_text()) if args.native else {}
     references = native.get('images')
-    with open_session(config, resume=args.resume, artifact=args.artifact,
+    with open_registered(config, resume=args.resume, artifact=args.artifact,
                       operation=args.operation, strength=args.strength, references=bool(references), output_type=native.get('output_type'), native_request=native) as session:
         if args.operation == 'train':
             if args.export_format in ('v2', 'both'):
@@ -68,7 +73,7 @@ def main(argv=None):
             atomic_json(args.out / 'manifest.json', dict(manifest=session.manifest,
                 completed_steps=session.game.completed_steps, files=files))
         elif args.operation == 'evaluate':
-            atomic_save(args.out, {'kind': 'native velocity response', 'quality_validated': False,
+            atomic_save(args.out, {'kind': getattr(session.capabilities, 'response_kind', 'native velocity response'), 'quality_validated': False,
                 'response': session.evaluate(args.row, seed=args.seed, strength=args.strength).cpu()})
         else:
             from PIL import Image
