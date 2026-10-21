@@ -1,4 +1,6 @@
-# particle-sliders-core 0.8.3 — official PG0.9.1 lifecycle
+# particle-sliders-core0.11.0 — modern PG0.9.3/Gram target
+
+Read [MODERN-GRAM.md](MODERN-GRAM.md) first for the new exact-release, optimizer-policy, split-evaluation and adoption contract. This source candidate requires officialPG0.9.3; old091/0.5 overlays and packets are not silently admitted. Current runtime qualification is recorded only in the exact candidate receipt.
 
 Model product -> particle-sliders -> HyperGAN / ParticleGAN. Products own native
 loading, packing, schedulers, adapter attachment and their complete factory;
@@ -11,8 +13,8 @@ This source integration includes the reviewed image and numerical response
 lifecycles plus a narrow legacy compatibility layer. It is not a package release.
 Install a full reviewed Git pin using `#subdirectory=packages/particle-sliders-core`
 or its exact wheel; retain that pin, source map and receipts. Dependency is exact
-`particlegan==0.9.1`, Torch>=2.6,<3 (also required by upstream), Python>=3.10.
-Core0.8.1/0.8.2 source pins remain immutable. See [LEGACY-MIGRATION.md](LEGACY-MIGRATION.md)
+`particlegan==0.9.3`, Torch>=2.6,<3 (also required by upstream), Python>=3.10.
+Earlier core0.8/0.10 source pins remain immutable. See [LEGACY-MIGRATION.md](LEGACY-MIGRATION.md)
 for preserved constructors/stamp fields, explicit retired-kernel refusals and
 runnable old/core0.3 instructions; this upgrade does not migrate checkpoints.
 
@@ -36,7 +38,7 @@ accelerator fit, native image quality or acoustic rendering. Iris rendering stay
 disabled pending native solver parity; Krea2 is adapter-only (`particles=None`).
 Qwen/Fibo native dependencies remain in separate environments. Official PG0.9.1
 wide continuous audio states remain refused; no unofficial upstream proposal is
-included or activated. MOSS uses its separate officialPG0.9.3 line. Mere backend
+included or activated. MOSS requires a freshly qualified product target on this exact modern line. Mere backend
 registration does not qualify a product migration.
 
 Optional `[serialization]` adds safetensors for native adapter/cache IO;

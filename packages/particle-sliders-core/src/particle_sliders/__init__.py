@@ -29,7 +29,7 @@ from .reference import (
     rp_g_loss,
 )
 
-__version__ = "0.8.3"
+__version__ = "0.11.0"
 
 __all__ = [
     "BISPFGame",

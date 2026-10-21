@@ -56,4 +56,4 @@ def test_core_distribution_does_not_depend_on_products():
     forbidden = ('iris-particle', 'qwen-image-particle', 'krea2-particle',
                  'fibo-particle', 'moss-sliders', 'anima-particle', 'yue2-particle')
     assert not any(any(name in dependency.lower() for name in forbidden) for dependency in dependencies)
-    assert any(dependency.lower().startswith('particlegan==0.9.1') for dependency in dependencies)
+    assert any(dependency.lower().startswith('particlegan==0.9.3') for dependency in dependencies)

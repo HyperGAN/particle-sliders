@@ -114,9 +114,17 @@ arms: Krea2's adapter-only GAN has no routed particle bank, while routed models
 must use their actual participating bank. Iris's PG rendering route remains gated
 pending native solver parity. A hidden response is not an image or waveform.
 
-### Source API, preserved legacy pins and qualification
+### Modern PG0.9.3/Gram source candidate
 
-This source line provides **core0.8.3**, exact official `particlegan==0.9.1`
+This branch proposes core0.11.0 with exact officialPG0.9.3 and a supported
+upstream Gram default. See [the modernization contract](packages/particle-sliders-core/MODERN-GRAM.md).
+It is a new reviewed-cohort target; the prior merged091 API, release receipts
+and product pins below remain historical and unchanged until explicit adoption.
+No package release, native activation or old-checkpoint rebinding is implied.
+
+### Previously merged PG0.9.1 API and preserved qualification
+
+The previously merged source line provides **core0.8.3**, exact official `particlegan==0.9.1`
 and Torch>=2.6,<3. It integrates the reviewed lifecycle history from a clean
 main-based branch; it does not merge the unrelated audit/campaign stack. See
 [legacy migration](packages/particle-sliders-core/LEGACY-MIGRATION.md) for
@@ -127,7 +135,7 @@ No existing checkpoint or result receipt is rebound to a different source pin.
 
 | Source cohort | Exact ParticleGAN dependency | Boundary |
 |---|---|---|
-| This core0.8.3 line and reviewed core0.8.1/0.8.2 ancestors | `particlegan==0.9.1` | Shared image/numerical response lifecycle; keep each product's tested exact commit. No package release implied. |
+| Preserved core0.8.3 line and reviewed core0.8.1/0.8.2 ancestors | `particlegan==0.9.1` | Shared image/numerical response lifecycle; keep each product's tested exact commit. No package release implied. |
 | Separate core0.10.0 review line | `particlegan==0.9.3` | Later research/MOSS contract; not an automatic replacement for PG0.9.1 cohorts. |
 | Original core0.3.0 at17cd484 | ParticleGAN Git82b726 | Exact old environment for retired regularizer kernels/class identity and historical receipts. |
 

@@ -1,4 +1,4 @@
-"""Conditional native-response GAN using released ParticleGAN 0.9.1 components.
+"""Conditional native-response GAN using released ParticleGAN 0.9.3 components (explicit core0.9 line).
 
 Backends own frozen conditioning and differentiable response generation. This
 module owns the adversarial game, optimizer lifecycle, sampling and checkpoint
@@ -19,39 +19,39 @@ import torch
 from torch import nn
 from particlegan import get_recipe, scale_learning_rates
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
+from .optimizer_policy import configure_dense_profile, optimizer_diagnostics
 
-PG_VERSION = '0.9.1'
-PG_WHEEL_SHA256 = 'b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec'
+PG_VERSION = '0.9.3'
+PG_SOURCE_PROFILE = 'release-0.9.3'
+PG_WHEEL_SHA256 = 'fd7ee424d4c67e1dc3cf0b9dd345222049a67e8c293c30c8a3c42d54805affec'
 
 
-def _released_sources(profile='release'):
+def _released_sources(profile=PG_SOURCE_PROFILE):
     import particlegan
+    if profile != PG_SOURCE_PROFILE:
+        raise ValueError('unknown/unqualified PG0.9.3 source profile; no overlay or release alias')
+    document = json.loads(Path(__file__).with_name('pg093_release.json').read_text())
+    if (document['version'], document['wheel_sha256'], document['source_profile']) != (PG_VERSION, PG_WHEEL_SHA256, profile):
+        raise RuntimeError('PG0.9.3 release manifest contradicts this engine')
     root = Path(particlegan.__file__).resolve().parent
-    if profile == 'release':
-        expected = json.loads(Path(__file__).with_name('pg09_release_sources.json').read_text())
-    elif profile == 'alz-continuous-v1':
-        document = json.loads(Path(__file__).with_name('pg09_continuous_profile.json').read_text())
-        expected = document['python_sources']
-    else:
-        raise ValueError('unknown PG source profile')
     actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob('*.py'))}
-    if actual != expected:
+    if actual != document['python_sources']:
         raise RuntimeError('installed ParticleGAN sources differ from verified ' + profile + ' source profile')
     return _hash(actual)
 
 
 def validate_pg09_domain(response_shape, *, response_domain,
-                         pg_source_profile='release', penalty_input_domain='auto'):
+                         pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto'):
     """Pre-forward host gate for native shape + exact reviewed PG sources.
 
     This never installs a package, applies a patch or reshapes a response.
-    Callers must declare actual native geometry, then pass the same domain
-    options into ConditionalPG09. The optional overlay is ALZ's single patch.
+    Callers declare native geometry and pass this explicitly versioned profile
+    into ConditionalPG09. No unqualified continuous/develop overlay is admitted.
     """
     if version('particlegan') != PG_VERSION:
         raise RuntimeError('ConditionalPG09 requires particlegan==' + PG_VERSION + ' base release')
-    if (pg_source_profile, penalty_input_domain) not in (('release', 'auto'), ('alz-continuous-v1', 'continuous')):
+    if (pg_source_profile, penalty_input_domain) not in ((PG_SOURCE_PROFILE, 'auto'),):
         raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
     sources = _released_sources(pg_source_profile)
     shape = tuple(response_shape)
@@ -279,10 +279,11 @@ class ConditionalPG09:
                  response_domain='continuous_field', response_scale=1.0,
                  preset='bispf_optimized', batch_size=2, seed=7, total_steps=100,
                  sigma=1.0, recipe_overrides=None, sampling='balanced',
-                 pg_source_profile='release', penalty_input_domain='auto'):
+                 optimizer_dense_profile='auto',
+                 pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto'):
         if version('particlegan') != PG_VERSION:
             raise RuntimeError('ConditionalPG09 requires released particlegan==' + PG_VERSION)
-        if (pg_source_profile, penalty_input_domain) not in (('release', 'auto'), ('alz-continuous-v1', 'continuous')):
+        if (pg_source_profile, penalty_input_domain) not in ((PG_SOURCE_PROFILE, 'auto'),):
             raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
         if preset not in ('bispf_optimized', 'bispf'):
             raise ValueError('only explicitly selected public BISPF presets are admitted')
@@ -332,10 +333,10 @@ class ConditionalPG09:
             raise ValueError('conditions tensor or lazy provider.conditions(indices) is required')
         self.response_domain, self.response_scale = response_domain, float(response_scale)
         self.batch_size, self.sigma = batch_size, float(sigma)
-        # This caller-owned native-response loop does not execute GANTrainer's
-        # CUDA convolution autocast policy. Bind the actual host precision even
-        # though the released optimized recipe now defaults to BF16 training.
-        options = dict(batch_size=batch_size, total_steps=total_steps, training_precision='float32')
+        # Preserve the authoritative PG0.9.3 research recipe's declared precision.
+        # This native host executes FP32 leaves without GANTrainer autocast; bind
+        # that separately below instead of rewriting the public recipe.
+        options = dict(batch_size=batch_size, total_steps=total_steps)
         self.prior = None
         if particles is not None:
             if (not isinstance(particles, nn.Parameter) or particles.ndim != 2
@@ -355,7 +356,8 @@ class ConditionalPG09:
         if set(overrides) - allowed:
             raise ValueError('unsupported recipe overrides: ' + str(sorted(set(overrides) - allowed)))
         options.update(overrides)
-        self.recipe = get_recipe(preset, **options)
+        self.recipe, self.optimizer_policy = configure_dense_profile(
+            get_recipe(preset, **options), optimizer_dense_profile)
         self.opt_g, self.opt_d = self.recipe.make_optimizers(self.network, critic, self.prior)
         self.loss = self.recipe.make_loss()
         penalty_options = {'input_domain': 'continuous'} if penalty_input_domain == 'continuous' else {}
@@ -378,13 +380,13 @@ class ConditionalPG09:
         self._signature = dict(pg_version=PG_VERSION, pg_release_wheel_sha256=PG_WHEEL_SHA256,
             pg_sources_sha256=pg_sources_sha256, implementation_sources=_implementation_sources(backend, critic, self.provider),
             pg_source_profile=pg_source_profile,
-            pg_patch_sha256=(json.loads(Path(__file__).with_name('pg09_continuous_profile.json').read_text())['patch_sha256']
-                             if pg_source_profile == 'alz-continuous-v1' else None),
+            pg_patch_sha256=None, host_training_precision='float32',
             runtime=dict(python=platform.python_version(), torch=str(torch.__version__), cuda=torch.version.cuda,
                          numpy=version('numpy'), deterministic=torch.are_deterministic_algorithms_enabled(),
                          tf32_matmul=torch.backends.cuda.matmul.allow_tf32),
             architectures=_architectures(backend, critic),
-            recipe=asdict(self.recipe), backend=_identity(backend.metadata()),
+            recipe=asdict(self.recipe), optimizer_policy=self.optimizer_policy,
+            backend=_identity(backend.metadata()),
             rows_sha256=_hash(self.provider.identity() if self.provider is not None else self.rows),
             conditions_sha256=(_hash(self.conditions) if self.conditions is not None else 'bound-by-provider-identity'),
             row_count=len(self.rows), sampling=sampling,
@@ -464,6 +466,12 @@ class ConditionalPG09:
                 self.model_cpu_rng = torch.get_rng_state()
                 if devices:
                     self.model_cuda_rng = torch.cuda.get_rng_state(self.device)
+
+    @property
+    def optimizer_diagnostics(self):
+        """Actual upstream dispatch counters, not checkpointed training state."""
+        return dict(policy=deepcopy(self.optimizer_policy),
+            generator=optimizer_diagnostics(self.opt_g), critic=optimizer_diagnostics(self.opt_d))
 
     def step(self):
         if self._export_loaded:

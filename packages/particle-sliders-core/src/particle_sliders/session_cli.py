@@ -28,7 +28,10 @@ def main(argv=None):
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--strength', type=float, default=1.)
     parser.add_argument('--native', type=Path, help='JSON native render arguments; images are local paths')
+    parser.add_argument('--split', default='train', help='product-owned read-only evaluate split')
     args = parser.parse_args(argv)
+    if args.operation != 'evaluate' and args.split != 'train':
+        parser.error('--split applies only to evaluate')
     if args.operation != 'train' and args.export_format != 'v1':
         parser.error('--export-format applies only to train')
     if args.operation == 'infer':
@@ -74,7 +77,8 @@ def main(argv=None):
                 completed_steps=session.game.completed_steps, files=files))
         elif args.operation == 'evaluate':
             atomic_save(args.out, {'kind': getattr(session.capabilities, 'response_kind', 'native velocity response'), 'quality_validated': False,
-                'response': session.evaluate(args.row, seed=args.seed, strength=args.strength).cpu()})
+                'split': args.split, 'row': args.row, 'seed': args.seed, 'strength': args.strength,
+                'response': session.evaluate(args.row, seed=args.seed, strength=args.strength, split=args.split).cpu()})
         else:
             from PIL import Image
             if references:

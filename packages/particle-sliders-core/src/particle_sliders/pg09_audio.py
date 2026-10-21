@@ -10,6 +10,7 @@ from dataclasses import dataclass, replace
 import torch
 from torch import nn
 
+from .pg09 import PG_SOURCE_PROFILE
 from .pg09_backends import (
     AdapterParameters, checkpoint_with_adapter_scale,
 )
@@ -40,7 +41,7 @@ class AudioResponseCritic(nn.Module):
         return self.net(torch.cat((response, condition), dim=1)).squeeze(-1)
 
 
-def require_audio_width(width, *, pg_source_profile='release', penalty_input_domain='auto'):
+def require_audio_width(width, *, pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto'):
     from particle_sliders.pg09 import validate_pg09_domain
     if type(width) is not int or width < 1:
         raise ValueError('positive native AR hidden width required')
@@ -68,7 +69,7 @@ class ARLastHiddenResponseAdapter:
     family = 'abstract_audio_ar'
 
     def __init__(self, model, slider, *, model_identity, checkpoint_modules=(),
-                 pg_source_profile='release', penalty_input_domain='auto'):
+                 pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto'):
         self.domain_gate = require_audio_width(model.config.hidden_size,
             pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain)
         if not model_identity:

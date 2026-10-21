@@ -1,0 +1,13 @@
+{
+  "schema": "fibo-network-candidate-transplant-v1",
+  "scope": "network definitions/profile attachment only; no GAN/optimizer kernel",
+  "historical_qualification": "56CPU on PG0.9.1; not evidence for this modern target",
+  "files": {
+    "src/particle_sliders/fibo_hndl.py": "0c7486c00f4fa95943353d0002dd3760186bff1507c791d3f91fb95b6fc552fb",
+    "src/particle_sliders/fibo_projection.hndl": "b5efac1cfb0c597e5d6e0839af6077ff36dec916901bfa254be78db9f691c086",
+    "src/particle_sliders/fibo_critic.hndl": "31f95ccf2178363d7a027597a00694c571c9d69a170151fcbe36e05326ac4707",
+    "src/particle_sliders/fibo_hndl_sources.json": "77c9af5ca1e7fe312d276b905ab3acdf187e247f1ab2b838c057247eb78a1fbe",
+    "src/particle_sliders/fibo_native.py": "e4e6eaab4c5029d96c21280d272c87980b22a2aac6c5053dc31f42533c7fd7de",
+    "tests/test_fibo_hndl.py": "70280dacfc48f98d2331a2c5f58bc8cdaa798d937e3821b064fd93e10bb8bd06"
+  }
+}
