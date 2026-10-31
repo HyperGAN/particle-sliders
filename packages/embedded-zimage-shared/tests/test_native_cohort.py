@@ -53,7 +53,7 @@ def staged(tmp_path):
             negative={'embeds':torch.randn(2,16)},latent=torch.randn(1,4,4,4),timestep=torch.tensor(300.+i*100.)) for i in range(3)]
         torch.save(dict(schema=product.PROTOCOL,model_identity=identity,rows=rows),tmp_path/'rows.pt')
     config=SessionConfig(product.NAME,product.COHORT,model_dir=str(tmp_path/'model'),model_identity=identity,
-        rows=str(tmp_path/'rows.pt'),response_shape=[1,4,4,4],steps=4,batch=2,seed=7,ema_decay=.8)
+        rows=str(tmp_path/'rows.pt'),rows_sha256=product.file_sha256(tmp_path/'rows.pt'),response_shape=[1,4,4,4],steps=4,batch=2,seed=7,ema_decay=.8)
     return native,rows,config
 
 
@@ -342,3 +342,133 @@ def test_actual_historical_uni_safetensors_refuses_before_native_factory(staged,
     monkeypatch.setattr(product.ZImageLoRA,'__init__',lambda *args:calls.append(1))
     with pytest.raises(CheckpointError):open_response(config,resume=weights)
     assert calls==[]
+
+
+@pytest.mark.parametrize('mutation',['last_row','trailing_bytes'])
+def test_complete_rows_bytes_reject_before_native_attachment(staged,mutation):
+    native,rows,config=staged
+    path=Path(config.options['rows'])
+    if mutation=='last_row':
+        rows[-1]['positive']['embeds'][0,0]+=1
+        torch.save(dict(schema=product.PROTOCOL,model_identity=config.options['model_identity'],rows=rows),path)
+    else:
+        with path.open('ab') as stream:stream.write(b'ignored-by-torch-load-but-bound-by-full-hash')
+    with pytest.raises(ValueError,match='complete frozen rows file hash'):
+        product.BACKEND.open(config,model=native)
+    assert not any(m._forward_hooks for m in native.modules())
+    assert all(p.requires_grad for p in native.parameters())
+
+
+def test_rows_changed_after_preflight_reject_before_prepare_attaches(staged):
+    from dataclasses import replace
+    native,rows,config=staged
+    def mutate(options,request,staging):
+        product.preflight(options,request,staging)
+        with Path(options['rows']).open('ab') as stream:stream.write(b'changed after preflight')
+    backend=replace(product.BACKEND,preflight=mutate)
+    with pytest.raises(ValueError,match='complete frozen rows file hash'):
+        backend.open(config,model=native)
+    assert not any(m._forward_hooks for m in native.modules())
+    assert all(p.requires_grad for p in native.parameters())
+
+
+def test_bundle_identity_streams_bytes_without_loading_weight_tensors(staged,monkeypatch):
+    native,rows,config=staged
+    import safetensors.torch
+    def forbidden(*args,**kwargs):raise AssertionError('identity must not deserialize weight tensors')
+    monkeypatch.setattr(safetensors.torch,'load_file',forbidden)
+    monkeypatch.setattr(torch,'load',forbidden)
+    monkeypatch.setattr(ZImageTransformer2DModel,'from_pretrained',forbidden)
+    original=Path.open;requests=[]
+    class BoundedReads:
+        def __init__(self,stream):self.stream=stream
+        def __enter__(self):return self
+        def __exit__(self,*args):return self.stream.__exit__(*args)
+        def read(self,n=-1):
+            assert 0<=n<=product.HASH_CHUNK_BYTES
+            requests.append(n);return self.stream.read(n)
+        def __getattr__(self,name):return getattr(self.stream,name)
+    def opened(path,*args,**kwargs):
+        stream=original(path,*args,**kwargs)
+        return BoundedReads(stream) if path.suffix=='.safetensors' else stream
+    monkeypatch.setattr(Path,'open',opened)
+    identity=product.bundle_identity(config.options['model_dir'])
+    assert identity==config.options['model_identity']
+    assert identity['state_sha256']==product.digest_state(native.state_dict())
+    assert requests and max(requests)<=product.HASH_CHUNK_BYTES
+
+
+def test_streamed_safetensors_digest_covers_multiple_chunks(tmp_path):
+    from safetensors.torch import save_file
+    state={'large':torch.arange(700000,dtype=torch.float32),'scalar':torch.tensor(2.)}
+    path=tmp_path/'large.safetensors';save_file(state,str(path))
+    assert path.stat().st_size>2*product.HASH_CHUNK_BYTES
+    assert product._safetensors_state_digest(path)==product.digest_state(state)
+
+
+def test_recursive_core_closure_rejects_nested_unexpected_source(staged,tmp_path,monkeypatch):
+    import particle_sliders
+    import shutil
+    root=Path(particle_sliders.__file__).parent;copy=tmp_path/'core-copy'
+    for relative in product.source_closure(root):
+        target=copy/relative;target.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copyfile(root/relative,target)
+    assert product.source_closure(copy)==product.source_closure(root)
+    nested=copy/'unexpected'/'nested.py';nested.parent.mkdir();nested.write_text('injected = True\n')
+    assert 'unexpected/nested.py' in product.source_closure(copy)
+    monkeypatch.setattr(particle_sliders,'__file__',str(copy/'__init__.py'))
+    native,rows,config=staged
+    with pytest.raises(ValueError,match='core lifecycle/source'):
+        product.BACKEND.open(config,model=native)
+    assert not any(m._forward_hooks for m in native.modules())
+    assert all(p.requires_grad for p in native.parameters())
+
+
+def test_training_paths_are_fixed_but_native_only_export_relocates(staged,tmp_path,monkeypatch):
+    import shutil
+    _,rows,config=staged
+    with open_response(config) as session:
+        session.step();session.checkpoint(tmp_path/'resume.pt')
+        raw=session.export_inference(selection='raw');ema=session.export_inference(selection='ema')
+        expected=session.evaluate(strength=.5)
+    moved_model=tmp_path/'relocated-model';moved_rows=tmp_path/'relocated-rows.pt'
+    shutil.copytree(config.options['model_dir'],moved_model);shutil.copyfile(config.options['rows'],moved_rows)
+    options=config.options;options.update(model_dir=str(moved_model),rows=str(moved_rows))
+    moved_config=SessionConfig(product.NAME,product.COHORT,**options)
+    with monkeypatch.context() as patch:
+        patch.setattr(product,'_native',lambda *args,**kwargs:pytest.fail('changed training paths must reject before native prepare'))
+        with pytest.raises(CheckpointError,match='config/cohort differs'):
+            open_response(moved_config,resume=tmp_path/'resume.pt')
+    shutil.rmtree(config.options['model_dir']);Path(config.options['rows']).unlink();moved_rows.unlink()
+    request=dict(condition=rows[0]['neutral'],latent=rows[0]['latent'],timestep=rows[0]['timestep'])
+    for artifact in (raw,ema):
+        assert set(artifact['specification']['configuration'])=={'model_identity','response_shape'}
+        with open_inference(artifact,options={'model_dir':str(moved_model)},operation='response') as inference:
+            value=inference.response(**request,strength=.5)
+            if artifact is raw:assert torch.equal(value,expected)
+            assert value.shape==(1,4,4,4)
+
+
+def test_equal_weights_reserialized_file_is_a_different_model_identity(staged):
+    from safetensors.torch import load_file,save_file
+    native,rows,config=staged
+    path=Path(config.options['model_dir'])/'diffusion_pytorch_model.safetensors'
+    state=load_file(str(path));save_file(state,str(path),metadata={'changed':'same tensor values, different exact file'})
+    actual=product.bundle_identity(config.options['model_dir'])
+    assert actual['state_sha256']==config.options['model_identity']['state_sha256']
+    assert actual['files']!=config.options['model_identity']['files']
+    with pytest.raises(ValueError,match='identity differs before attachment'):
+        product.BACKEND.open(config,model=native)
+    assert not any(m._forward_hooks for m in native.modules())
+    assert all(p.requires_grad for p in native.parameters())
+
+
+def test_native_base_loader_deserializes_once_per_session(staged,monkeypatch):
+    native,rows,config=staged
+    original=ZImageTransformer2DModel.from_pretrained;calls=[]
+    def load(*args,**kwargs):
+        calls.append(args[0]);return original(*args,**kwargs)
+    monkeypatch.setattr(ZImageTransformer2DModel,'from_pretrained',load)
+    with open_response(config) as session:
+        assert session.game.response_shape==(1,4,4,4)
+    assert calls==[config.options['model_dir']]

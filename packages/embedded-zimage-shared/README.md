@@ -29,11 +29,15 @@ safetensors, and its exported artifacts cannot be relabeled as historical LoRA.
 Use Python3.11–3.14, a fresh environment, a public CPU Torch wheel, and install
 this directory. Its unique distribution/namespace/entry-point names avoid sibling
 preview collisions. Do not add this as an extra on the old core distribution.
-The dependency pins the lifecycle-corrected draft core commit
+The dependency pins the held draft core candidate
 `7a8a321d04323d49319d0b08e6093a0ddce36b27`, official PG0.9.4, HyperGAN develop
 `5f368a3770cf5bdae0448995c9f76e29af8049f7`, HNDL0.10 and Diffusers0.42.1.
-Draft availability does not constitute final upstream admission or a release.
-Core sources and the verified builder closure must match before native mutation.
+Core7a8 remains held pending further lifecycle corrections and review. Public
+availability does not admit it for landing, native training or release; this
+package uses it only for the bounded CPU software qualification reported here.
+The core Python/graph/manifest closure is recursively hashed with relative
+paths, so unexpected nested sources also reject before attachment. The verified
+builder closure must match as well.
 
 ## Staged inputs and execution
 
@@ -56,8 +60,17 @@ packet = dict(schema=PROTOCOL, model_identity=bundle_identity(model_dir), rows=[
 torch.save(packet, rows_path)
 ```
 
-No strings, tokenizer, text encoder or hidden pooling are substituted. All native
-coordinates and cached row content participate in shared checkpoint identity.
+No strings, tokenizer, text encoder or hidden pooling are substituted. The CLI
+records `rows_sha256=file_sha256(rows_path)` in SessionConfig. Programmatic
+callers must provide the same complete-file hash. Every byte, including metadata
+or a trailing-byte change that torch.load might ignore, is checked before
+deserialization and rechecked before native attachment. Native coordinates and
+parsed cached content also participate in the shared game signature.
+
+Model identity hashes exact config/safetensors file bytes with bounded1MiB reads.
+A header/offset pass computes the matching native state digest without loading
+weight tensors. The actual base is deserialized once by the native loader;
+finite FP32 validation runs on that loaded model before attachment.
 
 ```sh
 embedded-zimage-shared train --model-dir LOCAL_MODEL --rows frozen-rows.pt \
@@ -79,6 +92,22 @@ parameter restoration; they clean up on rejection. A packet-aware pre-prepare se
 is a shared-core follow-up, reported centrally. No universal pre-hook packet
 admission claim is made here. Changed inputs fail closed;
 old packets require their original loaders. No implicit migration is provided.
+
+Training checkpoints bind the exact SessionConfig, including absolute model and
+rows paths, rows file SHA256, source/runtime and total step budget. Moving a
+training bundle changes that config and is refused even if files are identical;
+there is no automatic path rebinding or checkpoint migration.
+
+Native-only inference artifacts omit training paths/rows/optimizers. They can
+use a different model directory containing byte-identical config and safetensors
+files, under the same pinned package sources/runtime. Both raw and EMA exports
+are tested after relocating the base and deleting original model/training paths.
+Reserializing equal weights can change file bytes and is refused. This is path
+relocation within the pinned runtime, not cross-version artifact portability.
+
+Preview0.1.1 uses cohort/protocolv2 for the stricter complete-file identity.
+Preview0.1.0/v1 artifacts remain tied to the original bca841e source pin; this
+update refuses them and never silently relabels them.
 
 Qualification commands and results are recorded in `QUALIFICATION.md`. No model
 weights, package release, deployment, GPU run or merge is part of this preview.

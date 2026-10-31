@@ -1,4 +1,5 @@
 {
+  "core_closure": "recursive-relative-path-sha256-v1",
   "core_commit": "7a8a321d04323d49319d0b08e6093a0ddce36b27",
   "core_sources": {
     "__init__.py": "840ac3d54df90b121c7d2a13c5097c6132ba19ec3c95f5673251dd709935f799",

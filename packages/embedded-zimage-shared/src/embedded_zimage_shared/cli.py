@@ -7,7 +7,7 @@ import torch
 from particle_sliders.inference import open_inference
 from particle_sliders.lifecycle import SessionConfig
 from particle_sliders.response import open_response
-from .backend import COHORT, NAME, bundle_identity
+from .backend import COHORT, NAME, bundle_identity, file_sha256
 
 
 def main(argv=None):
@@ -37,6 +37,7 @@ def main(argv=None):
     if args.command == 'train':
         config = SessionConfig(NAME, COHORT, model_dir=str(Path(args.model_dir).resolve()),
             model_identity=bundle_identity(args.model_dir), rows=str(Path(args.rows).resolve()),
+            rows_sha256=file_sha256(args.rows),
             response_shape=args.shape, steps=args.steps, batch=args.batch, seed=args.seed,
             preset=args.preset, ema_decay=args.ema_decay, base_precision='float32')
         with open_response(config, resume=args.resume) as session:
