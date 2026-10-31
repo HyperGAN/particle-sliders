@@ -8,9 +8,8 @@ here. The host supplies exact native encodings/masks and staged frozen weights.
 from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
-from dataclasses import replace
 import hashlib
-from importlib.metadata import version
+from importlib.metadata import distribution, version
 import json
 import math
 import inspect
@@ -55,10 +54,57 @@ def _verified_core():
     lock = json.loads(lock_path.read_text())
     root = Path(particle_sliders.__file__).parent
     actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
-              for p in sorted(root.rglob('*.py'))}
-    if actual != lock['python_sources']:
-        raise ValueError('shared core source differs from the exact candidate wheel')
+              for p in sorted(root.rglob('*')) if p.is_file() and '__pycache__' not in p.parts
+              and p.suffix != '.pyc'}
+    if actual != lock['package_files']:
+        raise ValueError('shared core source/data differs from the exact candidate wheel')
+    try:
+        provenance = json.loads(distribution('particle-sliders-core').read_text('direct_url.json'))
+        vcs = provenance.get('vcs_info', {})
+        git = (provenance.get('url') == 'https://github.com/HyperGAN/particle-sliders.git'
+               and provenance.get('subdirectory') == 'packages/particle-sliders-core'
+               and vcs.get('vcs') == 'git' and vcs.get('commit_id') == lock['core_commit']
+               and vcs.get('requested_revision') == lock['core_commit'])
+        archive = provenance.get('archive_info', {}).get('hashes', {})
+        wheel = (provenance.get('url', '').endswith('.whl')
+                 and archive.get('sha256') == lock['core_wheel_sha256'])
+        if not (git or wheel):
+            raise ValueError('unrecognized source')
+    except (TypeError, ValueError, AttributeError) as exc:
+        raise ValueError('exact core Git commit or candidate wheel provenance required') from exc
     return hashlib.sha256(lock_path.read_bytes()).hexdigest()
+
+
+def _number(value, name, *, low=0., high=None):
+    if (type(value) not in (int, float) or not math.isfinite(value) or value < low
+            or high is not None and value > high):
+        raise ValueError(name + ' must be a finite number in the declared range; bool is not numeric')
+    return float(value)
+
+
+def _condition_check(condition):
+    if not isinstance(condition, dict) or set(condition) != {'embeds', 'mask'}:
+        raise ValueError('actual Sana embeddings and attention masks required')
+    embeds, mask = condition['embeds'], condition['mask']
+    if (not isinstance(embeds, torch.Tensor) or not isinstance(mask, torch.Tensor)
+            or embeds.ndim != 3 or embeds.shape[0] != 1 or not embeds.is_floating_point()
+            or tuple(mask.shape) != tuple(embeds.shape[:2]) or embeds.requires_grad or mask.requires_grad
+            or not torch.isfinite(embeds).all() or not torch.all((mask == 0) | (mask == 1))):
+        raise ValueError('frozen finite single-example encodings and native binary mask required')
+
+
+def _unconditional_identity(condition):
+    if not isinstance(condition, dict) or set(condition) != {'embeds', 'mask', 'prompt'}:
+        raise ValueError('negative slot requires an explicitly declared empty-prompt unconditional encoding')
+    if condition['prompt'] != '':
+        raise ValueError('negative slot prompt must be empty, never a negative-concept teacher')
+    _condition_check({key: condition[key] for key in ('embeds', 'mask')})
+    digest = hashlib.sha256()
+    for key in ('embeds', 'mask'):
+        value = condition[key].detach().cpu().contiguous()
+        digest.update(json.dumps([key, list(value.shape), str(value.dtype)]).encode())
+        digest.update(value.reshape(-1).view(torch.uint8).numpy().tobytes())
+    return dict(prompt='', encoding_sha256=digest.hexdigest())
 
 
 def _weight_digest(model):
@@ -99,13 +145,16 @@ def _targets(model):
 
 
 def _model_identity(model, identity):
+    if not isinstance(identity, dict):
+        raise ValueError('native model identity must be a mapping')
     identity = deepcopy(identity)
     fixture = identity.get('qualification') == 'CPU fixture only'
     if fixture:
         if any(p.device.type != 'cpu' for p in model.parameters()):
             raise ValueError('fixture identity is CPU-only')
     elif (identity.get('model_id') != MODEL_ID
-          or not re.fullmatch('[0-9a-f]{40}', identity.get('revision', ''))
+          or not isinstance(identity.get('revision'), str)
+          or not re.fullmatch('[0-9a-f]{40}', identity['revision'])
           or not isinstance(identity.get('staged_files_sha256'), dict)
           or not identity['staged_files_sha256']
           or any(not re.fullmatch('[0-9a-f]{64}', str(v))
@@ -124,7 +173,7 @@ def _plan(model):
     return {n: [m.in_features, m.out_features] for n, m in _targets(model).items()}
 
 
-def configuration(model, *, model_identity, response_shape, steps=4, batch=2, seed=7,
+def configuration(model, *, model_identity, response_shape, unconditional, steps=4, batch=2, seed=7,
                   guidance=4.5, ema_decay=.9):
     """Inspect staged weights and declare this separate opt-in cohort before hooks."""
     shape = tuple(response_shape)
@@ -132,12 +181,12 @@ def configuration(model, *, model_identity, response_shape, steps=4, batch=2, se
             or any(type(n) is not int or n < 1 for n in shape)
             or shape[1] != model.config.in_channels):
         raise ValueError('native Sana [1,C,H,W] shape required')
-    if not math.isfinite(guidance) or guidance < 0:
-        raise ValueError('finite nonnegative teacher CFG required')
+    guidance = _number(guidance, 'teacher CFG')
+    unconditional_identity = _unconditional_identity(unconditional)
     _, identity = verified_builder()
     validate_pg09_domain(shape, response_domain='continuous_field')
     return SessionConfig(NAME, COHORT, steps=steps, batch=batch, seed=seed,
-        guidance=float(guidance), ema_decay=ema_decay, base_precision='float32',
+        guidance=guidance, unconditional=unconditional_identity, ema_decay=ema_decay, base_precision='float32',
         pg_version='0.9.4', pg_source_profile='release-0.9.4', penalty_input_domain='auto',
         response_shape=list(shape), targets=_plan(model), model_identity=_model_identity(model, model_identity),
         binding_source_sha256=_source(), shared_core_lock_sha256=_verified_core(), builder=identity)
@@ -162,7 +211,7 @@ class SanaParticleSlider(nn.Module):
         self.names = tuple(targets)
         self.scale = 0.
         self._restore = native_cleanup(model)
-        self._hosts = [(module, module.forward) for module in targets.values()]
+        self._attachments = []
         self._closed = False
         self.particles = nn.Parameter(torch.randn(128, 4, device=next(model.parameters()).device))
         self.adapters = nn.ModuleList()
@@ -172,8 +221,11 @@ class SanaParticleSlider(nn.Module):
                 self.adapters.append(HNDLParticleProjection(name, module, self.particles, 8, 8,
                     builder=builder, identity=identity, attach=False).to(self.particles))
             model.eval()
-            for (host, _), projection in zip(self._hosts, self.adapters):
-                host.forward = projection.forward
+            for host, projection in zip(targets.values(), self.adapters):
+                record = dict(host=host, present='forward' in host.__dict__,
+                    previous=host.__dict__.get('forward'), owned=projection.forward, restored=False)
+                self._attachments.append(record)
+                host.forward = record['owned']
         except BaseException:
             self.close()
             raise
@@ -183,8 +235,7 @@ class SanaParticleSlider(nn.Module):
 
     @contextmanager
     def scaled(self, scale):
-        if not math.isfinite(scale) or not 0 <= scale <= 1:
-            raise ValueError('Sana strength must be in [0,1]')
+        scale = _number(scale, 'Sana strength', high=1.)
         old = [p.multiplier for p in self.adapters]
         previous = self.scale
         try:
@@ -198,20 +249,44 @@ class SanaParticleSlider(nn.Module):
                 projection.multiplier = value
 
     def close(self):
-        if not self._closed:
-            self._closed = True
-            for host, forward in self._hosts:
-                host.forward = forward
+        if self._closed:
+            return
+        failures = []
+        for record in self._attachments:
+            if record['restored']:
+                continue
+            try:
+                host = record['host']
+                # Preserve a caller's replacement and the original descriptor layout.
+                if host.__dict__.get('forward') is record['owned']:
+                    if record['present']:
+                        host.forward = record['previous']
+                    else:
+                        delattr(host, 'forward')
+                record['restored'] = True
+            except Exception as exc:
+                failures.append(exc)
+        try:
             self._restore()
+        except Exception as exc:
+            failures.append(exc)
+        if failures:
+            raise ExceptionGroup('Sana cleanup incomplete; retry binding.close()', failures)
+        self._closed = True
 
 
 class SanaResponseAdapter(ImageResponseAdapter):
     """Teacher-only CFG; shared native Sana forward preserves masks/time/channels."""
-    def __init__(self, model, slider, identity, guidance):
-        self.guidance = float(guidance)
+    def __init__(self, model, slider, identity, guidance, unconditional):
+        self.unconditional = deepcopy(unconditional)
+        self.guidance = _number(guidance, 'teacher CFG')
         super().__init__('sana', model, slider, model_identity=identity)
 
     def prepare(self, row):
+        if not isinstance(row, ResponseRow):
+            raise ValueError('shared native ResponseRow required')
+        if _unconditional_identity(row.negative) != self.unconditional:
+            raise ValueError('negative slot differs from the declared empty-prompt unconditional encoding')
         if row.schedule is not None or row.guidance != 1 or row.scale != 1 or row.strength != 1:
             raise ValueError('Sana GAN uses raw neutral velocity; teacher CFG is declared separately')
         # Shared capture owns snapshots, native shape checks and frozen contexts.
@@ -225,10 +300,9 @@ class SanaResponseAdapter(ImageResponseAdapter):
 
     def metadata(self):
         result = FrozenResponseAdapter.metadata(self)
-        fixture = self.model_identity['declaration'].get('qualification') == 'CPU fixture only'
-        result['diffusers_version'] = None if fixture else version('diffusers')
         result.update(protocol=PROTOCOL, target_convention=PROTOCOL['teacher'],
-                      teacher_guidance=self.guidance, cfg_adapter_branch='student raw neutral only')
+                      teacher_guidance=self.guidance, unconditional=self.unconditional,
+                      cfg_adapter_branch='student raw neutral only')
         return result
 
 
@@ -247,8 +321,12 @@ def _validate(options):
     if len(shape) != 4 or shape[1] != options['model_identity']['native_config']['in_channels']:
         raise ValueError('Sana requires native 4D image fields')
     validate_pg09_domain(shape, response_domain='continuous_field')
-    if not math.isfinite(options['guidance']) or options['guidance'] < 0:
-        raise ValueError('finite nonnegative teacher CFG required')
+    _number(options.get('guidance'), 'teacher CFG')
+    unconditional = options.get('unconditional')
+    if (not isinstance(unconditional, dict) or set(unconditional) != {'prompt', 'encoding_sha256'}
+            or unconditional['prompt'] != ''
+            or not re.fullmatch('[0-9a-f]{64}', str(unconditional['encoding_sha256']))):
+        raise ValueError('declared empty-prompt unconditional encoding identity required')
 
 
 def _preflight(options, request, staged):
@@ -266,28 +344,31 @@ def _preflight(options, request, staged):
             raise ValueError('stage native inputs on the model device')
 
 
-def _row_check(row, options):
-    if not isinstance(row, ResponseRow) or list(row.latent.shape) != options['response_shape']:
+def _native_input_check(latent, timestep, condition, options):
+    if not isinstance(latent, torch.Tensor) or list(latent.shape) != options['response_shape']:
         raise ValueError('row native geometry differs')
-    if (row.latent.requires_grad or row.latent.dtype != torch.float32 or not torch.isfinite(row.latent).all()
-            or row.timestep is None or row.timestep.numel() != 1 or row.timestep.requires_grad
-            or not torch.isfinite(row.timestep).all() or not 0 <= row.timestep.item() <= 1000):
+    if (latent.requires_grad or latent.dtype != torch.float32 or not torch.isfinite(latent).all()
+            or not isinstance(timestep, torch.Tensor) or timestep.numel() != 1
+            or timestep.dtype == torch.bool or timestep.requires_grad
+            or not torch.isfinite(timestep).all() or not 0 <= timestep.item() <= 1000):
         raise ValueError('frozen native latent and one raw scheduler timestep required')
-    if row.schedule is not None or row.guidance != 1 or row.scale != 1 or row.strength != 1:
+    _condition_check(condition)
+
+
+def _row_check(row, options):
+    if not isinstance(row, ResponseRow):
+        raise ValueError('shared native ResponseRow required')
+    _native_input_check(row.latent, row.timestep, row.neutral, options)
+    if (row.schedule is not None or _number(row.guidance, 'student guidance') != 1
+            or _number(row.scale, 'row scale') != 1 or _number(row.strength, 'row strength') != 1):
         raise ValueError('raw neutral student with separately declared teacher CFG required')
-    for condition in (row.neutral, row.positive, row.negative):
-        if not isinstance(condition, dict) or set(condition) != {'embeds', 'mask'}:
-            raise ValueError('actual Sana embeddings and attention masks required')
-        embeds, mask = condition['embeds'], condition['mask']
-        if (embeds.ndim != 3 or embeds.shape[0] != 1 or tuple(mask.shape) != tuple(embeds.shape[:2])
-                or embeds.requires_grad or mask.requires_grad or not torch.isfinite(embeds).all()
-                or not torch.all((mask == 0) | (mask == 1))):
-            raise ValueError('frozen finite single-example encodings and native binary mask required')
+    _condition_check(row.positive)
+    if _unconditional_identity(row.negative) != options['unconditional']:
+        raise ValueError('negative slot differs from the declared empty-prompt unconditional encoding')
 
 
 def _response(adapter, options, *, latent, timestep, condition, strength):
-    row = ResponseRow(condition, condition, condition, latent, timestep=timestep)
-    _row_check(row, options)
+    _native_input_check(latent, timestep, condition, options)
     return adapter.velocity(condition, latent, timestep, scale=strength)
 
 
@@ -296,7 +377,7 @@ def _prepare(options, *, model, model_identity, rows):
     seed_initialization_rng(options['seed'], [device.index] if device.type == 'cuda' else [])
     slider = SanaParticleSlider(model)
     try:
-        adapter = SanaResponseAdapter(model, slider, options['model_identity'], options['guidance'])
+        adapter = SanaResponseAdapter(model, slider, options['model_identity'], options['guidance'], options['unconditional'])
         prepared = [adapter.prepare(row) for row in rows]
         if any(list(row.target.shape) != options['response_shape'] for row in prepared):
             raise ValueError('native output geometry differs from declared response')
@@ -333,7 +414,7 @@ def _infer_prepare(options, spec):
     slider = SanaParticleSlider(model)
     try:
         config = spec.configuration
-        adapter = SanaResponseAdapter(model, slider, config['model_identity'], config['guidance'])
+        adapter = SanaResponseAdapter(model, slider, config['model_identity'], config['guidance'], config['unconditional'])
         identity = native_identity(adapter, model_identity=config['model_identity'], protocol=json.dumps(PROTOCOL, sort_keys=True))
         def response(*, strength, seed=0, **native):
             return _response(adapter, config, strength=strength, **native)

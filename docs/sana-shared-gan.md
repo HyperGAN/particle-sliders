@@ -13,7 +13,9 @@ from the historical trainer.
 
 ## Exact environment
 
-Use a separate Python 3.11–3.14 environment. The package pins the exact shared
+The package declares Python 3.11–3.14 eligibility; the qualified CPU lane uses
+Python3.12.15 and Torch2.14.1+cpu in a separate environment. The package pins
+the exact shared
 core0.12 source at `4abc0eb03a4e3a84fc3e6d02734c13dc7e8ea231` (draft core
 [PR #148](https://github.com/HyperGAN/particle-sliders/pull/148)), official
 ParticleGAN0.9.4, actual HyperGAN develop
@@ -23,14 +25,23 @@ core0.12 release or a pretrained Sana qualification.
 
 ```bash
 python3.12 -m venv .venv-sana-gan
-.venv-sana-gan/bin/python -m pip install ./packages/particle-sliders-sana
+printf 'torch==2.14.1+cpu\n' > /tmp/sana-cpu-constraints.txt
+.venv-sana-gan/bin/python -m pip install --index-url https://pypi.org/simple \
+  --extra-index-url https://download.pytorch.org/whl/cpu \
+  --constraint /tmp/sana-cpu-constraints.txt './packages/particle-sliders-sana[test]'
+.venv-sana-gan/bin/python -m pip check
+.venv-sana-gan/bin/python -m pytest -c /dev/null \
+  --confcutdir=packages/particle-sliders-sana/tests packages/particle-sliders-sana/tests -q
 ```
 
 For offline qualification, install the exact core candidate wheel (SHA256
 `9afad3afc1f6c653a574074dc14f0da1f1c43975c31ca45c4eac049df0b0b4ad`)
 and its locked PG/HyperGAN/HNDL dependencies, then install the Sana wheel with
-`--no-deps`. This is the tested lane. All installed shared-core Python sources
-must match `core012.lock.json`; the shared verified builder also verifies the
+`--no-deps`. Both the offline wheel lane and full public dependency resolution
+have passed CPU checks. Every installed shared-core package source **and data**
+file must match `core012.lock.json`, and installed `direct_url.json` must identify
+the exact Git commit/subdirectory or exact candidate wheel SHA256; a version
+string alone is refused. The shared verified builder also verifies the
 HNDL sources, HyperGAN builder closure, clean build identity and graph files.
 A different candidate requires a separately reviewed source lock/cohort.
 Do not install the legacy HNDL0.8.2 extra in this environment.
@@ -43,7 +54,9 @@ starts training on import, or chooses a GPU. The live declaration requires the
 exact `Efficient-Large-Model/Sana_600M_512px_diffusers` ID, an immutable model
 revision and staged file SHA256 map. Actual base tensors, native model source,
 config, target names/dimensions, product source and shared source lock are also
-bound to the configuration. Hashing staged tensors reads each base tensor; no
+bound to the configuration. This backend never imports Diffusers itself; the
+host owns its chosen native model/encoder environment. Hashing staged tensors
+reads each base tensor; no
 base weights enter an exported artifact.
 
 Only float32 base weights are admitted in this preview. Native BF16 execution,
@@ -56,7 +69,7 @@ is reserved, and no GPU checks were attempted.
 |---|---|
 | Student | Raw velocity with the neutral caption at every strength |
 | Frozen positive teacher | `v(unconditional) + guidance * (v(positive) - v(unconditional))`; guidance defaults to 4.5 |
-| Shared `ResponseRow.negative` | Actual **unconditional** encoding/mask, never a negative-concept teacher |
+| Shared `ResponseRow.negative` | Explicit empty-prompt encoding/mask matching the frozen unconditional encoding declared in configuration; never a negative-concept teacher |
 | Zero strength | Exact frozen native forward, including masks and timestep convention |
 | Native response | `[1,C,H,W]` velocity, preserving rectangular geometry; no vector reshape or pooling before PG |
 | Timestep | Raw scheduler timestep multiplied by native `config.timestep_scale` by the shared Sana adapter |
@@ -75,9 +88,15 @@ genuine native image-domain admission.
 
 The existing host owns model staging and conditioning. `rows` below is a list
 of at least two shared `ResponseRow` captures, each with one frozen latent,
-one raw scheduler timestep and three dictionaries with keys `embeds` and
-`mask`: `neutral`, `positive` and unconditional `negative`. Keep
-`row.guidance=1`, `scale=1` and `strength=1`; declare **teacher** guidance in
+one raw scheduler timestep. `neutral` and `positive` are dictionaries with keys
+`embeds` and `mask`. The `negative` slot is an unconditional dictionary with
+exactly `embeds`, `mask` and `prompt`, where `prompt` must be the empty string.
+Pass the same frozen empty-prompt encoding to `configuration(unconditional=...)`;
+every row's negative encoding and mask must match its bound tensor fingerprint.
+A missing/nonempty prompt declaration or a swapped encoding is refused before
+forward hooks. The host remains responsible for actually encoding the declared
+empty prompt: the binding cannot infer caption semantics from arbitrary tensors.
+Keep `row.guidance=1`, `scale=1` and `strength=1`; declare **teacher** guidance in
 `configuration`. Trajectory schedules are refused by this velocity cohort.
 
 ```python
@@ -91,7 +110,7 @@ from sana_particle_gan import configuration, staged_model
 transformer.requires_grad_(False)
 config = configuration(
     transformer, model_identity=declaration,
-    response_shape=tuple(rows[0].latent.shape),
+    response_shape=tuple(rows[0].latent.shape), unconditional=rows[0].negative,
     steps=4, batch=2, seed=7, guidance=4.5, ema_decay=0.9,
 )
 with open_session(config, model=transformer, model_identity=declaration, rows=rows) as session:
@@ -116,12 +135,19 @@ resume uses `open_session(config, resume=..., model=..., model_identity=...,
 rows=...)`. Invalid configuration, source, model and declared geometry are
 refused before hook attachment; the shared packet/optimizer validation refuses
 incompatible state without mutation. Construction failures and close remove
-all owned forward hooks and restore borrowed modes/checkpoint settings.
+owned forward attributes and restore borrowed modes/checkpoint settings. Cleanup
+preserves the caller's original instance-attribute layout and any later foreign
+forward replacement. Failed cleanup leaves the product callback retryable;
+retry `session.binding.close()` if cleanup raised (the current shared wrapper
+marks the session closed before invoking its callback). The wrapper issue is
+shared-core follow-up work, not a local shared API patch.
 Open at most one binding on a given staged transformer at a time.
 
 `render` is explicitly unavailable. A future separately reviewed native Sana
 pipeline sampling binding is needed to qualify image inference. This preview
 must not replace the working UNI entrypoint on the basis of these CPU checks.
+Whether a future render path should compose CFG again remains an unqualified
+integration question; this preview changes no historical render defaults.
 
 ## CPU evidence and release impact
 
@@ -136,5 +162,6 @@ and builder-tamper rejection, frozen-base ownership and rollback. The original
 These are small CPU software checks, not a pretrained/GPU qualification. No
 pretrained weights were downloaded, training campaign run, weights published,
 model deployed, package released or default dependency changed. A merge adds
-one optional source distribution and docs. It must be reviewed with its exact
-core candidate; a later core candidate is not automatically admitted.
+one optional source distribution and docs. Merge remains dependent on reviewed
+core PR148 landing and a coordinated exact repin/source-lock review. This branch
+retains `4abc0eb` until that decision; a later or moving core head is not admitted.

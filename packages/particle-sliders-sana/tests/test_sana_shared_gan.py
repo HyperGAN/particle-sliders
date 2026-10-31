@@ -1,6 +1,6 @@
 """Installed-package CPU contracts. Never loads pretrained weights or uses CUDA."""
 from copy import deepcopy
-from dataclasses import replace
+import json
 from importlib.metadata import distribution, entry_points, version
 from pathlib import Path
 from types import SimpleNamespace
@@ -77,12 +77,13 @@ def bundle():
         torch.manual_seed(17)
         model = NativeSana().requires_grad_(False)
         rows = []
+        unconditional = {'embeds': torch.randn(1, 3, 6), 'mask': torch.tensor([[1, 1, 0]]), 'prompt': ''}
         for _ in range(3):
             def condition():
                 return {'embeds': torch.randn(1, 3, 6), 'mask': torch.tensor([[1, 1, 0]])}
-            rows.append(ResponseRow(condition(), condition(), condition(),
+            rows.append(ResponseRow(condition(), condition(), deepcopy(unconditional),
                 torch.randn(1, 2, 3, 5), timestep=torch.tensor(250.)))
-    config = configuration(model, model_identity=IDENTITY, response_shape=(1, 2, 3, 5))
+    config = configuration(model, model_identity=IDENTITY, response_shape=(1, 2, 3, 5), unconditional=rows[0].negative)
     return model, rows, config
 
 
@@ -226,7 +227,7 @@ def test_reject_before_hooks_and_borrowed_state_mutation(change):
     forwards = [m.forward for m in model.modules()]
     flags = [p.requires_grad for p in model.parameters()]
     state = deepcopy(model.state_dict())
-    with pytest.raises((ValueError, AttributeError)):
+    with pytest.raises(ValueError):
         opened(model, rows, changed)
     assert forwards == [m.forward for m in model.modules()]
     assert flags == [p.requires_grad for p in model.parameters()]
@@ -246,7 +247,7 @@ def test_builder_tamper_rejects_before_hooks(monkeypatch):
     assert forwards == [m.forward for m in model.modules()] and not model.calls
 
 
-def test_checkpoint_rejection_restores_no_state_and_old_uni_refused(tmp_path):
+def test_checkpoint_rejection_preserves_state_and_rejects_unversioned_mapping(tmp_path):
     model, rows, config = bundle()
     with opened(model, rows, config) as session:
         session.step()
@@ -339,7 +340,7 @@ def test_shared_source_tamper_refused_before_attachment(monkeypatch):
         return result + b'\n# tampered\n' if path.name == 'pg09_images.py' else result
     monkeypatch.setattr(Path, 'read_bytes', altered)
     forwards = [m.forward for m in model.modules()]
-    with pytest.raises(ValueError, match='shared core source differs'):
+    with pytest.raises(ValueError, match='shared core source/data differs'):
         opened(model, rows, config)
     assert forwards == [m.forward for m in model.modules()] and not model.calls
 
@@ -376,3 +377,126 @@ def test_native_reload_changed_model_is_rejected_before_attachment(tmp_path):
         with pytest.raises(ValueError, match='before attachment'):
             open_inference(tmp_path / 'native.pt', operation='response')
     assert forwards == [m.forward for m in model.modules()] and not model.calls
+
+
+@pytest.mark.parametrize('change', ['missing_prompt', 'negative_prompt', 'different_encoding'])
+def test_negative_slot_requires_declared_empty_prompt_and_matching_encoding(change):
+    model, rows, config = bundle()
+    if change == 'missing_prompt':
+        rows[0].negative.pop('prompt')
+    elif change == 'negative_prompt':
+        rows[0].negative['prompt'] = 'a sad person'
+    else:
+        rows[0].negative['embeds'].add_(1)
+    with pytest.raises(ValueError, match='negative slot'):
+        opened(model, rows, config)
+    assert not model.calls
+    assert all('forward' not in m.__dict__ for m in model.modules())
+
+
+@pytest.mark.parametrize('guidance', [True, False, None, '4.5', float('nan'), float('inf'), -1.])
+def test_guidance_rejects_bools_and_invalid_numbers(guidance):
+    model, rows, config = bundle()
+    with pytest.raises(ValueError, match='teacher CFG'):
+        configuration(model, model_identity=IDENTITY, response_shape=(1, 2, 3, 5),
+                      unconditional=rows[0].negative, guidance=guidance)
+    from particle_sliders.lifecycle import SessionConfig
+    # Nonfinite values are already refused by SessionConfig's JSON boundary.
+    if type(guidance) in (int, float) and not torch.isfinite(torch.tensor(guidance)):
+        return
+    options = config.options
+    options['guidance'] = guidance
+    with pytest.raises(ValueError, match='teacher CFG'):
+        opened(model, rows, SessionConfig(config.backend, config.cohort, **options))
+    assert not model.calls
+
+
+@pytest.mark.parametrize('filename', ['pg094_release.json', 'fibo_projection.hndl', 'LICENSE'])
+def test_complete_core_data_tamper_refused_before_hooks(monkeypatch, filename):
+    model, rows, config = bundle()
+    original = Path.read_bytes
+    def altered(path):
+        data = original(path)
+        return data + b'\nchanged\n' if path.name == filename and path.parent.name == 'particle_sliders' else data
+    monkeypatch.setattr(Path, 'read_bytes', altered)
+    with pytest.raises(ValueError, match='shared core source/data differs'):
+        opened(model, rows, config)
+    assert not model.calls
+
+
+@pytest.mark.parametrize('provenance', [None, {},
+    {'url': 'https://github.com/HyperGAN/particle-sliders.git',
+     'subdirectory': 'packages/particle-sliders-core',
+     'vcs_info': {'vcs': 'git', 'commit_id': '0' * 40, 'requested_revision': '0' * 40}},
+    {'url': 'file:///tmp/particle_sliders_core-0.12.0-py3-none-any.whl',
+     'archive_info': {'hashes': {'sha256': '0' * 64}}}])
+def test_unrecognized_core_git_or_wheel_identity_refused(monkeypatch, provenance):
+    model, rows, config = bundle()
+    import sana_particle_gan.backend as backend
+    original = backend.distribution
+    class WrongDistribution:
+        def read_text(self, filename):
+            return None if provenance is None else json.dumps(provenance)
+    monkeypatch.setattr(backend, 'distribution', lambda name: WrongDistribution()
+                        if name == 'particle-sliders-core' else original(name))
+    with pytest.raises(ValueError, match='exact core Git commit or candidate wheel provenance'):
+        opened(model, rows, config)
+    assert not model.calls
+
+
+def test_close_restores_exact_instance_attributes_and_preserves_foreign_replacement():
+    model, _, _ = bundle()
+    host = model.transformer_blocks[0].attn2.to_q
+    host.forward = host.forward  # Caller-owned instance override, distinct from class descriptor.
+    original = host.__dict__['forward']
+    other = model.transformer_blocks[0].attn2.to_k
+    slider = SanaParticleSlider(model)
+    replacement = lambda value: value
+    other.forward = replacement
+    slider.close()
+    assert slider._closed
+    assert host.__dict__['forward'] is original
+    assert other.__dict__['forward'] is replacement
+    assert all('forward' not in h.__dict__ for h in
+               (model.transformer_blocks[0].attn2.to_v, model.transformer_blocks[0].attn2.to_out[0]))
+    slider.close()
+    assert other.forward is replacement
+
+
+def test_close_retries_partial_forward_restoration(monkeypatch):
+    model, _, _ = bundle()
+    host = model.transformer_blocks[0].attn2.to_q
+    slider = SanaParticleSlider(model)
+    original = nn.Module.__delattr__
+    calls = []
+    def fail_once(module, name):
+        if module is host and name == 'forward' and not calls:
+            calls.append(name)
+            raise RuntimeError('transient owned-forward restoration failure')
+        return original(module, name)
+    monkeypatch.setattr(nn.Module, '__delattr__', fail_once)
+    with pytest.raises(ExceptionGroup, match='cleanup incomplete'):
+        slider.close()
+    assert not slider._closed and 'forward' in host.__dict__
+    assert all('forward' not in record['host'].__dict__ for record in slider._attachments[1:])
+    slider.close()
+    assert slider._closed and 'forward' not in host.__dict__
+    assert model.training
+
+
+def test_close_retries_native_restore_failure():
+    model, _, _ = bundle()
+    slider = SanaParticleSlider(model)
+    restore = slider._restore
+    calls = []
+    def fail_once():
+        calls.append(1)
+        if len(calls) == 1:
+            raise RuntimeError('transient native restore failure')
+        restore()
+    slider._restore = fail_once
+    with pytest.raises(ExceptionGroup, match='cleanup incomplete'):
+        slider.close()
+    assert not slider._closed
+    slider.close()
+    assert slider._closed and model.training and len(calls) == 2
