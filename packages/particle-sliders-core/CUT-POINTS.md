@@ -1,7 +1,8 @@
 # Cut points: attachment, readout and lifecycle boundaries
 
-This guide describes the source at `3c25f785d14073e6f627c0fa9d2297a041c79913`
-(core 0.11.0 / released PG 0.9.3). Dependency/profile modernization is separate;
+This guide reviews the existing native bindings at
+`3c25f785d14073e6f627c0fa9d2297a041c79913` (core 0.11.0 / released PG 0.9.3),
+plus the additive selective PEFT helper described below. Dependency/profile modernization is separate;
 use the exact compatibility receipt for the source you install. Nothing here
 admits a new model, migrates a checkpoint or qualifies a pretrained sampler.
 
@@ -141,9 +142,21 @@ existing alpha/rank factor. Local ordinary LoRA may also have documented
 sequence gains. `lora_scale_context` scales all supported local/PEFT layers
 and **every entry of each PEFT scaling dict in its supplied roots**; it does not
 identify fixed versus trainable adapter names. A product with fixed companion
-adapters must supply an appropriately scoped native context and test that their
-weights and scales remain unchanged. The generic helper alone does not prove
-that guarantee.
+adapters must use an explicitly selective context and test that their weights
+and scales remain unchanged. The additive
+[`peft_adapter_scale_context`](PEFT-SCALING.md) supplies strict exact-name
+selection for supported PEFT Linear leaves; an existing product-owned selective
+wrapper remains valid when independently verified. No product is migrated here.
+
+| Backend/binding | Scale owner in inspected source | Selective-helper adoption |
+|---|---|---|
+| Fibo | `FiboParticleSlider.scaled` | Owns routed projections; PEFT helper does not apply |
+| YuE2 | `ParticleSlider.scaled` | Owns routed projections; PEFT helper does not apply |
+| Music3 | `ParticleNetwork.scaled` | Owns routed projections; PEFT helper does not apply |
+| Iris / Qwen product banks | Product `adapter.active(particles, strength=...)` | Preserve actual bank ownership; PEFT helper does not apply |
+| Anima / Supra compatibility bindings | `_adapter_parameters` delegates to historical `_lora_scale_context` | Full-root PEFT mixed hosts require explicit selected names or a qualified product context; no automatic change |
+| Image PEFT / Krea2 compatibility binding | `image_lora_parameters` delegates to historical `_lora_scale_context` | Same fixed-companion hazard on mixed roots; adoption belongs to the product factory |
+| H3/Pika Flex task | Product-owned custom wrapper, outside this reviewed diff | Inspect that wrapper and coordinate with its owner; no forced replacement or qualification claim |
 
 At scale 0 the routed Tiny/Music3/YuE2 branches explicitly bypass their delta.
 For the same deterministic host inputs this preserves the base output exactly.
@@ -153,6 +166,9 @@ RNG/native state and declare numerical tolerances where needed. A projection's
 residual is linear in its multiplier at fixed input; a complete multi-layer
 model or sampled output is generally nonlinear in slider strength. Unipolar
 range limits and signed support are backend capabilities, not a global choice.
+PEFT numeric scale zero does not bypass A/B execution; nonfinite deltas can
+still produce NaN. The new helper preserves fixed companions but does not change
+that native PEFT numerical behavior.
 
 Scale must survive backward/recomputation. Common lifecycle `advance` owns the
 outer context through the update; selected checkpoint blocks additionally
@@ -217,8 +233,9 @@ staging receipt verifies exact revisions and staged content; older Music3 native
 loader identity is path/architecture-oriented. New integrations need verified
 content/revision receipts, not a claim that the core invents them. Changing
 source-bound runtime code creates a new cohort even if tensor schemas match;
-use the old pinned loader for old checkpoints. This docs/tests change preserves
-runtime source bytes and packet formats.
+use the old pinned loader for old checkpoints. Existing runtime modules and
+packet formats remain unchanged; the new opt-in helper records its own source
+identity and selection, which a product must include in its metadata on adoption.
 
 Regular-LoRA distillation is a separate approximation: `fit_routed_down` fits
 the teacher's routed bottleneck by a homogeneous linear down map while retaining
@@ -240,10 +257,13 @@ new native owner behind another attribute is not a supported identity seam.
 Prefer the explicit `AdapterParameters`/factory interfaces; extending provenance
 traversal needs its own source/identity review.
 
-Remaining scoped follow-ups are projection-attachment rollback/detach ownership,
-mixed fixed/selected PEFT scale isolation, and verified model identities in old
-bindings. They need native-owner changes and new source-cohort receipts; a new
-generic hook registry would not resolve them by itself. Snapshotting conditioning
+Projection-attachment rollback/detach is intentionally factory-owned; missing
+rollback/removal in a particular factory would be a defect, not evidence that a
+global registry is required. Remaining native-owner work includes verified model
+identities in old bindings and product adoption/qualification of selective PEFT
+scaling where needed. The shared helper closes the explicit-selection API gap;
+it does not establish every product's fixed-companion guarantees. A new generic
+hook registry would not resolve those ownership/provenance obligations. Snapshotting conditioning
 also overlaps between `ImageResponseAdapter.prepare` and its base, but removing
 that duplication changes source identity without fixing a demonstrated cut-point
 bug, so it is left intact.
@@ -272,3 +292,7 @@ python -m pytest -q packages/particle-sliders-core/tests/{test_cut_points,test_c
 No native libraries or model weights were installed. CPU fixtures do not
 qualify pretrained layouts, fixed product adapters, GPU kernels or acoustic/media
 outputs, and passing tests do not remove the follow-ups above.
+
+That receipt predates the optional real-PEFT follow-up. See
+[PEFT-SCALING.md](PEFT-SCALING.md) and its separate test receipt for the additive
+helper; historical runtime/helper behavior is not silently changed.
