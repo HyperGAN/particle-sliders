@@ -28,6 +28,41 @@ class H3FlexUnavailable(RuntimeError):
     """The native runtime or a requested operation has not been qualified."""
 
 
+def _raise_cleanup_errors(errors):
+    if errors:
+        first = errors[0][1]
+        for label, error in errors:
+            first.add_note(f"{label} cleanup failed: {error!r}")
+        first.cleanup_failures = tuple(errors)
+        raise first
+
+
+def _attempt_cleanups(*actions):
+    errors = []
+    for label, action in actions:
+        try:
+            action()
+        except BaseException as error:
+            errors.append((label, error))
+    _raise_cleanup_errors(errors)
+
+
+def _cleanup_preserving_primary(primary, cleanup):
+    try:
+        cleanup()
+    except BaseException as error:
+        primary.add_note(f"Cleanup also failed: {error!r}; retry_cleanup retains the pending owner.")
+        primary.cleanup_error = error
+        pending = getattr(primary, "pending_cleanups", ()) + (cleanup,)
+        primary.pending_cleanups = pending
+
+        def retry_cleanup():
+            _attempt_cleanups(*((f"pending owner {index}", action)
+                                for index, action in enumerate(pending)))
+
+        primary.retry_cleanup = retry_cleanup
+
+
 @dataclass
 class PreparedH3Flex(PackedLayout):
     """Native packed inputs plus duration metadata, never a transformer kwarg."""
@@ -78,9 +113,22 @@ def validate_base_files(root):
 
 
 def request_frames(duration):
-    if type(duration) is not int or not 5 <= duration <= 15:
+    temporal = RELEASE["temporal_contract"]
+    if (type(duration) is not int
+            or not temporal["min_requested_frames"] <= duration * temporal["fps"] <= temporal["max_requested_frames"]):
         raise ValueError("integer duration from 5 to 15 seconds required")
-    return duration * 24
+    return duration * temporal["fps"]
+
+
+def prepared_frame_count(requested_frames):
+    temporal = RELEASE["temporal_contract"]
+    if (type(requested_frames) is not int
+            or not temporal["min_requested_frames"] <= requested_frames <= temporal["max_requested_frames"]):
+        raise ValueError("native requested frame count must be an integer from 120 to 360")
+    frames = requested_frames
+    while frames % temporal["frames_per_chunk"] != temporal["latents_per_chunk"]:
+        frames += 1
+    return frames
 
 
 def validate_aligned_frames(num_frames, *, requested_frames=None):
@@ -90,31 +138,33 @@ def validate_aligned_frames(num_frames, *, requested_frames=None):
             or num_frames % temporal["frames_per_chunk"] != temporal["latents_per_chunk"]):
         raise H3FlexUnavailable("prepared H3 frames must follow the released 17*n+5 grid, 124–362")
     if requested_frames is not None:
-        expected = requested_frames
-        while expected % temporal["frames_per_chunk"] != temporal["latents_per_chunk"]:
-            expected += 1
+        expected = prepared_frame_count(requested_frames)
         if num_frames != expected:
             raise H3FlexUnavailable("prepared H3 frame count differs from the native request alignment")
 
 
-def frame_metadata(requested_frames, prepared_frames):
+def _frame_details(requested_frames, prepared_frames):
     temporal = RELEASE["temporal_contract"]
     if (type(requested_frames) is not int
             or not temporal["min_requested_frames"] <= requested_frames <= temporal["max_requested_frames"]):
         raise ValueError("native requested frame count must be an integer from 120 to 360")
     validate_aligned_frames(prepared_frames, requested_frames=requested_frames)
-    result = {
+    return {
         "requested_frame_count": requested_frames,
         "prepared_frame_count": prepared_frames,
-        "requested_duration_seconds": requested_frames / 24,
-        "actual_duration_seconds": prepared_frames / 24,
-        "fps": 24,
+        "requested_duration_seconds": requested_frames / temporal["fps"],
+        "actual_duration_seconds": prepared_frames / temporal["fps"],
+        "fps": temporal["fps"],
         "alignment_changed": prepared_frames != requested_frames,
     }
+
+
+def frame_metadata(requested_frames, prepared_frames):
+    result = _frame_details(requested_frames, prepared_frames)
     if result["alignment_changed"]:
         warnings.warn(
-            f"Pika H3 Flex aligned {requested_frames} requested frames ({requested_frames / 24:g}s) "
-            f"to {prepared_frames} frames ({prepared_frames / 24:.6f}s); duration changed.",
+            f"Pika H3 Flex aligned {requested_frames} requested frames ({result['requested_duration_seconds']:g}s) "
+            f"to {prepared_frames} frames ({result['actual_duration_seconds']:.6f}s); duration changed.",
             UserWarning, stacklevel=2,
         )
     return result
@@ -148,6 +198,16 @@ def validate_snapshot(snapshot, *, workflow="t2va"):
     return root
 
 
+def _verified_adapter(root):
+    """Parse the same immutable byte payload whose release hash was checked."""
+    from safetensors.torch import load
+    payload = (root / "fl2va/adapter.safetensors").read_bytes()
+    digest = hashlib.sha256(payload).hexdigest()
+    if digest != RELEASE["fl2va"]["sha256"]:
+        raise H3FlexUnavailable("Pika adapter checksum changed before loading")
+    return load(payload), digest
+
+
 def require_native_runtime():
     """Check the exact reviewed native contract sources, not a dev version string."""
     import diffusers
@@ -174,6 +234,7 @@ def admit_shared_gan(response_shape):
 def load_pipeline(snapshot, *, workflow="t2va", device="cpu"):
     root = validate_snapshot(snapshot, workflow=workflow)
     require_native_runtime()
+    adapter_state, adapter_digest = _verified_adapter(root)
     from diffusers import ModularPipeline
 
     pipe = ModularPipeline.from_pretrained(str(root), workflow=workflow, local_files_only=True)
@@ -185,8 +246,8 @@ def load_pipeline(snapshot, *, workflow="t2va", device="cpu"):
                if getattr(pipe, name, None) is None]
     if missing:
         raise H3FlexUnavailable("native component loading failed: " + ", ".join(missing))
-    pipe.load_lora_weights(str(root), weight_name="fl2va/adapter.safetensors",
-                           adapter_name=PIKA_ADAPTER, local_files_only=True)
+    pipe.load_lora_weights(adapter_state, adapter_name=PIKA_ADAPTER)
+    pipe._pika_verified_adapter_sha256 = adapter_digest
     pipe.set_adapters([PIKA_ADAPTER], adapter_weights=[1.0])
     pipe.register_to_config(denoising_step_list=list(SCHEDULE))
     for module in pipe.components.values():
@@ -215,19 +276,62 @@ class PikaH3FlexBackend:
     def _attach_slider(self, *, rank, alpha):
         # PEFT operations can toggle requires_grad. Freeze before creating the
         # independent float32 slider, and after any permitted adapter roundtrip.
-        self._freeze_base()
-        self.network = self._build_slider(rank=rank, alpha=alpha).float()
-        if not self.network.loras:
-            raise H3FlexUnavailable("no native H3 attention slider targets found")
-        # The inherited legacy wrapper initially enables its delta. Start at
-        # zero here; no global PEFT enable/disable operation may touch Pika.
-        for layer in self.network.loras:
-            layer.multiplier = 0.0
-        self._release_layers = {name: layer for name, layer in self.transformer.named_modules() if hasattr(layer, "lora_A")}
-        if not self._release_layers:
-            raise H3FlexUnavailable("the fixed Pika PEFT adapter is missing")
-        self._install_lifecycle_guards()
-        self._check_fixed_pika()
+        modules = {id(m): m for root in self.pipe.components.values() if isinstance(root, torch.nn.Module) for m in root.modules()}
+        parameters = {id(p): p for root in self.pipe.components.values() if isinstance(root, torch.nn.Module) for p in root.parameters()}
+        self._attach_state = ([(m, m.training) for m in modules.values()], [(p, p.requires_grad) for p in parameters.values()])
+        self._guard_handles = []
+        try:
+            self._freeze_base()
+            self.network = self._build_slider(rank=rank, alpha=alpha)
+            self.network.float()
+            if not self.network.loras:
+                raise H3FlexUnavailable("no native H3 attention slider targets found")
+            for layer in self.network.loras:
+                layer.multiplier = 0.0
+            self._release_layers = {name: layer for name, layer in self.transformer.named_modules() if hasattr(layer, "lora_A")}
+            if not self._release_layers:
+                raise H3FlexUnavailable("the fixed Pika PEFT adapter is missing")
+            self._install_lifecycle_guards()
+            self._check_fixed_pika()
+        except BaseException as error:
+            _cleanup_preserving_primary(error, self._rollback_attachment)
+            raise
+        self._attach_state = None
+
+    def _rollback_attachment(self):
+        actions = [("lifecycle guards", self._restore_guards)]
+        if hasattr(self, "network"):
+            actions.append(("slider forwards", self.network.close))
+        _attempt_cleanups(*actions)
+        if self._attach_state is not None:
+            modes, flags = self._attach_state
+            for module, mode in modes:
+                module.training = mode
+            for parameter, flag in flags:
+                parameter.requires_grad_(flag)
+            self._attach_state = None
+
+    def _guard_method(self, owner, name, replacement):
+        had_value, previous = name in vars(owner), vars(owner).get(name)
+        setattr(owner, name, replacement)
+        self._guard_handles.append((owner, name, had_value, previous, replacement))
+
+    def _restore_guards(self):
+        errors = []
+        for index in range(len(self._guard_handles) - 1, -1, -1):
+            owner, name, had_value, previous, installed = self._guard_handles[index]
+            try:
+                if getattr(owner, name) is not installed:
+                    raise RuntimeError("H3 lifecycle guard ownership changed: " + name)
+                if had_value:
+                    setattr(owner, name, previous)
+                else:
+                    vars(owner).pop(name, None)
+            except BaseException as error:
+                errors.append((name, error))
+            else:
+                del self._guard_handles[index]
+        _raise_cleanup_errors(errors)
 
     def _build_slider(self, *, rank, alpha):
         """The standalone native boundary retains its original LoRA leaves."""
@@ -264,7 +368,7 @@ class PikaH3FlexBackend:
                          "enable_lora", "disable_adapters", "enable_adapters", "delete_adapters", "add_adapter",
                          "load_lora_weights", "load_lora_adapter"):
                 if hasattr(owner, name):
-                    setattr(owner, name, blocked)
+                    self._guard_method(owner, name, blocked)
 
         def guard_setter(original):
             def set_fixed(adapter_names, weights=None, **kwargs):
@@ -281,8 +385,8 @@ class PikaH3FlexBackend:
                     self._freeze_base()
                     self._check_fixed_pika()
             return set_fixed
-        self.pipe.set_adapters = guard_setter(self.pipe.set_adapters)
-        self.transformer.set_adapters = guard_setter(self.transformer.set_adapters)
+        self._guard_method(self.pipe, "set_adapters", guard_setter(self.pipe.set_adapters))
+        self._guard_method(self.transformer, "set_adapters", guard_setter(self.transformer.set_adapters))
 
     @contextmanager
     def scaled(self, strength):
@@ -343,10 +447,7 @@ class PikaH3FlexBackend:
         num_frames = request_frames(duration)
         if resolution not in ("480p", "768p"):
             raise ValueError("native resolution must be 480p or 768p")
-        prepared_frames = num_frames
-        temporal = RELEASE["temporal_contract"]
-        while prepared_frames % temporal["frames_per_chunk"] != temporal["latents_per_chunk"]:
-            prepared_frames += 1
+        prepared_frames = prepared_frame_count(num_frames)
         # Warn before starting generation, then verify the actual returned count.
         metadata = frame_metadata(num_frames, prepared_frames)
         height, width = {"480p": (480, 832), "768p": (768, 1344)}[resolution]

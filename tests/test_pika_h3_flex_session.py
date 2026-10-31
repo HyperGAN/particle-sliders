@@ -4,6 +4,7 @@ Requires the installed exact core0.12 candidate, not this checkout's core0.11.
 Run with ``-o pythonpath=.`` in the separately qualified shared environment.
 """
 from copy import deepcopy
+from dataclasses import replace
 from importlib.metadata import version
 import json
 from pathlib import Path
@@ -88,6 +89,139 @@ def test_native_preflight_uses_actual_shape_and_refuses_before_loader(monkeypatc
     for override in ("width", "response_shape", "dummy", "penalty_input_domain", "pg_source_profile"):
         with pytest.raises(ValueError, match="overrides"):
             h3.validate(dict(options, **{override: 6}))
+
+
+@pytest.mark.parametrize("resolution,shape,video_rows", [("480p", (1, 1398528), 14430), ("768p", (1, 3593664), 37296)])
+def test_geometry_matches_actual_native_packing_at_both_tiers(resolution, shape, video_rows):
+    from diffusers import PikaH3FlexBlocks, MiniMaxH3Scheduler
+    from diffusers.modular_pipelines import SequentialPipelineBlocks
+    geometry = h3.native_geometry({"resolution": resolution, "duration": 5})
+    workflow = PikaH3FlexBlocks().get_workflow("t2va")
+    names = ("denoise.no_keyframe_anchors", "denoise.prepare_layout", "denoise.prepare_latents", "denoise.set_timesteps")
+    prep = SequentialPipelineBlocks.from_blocks_dict({n: workflow.sub_blocks[n] for n in names}).init_pipeline()
+    prep.update_components(scheduler=MiniMaxH3Scheduler(shift=12, shift_provided_sigmas=True, stochastic_sampling=True),
+                           audio_scheduler=MiniMaxH3Scheduler(shift=3, shift_provided_sigmas=True, stochastic_sampling=True))
+    state = prep(text_token_tags=torch.ones(3, dtype=torch.long), height=geometry["height"], width=geometry["width"],
+                 num_frames=120, generator=torch.Generator().manual_seed(7))
+    video, audio = state.get("latents"), state.get("audio_latents")
+    assert video.shape == (video_rows, h3.RELEASE["packed_geometry"]["video_features"])
+    assert audio.shape == (414, h3.RELEASE["packed_geometry"]["audio_features"])
+    assert geometry["response_shape"] == shape == (1, video.numel() + audio.numel())
+    assert geometry["frame_metadata"]["requested_frame_count"] == 120
+    assert geometry["frame_metadata"]["prepared_frame_count"] == state.get("num_frames") == 124
+
+
+def test_frame_details_are_bound_into_model_and_adapter_metadata():
+    runtime, pairs, identity = fixture_runtime()
+    identity["frame_metadata"] = h3.native_geometry({})["frame_metadata"]
+    identity["qualification"] = "synthetic metadata fixture, not native frames"
+    adapter = h3.H3ResponseAdapter(runtime, (1, 6), model_identity=identity)
+    try:
+        assert adapter.metadata()["frame_metadata"] == identity["frame_metadata"]
+        assert adapter.metadata()["model_identity"]["frame_metadata"]["prepared_frame_count"] == 124
+    finally:
+        adapter.close()
+        runtime.network.close()
+
+
+def test_bind_attempts_independent_cleanup_and_retains_retry(monkeypatch):
+    runtime, pairs, identity = fixture_runtime()
+    binding = h3.bind(runtime, pairs, options={"checkpointing": True}, model_identity=identity, shape=(1, 6))
+    adapter = binding.game.backend
+    branches = tuple(runtime.network.loras)
+    original_close = adapter.close
+    def fail():
+        raise RuntimeError("checkpoint cleanup failure")
+    monkeypatch.setattr(adapter, "close", fail)
+    with pytest.raises(RuntimeError, match="checkpoint cleanup failure") as caught:
+        binding.close()
+    assert runtime.network.loras == []  # independent attention forwards were removed
+    assert all(("forward" in vars(b._host)) == b._had_forward for b in branches)
+    assert adapter._handles  # failed checkpoint owner remains available for retry
+    monkeypatch.setattr(adapter, "close", original_close)
+    caught.value.retry_cleanup()
+    assert adapter._handles == []
+    binding.close()  # idempotent after both cleanup owners finish
+
+
+def test_bind_cleanup_does_not_hide_primary_error(monkeypatch):
+    runtime, pairs, identity = fixture_runtime()
+    original_close = runtime.network.close
+    def fail_critic(*_args):
+        raise ValueError("critic construction primary")
+    def fail_cleanup():
+        raise RuntimeError("graph cleanup secondary")
+    monkeypatch.setattr(h3, "HNDLCritic", fail_critic)
+    monkeypatch.setattr(runtime.network, "close", fail_cleanup)
+    with pytest.raises(ValueError, match="critic construction primary") as caught:
+        h3.bind(runtime, pairs, options={}, model_identity=identity, shape=(1, 6))
+    assert "graph cleanup secondary" in repr(caught.value.cleanup_error)
+    assert any("Cleanup also failed" in note for note in caught.value.__notes__)
+    monkeypatch.setattr(runtime.network, "close", original_close)
+    caught.value.retry_cleanup()
+
+
+def test_prepare_cleanup_does_not_hide_native_primary(monkeypatch):
+    from types import SimpleNamespace
+    def fail_prepare(*_a, **_k):
+        raise ValueError("native preparation primary")
+    def fail_close():
+        raise RuntimeError("native cleanup secondary")
+    runtime = SimpleNamespace(prepare_t2va=fail_prepare, network=SimpleNamespace(close=fail_close))
+    monkeypatch.setattr(h3, "HNDLH3FlexBackend", lambda *_a, **_k: runtime)
+    with pytest.raises(ValueError, match="native preparation primary") as caught:
+        h3.prepare_native({"snapshot": "not-read", "rows": [{"neutral": "a fox", "positive": "red fox"}]})
+    assert "native cleanup secondary" in repr(caught.value.cleanup_error)
+
+
+def assert_atomic_refusal(session, refuse):
+    from particlegan.bispf import _LAST_THERMAL_SCALE
+    packet = _hash(session.checkpoint())
+    rng = torch.get_rng_state().clone()
+    parameters = tuple(session.game.network.parameters()) + tuple(session.game.critic.parameters())
+    ids = tuple(map(id, parameters))
+    gradients = [(p.grad, None if p.grad is None else p.grad.clone(), p.requires_grad) for p in parameters]
+    thermal = deepcopy(_LAST_THERMAL_SCALE)
+    refuse()
+    assert _hash(session.checkpoint()) == packet
+    assert torch.equal(torch.get_rng_state(), rng)
+    assert ids == tuple(map(id, tuple(session.game.network.parameters()) + tuple(session.game.critic.parameters())))
+    assert _LAST_THERMAL_SCALE == thermal
+    for p, (reference, value, flag) in zip(parameters, gradients):
+        assert p.grad is reference and p.requires_grad == flag
+        if value is not None:
+            assert torch.equal(p.grad, value)
+
+
+def test_changed_model_identity_refuses_restore_atomically():
+    config = SessionConfig(FIXTURE.name, "identity-refusal-v1", seed=7, steps=2, batch=2)
+    with open_fixture(config) as source:
+        source.train(stop_after=1)
+        packet = source.checkpoint()
+    def other_identity(options):
+        runtime, pairs, identity = fixture_runtime(options.get("seed", 7))
+        identity["frozen_base_sha256"] = "0" * 64
+        return h3.bind(runtime, pairs, options=options, model_identity=identity, shape=(1, 6))
+    receiver_backend = replace(FIXTURE, prepare=other_identity)
+    with receiver_backend.open(config) as receiver:
+        def refuse():
+            with pytest.raises(CheckpointError, match="source"):
+                receiver.restore(packet)
+        assert_atomic_refusal(receiver, refuse)
+
+
+def test_foreign_pg_profile_refuses_restore_atomically():
+    config = SessionConfig(FIXTURE.name, "profile-refusal-v1", seed=7, steps=2, batch=2)
+    with open_fixture(config) as receiver:
+        receiver.train(stop_after=1)
+        packet = receiver.checkpoint()
+        packet["payload"]["game"]["config"]["pg_source_profile"] = "release-0.9.3"
+        packet["sha256"] = _hash({k: v for k, v in packet.items() if k != "sha256"})
+        def refuse():
+            with pytest.raises(CheckpointError) as caught:
+                receiver.restore(packet)
+            assert "PG source/cohort mismatch" in str(caught.value.__cause__)
+        assert_atomic_refusal(receiver, refuse)
 
 
 def test_hndl_projection_matches_native_lora_values_and_gradients():

@@ -302,6 +302,25 @@
     "source": "src/diffusers/modular_pipelines/pika_h3_flex/modular_pipeline.py and before_denoise.py at d0b9b1b5a540e5f9df2f8ec236347bf9c5aa7d1f",
     "vae_clip_length": 17,
     "vae_temporal_compression_ratio": 4,
-    "tokens_chunk_size_derivation": "ceil(clip_length / temporal_compression_ratio) = ceil(17 / 4) = 5"
+    "tokens_chunk_size_derivation": "ceil(clip_length / temporal_compression_ratio) = ceil(17 / 4) = 5",
+    "latent_frame_bias": 2,
+    "audio_latents_per_second": 40,
+    "audio_channels": 2
+  },
+  "packed_geometry": {
+    "canvases": {
+      "480p": [
+        480,
+        832
+      ],
+      "768p": [
+        768,
+        1344
+      ]
+    },
+    "row_spatial_multiple": 32,
+    "video_features": 96,
+    "audio_features": 32,
+    "source": "Pinned Pika H3 Flex modular_pipeline.py geometry and transformer config (24 video channels, 1x2x2 patches; 32 audio features)"
   }
 }

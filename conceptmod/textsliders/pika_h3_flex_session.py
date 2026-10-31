@@ -16,7 +16,10 @@ import torch
 from torch import nn
 
 from .minimax_h3_backend import LORA_ATTN_CLASS, LORA_LINEAR_NAMES, PackedLayout
-from .pika_h3_flex import PikaH3FlexBackend, MODEL_ID, MODEL_REVISION, RELEASE, request_frames
+from .pika_h3_flex import (
+    PikaH3FlexBackend, MODEL_ID, MODEL_REVISION, RELEASE, request_frames,
+    prepared_frame_count, _frame_details, _attempt_cleanups, _cleanup_preserving_primary,
+)
 
 ROOT = Path(__file__).with_name("data")
 LOCK = ROOT / "pika-h3-flex-session.json"
@@ -113,8 +116,8 @@ class HNDLSlider(nn.Module):
                     branch = HNDLProjection(key, host, rank, alpha, build, identity)
                     self.add_module(key, branch)
                     self.loras.append(branch)
-        except BaseException:
-            self.close()
+        except BaseException as error:
+            _cleanup_preserving_primary(error, self.close)
             raise
 
     def close(self):
@@ -185,8 +188,8 @@ class H3ResponseAdapter:
                 modules = tuple(runtime.transformer.transformer_blocks) + tuple(runtime.transformer.token_refiner.refiner_blocks)
                 for module in modules:
                     self._handles.append(checkpoint_with_adapter_scale(module, self.network))
-        except BaseException:
-            self.close()
+        except BaseException as error:
+            _cleanup_preserving_primary(error, self.close)
             raise
 
     def _response(self, packed, scale):
@@ -221,6 +224,7 @@ class H3ResponseAdapter:
                     teacher="fixed base+Pika positive at slider0", student="neutral at slider+1",
                     generator_arm="adapter_gan", adapter_names=list(self.network.names),
                     pg_domain_gate=self.domain_gate, native_quality_qualified=False,
+                    frame_metadata=deepcopy(self.model_identity.get("frame_metadata")),
                     native_boundary_sources={name: _sha(Path(__file__).with_name(name))
                                              for name in ("pika_h3_flex.py", "minimax_h3_backend.py")})
 
@@ -272,8 +276,11 @@ def bind(runtime, pairs, *, options, model_identity, shape):
     def close():
         nonlocal closed
         if not closed:
-            adapter.close()
-            runtime.network.close()
+            try:
+                _attempt_cleanups(("checkpoint handles", adapter.close), ("HNDL forwards", runtime.network.close))
+            except BaseException as error:
+                error.retry_cleanup = close
+                raise
             closed = True
     try:
         rows = tuple(adapter.prepare(pair) for pair in pairs)
@@ -283,21 +290,27 @@ def bind(runtime, pairs, *, options, model_identity, shape):
             response_domain="continuous_vector", preset=options.get("preset", "bispf_optimized"),
             batch_size=options.get("batch", 2), total_steps=options.get("steps", 4), seed=options.get("seed", 7))
         return Binding(game, close, observation=lambda: observe_native(runtime))
-    except BaseException:
-        close()
+    except BaseException as error:
+        _cleanup_preserving_primary(error, close)
         raise
 
 
-def native_response_shape(options):
+def native_geometry(options):
     requested = request_frames(options.get("duration", 5))
-    frames = requested
-    while frames % 17 != 5:
-        frames += 1
-    height, width = {"480p": (480, 832), "768p": (768, 1344)}[options.get("resolution", "480p")]
-    latent_frames = (frames - 5) // 17 * 5 + 2
-    video = latent_frames * (height // 32) * (width // 32) * 96
-    audio = round(frames / 24 * 40) * 2 * 32
-    return (1, video + audio)
+    temporal, packed = RELEASE["temporal_contract"], RELEASE["packed_geometry"]
+    frames = prepared_frame_count(requested)
+    height, width = packed["canvases"][options.get("resolution", "480p")]
+    latent_frames = ((frames - temporal["latents_per_chunk"]) // temporal["frames_per_chunk"]
+                     * temporal["latents_per_chunk"] + temporal["latent_frame_bias"])
+    video_rows = latent_frames * (height // packed["row_spatial_multiple"]) * (width // packed["row_spatial_multiple"])
+    audio_rows = round(frames / temporal["fps"] * temporal["audio_latents_per_second"]) * temporal["audio_channels"]
+    return dict(frame_metadata=_frame_details(requested, frames), height=height, width=width,
+                video_rows=video_rows, audio_rows=audio_rows,
+                response_shape=(1, video_rows * packed["video_features"] + audio_rows * packed["audio_features"]))
+
+
+def native_response_shape(options):
+    return native_geometry(options)["response_shape"]
 
 
 def validate(options):
@@ -336,11 +349,15 @@ def prepare_native(options):
         for index, row in enumerate(options["rows"]):
             kwargs = dict(duration=options.get("duration", 5), resolution=options.get("resolution", "480p"), seed=options.get("seed", 7) + index)
             pairs.append(H3Pair(runtime.prepare_t2va(row["neutral"], **kwargs), runtime.prepare_t2va(row["positive"], **kwargs)))
+        geometry = native_geometry(options)
+        if any(packed.frame_metadata != geometry["frame_metadata"] for pair in pairs for packed in (pair.neutral, pair.positive)):
+            raise ValueError("native prepared frame metadata differs from the declared model identity")
         identity = dict(model=MODEL_ID, revision=MODEL_REVISION, published_files=RELEASE["local_snapshot_files"],
-                        adapter_sha256=RELEASE["fl2va"]["sha256"], model_quality_qualified=False)
-        return bind(runtime, pairs, options=options, model_identity=identity, shape=native_response_shape(options))
-    except BaseException:
-        runtime.network.close()
+                        adapter_sha256=runtime.pipe._pika_verified_adapter_sha256, model_quality_qualified=False,
+                        frame_metadata=geometry["frame_metadata"], packed_geometry=geometry)
+        return bind(runtime, pairs, options=options, model_identity=identity, shape=geometry["response_shape"])
+    except BaseException as error:
+        _cleanup_preserving_primary(error, runtime.network.close)
         raise
 
 

@@ -26,9 +26,8 @@ pretrained-model qualification. No existing H3 slider is relabeled as Pika.
 | Pika inference repository observed head | `Pika-Labs/Pika-H3-Flex@4bf8ea508891a432106e70f675d287c27f02306d` |
 | MiniMax base from Pika manifests | `MiniMaxAI/MiniMax-H3@42ed227ee7df40d41602854ae760620d6eb651fe` |
 | Pika's documented Diffusers source | `huggingface/diffusers@d0b9b1b5a540e5f9df2f8ec236347bf9c5aa7d1f` |
-| Shared-core source inspected | `HyperGAN/particle-sliders@3c25f785d14073e6f627c0fa9d2297a041c79913`, core 0.11.0 |
-| Its exact official ParticleGAN | `0.9.3`; PyPI 0.9.4 exists but is not substituted |
-| HyperGAN develop head observed | `5f368a3770cf5bdae0448995c9f76e29af8049f7`; not adopted or qualified by this change |
+| Historical standalone admission reference | `HyperGAN/particle-sliders@3c25f785d14073e6f627c0fa9d2297a041c79913`, core 0.11.0 / official ParticleGAN 0.9.3 |
+| Optional shared-session cohort | Core 0.12.0 / official ParticleGAN 0.9.4 / HyperGAN develop `5f368a3770cf5bdae0448995c9f76e29af8049f7` / HNDL 0.10.0; [exact source locks and limits](pika-h3-flex-shared-session.md) |
 
 Pika is a post-trained MiniMax-H3 derivative. The release supplies rank/alpha
 128/128 adapters: `fl2va/adapter.safetensors` for `transformer` and
@@ -96,6 +95,11 @@ Missing provenance, missing files, mismatches and unlisted component files
 (including alternative checkpoints or tokenizer sidecars) fail closed before
 native loading. This streams approximately 144 GB of local files when the full
 release is staged; no network call or automatic download occurs.
+Keep the staged base/configuration files immutable throughout loading; their
+path-based component loaders run after verification. The adapter has a stronger
+byte-level guarantee: one captured byte payload is hashed and decoded into
+safetensors, and those exact tensors are passed to `load_lora_weights`. A later
+change to the on-disk adapter cannot replace the captured release payload.
 
 These are the published hashes of the **Pika-packaged** base at its pinned
 revision. They do not independently establish tensor equivalence to MiniMax's
@@ -169,11 +173,13 @@ Invalid durations are rejected, and prepared outputs must match the exact
 native alignment for the request. A pre-alignment request of 120 frames is
 valid; a prepared output of 120 frames is not.
 
-## GAN migration blocker
+## GAN admission in the two software lanes
 
 `admit_shared_gan((1, native_width))` delegates unchanged native vector geometry
-to `particle_sliders.pg09.validate_pg09_domain`. With the installed official
-0.9.3 release, a real wide packed response is rejected:
+to `particle_sliders.pg09.validate_pg09_domain`. The standalone boundary was
+checked against core 0.11.0 / official ParticleGAN 0.9.3. The optional shared
+session is separately source-locked and tested against core 0.12.0 / official
+ParticleGAN 0.9.4. Both reject the real wide packed response:
 
 ```text
 ValueError: released PG09 cannot admit flat continuous vectors with width >=170
@@ -185,10 +191,12 @@ of **1,398,528**. This exact prepared geometry was checked against the installed
 official gate and rejected before a model forward.
 
 Do not flatten into a pretend image, reduce to a tiny response, use a
-categorical fallback, change the source-profile alias or blindly replace
-ParticleGAN with 0.9.4. Adopting a compatible shared-core/official-PG cohort
-and HyperGAN develop requires coordinated qualification. No shared-core or
-HyperGAN upstream code is modified here, and no GAN trainer is advertised.
+categorical fallback or change the source-profile alias. Do not rebind old
+checkpoints to another ParticleGAN profile. The standalone probe implements no
+training objective; the [optional shared session](pika-h3-flex-shared-session.md)
+connects the real shared GAN lifecycle and HyperGAN/HNDL graphs, with native
+execution still refused. Tiny CPU fixtures qualify that software wiring only.
+No shared-core or HyperGAN upstream code is modified in this H3 patch.
 
 ## Executed checks and review
 

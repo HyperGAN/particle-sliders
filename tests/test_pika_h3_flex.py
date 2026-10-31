@@ -14,12 +14,14 @@ from conceptmod.textsliders.minimax_h3_backend import AttnLoRANetwork, MiniMaxH3
 
 
 def snapshot(tmp_path, monkeypatch):
+    from safetensors.torch import save
     release = copy.deepcopy(flex.RELEASE)
-    release["fl2va"]["sha256"] = hashlib.sha256(b"fixture adapter").hexdigest()
+    adapter_bytes = save({"fixture.lora_A.weight": torch.zeros(2, 2)})
+    release["fl2va"]["sha256"] = hashlib.sha256(adapter_bytes).hexdigest()
     monkeypatch.setattr(flex, "RELEASE", release)
     for component in ("fl2va", "transformer", "text_encoder", "tokenizer", "processor", "vae", "audio_vae", "scheduler", "audio_scheduler"):
         (tmp_path / component).mkdir()
-    (tmp_path / "fl2va/adapter.safetensors").write_bytes(b"fixture adapter")
+    (tmp_path / "fl2va/adapter.safetensors").write_bytes(adapter_bytes)
     (tmp_path / "fl2va/manifest.json").write_text(json.dumps(release["fl2va"]))
     (tmp_path / "modular_model_index.json").write_text(json.dumps({"_class_name": "PikaH3FlexModularPipeline"}))
     for name, shift in (("scheduler", 12.0), ("audio_scheduler", 3.0)):
@@ -148,7 +150,11 @@ def test_local_loader_keeps_fixed_pika_and_precision(tmp_path, monkeypatch):
             for name in ("tokenizer", "processor", "scheduler", "audio_scheduler"):
                 setattr(self, name, object())
             self.components = {name: getattr(self, name) for name in ("transformer", "text_encoder", "vae", "audio_vae")}
-        def load_components(self, **kwargs): calls["components"] = kwargs
+        def load_components(self, **kwargs):
+            calls["components"] = kwargs
+            # A concurrent path replacement after capture cannot change the
+            # verified in-memory adapter supplied to the actual loader.
+            (root / "fl2va/adapter.safetensors").write_bytes(b"changed after capture")
         def load_lora_weights(self, path, **kwargs): calls["lora"] = (path, kwargs)
         def set_adapters(self, names, **kwargs): calls["adapters"] = (names, kwargs)
         def register_to_config(self, **kwargs): calls["config"] = kwargs
@@ -168,7 +174,112 @@ def test_local_loader_keeps_fixed_pika_and_precision(tmp_path, monkeypatch):
     assert calls["components"]["dtype"]["audio_vae"] == torch.float32
     assert calls["adapters"] == ([flex.PIKA_ADAPTER], {"adapter_weights": [1.0]})
     assert calls["config"]["denoising_step_list"] == list(flex.SCHEDULE)
+    assert isinstance(calls["lora"][0], dict)
+    assert torch.equal(calls["lora"][0]["fixture.lora_A.weight"], torch.zeros(2, 2))
+    assert pipe._pika_verified_adapter_sha256 == flex.RELEASE["fl2va"]["sha256"]
     assert not any(p.requires_grad for module in pipe.components.values() for p in module.parameters())
+
+
+def test_adapter_change_between_validation_and_capture_is_rejected(tmp_path, monkeypatch):
+    root = snapshot(tmp_path, monkeypatch)
+    monkeypatch.setattr(flex, "require_native_runtime", lambda: (root / "fl2va/adapter.safetensors").write_bytes(b"changed"))
+    with pytest.raises(flex.H3FlexUnavailable, match="changed before loading"):
+        flex.load_pipeline(root)
+
+
+def test_plain_linear_selection_and_initialization_match_historical_uni():
+    from collections import OrderedDict
+    from conceptmod.textsliders.minimax_h3_backend import DummyOmniTransformer, _AttnLoRA, LORA_ATTN_CLASS, LORA_LINEAR_NAMES
+    transformer = DummyOmniTransformer()
+    attention = transformer.transformer_blocks[0].attn
+    attention._modules = OrderedDict((name, attention._modules[name]) for name in ("to_v", "to_out", "to_q", "to_k"))
+    historical = copy.deepcopy(transformer)
+    reference = torch.nn.Module()
+    selected = []
+    torch.manual_seed(19)
+    # Exact pre-PR algorithm: named_modules traversal, plain Linear filter.
+    for name, module in historical.named_modules():
+        if module.__class__.__name__ == LORA_ATTN_CLASS:
+            for child_name, child in module.named_modules():
+                if isinstance(child, torch.nn.Linear) and child_name in LORA_LINEAR_NAMES:
+                    key = (f"lora_h3-{name}-{child_name}").replace(".", "-")
+                    selected.append(key)
+                    reference.add_module(key, _AttnLoRA(key, child, 2, 2, up_init_std=0.02))
+    torch.manual_seed(19)
+    current = AttnLoRANetwork(transformer, rank=2, alpha=2, up_init_std=0.02)
+    assert [layer.lora_name for layer in current.loras] == selected
+    assert list(current.state_dict()) == list(reference.state_dict())
+    assert all(torch.equal(value, reference.state_dict()[name]) for name, value in current.state_dict().items())
+
+
+def test_constructor_failure_unwinds_owned_forwards_guards_and_flags(monkeypatch):
+    model = tiny_native_backend().stock_reference
+    from diffusers import PikaH3FlexModularPipeline
+    model.train().requires_grad_(True)
+    pipe = PikaH3FlexModularPipeline(workflow="t2va")
+    pipe.update_components(transformer=model)
+    original_forwards = {id(m): (m, "forward" in vars(m), vars(m).get("forward")) for m in model.modules()}
+    original_flags = [(p, p.requires_grad) for p in model.parameters()]
+    monkeypatch.setattr(flex, "load_pipeline", lambda *_a, **_k: pipe)
+    def fail_after_guards(_self):
+        raise ValueError("post-build constructor failure")
+    monkeypatch.setattr(flex.PikaH3FlexBackend, "_check_fixed_pika", fail_after_guards)
+    with pytest.raises(ValueError, match="post-build constructor failure"):
+        flex.PikaH3FlexBackend("not-read")
+    for module, had_value, value in original_forwards.values():
+        assert ("forward" in vars(module)) == had_value
+        assert vars(module).get("forward") is value
+    assert all(p.requires_grad == flag for p, flag in original_flags)
+    assert all(m.training for m in model.modules())
+    for owner in (pipe, model):
+        assert "set_adapters" not in vars(owner)
+        assert "fuse_lora" not in vars(owner)
+
+
+def test_constructor_preserves_primary_and_retains_failed_cleanup(monkeypatch):
+    model = tiny_native_backend().stock_reference
+    from diffusers import PikaH3FlexModularPipeline
+    pipe = PikaH3FlexModularPipeline(workflow="t2va")
+    pipe.update_components(transformer=model)
+    monkeypatch.setattr(flex, "load_pipeline", lambda *_a, **_k: pipe)
+    restore = flex.PikaH3FlexBackend._restore_guards
+    def primary(_self):
+        raise ValueError("constructor primary")
+    def cleanup(_self):
+        raise RuntimeError("guard cleanup secondary")
+    monkeypatch.setattr(flex.PikaH3FlexBackend, "_check_fixed_pika", primary)
+    monkeypatch.setattr(flex.PikaH3FlexBackend, "_restore_guards", cleanup)
+    with pytest.raises(ValueError, match="constructor primary") as caught:
+        flex.PikaH3FlexBackend("not-read")
+    assert "guard cleanup secondary" in repr(caught.value.cleanup_error)
+    assert any("Cleanup also failed" in note for note in caught.value.__notes__)
+    monkeypatch.setattr(flex.PikaH3FlexBackend, "_restore_guards", restore)
+    caught.value.retry_cleanup()
+    assert "set_adapters" not in vars(pipe)
+
+
+def test_nested_cleanup_failures_retain_every_pending_owner():
+    primary = ValueError("primary")
+    calls = []
+    failing = True
+
+    def cleanup(name):
+        calls.append(name)
+        if failing:
+            raise RuntimeError(name)
+
+    flex._cleanup_preserving_primary(primary, lambda: cleanup("inner"))
+    flex._cleanup_preserving_primary(primary, lambda: cleanup("outer"))
+    assert str(primary) == "primary"
+    assert len(primary.pending_cleanups) == 2
+    calls.clear()
+    with pytest.raises(RuntimeError, match="inner"):
+        primary.retry_cleanup()
+    assert calls == ["inner", "outer"]
+    failing = False
+    calls.clear()
+    primary.retry_cleanup()
+    assert calls == ["inner", "outer"]
 
 
 def test_shared_admission_forwards_native_shape_without_bypass(monkeypatch):

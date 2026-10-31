@@ -63,8 +63,11 @@ cleanup callback to the shared `ResponseSession`. The shared package owns
 updates, EMA, observation RNG, checkpoint/resume and v1 numerical response
 export/reload. Optional recomputation uses its reversible
 `checkpoint_with_adapter_scale` handles; native internal checkpointing must
-be off. Cleanup closes those handles before removing owned HNDL forwards and
-retains ownership errors rather than restoring unrelated owners.
+be off. Cleanup attempts checkpoint-handle removal and HNDL-forward removal
+independently, including when one fails. Constructor failures also unwind owned
+forwards, guards and native trainability/mode flags. Secondary cleanup failures
+are attached to the original error; `retry_cleanup` retains pending owners for
+repair and retry without replacing unrelated forwards.
 
 The custom slider context remains necessary. Its trainable wrappers are not
 named PEFT adapters; Pika is the only PEFT name and remains fixed at1. The
@@ -96,6 +99,13 @@ loader is never called:
 ValueError: released PG09 cannot admit flat continuous vectors with width >=170
 ```
 
+Geometry uses the pinned release temporal contract and canvas sizes. Both
+480p (832×480) and 768p (1344×768) packing are tested; 768p has response shape
+`(1,3593664)` at the same duration. Preparation emits a warning when native
+alignment changes duration. `model_identity` and adapter `metadata()` retain
+requested/prepared frame counts, actual duration and packed geometry, so a
+five-second request remains visibly 120 requested versus 124 prepared frames.
+
 Public options reject fixture substitution, response width/shape overrides,
 source-profile overrides and penalty-domain overrides. The in-progress
 upstream continuous-domain proposal is not consumed. Removing this refusal
@@ -118,7 +128,9 @@ its own explicit name/identity and is not selectable through public H3
 options. It exercises actual HNDL projection/critic execution, shared PG
 updates, scale-captured recomputation, unchanged frozen base/Pika weights,
 observation isolation, exact four-step versus2+2 resume, shared export/reload
-and changed-cohort refusal. Its artificial geometry never licenses the native
+and atomic changed-cohort, model-identity and ParticleGAN-profile refusal.
+Rejection preserves game/checkpoint state, RNG, gradient buffers, parameter
+identities and ParticleGAN thermal state. Its artificial geometry never licenses the native
 1.4M-wide model. No actual H3 training run is performed.
 
 Run from this repository with the separately installed shared candidate:
@@ -131,13 +143,26 @@ HF_HUB_OFFLINE=1 CUDA_VISIBLE_DEVICES='' python -m pytest -q \
 `-o pythonpath=.` prevents the repository's older core0.11 source path from
 shadowing the installed candidate. The source hash gate rejects a mixed cohort.
 The original Pika/legacy H3 suite is also retained in its original environment.
+The [review correction receipt](pika-h3-flex-review-corrections.json) records
+the expanded 64 shared-lane and 93 legacy-lane passes after Claude's source
+review. These suites overlap. The original qualification receipt is retained
+as historical evidence rather than relabeled with later results.
 
 ## Publication overlap
 
 Historical draft [PR140](https://github.com/HyperGAN/particle-sliders/pull/140)
-is a divergent stacked LTX/H3 audit. It overlaps
-`minimax_h3_backend.py` and `docs/minimax-h3-slider.md` from the preserved native
-commit. This focused change does not merge that branch, its historical shared
-core, its LTX payload or its qualification claims. No other H3 Flex PR was found
-at the pre-publication check. Parent controls actual-diff review, dependency
-assembly, CI/release-impact checks and any merge.
+is a divergent stacked LTX/H3 audit. Its exact overlapping backend and guide
+were compared from base `ed3e4a9a724aaaf9acc657be63f6d4556ebc45be` to head
+`0650d06c8d5fdeba314dc180041fec3d27fd86aa`. That backend adds
+`require_h3_cpu_fixture` guards to construction, forward, sampling and adapter
+I/O; its replacement guide closes the historical native/UNI path. Those are
+intentional policy changes beyond this H3 Flex implementation.
+
+This patch preserves main's historical UNI formulation and native behavior,
+including the original `named_modules()` plain-Linear selection order and RNG
+initialization, verified by an exact state-dict parity test. Complete PEFT host
+support remains additive and excludes LoRA child modules. The Pika loader is
+separate. PR140's closures, historical shared core, LTX payload and qualification
+claims are not merged or cherry-picked. Parent retains the choice of any later
+policy reconciliation and controls actual-diff review, dependency assembly,
+CI/release-impact checks and merge.
