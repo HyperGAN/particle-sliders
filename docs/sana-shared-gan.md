@@ -76,7 +76,7 @@ is reserved, and no GPU checks were attempted.
 | Output | First native velocity channel half if the model emits doubled channels |
 | Adaptation | Frozen base; `transformer_blocks.*.attn2.to_q/to_k/to_v/to_out.0` only |
 | Routed network | Shared HyperGAN-built HNDL rank8/alpha8 projections with exactly one128x4 trainable bank |
-| Critic | Shared HyperGAN-built HNDLFieldCritic, conditioned on exact capture-row identity |
+| Critic | Shared HyperGAN-built HNDLFieldCritic, conditioned on frozen masked neutral features plus explicit native noise sigma; fixed width35, independent of dataset rows |
 | Game | Shared `ConditionalPG094`, official BISPF preset, shared penalties, optimizers, sampling and checkpoints |
 
 This new path does not optimize `sana_uni_loss`, copy GAN mathematics, add a
@@ -84,11 +84,38 @@ negative teacher or reinterpret a wide vector as a field. The official shared
 width>=170 continuous-vector refusal remains in force. Image fields use their
 genuine native image-domain admission.
 
+## Critic context semantics
+
+The 35 critic coordinates contain the shared deterministic neutral-context
+projection (32 coordinates plus count/RMS features) and one explicit sigma.
+Before feature extraction, padded neutral embeddings are zeroed using the
+native attention mask; the mask itself also participates. The public shared
+`image_condition_features` projection/collision gate executes on neutral-only
+feature views. Only its neutral feature block and sigma coordinate are kept;
+there are no learned feature extractors, row IDs, teacher-caption features or
+new GAN loss terms. Feature width is independent of the number/order of rows.
+Neither response fields nor native model rows are reshaped or replaced.
+
+`SanaResponseRow.sigma` is the actual noise coordinate supplied by the staged
+host for that latent/time capture. It is snapshotted as a finite nonnegative
+FP32-representable scalar. It is not inferred from row index, scaled model time,
+the shared game's reference-noise sigma, or the model's optional learned-sigma
+output half. The source-bound shared helper encodes sigma in its time slot for
+feature extraction only; the original model timestep remains unchanged.
+The host owns the correctness of its scheduler sigma/time pairing.
+
+The [native Sana pipeline source](https://github.com/huggingface/diffusers/blob/main/src/diffusers/pipelines/sana/pipeline_sana.py)
+passes embeddings and attention masks together, gets time/sigma scheduling from
+the scheduler, and applies `config.timestep_scale` at the transformer call.
+This reference supports keeping host sigma explicit; it is not a runtime pin or
+pretrained qualification. Native model/source identity remains separately bound.
+
 ## Explicit staged API
 
 The existing host owns model staging and conditioning. `rows` below is a list
-of at least two shared `ResponseRow` captures, each with one frozen latent,
-one raw scheduler timestep. `neutral` and `positive` are dictionaries with keys
+of at least two product `SanaResponseRow` captures (a shared `ResponseRow` subclass),
+each with a frozen latent, one raw scheduler timestep, and an explicit frozen
+scalar `sigma` from its host scheduler/noising capture. `neutral` and `positive` are dictionaries with keys
 `embeds` and `mask`. The `negative` slot is an unconditional dictionary with
 exactly `embeds`, `mask` and `prompt`, where `prompt` must be the empty string.
 Pass the same frozen empty-prompt encoding to `configuration(unconditional=...)`;
@@ -102,9 +129,10 @@ Keep `row.guidance=1`, `scale=1` and `strength=1`; declare **teacher** guidance 
 ```python
 from particle_sliders.lifecycle import open_session
 from particle_sliders.inference import open_inference
-from sana_particle_gan import configuration, staged_model
+from sana_particle_gan import SanaResponseRow, configuration, staged_model
 
 # transformer, rows and declaration come from an already-staged native host.
+# Each row is SanaResponseRow(..., timestep=raw_scheduler_t, sigma=native_sigma).
 # declaration = {"model_id": ..., "revision": <40-hex>,
 #                "staged_files_sha256": {<local relative filename>: <64-hex>, ...}}
 transformer.requires_grad_(False)
@@ -153,7 +181,9 @@ integration question; this preview changes no historical render defaults.
 
 The installed-wheel tests exercise the real shared PG game and actual
 HyperGAN-built HNDL modules: matched projection outputs and input/particle VJPs,
-matched field-critic input and penalty second derivatives, generator/bank and
+matched field-critic input and penalty second derivatives at condition width35,
+neutral-feature permutation/mask/identity checks, aligned native-context updates,
+sigma snapshots and exact-resume rejection on changed sigma/order, generator/bank and
 critic updates, exact uninterrupted/split resume, raw/EMA exports, strengths
 0/0.5/1, native-only reload without training state, source/profile/model/shape
 and builder-tamper rejection, frozen-base ownership and rollback. The original

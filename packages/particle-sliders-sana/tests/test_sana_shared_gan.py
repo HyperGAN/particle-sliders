@@ -1,5 +1,6 @@
 """Installed-package CPU contracts. Never loads pretrained weights or uses CUDA."""
 from copy import deepcopy
+from dataclasses import replace
 import json
 from importlib.metadata import distribution, entry_points, version
 from pathlib import Path
@@ -19,7 +20,7 @@ from particle_sliders.pg09_backends import ResponseRow
 from particle_sliders.routed_projection import TinyParticleProjection
 from sana_particle_gan.backend import (
     BACKEND, COHORT, INFERENCE, SanaParticleSlider, SanaResponseAdapter,
-    configuration, staged_model,
+    configuration, staged_model, SanaResponseRow, critic_conditions,
 )
 
 IDENTITY = {'qualification': 'CPU fixture only', 'fixture': 'native Sana API, not pretrained'}
@@ -81,8 +82,8 @@ def bundle():
         for _ in range(3):
             def condition():
                 return {'embeds': torch.randn(1, 3, 6), 'mask': torch.tensor([[1, 1, 0]])}
-            rows.append(ResponseRow(condition(), condition(), deepcopy(unconditional),
-                torch.randn(1, 2, 3, 5), timestep=torch.tensor(250.)))
+            rows.append(SanaResponseRow(condition(), condition(), deepcopy(unconditional),
+                torch.randn(1, 2, 3, 5), timestep=torch.tensor(250.), sigma=.25))
     config = configuration(model, model_identity=IDENTITY, response_shape=(1, 2, 3, 5), unconditional=rows[0].negative)
     return model, rows, config
 
@@ -305,13 +306,13 @@ def test_native_routed_projection_matched_outputs_input_particle_vjps():
 
 
 def test_native_field_critic_matched_second_derivatives():
-    former, actual = FieldCritic(2, 3), HNDLFieldCritic(2, 3, (3, 5))
+    former, actual = FieldCritic(2, 35), HNDLFieldCritic(2, 35, (3, 5))
     for name, layer in [('field0', former.field[0]), ('field2', former.field[2]),
                         ('condition', former.condition), ('score0', former.score[0]), ('score2', former.score[2])]:
         _copy(actual.graph[name], layer)
     x = torch.randn(2, 2, 3, 5, requires_grad=True)
     y = x.detach().clone().requires_grad_()
-    condition = torch.randn(2, 3)
+    condition = torch.randn(2, 35)
     a, b = former(x, condition), actual(y, condition)
     torch.testing.assert_close(a, b)
     ga = torch.autograd.grad(a.sum(), x, create_graph=True)[0]
@@ -500,3 +501,84 @@ def test_close_retries_native_restore_failure():
     assert not slider._closed
     slider.close()
     assert slider._closed and model.training and len(calls) == 2
+
+
+def test_native_context_features_are_frozen_masked_and_permutation_equivariant():
+    model, rows, config = bundle()
+    with opened(model, rows, config) as session:
+        prepared = list(session.game.rows)
+        conditions = critic_conditions(prepared)
+        assert conditions.shape == (3, 35) and not conditions.requires_grad
+        assert torch.equal(session.game.conditions, conditions)
+        permutation = [2, 0, 1]
+        assert torch.equal(critic_conditions([prepared[i] for i in permutation]), conditions[permutation])
+        # Equal native neutral context/sigma means equal features, regardless of row slot/count.
+        assert torch.equal(critic_conditions([prepared[0], prepared[0]])[0], conditions[0])
+        assert torch.equal(critic_conditions([prepared[0], prepared[0]])[1], conditions[0])
+        item = prepared[0]
+        neutral = deepcopy(item.row.neutral)
+        neutral['embeds'][0, 2].add_(100)  # Masked padding is absent from the native attention context.
+        masked = replace(item, row=replace(item.row, neutral=neutral))
+        assert torch.equal(critic_conditions([masked]), conditions[:1])
+        neutral['embeds'][0, 0].add_(1)
+        changed = replace(item, row=replace(item.row, neutral=neutral))
+        assert not torch.equal(critic_conditions([changed])[:, :-1], conditions[:1, :-1])
+        # Teacher captions and raw model time are not substituted for explicit sigma.
+        teacher = deepcopy(item.row.positive)
+        teacher['embeds'].add_(7)
+        view = replace(item, row=replace(item.row, positive=teacher, timestep=torch.tensor(800.)))
+        assert torch.equal(critic_conditions([view]), conditions[:1])
+        noise = replace(item, row=replace(item.row, sigma=.75))
+        actual = critic_conditions([noise])
+        assert torch.equal(actual[:, :-1], conditions[:1, :-1])
+        assert actual[0, -1] == .75 and conditions[0, -1] == .25
+
+
+def test_permuted_rows_preserve_semantic_update_and_reject_wrong_resume_identity():
+    first, rows, config = bundle()
+    second, other_rows, _ = bundle()
+    permutation = torch.tensor([2, 0, 1])
+    inverse = torch.argsort(permutation)
+    with opened(first, rows, config) as a, opened(second, [other_rows[i] for i in permutation], config) as b:
+        assert torch.equal(b.game.conditions, a.game.conditions[permutation])
+        before = b.checkpoint()['sha256']
+        with pytest.raises(CheckpointError):
+            b.restore(a.checkpoint())  # Fixed dataset ordering remains part of exact-resume identity.
+        assert b.checkpoint()['sha256'] == before
+        # Align native examples/noise pairs through the actual shared sampler, then update both games.
+        for phase in ('d', 'g'):
+            a.game.row_orders[phase] = torch.arange(3)
+            b.game.row_orders[phase] = inverse.clone()
+        a.step()
+        b.step()
+        for old, new in ((a.game.network, b.game.network), (a.game.critic, b.game.critic)):
+            for key, value in old.state_dict().items():
+                torch.testing.assert_close(value, new.state_dict()[key], rtol=3e-5, atol=3e-6)
+
+
+def test_sigma_is_snapshotted_and_changes_checkpoint_identity():
+    model, rows, config = bundle()
+    sigma = torch.tensor(.25)
+    rows[0] = replace(rows[0], sigma=sigma)
+    with opened(model, rows, config) as session:
+        packet = session.checkpoint()
+        conditions = session.game.conditions.clone()
+        sigma.fill_(.9)
+        assert session.game.rows[0].row.sigma == .25
+        assert torch.equal(conditions, session.game.conditions)
+    model, rows, _ = bundle()
+    rows[0] = replace(rows[0], sigma=.75)
+    with opened(model, rows, config) as changed:
+        before = changed.checkpoint()['sha256']
+        with pytest.raises(CheckpointError):
+            changed.restore(packet)
+        assert changed.checkpoint()['sha256'] == before
+
+
+@pytest.mark.parametrize('sigma', [None, True, -.1, float('nan'), 1e300, torch.tensor(.2, requires_grad=True)])
+def test_missing_or_invalid_native_sigma_is_refused_before_forward(sigma):
+    model, rows, config = bundle()
+    rows[0] = replace(rows[0], sigma=sigma)
+    with pytest.raises(ValueError, match='sigma'):
+        opened(model, rows, config)
+    assert not model.calls

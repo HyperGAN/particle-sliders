@@ -8,6 +8,7 @@ here. The host supplies exact native encodings/masks and staged frozen weights.
 from contextlib import contextmanager
 from contextvars import ContextVar
 from copy import deepcopy
+from dataclasses import dataclass, replace
 import hashlib
 from importlib.metadata import distribution, version
 import json
@@ -25,7 +26,9 @@ from particle_sliders.inference import InferenceBackend, InferenceBinding, nativ
 from particle_sliders.lifecycle import Backend, Binding, Capabilities, SessionConfig, native_cleanup
 from particle_sliders.pg094 import ConditionalPG094, engine_options, validate_pg09_domain
 from particle_sliders.pg09_backends import FrozenResponseAdapter, PreparedResponse, ResponseRow
-from particle_sliders.pg09_images import ImageResponseAdapter
+from particle_sliders.pg09_images import (
+    CONDITION_FEATURE_POLICY, ImageResponseAdapter, image_condition_features,
+)
 
 NAME = 'sana-shared-gan'
 COHORT = 'sana-neutral-cfg-velocity-hypergan-hndl-v1'
@@ -34,12 +37,58 @@ PROTOCOL = dict(cohort=COHORT, objective='shared conditional response GAN; not U
     student='raw neutral velocity', teacher='unconditional + guidance*(positive-unconditional)',
     geometry='native [1,C,H,W] velocity; no packing', targets='attn2 Q/K/V/O',
     rank=8, alpha=8, bank=[128, 4], network_profile='hypergan-hndl-v2',
+    critic_conditioning=dict(schema='sana-masked-neutral-plus-sigma-v1',
+        features=CONDITION_FEATURE_POLICY, context='masked neutral embeddings and attention mask',
+        noise='explicit host scheduler sigma; independent of scaled model timestep'),
     qualification='CPU software fixtures only; pretrained/GPU unqualified')
 CAPABILITIES = Capabilities('routed_particle_gan', render=False,
     base_precisions=('float32',), render_outputs=(),
     operations=('train', 'resume', 'evaluate', 'export', 'response'),
     unavailable_reasons=(('render', 'Sana native pipeline sampling is not qualified by this response binding'),))
 _STAGED = ContextVar('sana_staged_model', default=None)
+
+
+@dataclass(frozen=True)
+class SanaResponseRow(ResponseRow):
+    """Native capture with explicit host noise sigma; no inferred time conversion."""
+    sigma: float | torch.Tensor | None = None
+
+
+def _native_sigma(row):
+    if not isinstance(row, SanaResponseRow):
+        raise ValueError('SanaResponseRow with explicit native scheduler sigma required')
+    value = row.sigma
+    if isinstance(value, torch.Tensor):
+        if value.numel() != 1 or value.requires_grad or not value.is_floating_point():
+            raise ValueError('native sigma must be one frozen floating-point scalar')
+        value = value.item()
+    return _number(value, 'native sigma', high=torch.finfo(torch.float32).max)
+
+
+def critic_conditions(prepared):
+    """Frozen masked neutral context + supplied sigma, never capture-row identity.
+
+    Reuse the public core projection/collision gate with neutral-only feature
+    views. The 1000 factor only encodes supplied sigma into the helper's time
+    column; native rows, model time and field responses are never changed.
+    """
+    feature_rows = []
+    for item in prepared:
+        row = item.row
+        _condition_check(row.neutral)
+        neutral = dict(embeds=row.neutral['embeds'].detach().float()
+                       * row.neutral['mask'].detach().to(row.neutral['embeds'])[..., None],
+                       mask=row.neutral['mask'].detach())
+        view = ResponseRow(neutral, neutral, neutral, row.latent,
+            timestep=torch.tensor(_native_sigma(row) * 1000., dtype=torch.float64))
+        feature_rows.append(PreparedResponse(view, item.target, item.neutral))
+    values = image_condition_features(feature_rows)
+    width = CONDITION_FEATURE_POLICY['projection_rank'] + 2
+    if values.shape[1] != 4 + 3 * width:
+        raise ValueError('shared image condition feature layout differs from the source-bound plan')
+    # Shared layout: [time/1000, scale, CFG, strength, neutral, positive, negative].
+    # Discard the constants and duplicated views; retain neutral context + sigma.
+    return torch.cat((values[:, 4:4 + width], values[:, :1]), dim=1).detach()
 
 
 def _source():
@@ -87,7 +136,7 @@ def _condition_check(condition):
         raise ValueError('actual Sana embeddings and attention masks required')
     embeds, mask = condition['embeds'], condition['mask']
     if (not isinstance(embeds, torch.Tensor) or not isinstance(mask, torch.Tensor)
-            or embeds.ndim != 3 or embeds.shape[0] != 1 or not embeds.is_floating_point()
+            or embeds.ndim != 3 or min(embeds.shape) < 1 or embeds.shape[0] != 1 or not embeds.is_floating_point()
             or tuple(mask.shape) != tuple(embeds.shape[:2]) or embeds.requires_grad or mask.requires_grad
             or not torch.isfinite(embeds).all() or not torch.all((mask == 0) | (mask == 1))):
         raise ValueError('frozen finite single-example encodings and native binary mask required')
@@ -283,8 +332,7 @@ class SanaResponseAdapter(ImageResponseAdapter):
         super().__init__('sana', model, slider, model_identity=identity)
 
     def prepare(self, row):
-        if not isinstance(row, ResponseRow):
-            raise ValueError('shared native ResponseRow required')
+        row = replace(row, sigma=_native_sigma(row))  # Snapshot even a supplied scalar tensor.
         if _unconditional_identity(row.negative) != self.unconditional:
             raise ValueError('negative slot differs from the declared empty-prompt unconditional encoding')
         if row.schedule is not None or row.guidance != 1 or row.scale != 1 or row.strength != 1:
@@ -356,8 +404,7 @@ def _native_input_check(latent, timestep, condition, options):
 
 
 def _row_check(row, options):
-    if not isinstance(row, ResponseRow):
-        raise ValueError('shared native ResponseRow required')
+    _native_sigma(row)
     _native_input_check(row.latent, row.timestep, row.neutral, options)
     if (row.schedule is not None or _number(row.guidance, 'student guidance') != 1
             or _number(row.scale, 'row scale') != 1 or _number(row.strength, 'row strength') != 1):
@@ -381,9 +428,8 @@ def _prepare(options, *, model, model_identity, rows):
         prepared = [adapter.prepare(row) for row in rows]
         if any(list(row.target.shape) != options['response_shape'] for row in prepared):
             raise ValueError('native output geometry differs from declared response')
-        # Stable row identity conditions critic on the exact paired native capture.
-        conditions = torch.eye(len(rows), device=slider.particles.device)
-        critic = HNDLFieldCritic(options['response_shape'][1], len(rows), options['response_shape'][2:]).to(slider.particles)
+        conditions = critic_conditions(prepared).to(slider.particles)
+        critic = HNDLFieldCritic(options['response_shape'][1], conditions.shape[1], options['response_shape'][2:]).to(slider.particles)
         game = ConditionalPG094(adapter, prepared, critic, conditions=conditions, particles=slider.particles,
             total_steps=options['steps'], batch_size=options['batch'], seed=options['seed'], **engine_options(options))
         specification = INFERENCE.specification(adapter, model_identity=options['model_identity'],
