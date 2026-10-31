@@ -282,6 +282,8 @@ and training recipe, and adapter formats are not interchangeable.
 | [Sana 0.6B](docs/sana-slider.md) | Cross-attention or LoRA. Small image experiments. |
 | [LTX-2.5](docs/ltx25-slider.md) | Text encoder and video connectors. Opt-in video. |
 | [MiniMax-H3](docs/minimax-h3-slider.md) | Omni-Transformer. Opt-in video and audio. |
+| [Pika H3 Flex native boundary](docs/pika-h3-flex.md) | Fixed Pika adapter and independent slider; pretrained and quantized execution unqualified. |
+| [Pika H3 Flex shared session](docs/pika-h3-flex-shared-session.md) | Shared GAN lifecycle and HyperGAN/HNDL graphs; official native wide-response admission refused. |
 | [Tiny LLM](docs/tiny-llm-slider.md) | Qwen3-0.6B attention. Particle-bridge test target. |
 | [Bonsai GGUF](docs/bonsai-gguf-slider.md) | Frozen readouts. Opt-in particle experiment. |
 | [Diffusion images](conceptmod/textsliders/) | SD 1.x/2.x, SDXL, SD3, Flux and Stable Cascade trainers (this fork's, not `legacy/`). |

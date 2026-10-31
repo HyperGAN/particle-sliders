@@ -239,7 +239,12 @@ class _AttnLoRA(nn.Module):
         else:
             nn.init.zeros_(self.lora_up.weight)
         self.org_forward = module.forward
+        object.__setattr__(self, "_host", module)
+        self._had_forward = "forward" in vars(module)
+        self._previous_forward = vars(module).get("forward")
+        self._closed = False
         module.forward = self.forward
+        self._installed_forward = module.forward
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Host attn is bf16 on live H3; LoRA may have been built on CPU.
@@ -247,6 +252,17 @@ class _AttnLoRA(nn.Module):
         x_lora = x.to(device=weight.device, dtype=weight.dtype)
         delta = self.lora_up(self.lora_down(x_lora)).to(device=x.device, dtype=x.dtype)
         return self.org_forward(x) + delta * (self.multiplier * self.scale)
+
+    def close(self):
+        if self._closed:
+            return
+        if self._host.forward is not self._installed_forward:
+            raise RuntimeError("H3 LoRA forward ownership changed; cleanup remains pending")
+        if self._had_forward:
+            self._host.forward = self._previous_forward
+        else:
+            vars(self._host).pop("forward", None)
+        self._closed = True
 
 
 class AttnLoRANetwork(nn.Module):
@@ -263,18 +279,57 @@ class AttnLoRANetwork(nn.Module):
         self.lora_scale = 1.0
         self.up_init_std = float(up_init_std)
         self.loras: list[_AttnLoRA] = []
+        try:
+            self._attach_loras(transformer, rank, alpha)
+        except BaseException as error:
+            try:
+                self.close()
+            except BaseException as cleanup:
+                if hasattr(error, "add_note"):
+                    error.add_note("H3 LoRA construction cleanup also failed: " + repr(cleanup))
+                error.cleanup_error, error.retry_cleanup = cleanup, self.close
+            raise
+
+    def _attach_loras(self, transformer, rank, alpha):
         for name, module in transformer.named_modules():
             if module.__class__.__name__ != LORA_ATTN_CLASS:
                 continue
+            # Preserve the historical plain-Linear traversal order and RNG
+            # initialization. The only extension is accepting the complete
+            # PEFT wrapper at an existing named projection host.
             for child_name, child in module.named_modules():
-                if not isinstance(child, nn.Linear):
+                if child_name not in LORA_LINEAR_NAMES:
                     continue
-                if child_name not in ("to_q", "to_k", "to_v", "to_out.0"):
+                # Pika's frozen release adapter is a PEFT wrapper around this
+                # Linear. Wrap its complete forward so slider scale zero keeps
+                # Pika active; never target its base_layer or lora_A/B children.
+                host = getattr(child, "base_layer", child)
+                if not isinstance(host, nn.Linear):
                     continue
                 lora_name = f"lora_h3-{name}-{child_name}".replace(".", "-")
                 lora = _AttnLoRA(lora_name, child, rank, alpha, up_init_std=self.up_init_std)
                 self.loras.append(lora)
                 self.add_module(lora_name, lora)
+
+    def close(self):
+        errors = []
+        for index in range(len(self.loras) - 1, -1, -1):
+            try:
+                self.loras[index].close()
+            except BaseException as error:
+                errors.append(error)
+            else:
+                branch = self.loras[index]
+                if self._modules.get(branch.lora_name) is branch:
+                    del self._modules[branch.lora_name]
+                del self.loras[index]
+        if errors:
+            errors[0].cleanup_failures = tuple(errors)
+            for error in errors[1:]:
+                note = "Additional H3 LoRA cleanup failure: " + repr(error)
+                if callable(getattr(errors[0], "add_note", None)) and note not in getattr(errors[0], "__notes__", ()):
+                    errors[0].add_note(note)
+            raise errors[0]
 
     def set_lora_slider(self, scale: float) -> None:
         self.lora_scale = float(scale)
@@ -866,6 +921,20 @@ def _load_minimax_h3_modular(
     encoder_device: str | None = None,
 ):
     """Live path. Dummy never calls this. Do not download MiniMax-H3 in CI."""
+    # A Pika release is not just a base-model id: it additionally requires its
+    # fixed adapter and re-noising sampler. Keep the legacy UNI path explicit.
+    from pathlib import Path
+    import json
+
+    index = Path(model_id) / "modular_model_index.json"
+    if model_id == "Pika-Labs/Pika-H3-Flex" or (
+        index.is_file() and json.loads(index.read_text()).get("_class_name") == "PikaH3FlexModularPipeline"
+    ):
+        raise ArchitectureMismatch(
+            "Pika H3 Flex requires its fixed release adapter and native sampler. "
+            "Use conceptmod.textsliders.pika_h3_flex; this legacy UNI loader "
+            "does not qualify Pika or the shared GAN lifecycle."
+        )
     from diffusers import ModularPipeline
 
     pipe = ModularPipeline.from_pretrained(model_id, workflow=workflow)

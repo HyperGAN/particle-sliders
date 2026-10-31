@@ -91,6 +91,8 @@ Each backend is a separate script. None of them change
 | **Z-Image Turbo** | `train_lora_zimage.py` | [zimage-slider.md](zimage-slider.md) | 6B DiT box | **neu** |
 | **LTX-2.5** video | `train_lora_ltx25.py` | [ltx25-slider.md](ltx25-slider.md) | **dual RTX A6000** (validated 2026-09-02): TE+connectors `cuda:1`, DiT `cuda:0` for sample. CLI default `--encoder_device cpu`. Never `pipe.to` TE+DiT on one GPU. | **neu** (embed-match; plus is teacher). DiT stays frozen. |
 | **MiniMax-H3** t2va | `train_lora_minimax_h3.py` | [minimax-h3-slider.md](minimax-h3-slider.md) | **B200 / B300** (~135 GB); 2×H100 needs `--encoder_device` | plus pack (velocity UNI) |
+| **Pika H3 Flex** native boundary | Local loader / gradient probe | [pika-h3-flex.md](pika-h3-flex.md) | Pretrained execution unqualified | Fixed Pika at 1; independent slider |
+| **Pika H3 Flex** shared session | Shared response lifecycle / HyperGAN / HNDL | [pika-h3-flex-shared-session.md](pika-h3-flex-shared-session.md) | Native wide-response admission refused | Neutral student; positive teacher |
 
 Shared pitfalls (verified in the trainers, not folklore):
 
