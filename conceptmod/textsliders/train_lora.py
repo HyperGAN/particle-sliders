@@ -2,6 +2,15 @@
 # - https://github.com/huggingface/diffusers/blob/main/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion.py#L566
 # - https://huggingface.co/spaces/baulab/Erasing-Concepts-In-Diffusion/blob/main/train.py
 
+# A separate installed distribution/environment owns this explicitly new cohort.
+# Dispatch before historical imports so its dependencies and objective stay isolated.
+if __name__ == '__main__':
+    import sys
+    if '--shared-game' in sys.argv[1:]:
+        from sd_slider_game.cli import main as shared_game_main
+        shared_game_main(sys.argv[1:])
+        raise SystemExit(0)
+
 from typing import List, Optional
 import argparse
 import ast
