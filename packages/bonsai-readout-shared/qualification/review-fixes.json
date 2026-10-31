@@ -1,0 +1,30 @@
+{
+  "scope": "bounded post-Claude source fixes; exact final remote head is in publication receipts",
+  "initial_reviewed_head": "2593452e4ce597335242f0b81c35e158e6c63e33",
+  "core_source_dependency": "4abc0eb03a4e3a84fc3e6d02734c13dc7e8ea231",
+  "clean_torch26_installed_tests": "33 passed in42.75s; no borrowed runtime packages",
+  "torch214_installed_tests": "33 passed in46.36s; task-owned venv reuses qualified read-only runtime libraries",
+  "legacy_tests": "22 passed,2 live skips; legacy source unchanged",
+  "pip_check": "No broken requirements found",
+  "actual_earlier_draft_artifact": "2593452 native-inference export rejected before head construction by current factory/source identity",
+  "commands": [
+    "BONSAI_INSTALLED_TESTS=1 BONSAI_REFERENCE_ROOT=$PWD/bonsai .venv-clean/bin/python -m pytest -q -c /dev/null evidence/review-installed-tests",
+    "BONSAI_INSTALLED_TESTS=1 BONSAI_REFERENCE_ROOT=$PWD/bonsai .venv/bin/python -m pytest -q -c /dev/null evidence/review-installed-tests",
+    "../.venv/bin/python -m pytest -q -rs -c /dev/null tests/test_bonsai_gguf_slider.py (cwd=bonsai)",
+    ".venv-clean/bin/python -m pip check"
+  ],
+  "source_integrity_scope": "installed on-disk source/assets, ordinary import origins, and executable cache comparison before this binding imports core entrypoints; not attestation of arbitrary in-memory code or a security boundary",
+  "new_regressions": [
+    "real path shadow rejected before shadow module executes",
+    "usable timestamp-stale bytecode control executes sentinel, guarded import rejects before core import",
+    "owned namespace coexists with sibling conceptmod preview",
+    "direct factory restores CPU RNG on success/failure without CUDA seeding",
+    "same-size local file content change rejects SHA256",
+    "native model identity remains width-gated before local file reads",
+    "unselected optional installed lane skips before runtime/reference imports",
+    "symlinkless package build materializes pinned loader and self-contained sdist rebuilds wheel"
+  ],
+  "native_gap": "5120 shared-game admission intentionally refused; actual model/server-to-file attestation, model content path under native admission, native training, concept quality and GPU checks unrun",
+  "publication_byte_receipts_are_not_runtime_builder_evidence": true,
+  "release_impact": "isolated opt-in distribution only; no shared API edits, native admission, defaults, weights, merge, release or deployment"
+}

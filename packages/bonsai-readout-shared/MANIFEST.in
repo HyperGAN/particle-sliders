@@ -1,0 +1,5 @@
+include _bonsai_build.py
+include LICENSE
+include src/bonsai_readout_shared/_native.py
+recursive-include installed_tests *.py
+recursive-include qualification *.json *.txt *.md

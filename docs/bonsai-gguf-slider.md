@@ -1,4 +1,19 @@
-# Bonsai-GGUF particle slider (opt-in)
+# Bonsai-GGUF identity/readout experiment (historical name: particle slider)
+
+Both the historical implementation below and the opt-in shared preview adapt
+the positive readout that is also their target. A zero-up head therefore has
+zero paired response error at initialization. These are identity/readout
+experiments; the recorded game/lifecycle smokes do not demonstrate a
+neutral-to-positive concept transformation. A separate named neutral-to-target
+task is held for the user's decision. Historical inputs and semantics remain
+unchanged.
+
+The historical `particle_bridge_gan` cohort documented below is preserved.
+A separate [shared-core/HyperGAN/HNDL profile](../packages/bonsai-readout-shared/README.md)
+now executes the real shared core0.12/PG0.9.4 game and HNDL0.10 networks in an
+installed width16 CPU fixture. **Native width5120 remains refused before model
+execution.** This is a new BISPF cohort, not a relabeling of old checkpoints or
+a claim that the frozen GGUF server supports gradients or attention LoRA.
 
 Runs the YuE2 working game `anneal-routed-particle-error` (`--recipe
 particle_bridge`) through the **shared**
@@ -158,6 +173,10 @@ bonsai-gguf particle step 2: g_adv=0.6774 vic=0.1330 d_loss=0.7524 cos_pos=0.997
   exports written (360 KB each); `--steps 0 --load_head` reload plus a
   6-row readout-delta report at scales 0/1 confirmed scale-0 exactness
   (l2 = 0, cos = 1) against the live server.
+- The positive-input readout is also its target. At zero-up initialization,
+  zero paired error and a positive/neutral delta cosine of1 are identity
+  controls, not evidence that a neutral input learned a positive concept edit.
+  The live smoke above establishes server/readout and mechanical game behavior.
 - Cost note: ~22 s per embedding on 4 CPU threads — a 2-step smoke is
   minutes, a 20-step run is roughly an hour CPU-only. GPU (`-ngl 99`
   on CUDA/Metal) follows Bonsai-demo flags.

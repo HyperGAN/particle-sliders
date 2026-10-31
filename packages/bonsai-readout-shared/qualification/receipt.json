@@ -1,0 +1,90 @@
+{
+  "base": "4abc0eb03a4e3a84fc3e6d02734c13dc7e8ea231",
+  "profile": "bonsai-readout-shared-pg094-hypergan-hndl-v1",
+  "core_wheel_sha256": "9afad3afc1f6c653a574074dc14f0da1f1c43975c31ca45c4eac049df0b0b4ad",
+  "core_python_sha256": "7c3b92f06012188b8d9bb6c389dec33fd3ea864c620d92272721a434114828cb",
+  "core_assets_sha256": "54265b65989481bb8ea38e35828c0539b7ea101f484a6b558b50b89e27aa31df",
+  "builder": {
+    "profile": "hypergan-hndl-v2",
+    "hndl_version": "0.10.0",
+    "hypergan_commit": "5f368a3770cf5bdae0448995c9f76e29af8049f7",
+    "hypergan_build_provenance_sha256": "fa0aaed8eea39a1cc545bafb96c9a72eb155b52cb79f2d34c44f505aaf4ac179",
+    "runtime_sources_sha256": "69e65e3daf18ac5c99154fd735d0b6fc8e8c95433c5b0618a074cdd203ed6251",
+    "projection_sha256": "b5efac1cfb0c597e5d6e0839af6077ff36dec916901bfa254be78db9f691c086",
+    "critic_sha256": "31f95ccf2178363d7a027597a00694c571c9d69a170151fcbe36e05326ac4707"
+  },
+  "runtime": {
+    "python": "3.12.15",
+    "torch": "2.14.1+cpu",
+    "particlegan": "0.9.4",
+    "particle-sliders-core": "0.12.0",
+    "hypergan": "2.0.0",
+    "hndl": "0.10.0",
+    "setuptools": "84.2.1"
+  },
+  "fixture_width": 16,
+  "native_width": 5120,
+  "native_training": "refused before server/readout/head construction",
+  "graph_classes": {
+    "projection": "hndl.torch.Network",
+    "critic": "hndl.torch.Network"
+  },
+  "tests": {
+    "torch2.14.1+cpu": "24 passed",
+    "torch2.6.0+cpu": "24 passed",
+    "historical_bonsai": "22 passed, 2 skipped (live header and server prerequisites absent)",
+    "pip_check_both_lanes": "No broken requirements found"
+  },
+  "packaging": {
+    "wheel_sha256": "9d003c6f082c414e34128dc1db9d35d5d36dd3e97b8b366cbee061b035cc31f8",
+    "sdist_sha256": "a52cba6fa3731d181c7b49ffffbb3a217b7ac6b4d60f071d8d656cd567b264d3",
+    "wheel_files": [
+      "bonsai_readout_shared-0.1.0.dist-info/licenses/LICENSE",
+      "conceptmod/textsliders/__init__.py",
+      "conceptmod/textsliders/bonsai_gguf_backend.py",
+      "conceptmod/textsliders/bonsai_gguf_shared.py",
+      "bonsai_readout_shared-0.1.0.dist-info/METADATA",
+      "bonsai_readout_shared-0.1.0.dist-info/WHEEL",
+      "bonsai_readout_shared-0.1.0.dist-info/entry_points.txt",
+      "bonsai_readout_shared-0.1.0.dist-info/top_level.txt",
+      "bonsai_readout_shared-0.1.0.dist-info/RECORD"
+    ],
+    "archive_matches_repository_bytes": true,
+    "wheel_built_from_sdist": true,
+    "license_included": true
+  },
+  "preserved_legacy": {
+    "conceptmod/textsliders/bonsai_gguf_backend.py": {
+      "sha256": "bc83fa01340cc11efcb6ba4d7aaaddc05ce3a01a6ce1b086f933205358bfd84a",
+      "unchanged_from_base": true
+    },
+    "conceptmod/textsliders/bonsai_gguf_particle.py": {
+      "sha256": "ff03e9f20223af9c58101c54b617b7d231aa787fea926dd5db3cea24245c4249",
+      "unchanged_from_base": true
+    },
+    "conceptmod/textsliders/train_lora_bonsai_gguf.py": {
+      "sha256": "664f2e741f936779901ad5e5019ce151f67b3862f4249fd73eb8863128c298b0",
+      "unchanged_from_base": true
+    },
+    "conceptmod/textsliders/particle_bridge_gan.py": {
+      "sha256": "738d50200ea5de9a9c4943b34474f862b06a9321cd78e6838196ef9b9d6993f0",
+      "unchanged_from_base": true
+    },
+    "tests/test_bonsai_gguf_slider.py": {
+      "sha256": "247d4abfdbfa4e7f6ebe065876a57433ad0328c7d429f88738362a6d108c3e25",
+      "unchanged_from_base": true
+    }
+  },
+  "environment_limit": "Task-owned venvs reuse read-only qualified runtime libraries; not a clean full native dependency resolution.",
+  "unrun": [
+    "real Prism/PTQ1_0 server/model",
+    "native-width game updates",
+    "pretrained concept quality",
+    "GPU tests/training; /dev/nvidia* absent; occupancy unknown"
+  ],
+  "release_impact": "New opt-in distribution only; no defaults or legacy locks changed. No merge, package/weight release or deployment.",
+  "source_commit": "2593452e4ce597335242f0b81c35e158e6c63e33",
+  "historical_receipt_only": true,
+  "superseded_by": "review-fixes.json",
+  "publication_receipts_are_not_runtime_builder_evidence": true
+}

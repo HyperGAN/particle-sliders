@@ -1,0 +1,24 @@
+{
+  "scope": "identity/readout claim and characterization correction only",
+  "prior_head": "cb3d42cf044bc38da13fe1e994326af9074ee7bb",
+  "installed_cpu_tests": "34 passed in43.28s; clean Torch2.6.0+cpu runtime",
+  "new_control": "test_zero_up_positive_input_identity_control_has_zero_paired_error_before_training",
+  "characterization": [
+    "actual generator input is frozen positive target",
+    "neutral readout differs and conditions critic only",
+    "zero-up output equals target at strengths0/0.5/1 before updates",
+    "paired response error is exactly zero without training"
+  ],
+  "concept_learning_qualified": false,
+  "neutral_to_positive_path": "HELD pending user decision; not implemented",
+  "runtime_logic_ast_unchanged_outside_docstrings_and_metadata_caps_labels": true,
+  "normalized_logic_sha256": "7b9b7a84de84b596156a64ba0bc3d421386f25fb244f6493a2871fb565eaca96",
+  "bank_loss_inputs_native_gate_core_pin_unchanged": true,
+  "core_pin": "4abc0eb03a4e3a84fc3e6d02734c13dc7e8ea231",
+  "native_5120": "refused; no native or GPU claims",
+  "commands": [
+    "BONSAI_INSTALLED_TESTS=1 BONSAI_REFERENCE_ROOT=$PWD/bonsai .venv-clean/bin/python -m pytest -q -c /dev/null evidence/identity-installed-tests"
+  ],
+  "source_and_test_changes_require": "Claude RETURN actual-delta review before landing",
+  "release_impact": "existing draft preview only; no merge, package/weight release or deployment"
+}

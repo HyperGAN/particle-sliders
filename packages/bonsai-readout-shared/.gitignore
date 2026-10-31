@@ -1,0 +1,4 @@
+build/
+dist/
+*.egg-info/
+src/bonsai_readout_shared/_native.py
