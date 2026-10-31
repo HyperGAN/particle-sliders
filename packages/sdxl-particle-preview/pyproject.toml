@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=84.2.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sdxl-particle-preview"
+version = "0.1.0"
+description = "Opt-in SDXL native response session, separate from historical conceptmod MSE"
+requires-python = ">=3.11,<3.15"
+readme = "README.md"
+dependencies = [
+  "particle-sliders-core[hypergan-hndl] @ git+https://github.com/HyperGAN/particle-sliders.git@7a8a321d04323d49319d0b08e6093a0ddce36b27#subdirectory=packages/particle-sliders-core",
+  "diffusers==0.35.1",
+  "transformers==4.57.6",
+  "safetensors>=0.4,<1",
+]
+
+[project.scripts]
+sdxl-particle = "sdxl_particle_preview.cli:main"
+
+[project.entry-points."particle_sliders.response_backends"]
+sdxl-native-hndl-v1 = "sdxl_particle_preview.backend:TRAINING"
+
+[project.entry-points."particle_sliders.inference_backends"]
+sdxl-native-hndl-v1 = "sdxl_particle_preview.backend:INFERENCE"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sdxl_particle_preview = ["*.hndl", "*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
