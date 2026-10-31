@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=84.2.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "particle-sliders-sana"
+version = "0.1.0"
+readme = "README.md"
+license = {file = "LICENSE"}
+description = "Opt-in staged Sana velocity GAN backend; historical UNI remains separate"
+requires-python = ">=3.11,<3.15"
+dependencies = [
+  "particle-sliders-core[hypergan-hndl] @ git+https://github.com/HyperGAN/particle-sliders.git@4abc0eb03a4e3a84fc3e6d02734c13dc7e8ea231#subdirectory=packages/particle-sliders-core",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[project.entry-points."particle_sliders.image_backends"]
+sana-shared-gan = "sana_particle_gan.backend:BACKEND"
+
+[project.entry-points."particle_sliders.inference_backends"]
+sana-shared-gan = "sana_particle_gan.backend:INFERENCE"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sana_particle_gan = ["core012.lock.json"]

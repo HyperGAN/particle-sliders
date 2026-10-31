@@ -1,5 +1,10 @@
 # Sana 0.6B image slider
 
+The historical UNI entrypoint and cohort below remain unchanged. A separate,
+opt-in [shared GAN response preview](sana-shared-gan.md) now uses the real
+shared particle-sliders, HyperGAN develop and HNDL0.10 lifecycle. Its CPU
+software checks do not qualify pretrained Sana or image rendering.
+
 Opt-in cheap test backend on
 [Efficient-Large-Model/Sana_600M_512px_diffusers](https://huggingface.co/Efficient-Large-Model/Sana_600M_512px_diffusers)
 (0.6B flow-matching linear DiT, Gemma-2, DC-AE). **Does not change the
