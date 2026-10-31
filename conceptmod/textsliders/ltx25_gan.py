@@ -15,20 +15,24 @@ from torch import nn
 
 from particle_sliders.fibo_hndl import verified_builder
 from particle_sliders.pg094 import ConditionalPG094, PG_SOURCE_PROFILE
-from particle_sliders.lifecycle import Binding, SessionConfig
-from particle_sliders.response import ResponseBackend, ResponseCapabilities
+from particle_sliders.lifecycle import Binding, SessionConfig, UnsupportedOperation
+from particle_sliders.response import ResponseBackend, ResponseCapabilities, ResponseSession
 from particle_sliders.inference import InferenceBackend, InferenceBinding, native_identity
 from particle_sliders.pg09 import _hash
-from conceptmod.textsliders.ltx25_backend import (
+from .ltx25_backend import (
     LTX25Backend, DEFAULT_MODEL, embed_lora_hosts, ltx_pack_feature_dim,
+    DummyTokenizer, DummyEncoder, DummyLTX2Connectors, DummyLTX2Transformer,
+    _FrozenStub, _DummyPipe, ModuleLoRANetwork, _masked_token_pool,
 )
-from conceptmod.textsliders.ltx25_uni import (
+from .ltx25_uni import (
     RECIPE_EMBED, resolve_concept_token_ids, require_concept_tokens, unused_hold_mask,
 )
 
-COHORT = 'ltx25-video-field-gan-hg-hndl-v1-preview'
-BACKEND = 'ltx25-modern-video-gan'
+COHORT = 'ltx25-dummy-video-field-gan-hg-hndl-v2-preview'
+BACKEND = 'ltx25-dummy-video-gan-preview'
+DUMMY_MODEL = 'dummy-ltx25-api-fixture-v2'
 OBJECTIVE = 'frozen-plus-video-velocity;student-neutral;frozen-neutral-audio'
+DUMMY_QUALIFICATION = 'DUMMY PREVIEW ONLY; no native/pretrained/GPU/media qualification'
 NATIVE_SOURCES = {
     'ltx25_backend.py': '863fdf0aa352507f7cf139c0f70e0df53949452b2714a7cecef86c8b755088d2',
     'ltx25_uni.py': '77bb72d84d5af0e220241639e910ebeabbbe95ef582ac8a05c68475f48b0e61d',
@@ -36,9 +40,24 @@ NATIVE_SOURCES = {
 }
 
 
+try:
+    from ._admission import admit
+except ImportError:
+    def admit():
+        raise ValueError('install the isolated dummy preview wheel; source checkout is not admitted')
+
+
 def native_sources():
-    actual = {name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
-              for name in NATIVE_SOURCES}
+    actual = {}
+    for name in NATIVE_SOURCES:
+        source = Path(__file__).with_name(name).read_bytes()
+        if name == 'ltx25_backend.py' and __package__ == 'particle_sliders_ltx25_dummy_preview':
+            for module in ('ltx25_uni', 'slider_targets'):
+                old = ('from .' + module + ' import').encode()
+                if source.count(old) != 1:
+                    raise ValueError('isolated native import count differs')
+                source = source.replace(old, ('from conceptmod.textsliders.' + module + ' import').encode(), 1)
+        actual[name] = hashlib.sha256(source).hexdigest()
     if actual != NATIVE_SOURCES:
         raise ValueError('native helper source cohort differs; preserve the original environment')
     return actual
@@ -90,6 +109,89 @@ class VideoFieldCritic(nn.Module):
         return json.dumps(self.identity, sort_keys=True)
 
 
+class NativeLedger:
+    """Capture before hooks; restore by object identity, independently of adapter lists."""
+    def __init__(self, native, roots, hosts):
+        self.native, self.roots, self.hosts = native, tuple(roots), tuple(hosts)
+        if not self.hosts or len({id(host) for _, host in self.hosts}) != len(self.hosts):
+            raise ValueError('unique native host ownership required')
+        self.forwards = {host: host.forward for _, host in self.hosts}
+        self.modules = {module: (module.training, dict(module._modules), dict(module._parameters),
+                                 dict(module._buffers), set(module._non_persistent_buffers_set))
+                        for root in self.roots for module in root.modules()}
+        self.parameters = {p: (p.requires_grad, p.grad) for root in self.roots for p in root.parameters()}
+        self.network_before = native.network
+        self.closed = False
+
+    def freeze(self):
+        for root in self.roots:
+            root.requires_grad_(False)
+            root.eval()
+
+    def check(self, network):
+        if self.closed:
+            raise ValueError('dummy native binding is closed')
+        if len(network.loras) != len(self.hosts):
+            raise ValueError('adapter host/leaf ownership count differs')
+        expected = set()
+        for index, (_, host) in enumerate(self.hosts):
+            leaf = network.loras[index]
+            if leaf.org_forward != self.forwards[host] or host.forward != leaf.forward:
+                raise ValueError('adapter host identity differs')
+            expected.update(leaf.parameters())
+        owned = tuple(network.parameters())
+        if not expected or set(owned) != expected or len(owned) != len(expected):
+            raise ValueError('adapter parameter ownership differs')
+        if any(not p.requires_grad or p.dtype != torch.float32 for p in owned):
+            raise ValueError('adapter leaves must be trainable float32')
+        current = {p for root in self.roots for p in root.parameters()}
+        if current != set(self.parameters):
+            raise ValueError('native base parameter registration differs')
+        if any(p.requires_grad for p in current):
+            raise ValueError('unowned trainable native base parameter')
+        if any(module.training for root in self.roots for module in root.modules()):
+            raise ValueError('frozen native base must stay in evaluation mode')
+
+    def close(self):
+        if self.closed:
+            return
+        for host, forward in self.forwards.items():
+            host.forward = forward
+        for module, (mode, modules, parameters, buffers, nonpersistent) in self.modules.items():
+            module._modules = dict(modules)
+            module._parameters = dict(parameters)
+            module._buffers = dict(buffers)
+            module._non_persistent_buffers_set = set(nonpersistent)
+            module.training = mode
+        for parameter, (requires_grad, gradient) in self.parameters.items():
+            parameter.requires_grad_(requires_grad)
+            parameter.grad = gradient
+        self.native.network = self.network_before
+        self.closed = True
+
+
+class DummyPreviewBackend(LTX25Backend):
+    """Reuse the exact dummy architecture, capturing state before LoRA attachment."""
+    def _init_dummy(self):
+        self.tokenizer, self.encoder = DummyTokenizer(), DummyEncoder()
+        self.connectors, self.transformer = DummyLTX2Connectors(), DummyLTX2Transformer()
+        self.vae, self.audio_vae, self.vocoder = (_FrozenStub(name) for name in ('vae', 'audio_vae', 'vocoder'))
+        roots = (self.encoder, self.connectors, self.transformer, self.vae, self.audio_vae, self.vocoder)
+        hosts = embed_lora_hosts(self.encoder, self.connectors, last_n=self.te_last_n)
+        self.ledger = NativeLedger(self, roots, hosts)
+        try:
+            self.ledger.freeze()
+            self.network = ModuleLoRANetwork(hosts, rank=self.lora_rank, alpha=self.lora_alpha,
+                                            up_init_std=self.lora_up_init_std)
+            self.ledger.check(self.network)
+            self.pipe = _DummyPipe(tokenizer=self.tokenizer, text_encoder=self.encoder,
+                connectors=self.connectors, transformer=self.transformer, vae=self.vae,
+                audio_vae=self.audio_vae, vocoder=self.vocoder)
+        except BaseException:
+            self.ledger.close()
+            raise
+
+
 class NativeLeaves(nn.Module):
     """Own the original adapter leaves, restoring native scale after every call."""
     def __init__(self, native):
@@ -99,13 +201,13 @@ class NativeLeaves(nn.Module):
     @contextmanager
     def scaled(self, scale):
         old = self.adapter.lora_scale
-        multipliers = [leaf.multiplier for leaf in self.adapter.loras]
+        multipliers = {leaf: leaf.multiplier for leaf in self.adapter.loras}
         try:
             self.adapter.set_lora_slider(float(scale))
             yield
         finally:
-            self.adapter.set_lora_slider(old)
-            for leaf, value in zip(self.adapter.loras, multipliers):
+            self.adapter.lora_scale = old
+            for leaf, value in multipliers.items():
                 leaf.multiplier = value
 
 
@@ -125,6 +227,7 @@ class PreparedVideo:
     neutral: torch.Tensor
     audio_condition: torch.Tensor
     audio_mask: torch.Tensor
+    condition: torch.Tensor
 
 
 class VideoResponse:
@@ -134,7 +237,8 @@ class VideoResponse:
         self.model_identity = deepcopy(model_identity)
         self.network = NativeLeaves(native)
         # Rollback is product-owned; no host module registrations are changed.
-        self._hosts = embed_lora_hosts(native.encoder, native.connectors, last_n=native.te_last_n)
+        self.ledger = native.ledger
+        self.ledger.check(native.network)
 
     def metadata(self):
         return dict(cohort=COHORT, objective=OBJECTIVE, geometry=self.geometry,
@@ -143,6 +247,7 @@ class VideoResponse:
 
     def _pack(self, prompt, row, scale, *, teacher=False):
         native = self.backend
+        self.ledger.check(native.network)
         with self.network.scaled(scale), native.network:
             text = native.encode_text(prompt, frozen=(scale == 0))
             hold = {}
@@ -176,8 +281,12 @@ class VideoResponse:
             positive = replace(positive, audio_encoder_hidden_states=neutral.audio_encoder_hidden_states,
                                audio_encoder_attention_mask=neutral.audio_encoder_attention_mask)
             target, base = self._field(positive), self._field(neutral)
+        feature = _masked_token_pool(neutral.encoder_hidden_states, neutral.encoder_attention_mask, 1).squeeze(1)
+        sigma = neutral.timestep.float().mean().reshape(1, 1) / 1000.
+        condition = torch.cat((feature.float(), sigma), dim=1).detach()
         return PreparedVideo(row, target.detach(), base.detach(),
-                             neutral.audio_encoder_hidden_states.detach(), neutral.audio_encoder_attention_mask.detach())
+                             neutral.audio_encoder_hidden_states.detach(), neutral.audio_encoder_attention_mask.detach(),
+                             condition)
 
     def generated(self, prepared):
         with self.network.scaled(prepared.row.scale):
@@ -187,11 +296,11 @@ class VideoResponse:
             return self._field(packed)
 
     def close(self):
-        for (_, host), leaf in zip(self._hosts, self.backend.network.loras):
-            host.forward = leaf.org_forward
+        self.ledger.close()
 
 
 def validate(options):
+    admit()
     allowed = {'geometry', 'dummy', 'model_id', 'transformer_subfolder',
                'steps', 'batch', 'seed', 'ema_decay'}
     if set(options) - allowed:
@@ -203,7 +312,7 @@ def validate(options):
         raise ValueError('pretrained/GPU qualification pending; only explicit CPU fixture is admitted')
     if options.get('transformer_subfolder', 'transformer') != 'transformer':
         raise ValueError('preview is distilled only; SFT requires a distinct qualified cohort')
-    if options.get('model_id', DEFAULT_MODEL) != DEFAULT_MODEL:
+    if options.get('model_id', DUMMY_MODEL) != DUMMY_MODEL:
         raise ValueError('model identity differs')
     native_sources()
     verified_builder()  # Fail before attaching any native hooks.
@@ -211,9 +320,14 @@ def validate(options):
 
 def capabilities(options):
     validate(options)
-    return ResponseCapabilities('adapter_gan', 'video', 'ltx-video-latent-velocity',
+    return ResponseCapabilities('adapter_gan', 'video', 'dummy-ltx-video-latent-velocity',
         'continuous_field', (1, 128, *options.get('geometry', [2, 1, 1])), '0.9.4', PG_SOURCE_PROFILE,
-        qualification='Tiny CPU fixture only; experimental velocity objective; pretrained/GPU unqualified')
+        qualification=DUMMY_QUALIFICATION)
+
+
+@dataclass
+class DummyBinding(Binding):
+    dummy_specification: object = None
 
 
 def prepare(options, **staged):
@@ -227,20 +341,30 @@ def prepare(options, **staged):
     adapter = make_native(options)
     try:
         prepared = [adapter.prepare(row) for row in rows]
-        conditions = torch.tensor([[i, .725] for i in range(len(rows))], dtype=torch.float32)
+        conditions = torch.cat([item.condition for item in prepared]).detach()
         with torch.random.fork_rng():
             torch.manual_seed(options.get('seed', 7) + 1)
-            critic = VideoFieldCritic(128, 2, geometry)
+            critic = VideoFieldCritic(128, conditions.shape[1], geometry)
         game = ConditionalPG094(adapter, prepared, critic,
             conditions=conditions, total_steps=options.get('steps', 4), batch_size=options.get('batch', 2),
             seed=options.get('seed', 7))
         native_config = {key: options[key] for key in ('geometry', 'dummy', 'seed') if key in options}
         specification = inference_backend.specification(adapter, model_identity=adapter.model_identity,
             protocol=COHORT, configuration=native_config)
-        return Binding(game, adapter.close, inference=specification)
+        return DummyBinding(game, adapter.close, dummy_specification=specification)
     except BaseException:
         adapter.close()
         raise
+
+
+class DummyResponseSession(ResponseSession):
+    def export_inference(self, *args, **kwargs):
+        raise UnsupportedOperation('dummy preview cannot export a native model artifact; use export_dummy_inference')
+
+    def export_dummy_inference(self, *args, **kwargs):
+        if 'specification' in kwargs:
+            raise ValueError('dummy export uses only its exact dummy specification')
+        return super().export_inference(*args, specification=self.binding.dummy_specification, **kwargs)
 
 
 class LTXResponseBackend(ResponseBackend):
@@ -249,9 +373,13 @@ class LTXResponseBackend(ResponseBackend):
             raise ValueError('new GAN cohort required; historical UNI is not migrated')
         return super().open(config, **request)
 
+    def _session(self, config, capabilities, binding):
+        return DummyResponseSession(config, capabilities, binding)
+
 
 backend = LTXResponseBackend(BACKEND, ResponseCapabilities('adapter_gan', 'video',
-    'ltx-video-latent-velocity', 'continuous_field', (1, 128, 2, 1, 1), '0.9.4', PG_SOURCE_PROFILE),
+    'dummy-ltx-video-latent-velocity', 'continuous_field', (1, 128, 2, 1, 1), '0.9.4', PG_SOURCE_PROFILE,
+    qualification=DUMMY_QUALIFICATION),
     prepare, validate, configure_capabilities=capabilities)
 
 
@@ -271,22 +399,35 @@ def validate_row(row, geometry):
 
 def make_native(options):
     validate(options)
-    with torch.random.fork_rng():
-        torch.manual_seed(options.get('seed', 7))
-        native = LTX25Backend(dummy=True, recipe=RECIPE_EMBED, lora_rank=4, lora_alpha=4)
-    frozen = {prefix + name: value for prefix, module in (
-        ('encoder.', native.encoder), ('connectors.', native.connectors), ('transformer.', native.transformer))
-        for name, value in module.named_parameters() if not value.requires_grad}
-    return VideoResponse(native, tuple(options.get('geometry', [2, 1, 1])),
-        {'model_id': DEFAULT_MODEL, 'transformer_subfolder': 'transformer',
-         'qualification': 'dummy-only', 'seed': options.get('seed', 7),
-         'native_sources': native_sources(), 'frozen_sha256': _hash(frozen)})
+    native = None
+    try:
+        with torch.random.fork_rng():
+            torch.manual_seed(options.get('seed', 7))
+            native = DummyPreviewBackend(dummy=True, model_id=DUMMY_MODEL,
+                recipe=RECIPE_EMBED, lora_rank=4, lora_alpha=4)
+        native.ledger.check(native.network)
+        frozen = {str(index) + '.' + name: value for index, root in enumerate(native.ledger.roots)
+                  for name, value in root.named_parameters()}
+        return VideoResponse(native, tuple(options.get('geometry', [2, 1, 1])),
+            {'model_id': DUMMY_MODEL, 'reference_model': DEFAULT_MODEL, 'transformer_subfolder': 'transformer',
+             'qualification': 'dummy-preview-only', 'seed': options.get('seed', 7),
+             'runtime': admit(), 'native_sources': native_sources(), 'frozen_sha256': _hash(frozen)})
+    except BaseException:
+        if native is not None:
+            native.ledger.close()
+        raise
 
 
 def validate_inference(options, spec):
     if options:
         raise ValueError('native preview takes its exact configuration from the artifact')
     validate(spec.configuration)
+    if (spec.identity['protocol'] != COHORT or spec.identity['model'].get('qualification') != 'dummy-preview-only'
+            or spec.identity['model'].get('model_id') != DUMMY_MODEL):
+        raise ValueError('only explicitly identified dummy-preview artifacts are admitted')
+    if (spec.identity['model'].get('runtime') != admit()
+            or spec.identity['model'].get('native_sources') != native_sources()):
+        raise ValueError('dummy artifact runtime/source identity differs before hooks')
 
 
 def prepare_inference(options, spec):
@@ -304,10 +445,18 @@ def prepare_inference(options, spec):
                              audio_encoder_attention_mask=frozen.audio_encoder_attention_mask)
             return adapter._field(packed).detach().clone()
 
-    return InferenceBinding(adapter.network,
-        native_identity(adapter, model_identity=adapter.model_identity, protocol=COHORT),
-        adapter.close, response=response)
+    try:
+        return InferenceBinding(adapter.network,
+            native_identity(adapter, model_identity=adapter.model_identity, protocol=COHORT),
+            adapter.close, response=response)
+    except BaseException:
+        adapter.close()
+        raise
 
 
-inference_backend = InferenceBackend(BACKEND, backend.capabilities, prepare_inference,
-    validate_inference, configure_capabilities=capabilities)
+def inference_capabilities(options):
+    return replace(capabilities(options), operations=('response',))
+
+
+inference_backend = InferenceBackend(BACKEND, replace(backend.capabilities, operations=('response',)),
+    prepare_inference, validate_inference, configure_capabilities=inference_capabilities)

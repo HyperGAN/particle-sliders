@@ -8,7 +8,7 @@ import pytest
 import torch
 from torch import nn
 
-import conceptmod.textsliders.ltx25_gan as product
+import particle_sliders_ltx25_dummy_preview.binding as product
 from particle_sliders.field_critic import FieldCritic
 from particle_sliders.inference import open_inference
 from particle_sliders.lifecycle import CheckpointError, SessionConfig
@@ -118,13 +118,13 @@ def test_shared_updates_exact_resume_ema_and_rejection_before_mutation():
         assert _hash(resumed.checkpoint()) == snapshot
         for scale in (0., .5, 1.):
             assert torch.isfinite(full.evaluate(strength=scale)).all()
-        assert full.export_inference(selection='ema')['selection'] == 'ema'
+        assert full.export_dummy_inference(selection='ema')['selection'] == 'ema'
 
 
 def test_native_only_inference_after_training_rows_removed(monkeypatch):
     with session() as s:
         s.train()
-        packet = s.export_inference(selection='ema')
+        packet = s.export_dummy_inference(selection='ema')
         native_row = rows()[0]
     # No training factory, teacher cache, critic or optimizer can be reconstructed.
     def forbidden(*args, **kwargs):
@@ -151,13 +151,13 @@ def test_native_only_inference_after_training_rows_removed(monkeypatch):
 def test_preflight_refuses_before_native_hooks(monkeypatch, options):
     def forbidden(*args, **kwargs):
         raise AssertionError('native hooks attached before refusal')
-    monkeypatch.setattr(product, 'LTX25Backend', forbidden)
+    monkeypatch.setattr(product, 'DummyPreviewBackend', forbidden)
     with pytest.raises(ValueError):
         product.backend.open(SessionConfig(product.BACKEND, product.COHORT, **({'dummy':True} | options)), rows=rows())
 
 
 def test_historical_cohort_refused_before_native_hooks(monkeypatch):
-    monkeypatch.setattr(product, 'LTX25Backend', lambda **kw: pytest.fail('hooks attached'))
+    monkeypatch.setattr(product, 'DummyPreviewBackend', lambda **kw: pytest.fail('hooks attached'))
     with pytest.raises(ValueError, match='historical UNI'):
         product.backend.open(SessionConfig(product.BACKEND, 'ltx25_uni_embed', dummy=True), rows=rows())
 
@@ -167,14 +167,14 @@ def test_builder_tamper_refused_before_native_hooks(monkeypatch):
     original = gate._sha
     monkeypatch.setattr(gate, '_sha', lambda path: '0' * 64
         if Path(path).name == 'hndl_networks.py' else original(path))
-    monkeypatch.setattr(product, 'LTX25Backend', lambda **kw: pytest.fail('hooks attached'))
+    monkeypatch.setattr(product, 'DummyPreviewBackend', lambda **kw: pytest.fail('hooks attached'))
     with pytest.raises(ValueError, match='builder closure'):
         product.backend.open(product.config(), rows=rows())
 
 
 def test_native_helper_source_tamper_refused_before_native_hooks(monkeypatch):
     monkeypatch.setitem(product.NATIVE_SOURCES, 'ltx25_uni.py', '0' * 64)
-    monkeypatch.setattr(product, 'LTX25Backend', lambda **kw: pytest.fail('hooks attached'))
+    monkeypatch.setattr(product, 'DummyPreviewBackend', lambda **kw: pytest.fail('hooks attached'))
     with pytest.raises(ValueError, match='native helper source cohort'):
         product.backend.open(product.config(), rows=rows())
 
@@ -207,7 +207,7 @@ def test_native_adapter_matches_existing_backend_output_and_parameter_vjp():
 
 def test_changed_factory_source_artifact_refused_before_native_hooks(monkeypatch):
     with session() as s:
-        packet = s.export_inference()
+        packet = s.export_dummy_inference()
     packet['specification']['factory_sources']['prepare'] = '0' * 64
     packet['sha256'] = _hash({k:v for k,v in packet.items() if k != 'sha256'})
     monkeypatch.setattr(product, 'make_native', lambda *args: pytest.fail('hooks attached'))
@@ -224,8 +224,8 @@ def test_core_does_not_admit_connector_tensor_or_wide_vector():
 def test_close_restores_host_forward_methods():
     s = session()
     adapter = s.game.backend
-    hosts = list(adapter._hosts)
-    originals = [leaf.org_forward for leaf in adapter.backend.network.loras]
+    hosts = list(adapter.ledger.hosts)
+    originals = [adapter.ledger.forwards[host] for _, host in hosts]
     s.close()
     s.close()
     assert [host.forward for _, host in hosts] == originals
@@ -238,3 +238,170 @@ def test_installed_package_has_exact_opt_in_dependency_and_entry_points():
     assert any('4abc0eb03a4e3a84fc3e6d02734c13dc7e8ea231' in req and '[hypergan-hndl]' in req for req in dist.requires)
     assert {ep.group for ep in dist.entry_points} == {
         'particle_sliders.response_backends', 'particle_sliders.inference_backends'}
+
+
+def test_identical_neutral_conditions_ignore_row_index_and_teacher_content():
+    from particle_sliders_ltx25_dummy_preview.ltx25_backend import _masked_token_pool
+    data = rows()
+    data[1] = replace(data[1], positive='person laughing')
+    with open_response(product.config(steps=2), rows=data) as s:
+        assert torch.equal(s.game.conditions[0], s.game.conditions[1])
+        adapter = s.game.backend
+        packed = adapter._pack(data[0].neutral, data[0], 0.)
+        expected = torch.cat((_masked_token_pool(packed.encoder_hidden_states,
+            packed.encoder_attention_mask, 1).squeeze(1), packed.timestep.float().mean().reshape(1,1)/1000.), 1)
+        assert torch.equal(s.game.conditions[0:1], expected)
+        assert s.game.conditions.shape == (2, 9)
+        changed = adapter.prepare(replace(data[1], neutral='another subject sitting'))
+        assert not torch.equal(changed.condition, s.game.conditions[0:1])
+        assert not changed.condition.requires_grad
+
+
+def test_unowned_trainable_base_is_rejected_and_all_base_weights_remain_fixed():
+    with session() as s:
+        adapter = s.game.backend
+        initial = [_hash(root.state_dict()) for root in adapter.ledger.roots]
+        s.step()
+        assert initial == [_hash(root.state_dict()) for root in adapter.ledger.roots]
+        parameter = adapter.backend.transformer.proj_in.weight
+        parameter.requires_grad_(True)
+        with pytest.raises(ValueError, match='unowned trainable'):
+            adapter.generated(s.game.rows[0])
+        assert parameter.grad is None
+        parameter.requires_grad_(False)
+
+
+def assert_restored(ledger):
+    assert ledger.closed
+    for host, forward in ledger.forwards.items():
+        assert host.forward == forward
+    for module, (mode, modules, parameters, buffers, nonpersistent) in ledger.modules.items():
+        assert module.training == mode
+        assert module._modules == modules and module._parameters == parameters
+        assert module._buffers == buffers and module._non_persistent_buffers_set == nonpersistent
+    for parameter, (requires_grad, gradient) in ledger.parameters.items():
+        assert parameter.requires_grad == requires_grad and parameter.grad is gradient
+    assert ledger.native.network is ledger.network_before
+
+
+def test_close_restores_modes_flags_gradients_even_after_leaf_list_truncation(monkeypatch):
+    original = product.DummyLTX2Transformer
+    def mixed_transformer():
+        model = original()
+        model.proj_in.eval()
+        model.proj_out.weight.requires_grad_(False)
+        model.proj_in.weight.grad = torch.ones_like(model.proj_in.weight)
+        return model
+    monkeypatch.setattr(product, 'DummyLTX2Transformer', mixed_transformer)
+    adapter = product.make_native({'dummy':True})
+    ledger = adapter.ledger
+    assert all(not p.requires_grad for p in ledger.parameters)
+    assert all(not module.training for module in ledger.modules)
+    adapter.backend.network.loras.pop()
+    adapter.close()
+    adapter.close()
+    assert_restored(ledger)
+
+
+@pytest.mark.parametrize('failure', ['attach', 'metadata', 'response', 'inference_identity'])
+def test_factory_failure_rolls_back_every_recorded_host(monkeypatch, failure):
+    captured = []
+    original = product.NativeLedger
+    class CaptureLedger(original):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            captured.append(self)
+    monkeypatch.setattr(product, 'NativeLedger', CaptureLedger)
+    def fail(*args, **kwargs):
+        raise RuntimeError('injected factory failure')
+    if failure == 'attach':
+        attach = product.ModuleLoRANetwork
+        def partial(hosts, **options):
+            attach(hosts[:2], **options)
+            raise RuntimeError('injected factory failure')
+        monkeypatch.setattr(product, 'ModuleLoRANetwork', partial)
+    elif failure == 'metadata':
+        monkeypatch.setattr(product, '_hash', fail)
+    elif failure == 'response':
+        monkeypatch.setattr(product, 'VideoResponse', fail)
+    else:
+        # Build a valid spec before inducing failure in inference identity construction.
+        with session() as training:
+            spec = training.binding.dummy_specification
+        captured.clear()
+        monkeypatch.setattr(product, 'native_identity', fail)
+        with pytest.raises(RuntimeError, match='injected'):
+            product.prepare_inference({}, spec)
+        assert len(captured) == 1
+        assert_restored(captured[0])
+        return
+    with pytest.raises(RuntimeError, match='injected'):
+        product.make_native({'dummy':True})
+    assert len(captured) == 1
+    assert_restored(captured[0])
+
+
+def test_unexpected_base_registration_is_rejected_and_removed_on_rollback(monkeypatch):
+    captured = []
+    original = product.DummyPreviewBackend
+    class Rogue(original):
+        def _init_dummy(self):
+            super()._init_dummy()
+            captured.append(self.ledger)
+            self.encoder.register_parameter('unowned_extra', nn.Parameter(torch.zeros(1)))
+    monkeypatch.setattr(product, 'DummyPreviewBackend', Rogue)
+    with pytest.raises(ValueError, match='registration differs'):
+        product.make_native({'dummy':True})
+    assert_restored(captured[0])
+    assert not hasattr(captured[0].native.encoder, 'unowned_extra')
+
+
+def test_dummy_labels_and_generic_native_export_refusal():
+    from particle_sliders.lifecycle import UnsupportedOperation
+    with session() as s:
+        assert 'dummy' in s.config.backend and 'dummy' in s.config.cohort
+        assert s.capabilities.response_kind.startswith('dummy-')
+        with pytest.raises(UnsupportedOperation, match='cannot export a native model'):
+            s.export_inference()
+        from particle_sliders.inference import export_inference
+        with pytest.raises(UnsupportedOperation, match='InferenceSpec'):
+            export_inference(s)
+        assert s.binding.inference is None
+        packet = s.export_dummy_inference()
+        assert packet['specification']['identity']['model']['qualification'] == 'dummy-preview-only'
+        assert packet['specification']['identity']['model']['model_id'] == product.DUMMY_MODEL
+        assert 'dummy' in packet['origin']['cohort']
+
+
+@pytest.mark.parametrize('target', ['core', 'product'])
+def test_changed_exact_runtime_sources_rejected_before_hooks(tmp_path, monkeypatch, target):
+    import shutil
+    import particle_sliders_ltx25_dummy_preview._admission as admission
+    root = admission.CORE_ROOT if target == 'core' else admission.PRODUCT_ROOT
+    for path in root.iterdir():
+        if path.is_file():
+            shutil.copyfile(path, tmp_path / path.name)
+    name = 'lifecycle.py' if target == 'core' else 'binding.py'
+    path = tmp_path / name
+    path.write_bytes(path.read_bytes() + b'\n# unqualified source change\n')
+    monkeypatch.setattr(admission, 'CORE_ROOT' if target == 'core' else 'PRODUCT_ROOT', tmp_path)
+    monkeypatch.setattr(product, 'DummyPreviewBackend', lambda **kw: pytest.fail('hooks attached'))
+    with pytest.raises(ValueError, match='exact ' + target + ' runtime source closure'):
+        product.make_native({'dummy':True})
+
+
+def test_unique_installed_namespace_has_no_conceptmod_imports():
+    import sys
+    assert product.__package__ == 'particle_sliders_ltx25_dummy_preview'
+    assert not any(key == 'conceptmod' or key.startswith('conceptmod.') for key in sys.modules)
+
+
+def test_changed_dummy_artifact_runtime_identity_rejected_before_hooks(monkeypatch):
+    from particle_sliders.inference import InferenceSpec
+    with session() as s:
+        descriptor = s.export_dummy_inference()['specification']
+    descriptor['identity']['model']['runtime']['admission_sha256'] = '0' * 64
+    spec = InferenceSpec(descriptor)
+    monkeypatch.setattr(product, 'make_native', lambda *args: pytest.fail('hooks attached'))
+    with pytest.raises(ValueError, match='runtime/source identity differs before hooks'):
+        product.prepare_inference({}, spec)

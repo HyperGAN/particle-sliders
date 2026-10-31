@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "particle-sliders-ltx25-modern-preview"
-version = "0.1.0"
+version = "0.2.0"
 description = "Opt-in CPU-qualified experimental LTX video-field GAN cohort"
 readme = "README.md"
 requires-python = ">=3.11,<3.15"
@@ -16,16 +16,11 @@ dependencies = [
 ]
 
 [project.entry-points."particle_sliders.response_backends"]
-ltx25-modern-video-gan = "conceptmod.textsliders.ltx25_gan:backend"
+ltx25-dummy-video-gan-preview = "particle_sliders_ltx25_dummy_preview.binding:backend"
 
 [project.entry-points."particle_sliders.inference_backends"]
-ltx25-modern-video-gan = "conceptmod.textsliders.ltx25_gan:inference_backend"
+ltx25-dummy-video-gan-preview = "particle_sliders_ltx25_dummy_preview.binding:inference_backend"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-py-modules = [
-  "conceptmod.textsliders.ltx25_gan",
-  "conceptmod.textsliders.ltx25_backend",
-  "conceptmod.textsliders.ltx25_uni",
-  "conceptmod.textsliders.slider_targets",
-]
+packages = ["particle_sliders_ltx25_dummy_preview"]

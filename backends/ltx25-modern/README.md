@@ -1,10 +1,11 @@
-# LTX modern GAN preview
+# LTX dummy CPU preview
 
-Explicit opt-in CPU fixture distribution. Historical LTX UNI remains unchanged.
-Install from this repository with `pip install ./backends/ltx25-modern` in a new
-environment. The build stages four selected native modules without maintaining
-duplicate source files; both wheels and source archives are self-contained.
+Opt-in version0.2.0 fixture distribution. Historical LTX UNI remains unchanged.
+Install `./backends/ltx25-modern` in a new environment. The unique installed
+namespace is `particle_sliders_ltx25_dummy_preview`; no `conceptmod` files are
+installed. Builds stage selected sources, count-check namespace transformations,
+validate exact source profiles and emit reproducible self-contained artifacts.
 
-See `docs/ltx25-modern-gan.md` in the repository for the exact cohort, native
-geometry, actual HyperGAN/HNDL binding, tests and pretrained/GPU admission gates.
-The preview refuses live model execution. No model weights are included.
+This is not a native/pretrained slider. Live loading and generic native export
+are refused. Only explicit dummy inference artifacts are available. See the
+repository's `docs/ltx25-modern-gan.md` for architecture, tests and remaining gates.
