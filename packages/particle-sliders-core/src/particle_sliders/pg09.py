@@ -573,7 +573,18 @@ class ConditionalPG09:
             model_cpu_rng=self.model_cpu_rng, model_cuda_rng=self.model_cuda_rng))
 
     def load_state_dict(self, state):
-        if state.get('schema') != 'conditional-pg09-v1' or state.get('config') != self._signature:
+        saved_config = state.get('config')
+        if isinstance(saved_config, dict) and any(
+                saved_config.get(key) != self._signature.get(key)
+                for key in ('pg_version', 'pg_source_profile', 'pg_sources_sha256')):
+            raise ValueError(
+                'checkpoint PG source/cohort mismatch (PG '
+                + str(saved_config.get('pg_version')) + ', profile '
+                + str(saved_config.get('pg_source_profile'))
+                + '); resume with the original pinned particle-sliders-core/ParticleGAN '
+                'source environment. Use a fresh cohort for this release; '
+                'automatic checkpoint migration is not supported')
+        if state.get('schema') != 'conditional-pg09-v1' or saved_config != self._signature:
             raise ValueError('checkpoint objective, recipe, domain, source or conditioning mismatch')
         if type(state['completed_steps']) is not int or not 0 <= state['completed_steps'] <= self.recipe.total_steps:
             raise ValueError('invalid checkpoint step')

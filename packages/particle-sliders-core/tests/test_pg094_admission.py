@@ -34,8 +34,10 @@ def test_previous_release_checkpoint_identity_refuses_transactionally(key, value
     before = game.state_dict()
     wrong = deepcopy(before)
     wrong['config'][key] = value
-    with pytest.raises(ValueError, match='mismatch'):
+    with pytest.raises(ValueError, match='mismatch') as refused:
         game.load_state_dict(wrong)
+    assert 'original pinned particle-sliders-core/ParticleGAN source environment' in str(refused.value)
+    assert 'fresh cohort' in str(refused.value)
     equal(before, game.state_dict())
 
 
