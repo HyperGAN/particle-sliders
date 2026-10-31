@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=84.2.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "particle-sliders-sd3-shared"
+version = "0.1.0"
+description = "Opt-in SD3 spatial-response shared PG094 HyperGAN HNDL cohort"
+requires-python = ">=3.11,<3.15"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = [
+  "particle-sliders-core[hypergan-hndl] @ git+https://github.com/HyperGAN/particle-sliders.git@7a8a321d04323d49319d0b08e6093a0ddce36b27#subdirectory=packages/particle-sliders-core",
+  "torch==2.14.1",
+  "diffusers==0.38.0",
+  "transformers==4.57.6",
+  "safetensors==0.8.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8", "build"]
+
+[project.entry-points."particle_sliders.image_backends"]
+sd3-shared-hndl010 = "particle_sliders_sd3_shared.backend:BACKEND"
+
+[project.entry-points."particle_sliders.inference_backends"]
+sd3-shared-hndl010 = "particle_sliders_sd3_shared.backend:INFERENCE"
+
+[project.scripts]
+sd3-shared-slider = "particle_sliders_sd3_shared.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+particle_sliders_sd3_shared = ["*.json", "*.hndl"]
