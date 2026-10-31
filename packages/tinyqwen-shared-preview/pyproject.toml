@@ -4,23 +4,21 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tinyqwen-shared-preview"
-version = "0.1.0"
+version = "0.2.0"
 description = "Bounded TinyQwen shared ParticleGAN / HyperGAN / HNDL CPU preview"
 requires-python = ">=3.11,<3.15"
 dependencies = ["particle-sliders-core[hypergan-hndl]==0.12.0"]
 
 [project.entry-points."particle_sliders.response_backends"]
-tinyqwen-shared-preview = "conceptmod.textsliders.tiny_llm_shared:BACKEND"
+tinyqwen-shared-preview = "tinyqwen_shared_preview.binding:BACKEND"
 
 [project.entry-points."particle_sliders.inference_backends"]
-tinyqwen-shared-preview = "conceptmod.textsliders.tiny_llm_shared:INFERENCE"
+tinyqwen-shared-preview = "tinyqwen_shared_preview.binding:INFERENCE"
 
 [tool.hatch.build.targets.wheel]
-packages = []
+packages = ["src/tinyqwen_shared_preview"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"../../conceptmod/__init__.py" = "conceptmod/__init__.py"
-"../../conceptmod/textsliders/__init__.py" = "conceptmod/textsliders/__init__.py"
-"../../conceptmod/textsliders/tiny_llm_backend.py" = "conceptmod/textsliders/tiny_llm_backend.py"
-"../../conceptmod/textsliders/tiny_llm_shared.py" = "conceptmod/textsliders/tiny_llm_shared.py"
-"../../conceptmod/textsliders/tiny_llm_shared.lock.json" = "conceptmod/textsliders/tiny_llm_shared.lock.json"
+# Reuse the archived host/fixture source byte-for-byte in our unique namespace.
+# Never install or own conceptmod/__init__.py or any umbrella module path.
+"../../conceptmod/textsliders/tiny_llm_backend.py" = "tinyqwen_shared_preview/backend.py"

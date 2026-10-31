@@ -53,9 +53,18 @@
   },
   "core_wheel_sha256": "9afad3afc1f6c653a574074dc14f0da1f1c43975c31ca45c4eac049df0b0b4ad",
   "hndl": "0.10.0",
+  "host_source": {
+    "repository_path": "conceptmod/textsliders/tiny_llm_backend.py",
+    "sha256": "1462e04af8e037654a4ece6e5b1db7491ae5aa272f43dcb568447e13ef5acdf4"
+  },
   "hypergan": "5f368a3770cf5bdae0448995c9f76e29af8049f7",
   "native_hidden_width": 1024,
   "native_qualified": false,
   "pg": "0.9.4",
-  "schema": "tinyqwen-shared-preview-lock-v1"
+  "product_sources": {
+    "__init__.py": "41f327b4508087629ae0420c9f098e60a273a8567b7f181a2887b1e0b77ff6e0",
+    "backend.py": "1462e04af8e037654a4ece6e5b1db7491ae5aa272f43dcb568447e13ef5acdf4",
+    "binding.py": "54293f183d2eb7bd8b5e5a1755c2453fab85c6bccb1b3bae437ab03a0a73df82"
+  },
+  "schema": "tinyqwen-shared-preview-lock-v2"
 }

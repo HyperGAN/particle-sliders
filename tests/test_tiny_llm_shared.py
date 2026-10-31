@@ -8,6 +8,8 @@ import os
 from types import SimpleNamespace
 from pathlib import Path
 import sys
+import subprocess
+import zipfile
 
 import pytest
 import torch
@@ -18,8 +20,8 @@ try:
 except PackageNotFoundError:
     pytest.skip('separate TinyQwen shared preview wheel is not installed', allow_module_level=True)
 
-from conceptmod.textsliders import tiny_llm_shared as product
-from conceptmod.textsliders.tiny_llm_backend import TinyLLMBackend, DummyTinyCausalLM
+from tinyqwen_shared_preview import binding as product
+from tinyqwen_shared_preview.backend import TinyLLMBackend, DummyTinyCausalLM
 from particle_sliders.fibo_hndl import HNDLParticleProjection
 from particle_sliders.inference import open_inference
 from particle_sliders.lifecycle import CheckpointError, UnsupportedOperation
@@ -67,6 +69,8 @@ def test_installed_wheel_and_registry_no_optional_model_imports():
     assert not torch.cuda.is_initialized()
     assert 'transformers' not in sys.modules
     assert 'conceptmod.textsliders.particle_bridge_gan' not in sys.modules
+    assert 'conceptmod' not in sys.modules
+    assert all(not str(p).startswith('conceptmod/') for p in distribution('tinyqwen-shared-preview').files)
     builder, identity = product.verify_runtime()
     assert builder.__module__ == 'hypergan.hndl_networks'
     assert identity['hndl_version'] == '0.10.0'
@@ -366,7 +370,7 @@ def test_rng_observation_capabilities_and_invalid_inputs():
         equal(torch.get_rng_state(), after_update)
         artifact = s.export_inference()
         assert set(artifact) == {'schema','specification','origin','selection','network','sha256'}
-        for strength in (-1,float('nan'),1.1):
+        for strength in (float('nan'),float('inf'),-float('inf')):
             with pytest.raises(UnsupportedOperation):
                 s.evaluate(strength=strength)
         with pytest.raises(UnsupportedOperation):
@@ -377,8 +381,13 @@ def test_rng_observation_capabilities_and_invalid_inputs():
                 inference.response(ids=ids)
 
 
-def test_close_conflict_preserves_ownership_and_can_retry():
+def test_close_conflict_restores_all_safe_hooks_and_borrowed_state_then_retries():
     backend = TinyLLMBackend(dummy=True)
+    backend.model.train().requires_grad_(True)
+    backend.model.model.layers[0].mlp.eval()
+    next(backend.model.parameters()).requires_grad_(False)
+    modes = [(m,m.training) for m in backend.model.modules()]
+    flags = [(p,p.requires_grad) for p in backend.model.parameters()]
     slider = product.TinyQwenHNDLSlider(backend.model)
     module, _, adapter = slider._hosts[0]
     wrapped = module.forward
@@ -387,10 +396,258 @@ def test_close_conflict_preserves_ownership_and_can_retry():
     with pytest.raises(RuntimeError,match='ownership changed'):
         slider.close()
     assert module.forward is replacement
-    assert all(m.forward == a.forward for m,_,a in slider._hosts[1:])
+    assert all(m.forward == original for m,original,_ in slider._hosts[1:])
+    assert all(m.training == v for m,v in modes)
+    assert all(p.requires_grad == v for p,v in flags)
+    assert slider.cleanup_pending == dict(forwards=[slider.target_names[0]],native_state=[])
+    assert all(a.multiplier == 0 for a in slider.adapters.values())
+    with pytest.raises(RuntimeError,match='cleanup is pending'):
+        with slider.scaled(1):
+            pass
     module.forward = wrapped
     slider.close()
+    assert slider.cleanup_pending == dict(forwards=[],native_state=[])
     slider.close()
     with pytest.raises(RuntimeError,match='closed'):
         with slider.scaled(1):
             pass
+
+
+def test_checkpoint_close_failure_attempts_every_handle_and_slider_and_retries():
+    backend = TinyLLMBackend(dummy=True)
+    backend.model.train().requires_grad_(True)
+    modes = [(m,m.training) for m in backend.model.modules()]
+    flags = [(p,p.requires_grad) for p in backend.model.parameters()]
+    slider = product.TinyQwenHNDLSlider(backend.model)
+    native = product.TinyQwenResponse(backend,slider,model_identity={'qualification':'CPU fixture'})
+    failure = RuntimeError('checkpoint close failed')
+    calls = []
+    class Handle:
+        def __init__(self,name,fail=False):
+            self.name,self.fail = name,fail
+        def close(self):
+            calls.append(self.name)
+            if self.fail:
+                self.fail = False
+                raise failure
+    bad, good = Handle('bad',True), Handle('good')
+    native._checkpointing = [bad,good]
+    module, _, adapter = slider._hosts[0]
+    wrapped = module.forward
+    module.forward = lambda x:x
+    with pytest.raises(RuntimeError) as caught:
+        native.close()
+    assert caught.value is failure
+    assert calls == ['good','bad']
+    assert native._checkpointing == [bad]
+    assert len(native._cleanup_errors) == 2
+    assert all(m.training == v for m,v in modes)
+    assert all(p.requires_grad == v for p,v in flags)
+    assert all(m.forward == original for m,original,_ in slider._hosts[1:])
+    module.forward = wrapped
+    native.close()
+    assert calls == ['good','bad','bad']
+    assert native.cleanup_pending == dict(checkpoint_handles=0,slider=dict(forwards=[],native_state=[]))
+    assert native._cleanup_errors == ()
+
+
+def test_prepare_preserves_original_error_and_retains_cleanup_owner(monkeypatch):
+    native = product._native({'fixture':True})
+    failure = ValueError('original preparation failure')
+    cleanup_error = RuntimeError('cleanup failed')
+    class Handle:
+        fail=True
+        def close(self):
+            if self.fail:
+                self.fail=False
+                raise cleanup_error
+    handle = Handle()
+    native._checkpointing=[handle]
+    monkeypatch.setattr(product,'_native',lambda options:native)
+    def fail(row):
+        raise failure
+    monkeypatch.setattr(native,'prepare',fail)
+    with pytest.raises(ValueError) as caught:
+        product.prepare({'fixture':True},rows=ROWS)
+    assert caught.value is failure
+    assert failure.cleanup_owner is native
+    assert failure.cleanup_errors == (cleanup_error,)
+    assert native._checkpointing == [handle]
+    assert native.slider._closed
+    assert all(m.forward == original for m,original,_ in native.slider._hosts)
+    failure.cleanup_owner.close()
+    assert native._checkpointing == []
+
+
+def test_state_restoration_failure_does_not_skip_other_actions_and_is_retryable():
+    backend = TinyLLMBackend(dummy=True)
+    backend.model.train().requires_grad_(True)
+    slider = product.TinyQwenHNDLSlider(backend.model)
+    calls=[]
+    failure=RuntimeError('state restore failed')
+    def bad():
+        calls.append('bad')
+        raise failure
+    slider._state_cleanup += [('failing',bad),('other',lambda:calls.append('other'))]
+    with pytest.raises(RuntimeError) as caught:
+        slider.close()
+    assert caught.value is failure
+    assert calls == ['other','bad']
+    assert backend.model.training and all(p.requires_grad for p in backend.model.parameters())
+    assert all(m.forward == original for m,original,_ in slider._hosts)
+    assert slider.cleanup_pending == dict(forwards=[],native_state=['failing'])
+    slider._state_cleanup[0]=('failing',lambda:calls.append('retry'))
+    slider.close()
+    assert calls[-1]=='retry' and slider._closed
+
+
+@pytest.mark.parametrize('width',[16,32])
+def test_critic_width_and_graph_condition_identity_follow_native_config(width):
+    with session(fixture_width=width) as s:
+        native=s.game.backend
+        assert native.model.config.hidden_size==width
+        assert s.game.critic.graph['hidden'].in_features==width+(width+4)
+        assert s.game.response_shape==(1,width)
+        contract=product._readout_contract(width,width+4)
+        packet=s.checkpoint()
+        signature=packet['manifest']['game_signature']
+        assert signature['backend']['model_identity']['readout_contract']==contract
+        assert signature['conditions_sha256']==_hash(s.game.conditions)
+        tree=signature['architectures']['critic']['tree']
+        assert json.loads(tree[0][2])['readout_contract']==contract
+        artifact=s.export_inference()
+        assert artifact['specification']['identity']['model']['readout_contract']==contract
+        s.train(stop_after=1)
+        with open_inference(s.export_inference(),operation='response') as i:
+            assert i.response(ids=ROWS[0]['neutral_ids']).shape==(1,width)
+
+
+def test_changed_readout_graph_width_and_condition_identity_rejected_before_hooks(monkeypatch):
+    with session() as s:
+        artifact=s.export_inference()
+    attach_calls=[]
+    original=product.TinyQwenHNDLSlider
+    def track(model,*,attach=True):
+        attach_calls.append(attach)
+        return original(model,attach=attach)
+    monkeypatch.setattr(product,'TinyQwenHNDLSlider',track)
+    for key,value in [('response_width',16),('condition_width',37),('graph','different'),
+                      ('condition_layout',['row-number'])]:
+        bad=deepcopy(artifact)
+        bad['specification']['identity']['model']['readout_contract'][key]=value
+        bad['sha256']=_hash({k:v for k,v in bad.items() if k!='sha256'})
+        with pytest.raises(ValueError,match='before attachment'):
+            open_inference(bad,operation='response')
+    assert attach_calls==[False]*4
+
+
+@pytest.mark.parametrize('name',['backend.py','binding.py','__init__.py'])
+def test_product_imported_closure_tamper_rejected_before_native_load(name,monkeypatch):
+    digest=product._digest
+    monkeypatch.setattr(product,'_digest',lambda p:'0'*64 if Path(p)==product.ROOT/name else digest(p))
+    monkeypatch.setattr(product,'_native',lambda *a,**k:pytest.fail('native constructed'))
+    with pytest.raises(ValueError,match='product/host source closure'):
+        open_response(product.config(fixture=True),rows=ROWS)
+
+
+@pytest.mark.parametrize('receipt',[
+    {},
+    {'archive_info':{'hashes':{'sha256':'0'*64}}},
+    {'url':'https://github.com/HyperGAN/particle-sliders.git','subdirectory':'packages/particle-sliders-core',
+     'vcs_info':{'vcs':'git','commit_id':'0'*40}},
+    {'url':'https://github.com/unrelated/project.git','subdirectory':'packages/particle-sliders-core',
+     'vcs_info':{'vcs':'git','commit_id':'4abc0eb03a4e3a84fc3e6d02734c13dc7e8ea231'}},
+])
+def test_exact_core_install_provenance_rejected_before_hooks(receipt,monkeypatch):
+    class Dist:
+        version='0.12.0'
+        def read_text(self,name):
+            assert name=='direct_url.json'
+            return json.dumps(receipt)
+    monkeypatch.setattr(product,'distribution',lambda name:Dist())
+    monkeypatch.setattr(product,'_native',lambda *a,**k:pytest.fail('native constructed'))
+    with pytest.raises(ValueError,match='wheel hash or immutable Git origin'):
+        open_response(product.config(fixture=True),rows=ROWS)
+
+
+def test_exact_core_git_receipt_and_actual_wheel_receipt_are_checked(monkeypatch):
+    lock=json.loads((product.ROOT/'sources.lock.json').read_text())
+    wheel=product._core_install_receipt(lock)
+    assert wheel['kind']=='wheel' and wheel['sha256']==lock['core_wheel_sha256']
+    class Dist:
+        version='0.12.0'
+        def read_text(self,name):
+            return json.dumps(dict(url='https://github.com/HyperGAN/particle-sliders.git',
+                subdirectory='packages/particle-sliders-core',vcs_info=dict(vcs='git',commit_id=lock['core_commit'])))
+    monkeypatch.setattr(product,'distribution',lambda name:Dist())
+    assert product._core_install_receipt(lock)==dict(kind='git',commit=lock['core_commit'])
+
+
+def test_inference_and_evaluation_disable_autograd_but_training_keeps_it(monkeypatch):
+    with session() as s:
+        seen=[]
+        original=product.TinyQwenResponse._hidden
+        def hidden(self,ids):
+            seen.append(torch.is_grad_enabled())
+            return original(self,ids)
+        monkeypatch.setattr(product.TinyQwenResponse,'_hidden',hidden)
+        s.evaluate()
+        assert seen==[False]
+        seen.clear()
+        # Shared training path still builds the adapter gradient graph.
+        with s.game.network.scaled(1):
+            out=s.game.backend.generated(s.game.rows[0])
+        assert seen==[True] and out.requires_grad
+        artifact=s.export_inference()
+    seen.clear()
+    with torch.enable_grad(),open_inference(artifact,operation='response') as inference:
+        result=inference.response(ids=ROWS[0]['neutral_ids'])
+        assert seen==[False]
+        assert not result.requires_grad and result.grad_fn is None
+
+
+def test_supported_strength_semantics_include_signed_and_extrapolated_finite_scales():
+    with session() as s:
+        s.train(stop_after=2)
+        cap=s.capabilities
+        assert cap.strength_min is None and cap.strength_max is None
+        native=s.game.backend
+        adapter=next(iter(native.slider.adapters.values()))
+        x=torch.randn(1,2,adapter.input_width)
+        with torch.no_grad():
+            with native.slider.scaled(1):
+                delta=adapter(x)-adapter.org_forward(x)
+            for strength in (-2.,-1.,0.,.5,1.,2.):
+                with native.slider.scaled(strength):
+                    torch.testing.assert_close(adapter(x),adapter.org_forward(x)+delta*strength,rtol=1e-4,atol=1e-6)
+        probes={strength:s.evaluate(strength=strength) for strength in (-1.,0.,.5,1.,2.)}
+        artifact=s.export_inference()
+    with open_inference(artifact,operation='response') as i:
+        for strength,value in probes.items():
+            equal(i.response(ids=ROWS[0]['neutral_ids'],strength=strength),value)
+        for strength in (float('nan'),float('inf'),-float('inf')):
+            with pytest.raises(UnsupportedOperation):
+                i.response(ids=ROWS[0]['neutral_ids'],strength=strength)
+
+
+def test_wheel_owns_only_unique_namespace_and_preserves_umbrella_on_install(tmp_path):
+    wheel=Path(os.environ['TINYQWEN_WHEEL'])
+    with zipfile.ZipFile(wheel) as z:
+        names=z.namelist()
+        assert all(n.startswith(('tinyqwen_shared_preview/','tinyqwen_shared_preview-')) for n in names)
+        assert 'tinyqwen_shared_preview/backend.py' in names
+        assert not any(n.startswith('conceptmod/') for n in names)
+    target=tmp_path/'site'
+    umbrella=target/'conceptmod'
+    umbrella.mkdir(parents=True)
+    init=umbrella/'__init__.py'
+    marker=b"UMBRELLA_OWNER='preserved'\n"
+    init.write_bytes(marker)
+    subprocess.run([sys.executable,'-m','pip','install','--no-deps','--no-index','--upgrade',
+                    '--target',str(target),str(wheel)],check=True,capture_output=True,text=True)
+    assert init.read_bytes()==marker
+    env=dict(os.environ,PYTHONPATH=str(target))
+    result=subprocess.run([sys.executable,'-c',
+        'import conceptmod; import tinyqwen_shared_preview.binding; assert conceptmod.UMBRELLA_OWNER == "preserved"'],
+        cwd=tmp_path,env=env,capture_output=True,text=True)
+    assert result.returncode==0,result.stderr
