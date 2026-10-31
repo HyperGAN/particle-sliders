@@ -39,18 +39,43 @@
     "requirements-dev.txt": "cf1b824052828d5db123a1e4bc858527bfdd0f708f6f9f515c0829f2c936d853",
     "tests/test_zimage_slider.py": "cfa8a8b42e8f34abc5b4e311087c05d2d930da14a9a0cf6b6a2e6cf217925fdf"
   },
+  "initialization_followup": {
+    "cohort": "embedded-zimage-adapter-gan-pg094-hg-hndl010-v3",
+    "core7a8_status": "held and unchanged; no admission",
+    "different_seed_positive_control": "adapter and critic parameters differ",
+    "native_guidance0": "unchanged raw conditional response; shared guidance1",
+    "native_response_row_protocol": "embedded-zimage-native-4d-raw-velocity-v2",
+    "policy": "scoped-cpu-initialization-streams-v1",
+    "previous_head": "a8912247cead52a84f0fcfc964e5d5a5812f6dec",
+    "previous_unseeded_checkpoints": "refused by new cohort; retain original source pin, no relabeling",
+    "return_review_required": true,
+    "rng_restoration": "direct training and inference factory success/failure; CPU state restored; CUDA initialization/RNG/device-discovery calls forbidden in CPU cases",
+    "same_seed_different_caller_rng": "complete initial checkpoint hashes and all state equal, including borrowed/loaded bases",
+    "seed7_identity": {
+      "device": "cpu",
+      "policy": "scoped-cpu-initialization-streams-v1",
+      "seed": 7,
+      "streams": {
+        "adapter": 7,
+        "critic": 8,
+        "native_loader": 9,
+        "preparation": 10
+      }
+    },
+    "version": "0.1.2"
+  },
   "installed_product_bytes_match_source": true,
   "product_sha256": {
     "__init__.py": "680ae25dcb1fc87414de1fe7ee27cbeb19762d167f0ee64f9d7e7ef4ff250af4",
-    "backend.py": "5a8b19fa470524635c6b91ff4de0f4173f6a988f5c7d0a0355ff606b7199bcd5",
+    "backend.py": "6cdf3b15dabdfc45c7f04b38927a9b2ca67fc5fe449ee51bc4e91f3cd44acbb0",
     "cli.py": "753900495cc6bcbd9364503e20bc0ed17c9320bcb4c8da021c117dd58920ca6c",
     "graphs.py": "930e8691f295359a085cbbe957aff7f53d413eadf4c318e341500bed1d835683",
     "source_profile.json": "bbb4818820124953a9f4f238bab772dcdc088c3b52a2a34ea9e8e230c55438cf"
   },
   "results": {
-    "clean_public_sdist": "29 passed in 14.97s",
-    "historical_zimage": "16 passed in 0.79s",
-    "installed_wheel": "29 passed in 15.00s",
+    "clean_public_sdist": "36 passed in 16.69s",
+    "historical_zimage": "16 passed in 0.82s",
+    "installed_wheel": "36 passed in 16.77s",
     "pip_check": "No broken requirements found."
   },
   "review_followup": {
@@ -70,7 +95,7 @@
   },
   "versions": {
     "diffusers": "0.42.1",
-    "embedded-zimage-shared-preview": "0.1.1",
+    "embedded-zimage-shared-preview": "0.1.2",
     "hndl": "0.10.0",
     "hypergan": "2.0.0",
     "particle-sliders-core": "0.12.0",

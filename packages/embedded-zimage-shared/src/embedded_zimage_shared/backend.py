@@ -18,6 +18,7 @@ from diffusers import ZImageTransformer2DModel
 from diffusers.models.transformers.transformer_z_image import ZSingleStreamAttnProcessor
 
 from particle_sliders.fibo_hndl import HNDLFieldCritic, verified_builder
+from particle_sliders.field_critic import seed_initialization_rng
 from particle_sliders.inference import InferenceBackend, InferenceBinding, native_identity
 from particle_sliders.lifecycle import Binding, native_cleanup, _restore_all
 from particle_sliders.pg094 import ConditionalPG094
@@ -27,7 +28,7 @@ from particle_sliders.response import ResponseBackend, ResponseCapabilities
 from .graphs import GRAPH_SHA256, ZImageLoRA, targets
 
 NAME = 'embedded-zimage-shared'
-COHORT = 'embedded-zimage-adapter-gan-pg094-hg-hndl010-v2'
+COHORT = 'embedded-zimage-adapter-gan-pg094-hg-hndl010-v3'
 PROTOCOL = 'embedded-zimage-native-4d-raw-velocity-v2'
 CORE_COMMIT = '7a8a321d04323d49319d0b08e6093a0ddce36b27'
 CORE_HASHES = {
@@ -35,6 +36,36 @@ CORE_HASHES = {
     'lifecycle.py': 'a584c2ab2c97eb41c2329aa92d8935da4d7d6773e5babf66aea6a492cd855a05',
     'inference.py': 'bd51ec7ae8b512b57f2964f5d5e80a2bd1280083529e17c64726e6ab04494065',
 }
+
+
+INITIALIZATION_POLICY = 'scoped-cpu-initialization-streams-v1'
+
+
+def initialization_identity(seed):
+    if type(seed) is not int or not 0 <= seed < 2**63 - 100:
+        raise ValueError('invalid initialization seed')
+    return dict(policy=INITIALIZATION_POLICY, seed=seed, device='cpu',
+        streams=dict(adapter=seed, critic=seed + 1, native_loader=seed + 2, preparation=seed + 3))
+
+
+def validate_initialization(identity):
+    if not isinstance(identity, dict) or identity != initialization_identity(identity.get('seed')):
+        raise ValueError('initialization policy/seed/streams differ')
+
+
+@contextmanager
+def initialization_scope(identity, component):
+    """CPU-only profile: fork/seed only its admitted CPU initialization stream.
+
+    No CUDA devices are admitted or discovered. CUDA RNG state is untouched;
+    any future accelerator profile requires its own explicit device policy.
+    """
+    validate_initialization(identity)
+    if component not in identity['streams']:
+        raise ValueError('unknown initialization stream')
+    with torch.random.fork_rng(devices=[]):
+        seed_initialization_rng(identity['streams'][component], [])
+        yield
 
 
 HASH_CHUNK_BYTES = 1024 * 1024
@@ -280,9 +311,13 @@ def _model_gate(model, identity):
     targets(model)
 
 
-def _native(options, identity, model=None):
-    model = model if model is not None else ZImageTransformer2DModel.from_pretrained(
-        options['model_dir'], local_files_only=True, torch_dtype=torch.float32, low_cpu_mem_usage=False)
+def _native(options, identity, model=None, *, initialization=None):
+    initialization = initialization_identity(options.get('seed', 7)) if initialization is None else initialization
+    validate_initialization(initialization)
+    if model is None:
+        with initialization_scope(initialization, 'native_loader'):
+            model = ZImageTransformer2DModel.from_pretrained(
+                options['model_dir'], local_files_only=True, torch_dtype=torch.float32, low_cpu_mem_usage=False)
     if any(file_sha256(Path(options['model_dir']) / name) != digest for name,digest in identity['files'].items()):
         raise ValueError('native model file identity changed before attachment')
     _model_gate(model, identity)
@@ -292,7 +327,8 @@ def _native(options, identity, model=None):
         _restore_all(([network.close] if network is not None else []) + [restore])
     try:
         model.requires_grad_(False).eval()
-        network = ZImageLoRA(model)
+        with initialization_scope(initialization, 'adapter'):
+            network = ZImageLoRA(model)
         adapter = ImageResponseAdapter('zimage', model, network, model_identity=identity)
         return adapter, close
     except BaseException:
@@ -312,16 +348,24 @@ def _observe(adapter):
 
 
 def prepare(options, *, model=None):
+    initialization = initialization_identity(options.get('seed', 7))
+    with initialization_scope(initialization, 'preparation'):
+        return _prepare(options, model=model, initialization=initialization)
+
+
+def _prepare(options, *, model, initialization):
     frozen_rows = read_rows(options)  # Recheck complete file before native attachment.
-    adapter, close = _native(options, options['model_identity'], model)
+    adapter, close = _native(options, options['model_identity'], model, initialization=initialization)
     try:
         rows = [adapter.prepare(row) for row in frozen_rows]
         features = image_condition_features(rows)
-        critic = HNDLFieldCritic(options['response_shape'][1], features.shape[1], tuple(options['response_shape'][2:]))
+        with initialization_scope(initialization, 'critic'):
+            critic = HNDLFieldCritic(options['response_shape'][1], features.shape[1], tuple(options['response_shape'][2:]))
         game = ConditionalPG094(adapter, rows, critic, conditions=features,
             preset=options.get('preset', 'bispf_optimized'), total_steps=options.get('steps',4),
             batch_size=options.get('batch',2), seed=options.get('seed',7), response_domain='continuous_field')
-        configuration = dict(model_identity=options['model_identity'], response_shape=options['response_shape'])
+        configuration = dict(model_identity=options['model_identity'], response_shape=options['response_shape'],
+            initialization=initialization)
         spec = INFERENCE_BACKEND.specification(adapter, model_identity=options['model_identity'],
             protocol=PROTOCOL, configuration=configuration)
         return Binding(game, close, inference=spec, observation=_observe(adapter))
@@ -337,6 +381,7 @@ def validate_inference(options, spec):
     if bundle_identity(options['model_dir']) != spec.configuration['model_identity']:
         raise ValueError('native inference base/source identity differs before attachment')
     _shape(spec.configuration['response_shape'])
+    validate_initialization(spec.configuration.get('initialization'))
     source = hashlib.sha256(Path(__file__).with_name('graphs.py').read_bytes()).hexdigest()
     if spec.identity['sources'].get('embedded_zimage_shared.graphs') != source:
         raise ValueError('saved native graph source differs before attachment')
@@ -347,8 +392,14 @@ def inference_capabilities(configuration):
 
 
 def prepare_inference(options, spec):
+    initialization = spec.configuration['initialization']
+    with initialization_scope(initialization, 'preparation'):
+        return _prepare_inference(options, spec, initialization=initialization)
+
+
+def _prepare_inference(options, spec, *, initialization):
     identity = spec.configuration['model_identity']
-    adapter, close = _native(options, identity)
+    adapter, close = _native(options, identity, initialization=initialization)
     try:
         def response(*, condition, latent, timestep, strength, seed):
             check_request(condition, latent, timestep, spec.configuration['response_shape'], identity)

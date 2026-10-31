@@ -111,3 +111,22 @@ update refuses them and never silently relabels them.
 
 Qualification commands and results are recorded in `QUALIFICATION.md`. No model
 weights, package release, deployment, GPU run or merge is part of this preview.
+
+
+## Declared initialization policy
+
+Preview0.1.2 uses cohortv3 and `scoped-cpu-initialization-streams-v1`.
+The declared seed initializes independent CPU streams before construction:
+adapter=`seed`, critic=`seed+1`, local native base loader=`seed+2`, and surrounding
+preparation=`seed+3`. Each scope uses the shared `seed_initialization_rng` inside
+`torch.random.fork_rng(devices=[])`, restoring caller CPU RNG on success/failure.
+This profile admits CPU only: it never discovers, initializes, reads or seeds a
+CUDA RNG; no CUDA initialization behavior is qualified or silently enabled.
+
+The policy/seed/stream descriptor is recorded in native-only artifact configuration
+and validated before attachment. Training identity uses the new cohort and the
+existing declared seed. Earlier unseeded v1/v2 checkpoints require their original
+source pin and are refused rather than relabeled. The native response/row protocol
+remainsv2: cached teacher/neutral data and raw native guidance0 → shared guidance1
+semantics are unchanged. There is still no particle bank in this ordinary adapter
+GAN, and no loss, critic/projection architecture or dependency pin was changed.

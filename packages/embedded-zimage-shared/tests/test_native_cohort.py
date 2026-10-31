@@ -44,8 +44,8 @@ def model():
 
 @pytest.fixture
 def staged(tmp_path):
-    with torch.random.fork_rng():
-        torch.manual_seed(23)
+    with torch.random.fork_rng(devices=[]):
+        torch.default_generator.manual_seed(23)
         native=model()
         native.save_pretrained(tmp_path/'model')
         identity=product.bundle_identity(tmp_path/'model')
@@ -92,7 +92,7 @@ def test_real_hypergan_native_attention_outputs_input_and_all_adapter_vjps(stage
 
 
 def test_shared_hndl_critic_outputs_vjps_and_penalty_second_derivatives():
-    torch.manual_seed(44)
+    torch.default_generator.manual_seed(44)
     old=FieldCritic(4,106);new=HNDLFieldCritic(4,106,(4,4))
     for name,layer in [('field0',old.field[0]),('field2',old.field[2]),('condition',old.condition),('score0',old.score[0]),('score2',old.score[2])]:
         new.graph[name].load_state_dict(layer.state_dict())
@@ -442,7 +442,7 @@ def test_training_paths_are_fixed_but_native_only_export_relocates(staged,tmp_pa
     shutil.rmtree(config.options['model_dir']);Path(config.options['rows']).unlink();moved_rows.unlink()
     request=dict(condition=rows[0]['neutral'],latent=rows[0]['latent'],timestep=rows[0]['timestep'])
     for artifact in (raw,ema):
-        assert set(artifact['specification']['configuration'])=={'model_identity','response_shape'}
+        assert set(artifact['specification']['configuration'])=={'model_identity','response_shape','initialization'}
         with open_inference(artifact,options={'model_dir':str(moved_model)},operation='response') as inference:
             value=inference.response(**request,strength=.5)
             if artifact is raw:assert torch.equal(value,expected)
@@ -472,3 +472,107 @@ def test_native_base_loader_deserializes_once_per_session(staged,monkeypatch):
     with open_response(config) as session:
         assert session.game.response_shape==(1,4,4,4)
     assert calls==[config.options['model_dir']]
+
+
+def test_seeded_initialization_is_independent_of_caller_rng_and_borrowing(staged,monkeypatch):
+    native,rows,config=staged
+    def no_cuda(*args,**kwargs):pytest.fail('CPU qualification must not initialize/seed/read a CUDA RNG')
+    for name in ('init','_lazy_init','device_count','manual_seed','manual_seed_all','get_rng_state','set_rng_state'):
+        monkeypatch.setattr(torch.cuda,name,no_cuda)
+    packets=[]
+    for caller_seed,borrow in ((101,False),(902,False),(305,True)):
+        torch.default_generator.manual_seed(caller_seed);torch.rand(11)
+        before=torch.get_rng_state().clone()
+        staging={'model':deepcopy(native)} if borrow else {}
+        with product.BACKEND.open(config,**staging) as session:
+            packets.append(session.checkpoint())
+            assert torch.equal(before,torch.get_rng_state())
+            assert session.binding.inference.configuration['initialization']==product.initialization_identity(config.options['seed'])
+        assert torch.equal(before,torch.get_rng_state())
+    equal(packets[0],packets[1]);equal(packets[0],packets[2])
+    assert _hash(packets[0])==_hash(packets[1])==_hash(packets[2])
+    options=config.options;options['seed']+=1
+    other_config=SessionConfig(product.NAME,product.COHORT,**options)
+    with open_response(other_config) as other:
+        other_packet=other.checkpoint()
+    for part in ('network','critic'):
+        expected=packets[0]['payload']['game'][part];different=other_packet['payload']['game'][part]
+        assert any(not torch.equal(v,different[k]) for k,v in expected.items())
+
+
+@pytest.mark.parametrize('component',['adapter','critic','native_loader'])
+def test_direct_factory_initialization_failure_restores_caller_rng(staged,monkeypatch,component):
+    native,rows,config=staged
+    def no_cuda(*args,**kwargs):pytest.fail('CPU failure qualification must not touch CUDA RNG')
+    for name in ('init','_lazy_init','device_count','manual_seed','manual_seed_all','get_rng_state','set_rng_state'):
+        monkeypatch.setattr(torch.cuda,name,no_cuda)
+    marker=RuntimeError('initialization failure at '+component)
+    def fail(*args,**kwargs):torch.rand(31);raise marker
+    if component=='adapter':monkeypatch.setattr(product,'ZImageLoRA',fail)
+    elif component=='critic':monkeypatch.setattr(product,'HNDLFieldCritic',fail)
+    else:monkeypatch.setattr(ZImageTransformer2DModel,'from_pretrained',fail)
+    torch.default_generator.manual_seed(611);torch.rand(7)
+    before=torch.get_rng_state().clone();modes=[m.training for m in native.modules()]
+    flags=[p.requires_grad for p in native.parameters()]
+    with pytest.raises(RuntimeError) as caught:
+        product.prepare(config.options,**({} if component=='native_loader' else {'model':native}))
+    assert caught.value is marker
+    assert torch.equal(before,torch.get_rng_state())
+    assert not any(m._forward_hooks for m in native.modules())
+    assert [m.training for m in native.modules()]==modes
+    assert [p.requires_grad for p in native.parameters()]==flags
+
+
+def test_direct_factory_success_restores_rng_and_binds_policy(staged):
+    native,rows,config=staged
+    torch.default_generator.manual_seed(981);before=torch.get_rng_state().clone()
+    binding=product.prepare(config.options,model=native)
+    try:
+        assert torch.equal(before,torch.get_rng_state())
+        assert binding.inference.configuration['initialization']['policy']==product.INITIALIZATION_POLICY
+        assert product.COHORT.endswith('-v3')
+        assert product.PROTOCOL=='embedded-zimage-native-4d-raw-velocity-v2'
+        assert all(item.row.guidance==1. for item in binding.game.rows)
+        row=binding.game.rows[0].row
+        with torch.no_grad():
+            raw=binding.game.backend.velocity(row.neutral,row.latent,row.timestep,scale=0)
+            actual=binding.game.backend.cfg(row,row.latent,row.timestep,scale=0)
+        assert torch.equal(raw,actual)  # Native g=0 maps to shared guidance=1.
+    finally:binding.close()
+    assert torch.equal(before,torch.get_rng_state())
+
+
+def test_changed_initialization_policy_and_previous_cohort_refuse_without_relabel(staged,tmp_path,monkeypatch):
+    _,_,config=staged
+    with open_response(config) as session:
+        session.step();artifact=session.export_inference();checkpoint=session.checkpoint()
+    bad=deepcopy(artifact);bad['specification']['configuration']['initialization']['policy']='previous-unseeded-policy'
+    bad['sha256']=_hash({k:v for k,v in bad.items() if k!='sha256'})
+    with monkeypatch.context() as patch:
+        patch.setattr(product,'_native',lambda *args,**kwargs:pytest.fail('policy mismatch must precede attachment'))
+        with pytest.raises(ValueError,match='initialization policy'):
+            open_inference(bad,options={'model_dir':config.options['model_dir']},operation='response')
+        checkpoint['manifest']['config']['cohort']='embedded-zimage-adapter-gan-pg094-hg-hndl010-v2'
+        checkpoint['sha256']=_hash({k:v for k,v in checkpoint.items() if k!='sha256'})
+        torch.save(checkpoint,tmp_path/'previous-policy.pt')
+        with pytest.raises(CheckpointError,match='config/cohort differs'):
+            open_response(config,resume=tmp_path/'previous-policy.pt')
+
+
+
+def test_direct_inference_factory_preserves_rng_on_success_and_initialization_failure(staged,monkeypatch):
+    from particle_sliders.inference import InferenceSpec
+    _,rows,config=staged
+    with open_response(config) as session:
+        session.step();artifact=session.export_inference()
+    spec=InferenceSpec(artifact['specification']);options={'model_dir':config.options['model_dir']}
+    torch.default_generator.manual_seed(314);before=torch.get_rng_state().clone()
+    binding=product.prepare_inference(options,spec)
+    try:assert torch.equal(before,torch.get_rng_state())
+    finally:binding.close()
+    marker=RuntimeError('inference adapter initialization failure')
+    def fail(*args,**kwargs):torch.rand(17);raise marker
+    monkeypatch.setattr(product,'ZImageLoRA',fail)
+    with pytest.raises(RuntimeError) as caught:product.prepare_inference(options,spec)
+    assert caught.value is marker
+    assert torch.equal(before,torch.get_rng_state())
