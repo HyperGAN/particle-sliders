@@ -1,4 +1,4 @@
-"""Conditional native-response GAN using released ParticleGAN 0.9.3 components (explicit core0.9 line).
+"""Conditional native-response GAN using released ParticleGAN 0.9.4 components (explicit core0.9 line).
 
 Backends own frozen conditioning and differentiable response generation. This
 module owns the adversarial game, optimizer lifecycle, sampling and checkpoint
@@ -21,18 +21,18 @@ from particlegan import get_recipe, scale_learning_rates
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 from .optimizer_policy import configure_dense_profile, optimizer_diagnostics
 
-PG_VERSION = '0.9.3'
-PG_SOURCE_PROFILE = 'release-0.9.3'
-PG_WHEEL_SHA256 = 'fd7ee424d4c67e1dc3cf0b9dd345222049a67e8c293c30c8a3c42d54805affec'
+PG_VERSION = '0.9.4'
+PG_SOURCE_PROFILE = 'release-0.9.4'
+PG_WHEEL_SHA256 = 'ad21eeaea861cf0582fc39aa96eb3fd8ab8cf21e8e0f0179f0597a9c42eb99b6'
 
 
 def _released_sources(profile=PG_SOURCE_PROFILE):
     import particlegan
     if profile != PG_SOURCE_PROFILE:
-        raise ValueError('unknown/unqualified PG0.9.3 source profile; no overlay or release alias')
-    document = json.loads(Path(__file__).with_name('pg093_release.json').read_text())
+        raise ValueError('unknown/unqualified PG0.9.4 source profile; no overlay or release alias')
+    document = json.loads(Path(__file__).with_name('pg094_release.json').read_text())
     if (document['version'], document['wheel_sha256'], document['source_profile']) != (PG_VERSION, PG_WHEEL_SHA256, profile):
-        raise RuntimeError('PG0.9.3 release manifest contradicts this engine')
+        raise RuntimeError('PG0.9.4 release manifest contradicts this engine')
     root = Path(particlegan.__file__).resolve().parent
     actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob('*.py'))}
@@ -333,7 +333,7 @@ class ConditionalPG09:
             raise ValueError('conditions tensor or lazy provider.conditions(indices) is required')
         self.response_domain, self.response_scale = response_domain, float(response_scale)
         self.batch_size, self.sigma = batch_size, float(sigma)
-        # Preserve the authoritative PG0.9.3 research recipe's declared precision.
+        # Preserve the authoritative PG0.9.4 research recipe's declared precision.
         # This native host executes FP32 leaves without GANTrainer autocast; bind
         # that separately below instead of rewriting the public recipe.
         options = dict(batch_size=batch_size, total_steps=total_steps)
@@ -572,9 +572,23 @@ class ConditionalPG09:
             row_orders=self.row_orders, row_cursors=self.row_cursors, exposures=self.exposures,
             model_cpu_rng=self.model_cpu_rng, model_cuda_rng=self.model_cuda_rng))
 
-    def load_state_dict(self, state):
-        if state.get('schema') != 'conditional-pg09-v1' or state.get('config') != self._signature:
-            raise ValueError('checkpoint objective, recipe, domain, source or conditioning mismatch')
+    def _validate_state_dict(self, state):
+        """Validate the complete packet using owned optimizer copies only."""
+        saved_config = state.get('config')
+        if isinstance(saved_config, dict) and any(
+                saved_config.get(key) != self._signature.get(key)
+                for key in ('pg_version', 'pg_source_profile', 'pg_sources_sha256')):
+            raise ValueError(
+                'checkpoint PG source/cohort mismatch (PG '
+                + str(saved_config.get('pg_version')) + ', profile '
+                + str(saved_config.get('pg_source_profile'))
+                + '); resume with the original pinned particle-sliders-core/ParticleGAN '
+                'source environment. Use a fresh cohort for this release; '
+                'automatic checkpoint migration is not supported')
+        if state.get('schema') != 'conditional-pg09-v1' or saved_config != self._signature:
+            raise ValueError('checkpoint objective, recipe, domain, source or conditioning mismatch; '
+                             'resume with the original pinned source/model/data cohort or start a fresh cohort; '
+                             'automatic checkpoint migration is not supported')
         if type(state['completed_steps']) is not int or not 0 <= state['completed_steps'] <= self.recipe.total_steps:
             raise ValueError('invalid checkpoint step')
         _validate_module(self.network, state['network'])
@@ -633,13 +647,64 @@ class ConditionalPG09:
             raise ValueError('CUDA checkpoint cannot silently resume on CPU')
         # Public optimizer restore on isolated copies validates BEFORE live mutation.
         # Copies contain adapter/critic parameters only, never a pretrained backend.
-        # PG critic restore also publishes per-device thermal state: make it the
-        # final preflight after every sampler and other state can no longer reject.
+        # Official PG critic restore publishes a process-local thermal channel.
+        # Shadow validation must not publish an incoming checkpoint's channel,
+        # even when the shadow load raises after writing it.
         shadow_g, shadow_d, shadow_spread = deepcopy((self.opt_g, self.opt_d, self.spread))
-        shadow_g.load_state_dict(deepcopy(state['opt_g']))
-        if shadow_spread:
-            shadow_spread.load_state_dict(deepcopy(state['spread']))
-        shadow_d.load_state_dict(deepcopy(state['opt_d']))
+        restore_thermal = self._thermal_cleanup()
+        try:
+            shadow_g.load_state_dict(deepcopy(state['opt_g']))
+            if shadow_spread:
+                shadow_spread.load_state_dict(deepcopy(state['spread']))
+            shadow_d.load_state_dict(deepcopy(state['opt_d']))
+        finally:
+            restore_thermal()
+
+    def _thermal_cleanup(self):
+        """Snapshot only this device's exact PG0.9.4 process-local channel."""
+        from particlegan.bispf import _LAST_THERMAL_SCALE
+        missing = object()
+        previous = _LAST_THERMAL_SCALE.get(self.device, missing)
+        def restore():
+            if previous is missing:
+                _LAST_THERMAL_SCALE.pop(self.device, None)
+            else:
+                _LAST_THERMAL_SCALE[self.device] = previous
+        return restore
+
+    def _runtime_restorers(self):
+        """Rollback ephemeral PG diagnostics/channel omitted from public packets.
+
+        These are existing official objects, not a replacement serialization law.
+        The session attempts all restorers even when live optimizer rollback fails.
+        """
+        penalty, kernel, record = self.penalty, self.penalty.regularizer, self.opt_d.record
+        stats = deepcopy(penalty.last_stats)
+        collect_stats = penalty.collect_stats
+        cooler = deepcopy(kernel.cooler.state_dict())
+        absent = object()
+        transient = {name: getattr(record, name, absent) for name in ('_in_penalty', '_last_d_logits')}
+        transient = {name: value.detach().clone() if isinstance(value, torch.Tensor) else value
+                     for name, value in transient.items()}
+        def restore_attribute(name, value):
+            if value is absent:
+                if hasattr(record, name):
+                    delattr(record, name)
+            else:
+                setattr(record, name, value)
+        return [self._thermal_cleanup(),
+                lambda: setattr(penalty, 'last_stats', stats),
+                lambda: setattr(penalty, 'collect_stats', collect_stats),
+                lambda: kernel.cooler.load_state_dict(cooler),
+                *(lambda name=name, value=value: restore_attribute(name, value)
+                  for name, value in transient.items())]
+
+    def load_state_dict(self, state):
+        self._validate_state_dict(state)
+        self._apply_state_dict(state)
+
+    def _apply_state_dict(self, state):
+        """Apply a packet already checked by _validate_state_dict in this call."""
         self.network.load_state_dict(state['network'], strict=True)
         self.critic.load_state_dict(state['critic'], strict=True)
         if self.prior:

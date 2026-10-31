@@ -32,5 +32,5 @@
     }
   },
   "legacy_boundary": "audio-pg091 entrypoints only on PG0.9.1; YuE2 model allocation remains product-owned",
-  "modern_profile": "release-0.9.3"
+  "modern_profile": "release-0.9.4"
 }

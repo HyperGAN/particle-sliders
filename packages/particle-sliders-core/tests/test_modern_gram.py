@@ -42,7 +42,7 @@ def reference(matrix):
 def test_default_is_supported_upstream_profile_and_changes_only_one_recipe_field():
     recipe = get_recipe('bispf_optimized', total_steps=5)
     resolved, declaration = configure_dense_profile(recipe)
-    assert PG_VERSION == '0.9.3' and PG_SOURCE_PROFILE == 'release-0.9.3'
+    assert PG_VERSION == '0.9.4' and PG_SOURCE_PROFILE == 'release-0.9.4'
     assert resolved.optimizer_dense_profile == GRAM_PROFILE
     before, after = asdict(recipe), asdict(resolved)
     assert {k for k in before if before[k] != after[k]} == {'optimizer_dense_profile'}
@@ -217,6 +217,8 @@ def test_authoritative_moss112_field_recipe_preserved_except_selected_dense_prof
 
 
 def test_modern_fibo_hndl_factory_uses_gram_and_preserves_exact_resume(tmp_path):
+    pytest.importorskip("hndl")
+    pytest.importorskip("hypergan.hndl_networks")
     import hashlib
     from particle_sliders.fibo_native import (
         FiboParticleSlider, FiboEditResponseAdapter, FiboCachedRows, write_cache, build_fibo_game,

@@ -1,0 +1,11 @@
+{
+  "source_commit": "4abc0eb03a4e3a84fc3e6d02734c13dc7e8ea231",
+  "fixture_sha256": "897ee723b64c4363af754ec029584997e3347ef80f37933b74f9e51bc8c0ddbd",
+  "producer": "Unmodified published tests/test_image_lifecycle.py session(); train(stop_after=2); checkpoint()",
+  "fixture_scope": "Synthetic CPU8x2 routed bank,2-channel10x10 fixture; no native model weights/data",
+  "core_wheel_sha256": "9afad3afc1f6c653a574074dc14f0da1f1c43975c31ca45c4eac049df0b0b4ad",
+  "lifecycle_sha256": "cc94be191c5810f79642349c9258c466553c41e509df2e28622bfac82bc802c0",
+  "python": "3.12.15",
+  "torch": "2.14.1+cpu",
+  "particlegan": "0.9.4"
+}

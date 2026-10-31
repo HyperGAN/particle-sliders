@@ -12,8 +12,8 @@ from particle_sliders.routed_projection import TinyParticleProjection
 
 pytest.importorskip('hndl')
 pytest.importorskip('hypergan.hndl_networks')
-if version('hndl') != '0.9.0':
-    pytest.skip('Fibo network profile requires the separate HNDL0.9.0 extra', allow_module_level=True)
+if version('hndl') != '0.10.0':
+    pytest.skip('Fibo network profile requires the separate HNDL0.10.0 extra', allow_module_level=True)
 
 def copy_affine(destination, source):
     with torch.no_grad():

@@ -18,7 +18,7 @@ from torch import nn
 
 from .lifecycle import (
     BackendUnavailable, Capabilities, CheckpointError, LifecycleError,
-    UnsupportedOperation, atomic_save, _rng_devices, _network_observation, capabilities_from_dict,
+    UnsupportedOperation, atomic_save, _rng_devices, _network_observation, capabilities_from_dict, _restore_all,
 )
 from .pg09 import _architectures, _hash, _identity, _validate_module
 
@@ -292,9 +292,9 @@ def open_inference(artifact, *, options=None, backend=None, operation='render', 
                 native_backend.preflight(deepcopy(options), dict(operation=operation, strength=strength,
                     references=references, output_type=output_type, native=deepcopy(native)), spec)
         return InferenceSession(binding, capabilities, packet, output_type, preflight, rng_devices=devices)
-    except BaseException:
+    except BaseException as primary:
         if callable(getattr(binding, 'close', None)):
-            binding.close()
+            _restore_all([binding.close], primary=primary)
         raise
 
 
@@ -348,13 +348,13 @@ class InferenceSession:
 
     def close(self):
         if not self.closed:
-            self.closed = True
             self.binding.close()
+            self.closed = True
 
     def __enter__(self):
         if self.closed:
             raise LifecycleError('inference session is closed')
         return self
 
-    def __exit__(self, *exc):
-        self.close()
+    def __exit__(self, exc_type, exc, traceback):
+        _restore_all([self.close], primary=exc)
