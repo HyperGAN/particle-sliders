@@ -1,5 +1,11 @@
 # MiniMax-H3 concept slider (opt-in)
 
+For the October 2026 **Pika H3 Flex** release, use the separate
+[Pika loader and qualification guide](pika-h3-flex.md). Its fixed release LoRA
+and six-step re-noising schedule are part of the base model identity. Changing
+only `--model_id` in this historical UNI trainer does not integrate that release.
+The code below is the legacy UNI recipe, not the shared ParticleGAN lifecycle.
+
 Opt-in UNI trainer for **MiniMax-H3**, MiniMax's omni-modal video+audio generator.
 Default Music 3 trainers are unchanged (`--lm_target v9` / `--pole_mode hidden`).
 

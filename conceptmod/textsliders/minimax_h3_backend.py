@@ -266,10 +266,16 @@ class AttnLoRANetwork(nn.Module):
         for name, module in transformer.named_modules():
             if module.__class__.__name__ != LORA_ATTN_CLASS:
                 continue
-            for child_name, child in module.named_modules():
-                if not isinstance(child, nn.Linear):
+            for child_name in LORA_LINEAR_NAMES:
+                try:
+                    child = module.get_submodule(child_name)
+                except AttributeError:
                     continue
-                if child_name not in ("to_q", "to_k", "to_v", "to_out.0"):
+                # Pika's frozen release adapter is a PEFT wrapper around this
+                # Linear. Wrap its complete forward so slider scale zero keeps
+                # Pika active; never target its base_layer or lora_A/B children.
+                host = getattr(child, "base_layer", child)
+                if not isinstance(host, nn.Linear):
                     continue
                 lora_name = f"lora_h3-{name}-{child_name}".replace(".", "-")
                 lora = _AttnLoRA(lora_name, child, rank, alpha, up_init_std=self.up_init_std)
@@ -866,6 +872,20 @@ def _load_minimax_h3_modular(
     encoder_device: str | None = None,
 ):
     """Live path. Dummy never calls this. Do not download MiniMax-H3 in CI."""
+    # A Pika release is not just a base-model id: it additionally requires its
+    # fixed adapter and re-noising sampler. Keep the legacy UNI path explicit.
+    from pathlib import Path
+    import json
+
+    index = Path(model_id) / "modular_model_index.json"
+    if model_id == "Pika-Labs/Pika-H3-Flex" or (
+        index.is_file() and json.loads(index.read_text()).get("_class_name") == "PikaH3FlexModularPipeline"
+    ):
+        raise ArchitectureMismatch(
+            "Pika H3 Flex requires its fixed release adapter and native sampler. "
+            "Use conceptmod.textsliders.pika_h3_flex; this legacy UNI loader "
+            "does not qualify Pika or the shared GAN lifecycle."
+        )
     from diffusers import ModularPipeline
 
     pipe = ModularPipeline.from_pretrained(model_id, workflow=workflow)
