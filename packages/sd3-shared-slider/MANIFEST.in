@@ -1,1 +1,2 @@
 include VERIFICATION.md
+recursive-include verification *.json

@@ -1,5 +1,8 @@
 """Staged SD3 response factory. Shared core owns updates, packets, EMA and inference."""
 from contextlib import contextmanager
+from copy import deepcopy
+import hashlib
+import io
 import math
 import json
 from pathlib import Path
@@ -9,10 +12,11 @@ import torch
 from particle_sliders.lifecycle import Backend, Binding, Capabilities, native_cleanup
 from particle_sliders.inference import InferenceBackend, InferenceBinding, native_identity
 from particle_sliders.pg094 import ConditionalPG094, validate_pg09_domain
+from particle_sliders.pg09 import _hash
 from particle_sliders.pg09_backends import AdapterParameters, ResponseRow
 from particle_sliders.pg09_images import ImageResponseAdapter, image_condition_features
 from particle_sliders.fibo_hndl import HNDLFieldCritic
-from .runtime import Adapter, PROTOCOL, admitted_builder, digest, model_identity, restore_all, targets
+from .runtime import Adapter, PROTOCOL, admitted_builder, initialization_rng, model_identity, restore_all, targets
 
 NAME = 'sd3-shared-hndl010'
 CAPABILITIES = Capabilities('adapter_gan', False, base_precisions=('float32',),
@@ -22,8 +26,8 @@ CAPABILITIES = Capabilities('adapter_gan', False, base_precisions=('float32',),
 NATIVE_KEYS = ('rank', 'alpha', 'base_sha256')
 
 
-def validate(options):
-    allowed = set(NATIVE_KEYS) | {'model_path', 'rows_path', 'rows_sha256', 'steps', 'batch', 'seed', 'ema_decay',
+def validate(options, *, require_rows=True):
+    allowed = set(NATIVE_KEYS) | {'model_path', 'rows_path', 'rows_sha256', 'row_content_sha256', 'steps', 'batch', 'seed', 'ema_decay',
         'base_precision', 'preset', 'critic_width', 'pg_version', 'pg_source_profile', 'penalty_input_domain'}
     if set(options) - allowed:
         raise ValueError('unknown SD3 cohort options: ' + str(sorted(set(options) - allowed)))
@@ -41,6 +45,13 @@ def validate(options):
         rows_sha = options.get('rows_sha256')
         if not isinstance(rows_sha, str) or len(rows_sha) != 64 or any(c not in '0123456789abcdef' for c in rows_sha):
             raise ValueError('rows_sha256 must bind the fixed training cache')
+    if require_rows:
+        content = options.get('row_content_sha256')
+        if not isinstance(content, str) or len(content) != 64 or any(c not in '0123456789abcdef' for c in content):
+            raise ValueError('row_content_sha256 must bind the actual fixed rows, including staged rows')
+    seed = options.get('seed', 7)
+    if type(seed) is not int or not 0 <= seed < 2**63 - 100:
+        raise ValueError('invalid SD3 initialization seed')
     if options.get('base_precision', 'float32') != 'float32':
         raise ValueError('this cohort requires float32')
     if options.get('preset', 'bispf_optimized') not in ('bispf', 'bispf_optimized'):
@@ -102,14 +113,35 @@ def check_row(row, model):
     validate_pg09_domain(tuple(latent.shape), response_domain='continuous_field')
 
 
-def load_rows(path):
-    values = torch.load(path, map_location='cpu', weights_only=True)
+def load_rows(path, *, expected_sha256=None):
+    # Hash and decode the same bytes, rather than reopening a mutable cache.
+    content = Path(path).read_bytes()
+    if expected_sha256 is not None and hashlib.sha256(content).hexdigest() != expected_sha256:
+        raise ValueError('fixed SD3 training cache identity differs before native mutation')
+    values = torch.load(io.BytesIO(content), map_location='cpu', weights_only=True)
     if not isinstance(values, list) or len(values) < 2:
         raise ValueError('at least two fixed SD3 row dictionaries required')
     allowed = {'neutral', 'positive', 'negative', 'latent', 'timestep'}
     if any(not isinstance(v, dict) or set(v) != allowed for v in values):
         raise ValueError('SD3 fixed rows require neutral/positive/negative/latent/timestep only')
     return [ResponseRow(**v) for v in values]
+
+
+def row_content_digest(rows):
+    """Semantic identity of every native row coordinate, independent of transport."""
+    rows = tuple(rows)
+    if len(rows) < 2 or any(not isinstance(row, ResponseRow) for row in rows):
+        raise ValueError('two or more fixed ResponseRow objects required')
+    return _hash(dict(schema='sd3-fixed-row-content-v1', rows=rows))
+
+
+class SD3ResponseAdapter(ImageResponseAdapter):
+    row_content_sha256 = None
+
+    def metadata(self):
+        result = super().metadata()
+        result['row_content_sha256'] = self.row_content_sha256
+        return result
 
 
 @contextmanager
@@ -133,7 +165,7 @@ def bind(model, options, identity, selected):
         adapter = Adapter(selected, options.get('rank', 4), options.get('alpha', 4.), builder, graph_identity)
         network = AdapterParameters(adapter.named_parameters(), adapter.scaled)
         adapter.attach(selected)
-        response = ImageResponseAdapter('sd3', model, network, model_identity=identity)
+        response = SD3ResponseAdapter('sd3', model, network, model_identity=identity)
         response.adapter = adapter
         def close():
             restore_all([adapter.close, restore])
@@ -153,20 +185,27 @@ def native_callback(response):
 
 
 def prepare(options, *, model=None, rows=None):
-    torch.default_generator.manual_seed(options.get('seed', 7))
-    if rows is None and digest(options['rows_path']) != options['rows_sha256']:
-        raise ValueError('fixed SD3 training cache identity differs before native mutation')
+    validate(options)
+    generator = torch.Generator(device='cpu').manual_seed(options.get('seed', 7))
+    with initialization_rng(generator):
+        return _prepare(options, model=model, rows=rows)
+
+
+def _prepare(options, *, model=None, rows=None):
+    rows = deepcopy(tuple(load_rows(options['rows_path'], expected_sha256=options['rows_sha256'])
+                          if rows is None else rows))
+    content_sha256 = row_content_digest(rows)
+    if content_sha256 != options['row_content_sha256']:
+        raise ValueError('SD3 row content identity differs before native mutation')
     model = load_model(options) if model is None else model
     identity, selected = check_model(model, options)
-    rows = load_rows(options['rows_path']) if rows is None else list(rows)
-    if len(rows) < 2:
-        raise ValueError('two or more fixed rows required')
     for row in rows:
         check_row(row, model)
     if len({tuple(row.latent.shape) for row in rows}) != 1:
         raise ValueError('one native spatial geometry per cohort required')
     response, close = bind(model, options, identity, selected)
     try:
+        response.row_content_sha256 = content_sha256
         prepared = [response.prepare(row) for row in rows]
         conditions = image_condition_features(prepared)
         channels, height, width = rows[0].latent.shape[1:]
@@ -187,7 +226,7 @@ def validate_inference(options, spec):
         raise ValueError('native inference accepts only local model_path and float32 precision')
     if options.get('base_precision', 'float32') != 'float32':
         raise ValueError('native inference requires float32')
-    validate(spec.configuration)
+    validate(spec.configuration, require_rows=False)
 
 
 def prepare_inference(options, spec):

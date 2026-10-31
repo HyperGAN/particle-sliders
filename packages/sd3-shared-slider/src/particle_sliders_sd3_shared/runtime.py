@@ -24,7 +24,8 @@ def admitted_builder():
     """Reject another core, runtime, graph or framework build before native mutation."""
     import particle_sliders
     own = json.loads((ROOT / 'source_lock.json').read_text())
-    actual_own = {p.name: digest(p) for p in ROOT.iterdir() if p.suffix in ('.py', '.hndl')}
+    actual_own = {p.name: digest(p) for p in ROOT.iterdir()
+                  if p.suffix in ('.py', '.hndl', '.json') and p.name != 'source_lock.json'}
     if actual_own != own:
         raise ValueError('SD3 package/graph source cohort differs before native mutation')
     if not (3, 11) <= sys.version_info[:2] < (3, 15):
@@ -44,8 +45,26 @@ def admitted_builder():
     from particle_sliders.fibo_hndl import verified_builder
     builder, identity = verified_builder()
     identity = dict(identity, sd3_projection_sha256=digest(ROOT / 'projection.hndl'),
+                    core_lock_sha256=digest(ROOT / 'core_lock.json'),
                     core_commit=expected['commit'])
     return builder, identity
+
+
+@contextmanager
+def initialization_rng(generator):
+    """Adapt builders without a generator argument to an owned CPU RNG stream.
+
+    HNDL/native constructors use default Torch initializers. Their temporary
+    default state is scoped and restored on success/failure; the seed and
+    advancing stream belong to the supplied local generator. Construction is
+    single-threaded, not an isolation guarantee for concurrent default-RNG users.
+    """
+    with torch.random.fork_rng(devices=[]):
+        torch.set_rng_state(generator.get_state())
+        try:
+            yield
+        finally:
+            generator.set_state(torch.get_rng_state())
 
 
 def model_identity(model):

@@ -18,7 +18,7 @@ from particle_sliders.pg09 import _hash
 from particle_sliders.field_critic import FieldCritic
 from particle_sliders.fibo_hndl import HNDLFieldCritic
 from particle_sliders.pg09_backends import ResponseRow
-from particle_sliders_sd3_shared.backend import BACKEND, NAME, check_model, bind
+from particle_sliders_sd3_shared.backend import BACKEND, NAME, check_model, bind, row_content_digest
 from particle_sliders_sd3_shared import runtime
 
 
@@ -50,8 +50,9 @@ def rows():
 
 def config(base=None, **options):
     base = model() if base is None else base
-    return SessionConfig(NAME, 'sd3-shared-tiny-native-hndl010-v1',
-        **dict(base_sha256=runtime.model_identity(base)['base_sha256'], rank=2, alpha=2.,
+    return SessionConfig(NAME, 'sd3-shared-tiny-native-hndl010-review2',
+        **dict(base_sha256=runtime.model_identity(base)['base_sha256'],
+               row_content_sha256=row_content_digest(rows()), rank=2, alpha=2.,
                critic_width=4, steps=3, batch=2, seed=7, ema_decay=.9, **options))
 
 
@@ -250,11 +251,11 @@ def test_admission_before_native_mutation(damage):
     restored(before)
 
 
-@pytest.mark.parametrize('target', ['core', 'graph', 'hndl', 'hypergan', 'native'])
+@pytest.mark.parametrize('target', ['core', 'core_lock', 'graph', 'hndl', 'hypergan', 'native'])
 def test_actual_source_tamper_rejected_before_native_mutation(target):
     import particle_sliders, hndl, hypergan.hndl_networks
     import diffusers.models.attention_processor as native_processors
-    paths = dict(core=Path(particle_sliders.__file__).with_name('lifecycle.py'),
+    paths = dict(core_lock=runtime.ROOT / 'core_lock.json', core=Path(particle_sliders.__file__).with_name('lifecycle.py'),
         native=Path(native_processors.__file__), graph=runtime.ROOT / 'projection.hndl', hndl=Path(hndl.__file__),
         hypergan=Path(hypergan.hndl_networks.__file__).with_name('_build_provenance.json'))
     path = paths[target]
@@ -263,7 +264,11 @@ def test_actual_source_tamper_rejected_before_native_mutation(target):
     options = config(base).options
     before = snapshot(base)
     try:
-        if target == 'hypergan':
+        if target == 'core_lock':
+            changed = json.loads(original)
+            changed['commit'] = '0' * 40
+            path.write_text(json.dumps(changed))
+        elif target == 'hypergan':
             changed = json.loads(original)
             changed['dirty'] = True
             path.write_text(json.dumps(changed))
@@ -497,3 +502,128 @@ def test_legacy_tensor_checkpoint_refused_before_factory(monkeypatch, tmp_path):
     monkeypatch.setattr(backend, 'load_model', lambda options: pytest.fail('native loader executed'))
     with pytest.raises(CheckpointError):
         open_session(config(), resume=path)
+
+
+def test_direct_prepare_owns_rng_and_is_seed_deterministic():
+    from particle_sliders_sd3_shared.backend import prepare
+    base, data = model(), rows()
+    options = config(base).options
+    before = torch.get_rng_state().clone()
+    binding = prepare(options, model=base, rows=data)
+    try:
+        assert torch.equal(before, torch.get_rng_state())
+        generator = deepcopy(binding.game.network.state_dict())
+        critic = deepcopy(binding.game.critic.state_dict())
+    finally:
+        binding.close()
+    torch.rand(11)  # A different caller RNG must not choose a different initialization.
+    before = torch.get_rng_state().clone()
+    second = prepare(options, model=model(), rows=rows())
+    try:
+        assert torch.equal(before, torch.get_rng_state())
+        same(generator, second.game.network.state_dict())
+        same(critic, second.game.critic.state_dict())
+    finally:
+        second.close()
+    assert torch.equal(before, torch.get_rng_state())
+
+
+@pytest.mark.parametrize('stage', ['teachers', 'critic', 'game'])
+def test_direct_prepare_failure_restores_default_rng_and_borrowed_model(monkeypatch, stage):
+    import particle_sliders_sd3_shared.backend as backend
+    base, data = model(), rows()
+    options, state = config(base).options, snapshot(base)
+    before = torch.get_rng_state().clone()
+    def fail(*args, **kwargs):
+        torch.rand(13)
+        raise RuntimeError('direct preparation ' + stage)
+    if stage == 'teachers':
+        monkeypatch.setattr(backend.ImageResponseAdapter, 'prepare', fail)
+    else:
+        monkeypatch.setattr(backend, 'HNDLFieldCritic' if stage == 'critic' else 'ConditionalPG094', fail)
+    with pytest.raises(RuntimeError, match='direct preparation'):
+        backend.prepare(options, model=base, rows=data)
+    assert torch.equal(before, torch.get_rng_state())
+    restored(state)
+
+
+@pytest.mark.parametrize('field', ['latent', 'timestep', 'neutral.embeds', 'neutral.pooled',
+                                   'positive.embeds', 'negative.pooled', 'ordering'])
+def test_staged_row_content_mismatch_rejected_before_binding(monkeypatch, field):
+    import particle_sliders_sd3_shared.backend as backend
+    base, data = model(), rows()
+    options, state = config(base).options, snapshot(base)
+    if field == 'ordering':
+        data.reverse()
+    elif '.' in field:
+        condition, key = field.split('.')
+        getattr(data[0], condition)[key].add_(.1)
+    else:
+        getattr(data[0], field).add_(.1)
+    monkeypatch.setattr(backend, 'bind', lambda *a, **k: pytest.fail('native binding executed'))
+    before = torch.get_rng_state().clone()
+    with pytest.raises(ValueError, match='row content identity differs before'):
+        backend.prepare(options, model=base, rows=data)
+    assert torch.equal(before, torch.get_rng_state())
+    restored(state)
+
+
+def test_staged_row_hash_is_required_before_binding(monkeypatch):
+    import particle_sliders_sd3_shared.backend as backend
+    base = model()
+    options = config(base).options
+    options.pop('row_content_sha256')
+    monkeypatch.setattr(backend, 'bind', lambda *a, **k: pytest.fail('native binding executed'))
+    with pytest.raises(ValueError, match='row_content_sha256 must bind'):
+        backend.prepare(options, model=base, rows=rows())
+
+
+def test_core_lock_and_staged_rows_are_bound_to_game_signature():
+    with session() as value:
+        _, identity = runtime.admitted_builder()
+        assert identity['core_lock_sha256'] == runtime.digest(runtime.ROOT / 'core_lock.json')
+        assert value.game._signature['backend']['row_content_sha256'] == value.config.options['row_content_sha256']
+        tree = value.game._signature['architectures']['backend.adapter']['tree']
+        projection = next(row for row in tree if row[1].endswith('.runtime.Projection'))
+        assert json.loads(projection[2])['core_lock_sha256'] == identity['core_lock_sha256']
+
+
+def test_staged_rows_are_captured_before_native_binding(monkeypatch):
+    import particle_sliders_sd3_shared.backend as backend
+    base, data = model(), rows()
+    options = config(base).options
+    original_value = data[0].neutral['embeds'].clone()
+    original_bind = backend.bind
+    def mutate_caller_then_bind(*args, **kwargs):
+        data[0].neutral['embeds'].add_(123.)
+        return original_bind(*args, **kwargs)
+    monkeypatch.setattr(backend, 'bind', mutate_caller_then_bind)
+    binding = backend.prepare(options, model=base, rows=data)
+    try:
+        assert torch.equal(binding.game.rows[0].row.neutral['embeds'], original_value)
+        assert row_content_digest([row.row for row in binding.game.rows]) == options['row_content_sha256']
+    finally:
+        binding.close()
+
+
+def test_deep_packet_refusal_occurs_after_prepare_and_restores_model(monkeypatch, tmp_path):
+    # Documents the held common-core boundary: deep packet validation is not
+    # universally a pre-hook gate, even when these product input gates succeed.
+    with session() as source:
+        source.train(stop_after=1)
+        packet, cfg = source.checkpoint(), source.config
+    packet['payload']['game']['opt_g']['state'] = {}
+    torch.save(seal(packet), tmp_path / 'invalid.pt')
+    base = model()
+    state = snapshot(base)
+    target = runtime.targets(base)[0][1]
+    original_hook = target.register_forward_hook
+    attached = []
+    def record_hook(*args, **kwargs):
+        attached.append(True)
+        return original_hook(*args, **kwargs)
+    monkeypatch.setattr(target, 'register_forward_hook', record_hook)
+    with pytest.raises(CheckpointError):
+        open_session(cfg, resume=tmp_path / 'invalid.pt', model=base, rows=rows())
+    assert attached == [True]
+    restored(state)
