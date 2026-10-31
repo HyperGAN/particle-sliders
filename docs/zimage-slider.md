@@ -72,3 +72,11 @@ PYTHONPATH=. python conceptmod/textsliders/train_lora_zimage.py \
 - [docs/lm-plus-neu-exam.md](lm-plus-neu-exam.md) — Music 3 last-token UNI (not this trainer).
 - [docs/lm-lyric-hold.md](lm-lyric-hold.md) — Music 3 lyric-token hold. ZiT does **not** use it.
 - Music 3 live defaults stay `--loss nmse --target_mode axis` (TF) and `--lm_target v9 --pole_mode hidden` (LM).
+
+## Separate shared-game preview
+
+The opt-in [embedded Z-Image shared-game package](../packages/embedded-zimage-shared/README.md)
+adds a new adversarial adapter cohort using actual HyperGAN/HNDL graphs and the
+installed shared lifecycle. The velocity UNI trainer and this live card keep their
+historical behavior and artifacts. CPU native API fixtures do not qualify pretrained
+quality, GPU training or production rendering.
