@@ -33,6 +33,8 @@ flow. Core imports do not load pretrained models or initialize CUDA.
 - [PROVIDER-OBSERVATION.md](PROVIDER-OBSERVATION.md): observation covers provider
   fetch as well as forward, with state/RNG restoration.
 - [CHECKPOINT-OWNERSHIP.md](CHECKPOINT-OWNERSHIP.md): reversible native wrappers.
+- [CUT-POINTS.md](CUT-POINTS.md): native attachment/readout boundaries, masks,
+  scale and gradient ownership, extension examples and provenance limits.
 - [CONDITIONAL-PG09-CONTRACT.md](CONDITIONAL-PG09-CONTRACT.md): strict game/resume.
 
 Software evidence covers synthetic CPU contracts, not pretrained convergence,
