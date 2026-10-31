@@ -16,15 +16,19 @@ from particle_sliders.pg09_backends import ResponseRow
 from particle_sliders.field_critic import FieldCritic
 from particle_sliders.fibo_hndl import HNDLFieldCritic
 from sdxl_particle_preview import backend
-from sdxl_particle_preview.native import HNDLLoRA, NativeSDXL, gate, targets, validate_row
+from sdxl_particle_preview.native import HNDLLoRA, NativeSDXL, gate, targets, validate_row, base_identity_sha256, package_sources
 
 
 @pytest.fixture(autouse=True)
 def threads():
     n = torch.get_num_threads()
     torch.set_num_threads(1)
-    yield
-    torch.set_num_threads(n)
+    try:
+        with torch.random.fork_rng():
+            torch.manual_seed(20261031)
+            yield
+    finally:
+        torch.set_num_threads(n)
 
 
 def equal(a, b):
@@ -65,7 +69,8 @@ def native(tmp_path):
         torch.save([dict(neutral=r.neutral, positive=r.positive, negative=r.negative,
                          latent=r.latent, timestep=r.timestep, guidance=r.guidance) for r in rows], rowfile)
     options = dict(model_dir=str(tmp_path / 'base'), rows_path=str(rowfile),
-                   shape=[1, 4, 8, 8], steps=3, batch=2, seed=7, ema_decay=.9)
+                   shape=[1, 4, 8, 8], steps=3, batch=2, seed=7, ema_decay=.9,
+                   base_identity_sha256=base_identity_sha256(model, scheduler))
     return model, scheduler, rows, options
 
 
@@ -286,8 +291,9 @@ def test_historical_lora_matched_weight_native_outputs_and_vjps(native):
     historical = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(historical)
     model, scheduler, rows, _ = native
-    reference = deepcopy(model)
-    ref_targets = targets(reference)
+    # Use the same frozen host for both forwards: deepcopy can change native
+    # CPU weight layout and introduce unrelated FP32 convolution roundoff.
+    ref_targets = targets(model)
     owner = NativeSDXL(model, scheduler, (1, 4, 8, 8), 4, 1.)
     refs = []
     try:
@@ -302,7 +308,10 @@ def test_historical_lora_matched_weight_native_outputs_and_vjps(native):
         x = row.latent.clone().requires_grad_(True)
         kwargs = dict(encoder_hidden_states=row.neutral['embeds'], added_cond_kwargs=dict(
             text_embeds=row.neutral['pooled'], time_ids=row.neutral['time_ids']))
-        expected = reference(x, row.timestep, **kwargs).sample
+        with owner.network.scaled(0.):
+            expected = model(x, row.timestep, **kwargs).sample
+        for old in refs:
+            old.multiplier = 0.
         with owner.network.scaled(.7):
             actual = model(x, row.timestep, **kwargs).sample
         torch.testing.assert_close(actual, expected, rtol=1e-5, atol=1e-6)
@@ -311,6 +320,9 @@ def test_historical_lora_matched_weight_native_outputs_and_vjps(native):
         for a, b in zip(ga, gb):
             torch.testing.assert_close(a, b, rtol=1e-5, atol=1e-6)
     finally:
+        for module in ref_targets.values():
+            if 'forward' in module.__dict__:
+                del module.forward
         owner.close()
 
 
@@ -418,3 +430,114 @@ def test_profile_shape_legacy_and_builder_tamper_refuse_before_hooks(native, tmp
         with pytest.raises(ValueError, match='HNDL source closure'):
             NativeSDXL(model, scheduler, (1, 4, 8, 8), 4, 1.)
     assert not any(m._forward_hooks for m in model.modules())
+
+
+def test_config_binds_actual_base_before_training_hooks(native, monkeypatch):
+    model, scheduler, rows, options = native
+    cfg = SessionConfig(backend.NAME, 'sdxl-native-hndl-v1:bound-base', **options)
+    assert cfg.options['base_identity_sha256'] == base_identity_sha256(model, scheduler)
+    changed = deepcopy(model)
+    with torch.no_grad():
+        next(changed.parameters()).add_(1)
+    original = deepcopy(changed.state_dict())
+    modes = [(m, m.training) for m in changed.modules()]
+    grads = [(p, p.requires_grad) for p in changed.parameters()]
+    # Replace the actual local fixture weights without changing the configured path.
+    changed.save_pretrained(Path(options['model_dir']) / 'unet')
+    for supplied in (dict(model=changed, scheduler=scheduler, rows=rows), {}):
+        with monkeypatch.context() as patch:
+            patch.setattr(backend, 'NativeSDXL', lambda *a, **k: pytest.fail('base mismatch reached attachment'))
+            with pytest.raises(ValueError, match='base model identity differs from configuration'):
+                open_response(cfg, **supplied)
+    equal(original, changed.state_dict())
+    assert all(m.training == v for m, v in modes)
+    assert all(p.requires_grad == v for p, v in grads)
+    assert not any(m._forward_hooks for m in changed.modules())
+    for value in (None, '', 'f' * 63, 'F' * 64, 123):
+        with pytest.raises(ValueError, match='base_identity_sha256 is required'):
+            backend.validate(options | {'base_identity_sha256': value})
+
+
+def test_base_identity_configuration_mismatch_refuses_before_factory(native, tmp_path, monkeypatch):
+    import particle_sliders.response as response
+    model, scheduler, rows, options = native
+    cfg = SessionConfig(backend.NAME, 'sdxl-native-hndl-v1:bound-resume', **options)
+    with open_response(cfg) as session:
+        session.checkpoint(tmp_path / 'training.pt')
+        artifact = export_inference(session)
+        assert artifact['specification']['configuration']['base_identity_sha256'] == options['base_identity_sha256']
+    changed = deepcopy(model)
+    with torch.no_grad():
+        next(changed.parameters()).add_(1)
+    changed_config = SessionConfig(backend.NAME, cfg.cohort,
+        **(options | {'base_identity_sha256': base_identity_sha256(changed, scheduler)}))
+    monkeypatch.setattr(response, 'response_backend', lambda name: pytest.fail('changed configuration reached factory'))
+    with pytest.raises(CheckpointError, match='kind/config/cohort'):
+        open_response(changed_config, resume=tmp_path / 'training.pt')
+
+
+@pytest.mark.parametrize('guidance', [1., 1.5])
+def test_trained_off_is_bitwise_unadapted_base(native, guidance):
+    model, scheduler, rows, options = native
+    rows = [replace(row, guidance=guidance) for row in rows]
+    row = rows[0]
+    # Call this actual base before any adapter exists. A deepcopy can alter CPU
+    # weight layout and adds unrelated roundoff; cached teachers are not the oracle.
+    assert not any(m._forward_hooks for m in model.modules())
+    def call(condition):
+        return model(deepcopy(scheduler).scale_model_input(row.latent, row.timestep),
+            row.timestep.reshape(1), encoder_hidden_states=condition['embeds'],
+            added_cond_kwargs=dict(text_embeds=condition['pooled'], time_ids=condition['time_ids'])).sample
+    with torch.no_grad():
+        conditional = call(row.neutral)
+        if guidance == 1:
+            expected = conditional
+        else:
+            negative = call(row.negative)
+            expected = negative + guidance * (conditional - negative)
+    cfg = SessionConfig(backend.NAME, 'sdxl-native-hndl-v1:off-regression', **options)
+    with open_response(cfg, model=model, scheduler=scheduler, rows=rows) as session:
+        session.step()
+        assert any(torch.count_nonzero(layer.graph['up'].weight) for layer in session.game.network.layers)
+        assert base_identity_sha256(model, scheduler) == options['base_identity_sha256']
+        assert not torch.equal(session.evaluate(strength=1.), expected)
+        def forbidden(*args, **kwargs):
+            pytest.fail('OFF executed an adapter graph')
+        handles = [layer.graph.register_forward_pre_hook(forbidden) for layer in session.game.network.layers]
+        try:
+            assert torch.equal(session.evaluate(strength=0.), expected)
+        finally:
+            for handle in handles:
+                handle.remove()
+
+
+def test_recursive_core_sources_include_nested_modules_and_data(tmp_path):
+    import hashlib
+    (tmp_path / 'nested').mkdir()
+    (tmp_path / 'nested/helper.py').write_text('value = 1\n')
+    (tmp_path / 'nested/graph.hndl').write_text('value\n')
+    (tmp_path / 'nested/data.bin').write_bytes(b'core resource')
+    (tmp_path / 'LICENSE').write_text('license\n')
+    (tmp_path / 'nested/__pycache__').mkdir()
+    (tmp_path / 'nested/__pycache__/helper.cpython-312.pyc').write_bytes(b'interpreter cache')
+    expected = {name: hashlib.sha256((tmp_path / name).read_bytes()).hexdigest() for name in (
+        'LICENSE', 'nested/helper.py', 'nested/graph.hndl', 'nested/data.bin')}
+    assert package_sources(tmp_path) == expected
+    (tmp_path / 'nested/data.bin').write_bytes(b'changed resource')
+    assert package_sources(tmp_path) != expected
+
+
+@pytest.mark.parametrize('relative', ['nested/extra.py', 'nested/data.bin', 'LICENSE'])
+def test_recursive_core_gate_rejects_changed_nested_source_or_data(tmp_path, monkeypatch, relative):
+    import shutil
+    import particle_sliders
+    original = Path(particle_sliders.__file__).parent
+    copied = tmp_path / 'particle_sliders'
+    shutil.copytree(original, copied, ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+    monkeypatch.setattr(particle_sliders, '__file__', str(copied / '__init__.py'))
+    gate()
+    target = copied / relative
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(b'changed core source/resource')
+    with pytest.raises(ValueError, match='core source cohort differs'):
+        gate()

@@ -24,11 +24,25 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def package_sources(root):
+    """Hash the complete recursive installed source/data tree, except bytecode."""
+    root = Path(root)
+    result = {}
+    for path in sorted(root.rglob('*')):
+        if '__pycache__' in path.relative_to(root).parts or path.suffix in ('.pyc', '.pyo'):
+            continue
+        if path.is_symlink():
+            raise ValueError('SDXL core source/data symlinks are unsupported')
+        if path.is_file():
+            result[path.relative_to(root).as_posix()] = digest(path)
+    return result
+
+
 def gate():
     import particle_sliders
     lock = json.loads((ROOT / 'cohort.json').read_text())
     base = Path(particle_sliders.__file__).parent
-    actual = {p.name: digest(p) for p in base.iterdir() if p.suffix in ('.py', '.json', '.hndl')}
+    actual = package_sources(base)
     if version('particle-sliders-core') != lock['core_version'] or actual != lock['core_sources']:
         raise ValueError('SDXL core source cohort differs; no implicit checkpoint migration')
     if version('diffusers') != '0.35.1' or version('transformers') != '4.57.6':
@@ -109,6 +123,13 @@ def model_identity(model, scheduler):
         sources={type(o).__module__: digest(inspect.getsourcefile(type(o))) for o in (model, scheduler)},
         attention_processor='diffusers.models.attention_processor.AttnProcessor',
         prediction_type=scheduler.config.prediction_type)
+
+
+def base_identity_sha256(model, scheduler):
+    """Bind verified frozen weights, native configuration and scheduler in SessionConfig."""
+    encoded = json.dumps(model_identity(model, scheduler), sort_keys=True, allow_nan=False,
+                         separators=(',', ':')).encode()
+    return hashlib.sha256(encoded).hexdigest()
 
 
 class HNDLLoRA(nn.Module):

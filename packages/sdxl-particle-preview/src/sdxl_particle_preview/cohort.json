@@ -2,6 +2,7 @@
   "core_commit": "7a8a321d04323d49319d0b08e6093a0ddce36b27",
   "core_version": "0.12.0",
   "core_sources": {
+    "LICENSE": "2b61d4a8dd7a958b99133a92e92eede6f5e8b0f7b44d234665f822051e530685",
     "__init__.py": "840ac3d54df90b121c7d2a13c5097c6132ba19ec3c95f5673251dd709935f799",
     "_training.py": "0a5802997adec58998beb6598861f6a0f0aa1245a10053666e16300b67d3bc44",
     "audio_closure_provenance.json": "d1eb31852cc6ea3328d03f52537f376abfa5d1c53e1e97abd0124b1fce7d65b5",

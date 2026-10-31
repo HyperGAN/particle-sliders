@@ -11,7 +11,7 @@ from particle_sliders.pg09_backends import ResponseRow
 from particle_sliders.pg09_images import image_condition_features
 from particle_sliders.fibo_hndl import HNDLFieldCritic
 
-from .native import NativeSDXL, PROTOCOL, gate, targets, validate_row, model_identity
+from .native import NativeSDXL, PROTOCOL, gate, targets, validate_row, model_identity, base_identity_sha256
 
 NAME = 'sdxl-native-hndl-v1'
 
@@ -24,7 +24,11 @@ def configuration(options):
         raise ValueError('declare genuine SDXL [1,4,H,W] native lattice with even H/W')
     if type(rank) is not int or not 1 <= rank <= 128 or not math.isfinite(alpha) or alpha <= 0:
         raise ValueError('positive ordinary LoRA rank/alpha required')
-    return dict(shape=list(shape), rank=rank, alpha=float(alpha))
+    identity = options.get('base_identity_sha256')
+    if (not isinstance(identity, str) or len(identity) != 64
+            or any(c not in '0123456789abcdef' for c in identity)):
+        raise ValueError('SDXL base_identity_sha256 is required in configuration')
+    return dict(shape=list(shape), rank=rank, alpha=float(alpha), base_identity_sha256=identity)
 
 
 def capabilities(options):
@@ -36,7 +40,7 @@ def capabilities(options):
 
 def validate(options):
     allowed = {'shape', 'rank', 'alpha', 'steps', 'batch', 'seed', 'ema_decay', 'preset',
-               'model_dir', 'rows_path', 'pg_version', 'pg_source_profile', 'penalty_input_domain', 'base_precision'}
+               'model_dir', 'rows_path', 'base_identity_sha256', 'pg_version', 'pg_source_profile', 'penalty_input_domain', 'base_precision'}
     if set(options) - allowed:
         raise ValueError('unknown SDXL preview options')
     configuration(options)
@@ -70,16 +74,19 @@ def load_rows(path):
 
 
 def staged(options, model=None, scheduler=None, rows=None):
+    cfg = configuration(options)
     if (model is None) != (scheduler is None):
         raise ValueError('stage both actual UNet and scheduler')
     if model is None:
         model, scheduler = load_model(options['model_dir'])
-    rows = list(rows) if rows is not None else load_rows(options['rows_path'])
     targets(model)
+    if base_identity_sha256(model, scheduler) != cfg['base_identity_sha256']:
+        raise ValueError('SDXL base model identity differs from configuration before hook attachment')
+    rows = list(rows) if rows is not None else load_rows(options['rows_path'])
     if len(rows) < 2:
         raise ValueError('at least two fixed SDXL rows required')
     for row in rows:
-        validate_row(model, scheduler, row, tuple(configuration(options)['shape']))
+        validate_row(model, scheduler, row, tuple(cfg['shape']))
     return model, scheduler, rows
 
 
@@ -122,7 +129,8 @@ def prepare_inference(options, spec):
     model, scheduler = load_model(options['model_dir'])
     # Reject changed base weights, scheduler, runtime and native shape before attaching adapters.
     targets(model)
-    if model_identity(model, scheduler) != spec.identity['model']:
+    if (base_identity_sha256(model, scheduler) != cfg['base_identity_sha256']
+            or model_identity(model, scheduler) != spec.identity['model']):
         raise ValueError('SDXL frozen model or scheduler identity differs before hook attachment')
     native = NativeSDXL(model, scheduler, tuple(cfg['shape']), cfg['rank'], cfg['alpha'])
     try:
@@ -134,7 +142,7 @@ def prepare_inference(options, spec):
         raise
 
 
-CAPS = capabilities({})
+CAPS = capabilities({'base_identity_sha256': '0' * 64})
 TRAINING = ResponseBackend(NAME, CAPS, prepare, validate,
                           configure_capabilities=capabilities, preflight=preflight)
 INFERENCE = InferenceBackend(NAME, CAPS, prepare_inference, validate_inference,
