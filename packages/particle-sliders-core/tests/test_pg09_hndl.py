@@ -16,6 +16,9 @@ from particle_sliders.pg09_hndl import HNDLConditionalReadoutCritic
 @pytest.fixture(autouse=True)
 def optional_hndl():
     pytest.importorskip('hndl', minversion='0.8.2')
+    from importlib.metadata import version
+    if version('hndl') != '0.8.2':
+        pytest.skip('legacy readout requires the separate hndl==0.8.2 extra; modern hypergan-hndl uses0.10.0')
     before = torch.get_num_threads()
     torch.set_num_threads(1)
     yield

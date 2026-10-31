@@ -572,7 +572,8 @@ class ConditionalPG09:
             row_orders=self.row_orders, row_cursors=self.row_cursors, exposures=self.exposures,
             model_cpu_rng=self.model_cpu_rng, model_cuda_rng=self.model_cuda_rng))
 
-    def load_state_dict(self, state):
+    def _validate_state_dict(self, state):
+        """Validate the complete packet using owned optimizer copies only."""
         saved_config = state.get('config')
         if isinstance(saved_config, dict) and any(
                 saved_config.get(key) != self._signature.get(key)
@@ -653,6 +654,8 @@ class ConditionalPG09:
         if shadow_spread:
             shadow_spread.load_state_dict(deepcopy(state['spread']))
         shadow_d.load_state_dict(deepcopy(state['opt_d']))
+    def load_state_dict(self, state):
+        self._validate_state_dict(state)
         self.network.load_state_dict(state['network'], strict=True)
         self.critic.load_state_dict(state['critic'], strict=True)
         if self.prior:

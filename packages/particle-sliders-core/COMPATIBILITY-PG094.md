@@ -47,3 +47,34 @@ branches are preserved. See [cut-point boundaries](CUT-POINTS.md) and
 VoxCPM2 product code or admit their wide continuous responses. The shared
 compatibility package README stays this file; the cut-point owner's source
 README and MANIFEST additions are retained independently.
+
+
+## Lifecycle failure follow-up (separate candidate from4abc0eb)
+
+Training restore now converts/clones an isolated EMA and stages metrics before
+any live game mutation. Global RNG is scoped across validation/application and
+rollback. Complete PG preflight is factored into a private helper so invalid
+packets do not invoke live load hooks merely to roll back. A late live load-hook
+failure restores the previous valid game, EMA/metrics remain unchanged, and all
+captured modes/gradient/checkpoint flags are restored. If rollback itself fails,
+the original exception receives a diagnostic note and the game is disabled until
+a valid restore. An already-failed game has no valid rollback checkpoint; a
+successful restore can recover it, while failed recovery stays disabled. This is
+bounded owned-state rollback, not a guarantee against arbitrary external side
+effects, broken custom hooks or hardware/allocation failure.
+
+Native and observation cleanup attempts every captured restoration action even
+when another fails. Cleanup failures are attached as notes to an active original
+exception; absent an original failure, the first cleanup exception is raised
+after the remaining actions run. Factory/context cleanup uses that same rule.
+
+This changes shared implementation/source identity. Old4abc0eb session packets
+retain that exact environment; do not rewrite their source hashes or silently
+migrate them. Downstream owners must repin the reviewed follow-up source and
+requalify their own fresh cohorts. No PG mathematics or admission guard changed.
+
+HNDL extras remain deliberately separate: `hndl` means the legacy0.8.2 direct
+conditional-readout environment; `hypergan-hndl`/`fibo-hndl` means the verified
+HyperGAN5f368a/HNDL0.10 network environment. They cannot co-install. Legacy tests
+now explicitly skip in the modern environment, and are executed separately under
+0.8.2; modern graph tests execute under0.10. Neither historical pin is widened.

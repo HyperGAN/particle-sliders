@@ -18,7 +18,7 @@ from torch import nn
 
 from .lifecycle import (
     BackendUnavailable, Capabilities, CheckpointError, LifecycleError,
-    UnsupportedOperation, atomic_save, _rng_devices, _network_observation, capabilities_from_dict,
+    UnsupportedOperation, atomic_save, _rng_devices, _network_observation, capabilities_from_dict, _restore_all,
 )
 from .pg09 import _architectures, _hash, _identity, _validate_module
 
@@ -294,7 +294,7 @@ def open_inference(artifact, *, options=None, backend=None, operation='render', 
         return InferenceSession(binding, capabilities, packet, output_type, preflight, rng_devices=devices)
     except BaseException:
         if callable(getattr(binding, 'close', None)):
-            binding.close()
+            _restore_all([binding.close])
         raise
 
 
@@ -357,4 +357,4 @@ class InferenceSession:
         return self
 
     def __exit__(self, *exc):
-        self.close()
+        _restore_all([self.close])
