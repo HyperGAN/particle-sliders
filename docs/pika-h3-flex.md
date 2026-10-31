@@ -1,5 +1,10 @@
 # Pika H3 Flex native boundary
 
+The later [shared response-session draft](pika-h3-flex-shared-session.md)
+adds real shared lifecycle and HyperGAN/HNDL execution on a separate core0.12
+software cohort. Native wide-domain execution remains refused; the historical
+UNI trainer is not silently migrated.
+
 The existing H3 product code lives in `HyperGAN/particle-sliders`, under
 `conceptmod/textsliders/minimax_h3_backend.py`. There is no separate H3 or
 MiniMax video slider repository among the 21 public HyperGAN repositories

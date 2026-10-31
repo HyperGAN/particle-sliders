@@ -216,7 +216,7 @@ class PikaH3FlexBackend:
         # PEFT operations can toggle requires_grad. Freeze before creating the
         # independent float32 slider, and after any permitted adapter roundtrip.
         self._freeze_base()
-        self.network = AttnLoRANetwork(self.transformer, rank=rank, alpha=alpha, up_init_std=0.0).float()
+        self.network = self._build_slider(rank=rank, alpha=alpha).float()
         if not self.network.loras:
             raise H3FlexUnavailable("no native H3 attention slider targets found")
         # The inherited legacy wrapper initially enables its delta. Start at
@@ -228,6 +228,10 @@ class PikaH3FlexBackend:
             raise H3FlexUnavailable("the fixed Pika PEFT adapter is missing")
         self._install_lifecycle_guards()
         self._check_fixed_pika()
+
+    def _build_slider(self, *, rank, alpha):
+        """The standalone native boundary retains its original LoRA leaves."""
+        return AttnLoRANetwork(self.transformer, rank=rank, alpha=alpha, up_init_std=0.0)
 
     def _freeze_base(self):
         for module in self.pipe.components.values():
