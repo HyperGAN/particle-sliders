@@ -27,20 +27,30 @@ The lifecycle corrections in that revision do not change native admission.
   token axis or declaring token coordinates to be image spatial axes would
   change the declared response solely to obtain admission.
 
-The upstream explicit-domain patch remains separate and unadmitted. A reviewed
-packed continuous response domain and penalty treatment, compatible native
+The upstream explicit-domain patch remains separate and unadmitted. Reviewed
+native packed geometry and penalty treatment, compatible native
 critic, descriptor and source-bound lifecycle signature are needed centrally.
 This session reported that gap to the core owner; it changes no shared file.
-`preflight_training` refuses before a model, row cache, hook or optimizer is
-touched and before RNG is consumed. Width guards remain intact.
+`preflight_training` probes the existing `continuous_field` gate with the
+unchanged rank3 shape and preserves its actual4D/5D rank rejection as the cause.
+It does not invent a domain name or declare packed responses to be supported
+fields. An optional staged `model` is validated read-only; no model execution,
+state/gradient/mode/hook mutation, cache or optimizer creation occurs. Wrong PG
+version/source errors are reported separately as `FluxSourceMismatch` with the
+original cause. Width guards remain intact.
 
 ## Executable native prerequisites
 
 The new distribution uses the unique `ps_flux_packed_preview` namespace and
 pins the lifecycle-corrected public core, actual HyperGAN develop
 `5f368a3770cf5bdae0448995c9f76e29af8049f7`, HNDL0.10 and Diffusers0.38. It
-verifies all49 core Python/JSON/HNDL files and the verified builder closure,
-plus its own graph and six relevant native forward files. It does not create an
+verifies exactly the49 names in `sources.json:core_sources` beneath installed
+`particle_sliders/`:35 `.py`,12 `.json` and2 `.hndl` files. LICENSE, distribution
+metadata and other suffixes are outside that check; checking historical profile
+files does not admit those profiles. It separately verifies the builder closure,
+its own graph and six native forward files. The exact49-file index and installed
+test receipts are in `packages/particle-sliders-flux-packed/QUALIFICATION.md`.
+It does not create an
 old-core base/new-core extra conflict or modify a default requirements file.
 
 Actual HyperGAN-built HNDL graphs implement the ordinary bias-free down/up
@@ -48,7 +58,9 @@ branch with rank4/alpha1 (the historical defaults). Each graph preserves
 `[B,fixed_native_tokens,features]`, including the distinct combined text/image
 sequence used by Flux single blocks. The fixed token lengths are graph identity;
 they are not a reinterpretation of the game response. No routed bank or new
-prior is invented for ordinary LoRA.
+prior is invented for ordinary LoRA. Graph construction/initialization runs in a
+private CPU Torch RNG fork; caller state is restored after success or failure,
+while sequential branch initialization advances within the fork.
 
 Current `FluxAttention` targets match the historical selector's linear-leaf
 policy, excluding `add_*`. Diffusers0.38 renamed the class matched by the old
@@ -71,8 +83,8 @@ execution, matched-weight outputs and input/all-parameter VJPs, zero and signed
 strengths, source/builder/native-shape rejection, mode/gradient preservation,
 partial hook rollback and every-cleanup-on-failure. Wheel and sdist installation
 are exercised in an isolated CPU environment; a separate CPU Torch2.6 environment
-checks clean public dependency resolution. Exact receipts are returned with the
-draft review packet.
+checks clean public dependency resolution. Installed test receipts are published
+alongside the package in `qualification/` and summarized in `QUALIFICATION.md`.
 
 Shared-game parameter updates, critic second derivatives, exact resume, EMA,
 shared export and shared native-only inference are **blocked and unexecuted**.

@@ -12,7 +12,7 @@ from particle_sliders.pg09_backends import ResponseRow
 
 from ps_flux_packed_preview import COHORT
 from ps_flux_packed_preview.native import (
-    FluxLoRA, HNDLLoRA, PackedFluxResponse, PackedTrainingUnavailable, preflight_training,
+    FluxLoRA, FluxSourceMismatch, HNDLLoRA, PackedFluxResponse, PackedTrainingUnavailable, preflight_training,
 )
 from ps_flux_packed_preview.provenance import ROOT, checked_builder
 
@@ -67,23 +67,117 @@ def test_installed_identity_and_actual_hndl_graph():
 @pytest.mark.parametrize("shape", [(1, 1, 64), (1, 4, 64), (1, 1024, 64)])
 def test_shared_packed_refusal_does_not_consume_rng_or_mutate_native(shape):
     m = model()
+    list(m.modules())[3].eval()
+    first = next(m.parameters())
+    first.grad = torch.full_like(first, .25)
+    hook = m.x_embedder.register_forward_hook(lambda *args: None)
+    state = {n: v.clone() for n, v in m.state_dict().items()}
     modes = [v.training for v in m.modules()]
     grads = [v.requires_grad for v in m.parameters()]
+    gradients = [None if v.grad is None else v.grad.clone() for v in m.parameters()]
+    hooks = [(dict(v._forward_hooks), dict(v._forward_pre_hooks)) for v in m.modules()]
     before = torch.get_rng_state().clone()
-    with pytest.raises(PackedTrainingUnavailable, match="no native packed-token"):
-        preflight_training(shape)
+    with pytest.raises(PackedTrainingUnavailable, match="continuous_field rank gate") as rejected:
+        preflight_training(shape, model=m)
+    assert isinstance(rejected.value.__cause__, ValueError)
+    assert "continuous_field requires genuine native 4D/5D shape" in str(rejected.value.__cause__)
     assert torch.equal(before, torch.get_rng_state())
+    for name, value in m.state_dict().items():
+        assert torch.equal(value, state[name])
     assert [v.training for v in m.modules()] == modes
     assert [v.requires_grad for v in m.parameters()] == grads
+    for parameter, gradient in zip(m.parameters(), gradients):
+        assert parameter.grad is None if gradient is None else torch.equal(parameter.grad, gradient)
+    assert [(dict(v._forward_hooks), dict(v._forward_pre_hooks)) for v in m.modules()] == hooks
+    hook.remove()
+
+
+@pytest.mark.parametrize("mismatch", ["version", "sources"])
+def test_wrong_pg_source_is_reported_separately_from_packed_rank_refusal(mismatch):
+    from importlib.metadata import version
+    m = model()
+    state = {n: v.clone() for n, v in m.state_dict().items()}
+    rng = torch.get_rng_state().clone()
+    if mismatch == "version":
+        change = patch("particle_sliders.pg09.version",
+            side_effect=lambda name: "0.9.3" if name == "particlegan" else version(name))
+    else:
+        original = Path.read_bytes
+        def changed(path):
+            data = original(path)
+            return data + b"\n# source mismatch\n" if path.parent.name == "particlegan" and path.name == "__init__.py" else data
+        change = patch.object(Path, "read_bytes", changed)
+    with change, pytest.raises(FluxSourceMismatch, match="exact ParticleGAN0.9.4 release source") as rejected:
+        preflight_training((1, 4, 64), model=m)
+    assert isinstance(rejected.value.__cause__, RuntimeError)
+    assert torch.equal(rng, torch.get_rng_state())
+    assert all(torch.equal(value, state[name]) for name, value in m.state_dict().items())
+    assert all(not v._forward_hooks and not v._forward_pre_hooks for v in m.modules())
+
+
+def test_constructor_forks_rng_without_repeating_equal_shape_branch_initialization():
+    m = model()
+    state = {n: v.clone() for n, v in m.state_dict().items()}
+    before = torch.get_rng_state().clone()
+    bank = FluxLoRA(m, image_tokens=4, text_tokens=3)
+    assert torch.equal(before, torch.get_rng_state())
+    assert all(torch.equal(value, state[name]) for name, value in m.state_dict().items())
     assert all(not v._forward_hooks for v in m.modules())
+    assert not torch.equal(bank.branches[0].graph["down"].weight, bank.branches[1].graph["down"].weight)
+
+
+def test_constructor_restores_rng_after_graph_build_failure():
+    m = model()
+    before = torch.get_rng_state().clone()
+    original = HNDLLoRA.__init__
+    calls = []
+    def fail_second(branch, *args, **kwargs):
+        calls.append(branch)
+        original(branch, *args, **kwargs)
+        if len(calls) == 2:
+            raise RuntimeError("second graph failed after random initialization")
+    with patch.object(HNDLLoRA, "__init__", fail_second), pytest.raises(RuntimeError, match="second graph failed"):
+        FluxLoRA(m, image_tokens=4, text_tokens=3)
+    assert len(calls) == 2
+    assert torch.equal(before, torch.get_rng_state())
+    assert all(not v._forward_hooks for v in m.modules())
+
+
+@pytest.mark.parametrize("fail", [False, True])
+def test_low_level_branch_constructor_restores_rng_on_success_and_failure(fail):
+    builder, identity = checked_builder()
+    host = torch.nn.Linear(12, 16).requires_grad_(False)
+    before = torch.get_rng_state().clone()
+    def build(*args, **kwargs):
+        graph = builder(*args, **kwargs)
+        if fail:
+            raise RuntimeError("builder failed after random initialization")
+        return graph
+    if fail:
+        with pytest.raises(RuntimeError, match="builder failed"):
+            HNDLLoRA(host, 4, 1., build, identity, tokens=5)
+    else:
+        HNDLLoRA(host, 4, 1., build, identity, tokens=5)
+    assert torch.equal(before, torch.get_rng_state())
+    assert not host._forward_hooks
 
 
 def test_shared_response_descriptor_cannot_advertise_packed_geometry():
     from particle_sliders.response import ResponseCapabilities
-    for domain in ("continuous_vector", "continuous_field", "continuous_packed_tokens"):
+    for domain in ("continuous_vector", "continuous_field"):
         with pytest.raises(ValueError, match="native continuous response geometry"):
             ResponseCapabilities("adapter_gan", "image", "packed_velocity", domain,
                 (1, 4, 64), "0.9.4", "release-0.9.4")
+
+
+def test_supported_field_gate_control_is_distinct_from_unchanged_flux_rank3():
+    from particle_sliders.pg094 import validate_pg09_domain
+    # An unrelated genuine field is a positive API control, never a Flux
+    # response conversion or a claim of native Flux training admission.
+    admitted = validate_pg09_domain((1, 16, 2, 2), response_domain="continuous_field")
+    assert admitted["resolved_penalty_domain"] == "image"
+    with pytest.raises(ValueError, match="continuous_field requires genuine native 4D/5D shape"):
+        validate_pg09_domain((1, 4, 64), response_domain="continuous_field")
 
 
 @pytest.mark.parametrize("shape", [(1, 64), (1, 16, 8, 8), (2, 4, 64), (1, 4, 32)])

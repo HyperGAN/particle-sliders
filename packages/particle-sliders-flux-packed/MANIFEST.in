@@ -1,0 +1,2 @@
+include QUALIFICATION.md
+recursive-include qualification *.txt *.json

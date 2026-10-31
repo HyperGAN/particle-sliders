@@ -21,27 +21,41 @@ from .provenance import ROOT, checked_builder, check_native
 
 
 class PackedTrainingUnavailable(ValueError):
-    """A genuine native packed-token domain is missing from shared admission."""
+    """Shared admission does not support the product's native packed response."""
 
 
-def preflight_training(response_shape, *, cohort=COHORT):
-    """Fail before model loading, modes, hooks, targets, optimizers or RNG change.
+class FluxSourceMismatch(RuntimeError):
+    """The installed ParticleGAN version/sources cannot support this preflight."""
+
+
+def preflight_training(response_shape, *, model=None, cohort=COHORT):
+    """Check native shape without loading or mutating an optional staged model.
 
     Do not flatten [1,T,64], squeeze T, or turn tokens into channels/spatial axes
-    to satisfy an unrelated domain. Even one token remains a packed response.
+    to satisfy an unrelated domain. Probe the existing continuous_field rank
+    gate with the unchanged rank3 shape; this does not declare packed tokens
+    to be a supported field or invent a new shared domain.
     """
     if cohort != COHORT:
         raise ValueError("unsupported Flux prerequisite cohort")
+    if model is not None:
+        check_native(model)
+        if model.config.in_channels != 64 or model.config.out_channels not in (None, 64):
+            raise ValueError("staged Flux packed64 input/output config required")
     checked_builder()
     shape = tuple(response_shape)
     if len(shape) != 3 or shape[0] != 1 or shape[2] != 64 or any(type(v) is not int or v < 1 for v in shape):
         raise ValueError("native Flux response must be [1,image_tokens,64]")
     from particle_sliders.pg094 import validate_pg09_domain
     try:
-        validate_pg09_domain(shape, response_domain="continuous_packed_tokens")
+        validate_pg09_domain(shape, response_domain="continuous_field")
+    except RuntimeError as exc:
+        raise FluxSourceMismatch(
+            "Flux preflight requires the exact ParticleGAN0.9.4 release source; "
+            "installed version/source verification failed: " + str(exc)) from exc
     except ValueError as exc:
         raise PackedTrainingUnavailable(
-            "core0.12/PG0.9.4 admits no native packed-token response domain; "
+            "core0.12/PG0.9.4 continuous_field rank gate rejects native packed rank3 responses; "
             "Flux shared training/resume/EMA/export remain unavailable. "
             "No hooks or weights were changed; no response axes were recast.") from exc
     # A future core must be separately source-qualified; its new API is not
@@ -59,15 +73,22 @@ class HNDLLoRA(nn.Module):
     The host retains its own forward; a removable public forward hook adds the
     branch. B and the fixed native token dimension remain separate graph axes.
     """
-    def __init__(self, host, rank, alpha, builder, identity, *, tokens):
+    def __init__(self, host, rank, alpha, builder, identity, *, tokens, _rng=None):
         super().__init__()
         self.tokens = tokens
-        self.graph = builder((ROOT / "lora.hndl").read_text(),
-            input_shape={"value": ["B", tokens, host.in_features]},
-            output_shape=["B", tokens, host.out_features],
-            parameters={"rank": rank, "output_width": host.out_features})
-        nn.init.kaiming_uniform_(self.graph["down"].weight, a=1)
-        nn.init.zeros_(self.graph["up"].weight)
+        with torch.random.fork_rng(devices=[]):
+            if _rng is not None:
+                torch.set_rng_state(_rng.get_state())
+            try:
+                self.graph = builder((ROOT / "lora.hndl").read_text(),
+                    input_shape={"value": ["B", tokens, host.in_features]},
+                    output_shape=["B", tokens, host.out_features],
+                    parameters={"rank": rank, "output_width": host.out_features})
+                nn.init.kaiming_uniform_(self.graph["down"].weight, a=1)
+                nn.init.zeros_(self.graph["up"].weight)
+            finally:
+                if _rng is not None:
+                    _rng.set_state(torch.get_rng_state())
         self.scale = alpha / rank
         self._identity = deepcopy(identity)
 
@@ -114,9 +135,15 @@ class FluxLoRA(nn.Module):
         if not targets:
             raise ValueError("no historical full Attention linear targets")
         self.target_names = tuple(name for name, _ in targets)
-        self.branches = nn.ModuleList([HNDLLoRA(host, rank, alpha, builder, identity,
-            tokens=image_tokens + text_tokens if name.startswith("single_transformer_blocks.") else image_tokens)
-            for name, host in targets])
+        # Keep the caller's CPU RNG unchanged on successful construction and
+        # graph/initialization failure. The private fork still advances between
+        # branches, preserving distinct sequential native initializations.
+        with torch.random.fork_rng(devices=[]):
+            branch_rng = torch.Generator().set_state(torch.get_rng_state())
+            self.branches = nn.ModuleList([HNDLLoRA(host, rank, alpha, builder, identity,
+                tokens=image_tokens + text_tokens if name.startswith("single_transformer_blocks.") else image_tokens,
+                _rng=branch_rng)
+                for name, host in targets])
         self.names = tuple(name for name, _ in self.named_parameters())
         object.__setattr__(self, "_model", model)
         self._targets = targets
