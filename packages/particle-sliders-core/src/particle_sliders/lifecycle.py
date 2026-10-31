@@ -4,14 +4,13 @@ Importing this module never imports a product, downloads weights or selects a
 GPU. See IMAGE-LIFECYCLE.md for packet/cohort and backend isolation contracts.
 """
 from contextlib import contextmanager, nullcontext
-from copy import deepcopy
+from copy import copy, deepcopy
 from dataclasses import asdict, dataclass
 import hashlib
 from importlib.metadata import entry_points
 import json
 import math
 import os
-import sys
 from pathlib import Path
 import tempfile
 from typing import Callable
@@ -188,9 +187,9 @@ class Backend:
             import inspect
             session._manifest['factory_sha256'] = hashlib.sha256(Path(inspect.getsourcefile(self.prepare)).read_bytes()).hexdigest()
             return session
-        except BaseException:
+        except BaseException as primary:
             if callable(getattr(binding, 'close', None)):
-                _restore_all([binding.close])
+                _restore_all([binding.close], primary=primary)
             raise
 
     def _session(self, config, capabilities, binding):
@@ -278,21 +277,28 @@ def _network_observation(network, seed, *, devices, observation=None):
                 *(lambda module=module, registered=registered, nonpersistent=nonpersistent:
                   restore_registration(module, registered, nonpersistent)
                   for module, registered, nonpersistent in buffers)])
+    primary = None
     try:
         with torch.random.fork_rng(devices=devices), torch.no_grad():
             _seed_observation(seed, devices)
             network.eval()
             with observation() if observation else nullcontext():
                 yield
+    except BaseException as exc:
+        primary = exc
+        raise
     finally:
         _restore_all([restore_buffers, lambda: network.load_state_dict(state, strict=True), restore_buffers,
             *(lambda module=module, training=training: setattr(module, 'training', training)
-              for module, training in modes)])
+              for module, training in modes)], primary=primary)
 
 
-def _restore_all(actions):
-    """Attempt each restoration; never replace an active operation's exception."""
-    primary = sys.exception()
+def _restore_all(actions, *, primary=None):
+    """Attempt every action; preserve only the explicitly supplied operation error.
+
+    Ambient exceptions may belong to an unrelated caller's ``except`` block.
+    A normal cleanup failure must still be raised in that case.
+    """
     failures = []
     for action in actions:
         try:
@@ -376,8 +382,8 @@ def _open_registered(config, *, resume, artifact, operation, request, resolve,
         elif artifact is not None:
             session.load_inference(packet)
         return session
-    except BaseException:
-        _restore_all([session.close])
+    except BaseException as primary:
+        _restore_all([session.close], primary=primary)
         raise
 
 
@@ -564,15 +570,15 @@ class SliderSession:
                                                               manifest=self.manifest))
                 if allowed is False:
                     raise UnsupportedOperation('native update admission rejected')
-            except BaseException:
-                _restore_all([lambda: self.game.load_state_dict(state), restore_native])
+            except BaseException as primary:
+                _restore_all([lambda: self.game.load_state_dict(state), restore_native], primary=primary)
                 raise
         try:
             stats = advance(self.game, ema=self.ema)
             self.last_metrics = deepcopy(stats)
             return stats
-        except BaseException:
-            _restore_all([self.close])
+        except BaseException as primary:
+            _restore_all([self.close], primary=primary)
             raise
 
     def train(self, *, stop_after=None, on_step=None):
@@ -586,8 +592,8 @@ class SliderSession:
             if on_step is not None:
                 try:
                     on_step(deepcopy(metrics))
-                except BaseException:
-                    _restore_all([self.close])
+                except BaseException as primary:
+                    _restore_all([self.close], primary=primary)
                     raise
         return deepcopy(self.last_metrics)
 
@@ -629,7 +635,9 @@ class SliderSession:
                 prepared_metrics = deepcopy(metrics)
                 # Validate AND perform tensor conversion/allocation on an isolated
                 # EMA before PG can mutate the live game. Never clone a backend.
-                prepared_ema = deepcopy(self.ema)
+                # Loading replaces values after complete conversion; copying just
+                # the container avoids cloning the old EMA that will be discarded.
+                prepared_ema = copy(self.ema)
                 try:
                     prepared_ema.load_state_dict(self.game.network, payload['ema'])
                 except Exception as exc:
@@ -641,10 +649,11 @@ class SliderSession:
                 # Keep ordinary packet rejection before any live module hook;
                 # rollback is reserved for failures after successful preflight.
                 self.game._validate_state_dict(payload['game'])
+                restore_runtime = self.game._runtime_restorers()
                 cleanup = [native_cleanup(module) for module in
                            (self.game.network, self.game.critic, self.game.prior) if module is not None]
                 try:
-                    self.game.load_state_dict(payload['game'])
+                    self.game._apply_state_dict(payload['game'])
                 except BaseException as primary:
                     # Normal PG preflight errors precede mutation. Live custom
                     # load hooks/transfers can still fail later: restore the last
@@ -661,7 +670,7 @@ class SliderSession:
                                              + type(rollback).__name__ + ': ' + str(rollback))
                         else:
                             self.game._failed, self.game._export_loaded = flags
-                    _restore_all(cleanup)
+                    _restore_all([*restore_runtime, *cleanup], primary=primary)
                     raise
                 self.ema.values = prepared_ema.values
                 self.last_metrics = prepared_metrics
@@ -742,12 +751,12 @@ class SliderSession:
 
     def close(self):
         if not self.closed:
-            self.closed = True
             self.binding.close()
+            self.closed = True
 
     def __enter__(self):
         self._open()
         return self
 
-    def __exit__(self, *exc):
-        _restore_all([self.close])
+    def __exit__(self, exc_type, exc, traceback):
+        _restore_all([self.close], primary=exc)

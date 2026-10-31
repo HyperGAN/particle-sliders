@@ -647,15 +647,64 @@ class ConditionalPG09:
             raise ValueError('CUDA checkpoint cannot silently resume on CPU')
         # Public optimizer restore on isolated copies validates BEFORE live mutation.
         # Copies contain adapter/critic parameters only, never a pretrained backend.
-        # PG critic restore also publishes per-device thermal state: make it the
-        # final preflight after every sampler and other state can no longer reject.
+        # Official PG critic restore publishes a process-local thermal channel.
+        # Shadow validation must not publish an incoming checkpoint's channel,
+        # even when the shadow load raises after writing it.
         shadow_g, shadow_d, shadow_spread = deepcopy((self.opt_g, self.opt_d, self.spread))
-        shadow_g.load_state_dict(deepcopy(state['opt_g']))
-        if shadow_spread:
-            shadow_spread.load_state_dict(deepcopy(state['spread']))
-        shadow_d.load_state_dict(deepcopy(state['opt_d']))
+        restore_thermal = self._thermal_cleanup()
+        try:
+            shadow_g.load_state_dict(deepcopy(state['opt_g']))
+            if shadow_spread:
+                shadow_spread.load_state_dict(deepcopy(state['spread']))
+            shadow_d.load_state_dict(deepcopy(state['opt_d']))
+        finally:
+            restore_thermal()
+
+    def _thermal_cleanup(self):
+        """Snapshot only this device's exact PG0.9.4 process-local channel."""
+        from particlegan.bispf import _LAST_THERMAL_SCALE
+        missing = object()
+        previous = _LAST_THERMAL_SCALE.get(self.device, missing)
+        def restore():
+            if previous is missing:
+                _LAST_THERMAL_SCALE.pop(self.device, None)
+            else:
+                _LAST_THERMAL_SCALE[self.device] = previous
+        return restore
+
+    def _runtime_restorers(self):
+        """Rollback ephemeral PG diagnostics/channel omitted from public packets.
+
+        These are existing official objects, not a replacement serialization law.
+        The session attempts all restorers even when live optimizer rollback fails.
+        """
+        penalty, kernel, record = self.penalty, self.penalty.regularizer, self.opt_d.record
+        stats = deepcopy(penalty.last_stats)
+        collect_stats = penalty.collect_stats
+        cooler = deepcopy(kernel.cooler.state_dict())
+        absent = object()
+        transient = {name: getattr(record, name, absent) for name in ('_in_penalty', '_last_d_logits')}
+        transient = {name: value.detach().clone() if isinstance(value, torch.Tensor) else value
+                     for name, value in transient.items()}
+        def restore_attribute(name, value):
+            if value is absent:
+                if hasattr(record, name):
+                    delattr(record, name)
+            else:
+                setattr(record, name, value)
+        return [self._thermal_cleanup(),
+                lambda: setattr(penalty, 'last_stats', stats),
+                lambda: setattr(penalty, 'collect_stats', collect_stats),
+                lambda: kernel.cooler.load_state_dict(cooler),
+                *(lambda name=name, value=value: restore_attribute(name, value)
+                  for name, value in transient.items())]
+
     def load_state_dict(self, state):
         self._validate_state_dict(state)
+        self._apply_state_dict(state)
+
+    def _apply_state_dict(self, state):
+        """Apply a packet already checked by _validate_state_dict in this call."""
         self.network.load_state_dict(state['network'], strict=True)
         self.critic.load_state_dict(state['critic'], strict=True)
         if self.prior:

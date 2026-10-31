@@ -31,7 +31,7 @@ separately supported legacy readout critic uses `hndl` (HNDL0.8.2) in a differen
 environment. The two optional HNDL families cannot be co-installed. Keep native model
 libraries and product-specific model staging outside this shared package.
 
-Continuous-domain admission is unchanged: official auto refuses flat native vectors
+Continuous-domain admission is unchanged: this shared product gate refuses flat native vectors
 of width>=170, including H3's reported1,398,528-wide response and native Music3/YuE2
 responses. Neither PG0.9.4 nor the HyperGAN builder update qualifies that domain.
 No reshape, categorical interpretation, unofficial overlay or bypass is introduced.
@@ -67,6 +67,27 @@ Native and observation cleanup attempts every captured restoration action even
 when another fails. Cleanup failures are attached as notes to an active original
 exception; absent an original failure, the first cleanup exception is raised
 after the remaining actions run. Factory/context cleanup uses that same rule.
+The operation exception is passed explicitly: an unrelated caller's active
+`except` block never suppresses a normal cleanup failure. `close()` marks a
+training or native-inference session closed only after its binding cleanup
+succeeds, so failed native cleanup can be retried.
+
+Incoming PG state is preflighted once before live application. Shadow optimizer
+loads preserve the exact per-device official PG thermal channel, including on
+failure; they do not publish incoming thermal state. Failed live application
+also restores that channel, the penalty's last diagnostics/collection flag,
+cooler state and transient observer flags independently of optimizer rollback.
+If rollback fails, the game remains disabled; this does not claim recovery of
+arbitrary external effects. EMA conversion copies only the EMA container before
+allocating incoming values, avoiding an unnecessary clone of the old EMA.
+
+Published regression coverage is in `tests/test_lifecycle_restore_failures.py`.
+It includes EMA trial-load failure, one-shot and persistent live-load failures,
+failed rollback disabling, original-error preservation during failed cleanup,
+retryable training/inference close, unrelated ambient exceptions, thermal and
+diagnostic restoration, and a checked-in actual4abc synthetic training packet
+with provenance in `tests/fixtures/lifecycle/`. That packet is rejected before
+live hooks with game/EMA/RNG/native flags unchanged; no hashes are rewritten.
 
 This changes shared implementation/source identity. Old4abc0eb session packets
 retain that exact environment; do not rewrite their source hashes or silently

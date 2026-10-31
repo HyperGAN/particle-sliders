@@ -292,9 +292,9 @@ def open_inference(artifact, *, options=None, backend=None, operation='render', 
                 native_backend.preflight(deepcopy(options), dict(operation=operation, strength=strength,
                     references=references, output_type=output_type, native=deepcopy(native)), spec)
         return InferenceSession(binding, capabilities, packet, output_type, preflight, rng_devices=devices)
-    except BaseException:
+    except BaseException as primary:
         if callable(getattr(binding, 'close', None)):
-            _restore_all([binding.close])
+            _restore_all([binding.close], primary=primary)
         raise
 
 
@@ -348,13 +348,13 @@ class InferenceSession:
 
     def close(self):
         if not self.closed:
-            self.closed = True
             self.binding.close()
+            self.closed = True
 
     def __enter__(self):
         if self.closed:
             raise LifecycleError('inference session is closed')
         return self
 
-    def __exit__(self, *exc):
-        _restore_all([self.close])
+    def __exit__(self, exc_type, exc, traceback):
+        _restore_all([self.close], primary=exc)
