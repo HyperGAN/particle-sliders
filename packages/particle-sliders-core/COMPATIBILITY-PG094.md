@@ -39,6 +39,11 @@ No weights were downloaded and no GPU, training, publication or deployment occur
 
 The existing public main core0.11.0/PG0.9.3 and product core0.8.1/0.8.2/PG0.9.1
 cohorts remain on their immutable commits. Products are not automatically repinned.
-This candidate does not include or alter the separately owned cut-point API, H3
-or VoxCPM2 product code. Its package README is this file so the other task's
-README/MANIFEST edits can be integrated independently.
+This joint qualification branch includes the separately reviewed additive
+cut-point docs/probes from e86c0969b04b5a7ee6de481a8f01458cf2e2b43a and the PEFT
+scaling helper from 06ac5af9cb717c47dd10ce5d83bd9cc4258a8945. Original owner
+branches are preserved. See [cut-point boundaries](CUT-POINTS.md) and
+[explicit PEFT scale scopes](PEFT-SCALING.md). This does not include H3 or
+VoxCPM2 product code or admit their wide continuous responses. The shared
+compatibility package README stays this file; the cut-point owner's source
+README and MANIFEST additions are retained independently.
