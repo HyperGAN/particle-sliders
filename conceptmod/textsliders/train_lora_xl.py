@@ -394,6 +394,17 @@ def train(
         return network.get_state_dict(save_weight_dtype)
 
 
+
+def train_shared(config, **staged):
+    """Opt-in installed SDXL GAN cohort; historical ``train`` stays unchanged.
+
+    Install packages/sdxl-particle-preview in its separate environment. Pass an
+    explicit shared SessionConfig and staged frozen native conditioning rows.
+    """
+    from sdxl_particle_preview.cli import train_shared as run
+    return run(config, **staged)
+
+
 def main(args):
     config_file = args.config_file
 
