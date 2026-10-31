@@ -82,5 +82,9 @@
     "pretrained concept quality",
     "GPU tests/training; /dev/nvidia* absent; occupancy unknown"
   ],
-  "release_impact": "New opt-in distribution only; no defaults or legacy locks changed. No merge, package/weight release or deployment."
+  "release_impact": "New opt-in distribution only; no defaults or legacy locks changed. No merge, package/weight release or deployment.",
+  "source_commit": "2593452e4ce597335242f0b81c35e158e6c63e33",
+  "historical_receipt_only": true,
+  "superseded_by": "review-fixes.json",
+  "publication_receipts_are_not_runtime_builder_evidence": true
 }

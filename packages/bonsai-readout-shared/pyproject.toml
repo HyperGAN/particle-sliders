@@ -1,6 +1,7 @@
 [build-system]
 requires = ["setuptools>=84.2.1"]
-build-backend = "setuptools.build_meta"
+build-backend = "_bonsai_build"
+backend-path = ["."]
 
 [project]
 name = "bonsai-readout-shared"
@@ -19,12 +20,12 @@ test = ["pytest>=8"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["conceptmod.textsliders"]
+packages = ["bonsai_readout_shared"]
 
 [project.entry-points."particle_sliders.response_backends"]
-bonsai-gguf-shared = "conceptmod.textsliders.bonsai_gguf_shared:TRAINING"
-bonsai-readout-fixture = "conceptmod.textsliders.bonsai_gguf_shared:FIXTURE_TRAINING"
+bonsai-gguf-shared = "bonsai_readout_shared.binding:TRAINING"
+bonsai-readout-fixture = "bonsai_readout_shared.binding:FIXTURE_TRAINING"
 
 [project.entry-points."particle_sliders.inference_backends"]
-bonsai-gguf-shared = "conceptmod.textsliders.bonsai_gguf_shared:INFERENCE"
-bonsai-readout-fixture = "conceptmod.textsliders.bonsai_gguf_shared:FIXTURE_INFERENCE"
+bonsai-gguf-shared = "bonsai_readout_shared.binding:INFERENCE"
+bonsai-readout-fixture = "bonsai_readout_shared.binding:FIXTURE_INFERENCE"

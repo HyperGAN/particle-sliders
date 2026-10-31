@@ -14,25 +14,31 @@ field reshape, categorical fallback or width override.
 The pinned environment is core0.12 commit
 `4abc0eb03a4e3a84fc3e6d02734c13dc7e8ea231` (core draft PR148), official PG0.9.4,
 HyperGAN develop `5f368a3770cf5bdae0448995c9f76e29af8049f7`, HNDL0.10.0,
-Python >=3.11,<3.15. The entire installed core Python source closure and the
-HyperGAN/HNDL clean-build closure are verified. No source overlay is admitted.
-The qualified core wheel SHA256 is
+Python >=3.11,<3.15. Before core entrypoint imports, cooperative checks compare
+installed source files, executable bytecode caches and import origins. The
+shared builder separately checks its on-disk source/clean-build record. These
+checks reject ordinary path shadows and stale executable caches; they do not
+attest arbitrary previously executed or later monkeypatched in-memory code and
+are not a Python security boundary. No source overlay is admitted.
+The archived core wheel SHA256 below is an informational reference, not a wheel
+admission check; fresh VCS builds can have different ZIP timestamps:
 `9afad3afc1f6c653a574074dc14f0da1f1c43975c31ca45c4eac049df0b0b4ad`.
 
 Use a fresh environment, from the repository root:
 
 ```bash
 python3.12 -m venv .venv-bonsai-shared
-.venv-bonsai-shared/bin/python -m pip install ./packages/bonsai-readout-shared
+.venv-bonsai-shared/bin/python -m pip install --extra-index-url https://download.pytorch.org/whl/cpu 'torch==2.6.0+cpu' './packages/bonsai-readout-shared[test]'
 ```
 
 The project has no dependency on an old core plus an incompatible new-core
 extra. Do not install the legacy `hndl` extra (HNDL0.8.2) in this environment.
-The wheel installs only the existing Bonsai native backend and the new shared
-binding, under their existing `conceptmod.textsliders` import names. It does not
-package or import `particle_bridge_gan`, TinyQwen, H3 or other trainers.
-The `src` links select those two repository modules without maintaining copies;
-the source archive and wheel contain their actual bytes and build independently.
+The wheel owns only the `bonsai_readout_shared` namespace. It does not install a
+`conceptmod` package that could hide a sibling preview. The small build backend
+materializes the unchanged historical Bonsai loader into `_native.py`, checking
+its pinned source hash. The self-contained source archive includes those actual
+bytes. No source symlinks are required, including in a `core.symlinks=false`
+checkout. Neither the legacy game, TinyQwen nor H3 is packaged.
 
 Create a small `rows.json` array of distinct positive/neutral text pairs, then:
 
@@ -57,8 +63,13 @@ with open_inference("head.pt", operation="response") as inference:
 
 For the native admission check, select `bonsai-gguf-shared` with `weights` set
 to the pinned `Ternary-Bonsai-2-27B-PTQ1_0.gguf` and `server_url` pointing to an
-already owned Prism fork server. The current result is an explicit width5120
-refusal. There is no download, server launch or native model execution here.
+already owned Prism fork server, plus explicit expected `model_sha256`. The
+current result is an explicit width5120 refusal before reading model bytes. The
+dormant native identity path checks the full local file content hash, original
+filename/size/header and native source identity, and inference compares that
+identity too. A future enabled path also needs independent proof that the server
+is serving those same bytes; the local file hash does not attest a remote server.
+There is no download, server launch or native model execution here.
 
 The architecture remains a torch-side residual on a frozen readout, with
 rank8/alpha8, one shared128x4 bank, zero-initialized up matrix and exact strength0
@@ -74,6 +85,8 @@ frozen positive targets remain explicit; the new critic conditions on the frozen
 neutral readout. Strengths0/0.5/1 return numerical readouts, not generated tokens
 or a modified GGUF model. Old safetensors cannot resume here. Preserve their
 original source, dependencies and `train_lora_bonsai_gguf.py` entrypoint.
+Artifacts from earlier draft source2593452 also retain their original factory
+and class/source identity; the namespace change does not silently rebind them.
 
 Required follow-up: centrally reviewed explicit continuous-domain source/profile
 admission for width5120, new exact core signature/provenance, and separate real
@@ -84,10 +97,24 @@ concept quality, audio, package release, weights publication or deployment is
 qualified by this work.
 
 To reproduce the installed-package CPU checks, build the wheel/source archive,
-install the wheel with this profile's exact dependencies, and run a copy of
-`tests/test_bonsai_shared.py` outside the checkout with `pytest -c /dev/null`.
-Set `BONSAI_REFERENCE_ROOT` to the checkout solely for the one matched-weight
-comparison against the unmodified historical head. The product import assertion
-requires `site-packages`; this prevents pytest's repository `pythonpath` from
-silently substituting source for the installed product. The legacy tests run
-separately from the repository root using their original entrypoint.
+install the wheel with this profile's exact dependencies, and copy
+`packages/bonsai-readout-shared/installed_tests` outside the checkout. Run:
+
+```bash
+BONSAI_INSTALLED_TESTS=1 BONSAI_REFERENCE_ROOT="$PWD" .venv-bonsai-shared/bin/python -m pytest -q -c /dev/null /tmp/bonsai-installed-tests
+```
+
+`BONSAI_INSTALLED_TESTS=1` selects this optional installed CPU fixture lane. It
+is outside the default root testpaths and skips when unselected. A missing
+`BONSAI_REFERENCE_ROOT` skips only optional historical architecture/packaging
+comparisons. The installed product import assertion requires `site-packages`.
+Direct factory calls fork/restore the caller's CPU RNG on success and failure.
+The original legacy tests run separately from the repository root:
+
+```bash
+python -m pytest -q -rs -c /dev/null tests/test_bonsai_gguf_slider.py
+```
+
+`qualification/legacy-test-paths.json` lists the exact22 CPU and two opt-in live
+node IDs. Public Git/raw blob byte receipts prove source publication, not runtime
+builder execution; those are separate evidence lanes.

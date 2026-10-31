@@ -1,0 +1,35 @@
+{
+  "source_sha": "2593452e4ce597335242f0b81c35e158e6c63e33 (file unchanged from4abc0eb)",
+  "cpu_passed": [
+    "tests/test_bonsai_gguf_slider.py::test_pinned_model_file_and_readout",
+    "tests/test_bonsai_gguf_slider.py::test_game_is_the_shared_yue2_module_not_a_copy",
+    "tests/test_bonsai_gguf_slider.py::test_pinned_file_resolves_and_everything_else_is_refused",
+    "tests/test_bonsai_gguf_slider.py::test_probe_accepts_ternary_hadamard_gguf",
+    "tests/test_bonsai_gguf_slider.py::test_probe_rejects_non_gguf_wrong_shape_and_missing_markers",
+    "tests/test_bonsai_gguf_slider.py::test_fork_log_scanner_rejects_stock_and_ambiguous",
+    "tests/test_bonsai_gguf_slider.py::test_require_fork_binary_fails_closed_without_a_binary",
+    "tests/test_bonsai_gguf_slider.py::test_require_fork_binary_accepts_a_versioned_executable",
+    "tests/test_bonsai_gguf_slider.py::test_download_refuses_without_explicit_opt_in",
+    "tests/test_bonsai_gguf_slider.py::test_dummy_backend_readout_shape_and_determinism",
+    "tests/test_bonsai_gguf_slider.py::test_live_backend_needs_weights_and_server",
+    "tests/test_bonsai_gguf_slider.py::test_head_pins_and_zero_init",
+    "tests/test_bonsai_gguf_slider.py::test_build_game_uses_reference_lrs_and_betas",
+    "tests/test_bonsai_gguf_slider.py::test_shared_build_game_rejects_wrong_cloud_shape",
+    "tests/test_bonsai_gguf_slider.py::test_scale_zero_is_exact_base_before_and_after_train",
+    "tests/test_bonsai_gguf_slider.py::test_dummy_train_runs_shared_game_with_no_mse",
+    "tests/test_bonsai_gguf_slider.py::test_save_load_roundtrip_and_rejections",
+    "tests/test_bonsai_gguf_slider.py::test_steps_zero_load_reports_without_training",
+    "tests/test_bonsai_gguf_slider.py::test_needs_two_rows",
+    "tests/test_bonsai_gguf_slider.py::test_yaml_rows_and_config_card_match_shared_reference",
+    "tests/test_bonsai_gguf_slider.py::test_config_file_flows_into_train",
+    "tests/test_bonsai_gguf_slider.py::test_production_files_unchanged"
+  ],
+  "live_skipped": [
+    "tests/test_bonsai_gguf_slider.py::test_probe_real_ptq1_0_when_present",
+    "tests/test_bonsai_gguf_slider.py::test_live_server_readout_when_present"
+  ],
+  "skip_prerequisites": [
+    "BONSAI_PTQ1_0",
+    "BONSAI_SERVER_URL"
+  ]
+}

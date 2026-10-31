@@ -8,10 +8,15 @@ The separately named width16 fixture tests software only, never Bonsai quality.
 from contextlib import contextmanager
 from dataclasses import dataclass
 import hashlib
-from importlib.metadata import version
 import json
 import math
 from pathlib import Path
+
+from ._integrity import CORE_PYTHON_SHA256, CORE_ASSETS_SHA256, require_source_environment
+
+# Check disk sources/caches and ordinary path shadows before importing core
+# entrypoints. This is cooperative integrity checking, not loaded-code proof.
+require_source_environment()
 
 import torch
 from torch import nn
@@ -23,9 +28,9 @@ from particle_sliders.pg094 import ConditionalPG094, PG_SOURCE_PROFILE, PG_VERSI
 from particle_sliders.response import ResponseBackend, ResponseCapabilities
 
 CORE_COMMIT = '4abc0eb03a4e3a84fc3e6d02734c13dc7e8ea231'
-CORE_WHEEL_SHA256 = '9afad3afc1f6c653a574074dc14f0da1f1c43975c31ca45c4eac049df0b0b4ad'
-CORE_PYTHON_SHA256 = '7c3b92f06012188b8d9bb6c389dec33fd3ea864c620d92272721a434114828cb'
-CORE_ASSETS_SHA256 = '54265b65989481bb8ea38e35828c0539b7ea101f484a6b558b50b89e27aa31df'
+# Informational archive reference only; rebuilt wheels may have different ZIP
+# timestamps. Admission checks exact source/assets, not this archived wheel.
+CORE_REFERENCE_WHEEL_SHA256 = '9afad3afc1f6c653a574074dc14f0da1f1c43975c31ca45c4eac049df0b0b4ad'
 PROFILE = 'bonsai-readout-shared-pg094-hypergan-hndl-v1'
 PROTOCOL = PROFILE + '-native-response'
 FIXTURE_WIDTH = 16
@@ -41,20 +46,46 @@ def _sha(value):
     return hashlib.sha256(value).hexdigest()
 
 
+def file_content_identity(path, expected_sha256):
+    """Stream a local file and reject changed bytes; never downloads a model."""
+    path = Path(path)
+    before = path.stat()
+    digest = hashlib.sha256()
+    with path.open('rb') as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b''):
+            digest.update(chunk)
+    after = path.stat()
+    if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) != (
+            after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns):
+        raise ValueError('native model changed while hashing')
+    if digest.hexdigest() != expected_sha256:
+        raise ValueError('native model content SHA256 differs')
+    return dict(content_sha256=digest.hexdigest(), file_bytes=after.st_size)
+
+
+def _native_model_identity(options):
+    # The native gate remains first: this cannot read weights under core0.12.
+    validate_pg09_domain((1, NATIVE_WIDTH), response_domain='continuous_vector')
+    from . import _native as original
+    original.resolve_weights(options['weights'])
+    original.check_weights_size(options['weights'])
+    content = file_content_identity(options['weights'], options['model_sha256'])
+    original.probe_gguf(options['weights'])
+    return dict(kind='frozen-prism-gguf-last-token-readout', repo=original.REPO,
+        filename=original.FILENAME, **content, fork_release=original.FORK_RELEASE_PIN,
+        pooling=original.EMBED_POOLING, width=NATIVE_WIDTH,
+        native_source_sha256=_sha(Path(original.__file__).read_bytes()),
+        server_identity_qualification='requires independent server-to-file attestation; native remains blocked')
+
+
 def verify_runtime():
-    """Bind the entire installed core Python closure, then HG/HNDL's gate."""
-    import particle_sliders
-    if version('particle-sliders-core') != '0.12.0':
-        raise ValueError('Bonsai shared profile requires its exact core0.12 environment')
-    root = Path(particle_sliders.__file__).parent
-    sources = {str(p.relative_to(root)): _sha(p.read_bytes()) for p in sorted(root.rglob('*.py'))}
-    if _sha(json.dumps(sources, sort_keys=True).encode()) != CORE_PYTHON_SHA256:
-        raise ValueError('Bonsai core sources differ; use the original pinned environment')
-    assets = {str(p.relative_to(root)): _sha(p.read_bytes()) for p in sorted(root.rglob('*'))
-              if p.is_file() and p.suffix in ('.json', '.hndl')}
-    if _sha(json.dumps(assets, sort_keys=True).encode()) != CORE_ASSETS_SHA256:
-        raise ValueError('Bonsai core graph/source manifests differ')
-    return verified_builder()
+    """Check installed files/caches/origins, then the shared builder gate.
+
+    No claim is made about arbitrary preloaded/monkeypatched in-memory code.
+    """
+    scope = require_source_environment()
+    builder, identity = verified_builder()
+    return builder, dict(identity, verification_scope=scope['scope'])
 
 
 class _ReadoutIdentity(nn.Module):
@@ -161,13 +192,10 @@ class PrismReadout:
 
     def __init__(self, options):
         validate_pg09_domain((1, self.width), response_domain='continuous_vector')
-        from conceptmod.textsliders import bonsai_gguf_backend as original
+        from . import _native as original
+        self.identity = _native_model_identity(options)
         self.backend = original.BonsaiGGUFBackend(device='cpu', weights=options['weights'],
             server_url=options['server_url'])
-        self.identity = dict(kind='frozen-prism-gguf-last-token-readout', repo=original.REPO,
-            filename=original.FILENAME, file_bytes=original.FILE_BYTES,
-            fork_release=original.FORK_RELEASE_PIN, pooling=original.EMBED_POOLING,
-            width=self.width, native_source_sha256=_sha(Path(original.__file__).read_bytes()))
 
     @torch.no_grad()
     def hidden(self, text):
@@ -245,7 +273,7 @@ def _validate_options(options, fixture, inference=False):
     common = {'network_profile', 'pg_version', 'pg_source_profile', 'penalty_input_domain', 'base_precision'}
     allowed = common | (set() if inference else {'rows_file', 'steps', 'batch', 'seed', 'ema_decay'})
     if not fixture:
-        allowed |= {'weights', 'server_url'}
+        allowed |= {'weights', 'server_url', 'model_sha256'}
     if set(options) - allowed:
         raise ValueError('unknown Bonsai shared options: ' + str(sorted(set(options) - allowed)))
     for key, expected in dict(network_profile=PROFILE, pg_version=PG_VERSION,
@@ -253,10 +281,13 @@ def _validate_options(options, fixture, inference=False):
         if options.get(key, expected) != expected:
             raise ValueError('Bonsai profile/source/precision differs: ' + key)
     if not fixture:
-        from conceptmod.textsliders.bonsai_gguf_backend import resolve_weights
+        from ._native import resolve_weights
         if not options.get('weights') or not options.get('server_url'):
             raise ValueError('native Bonsai needs local pinned weights and an existing fork server')
         resolve_weights(options['weights'])
+        digest = options.get('model_sha256')
+        if not isinstance(digest, str) or len(digest) != 64 or any(c not in '0123456789abcdef' for c in digest):
+            raise ValueError('native Bonsai requires an explicit expected model_sha256')
     validate_pg09_domain((1, FIXTURE_WIDTH if fixture else NATIVE_WIDTH), response_domain='continuous_vector')
     verify_runtime()
 
@@ -283,9 +314,16 @@ def _native_runtime(options):
 
 
 def _prepare(options, fixture):
+    # Also safe when the factory is called directly, outside the core's fork.
+    # Seed CPU only; do not mutate queued CUDA RNG state in this CPU profile.
+    with torch.random.fork_rng(devices=[]):
+        torch.random.default_generator.manual_seed(options.get('seed', 7))
+        return _prepare_seeded(options, fixture)
+
+
+def _prepare_seeded(options, fixture):
     _validate_options(options, fixture)
     rows = _read_rows(options['rows_file'])
-    torch.manual_seed(options.get('seed', 7))
     native = BonsaiReadoutAdapter(FixtureReadout() if fixture else _native_runtime(options))
     prepared = native.prepare(rows)
     conditions = torch.cat([p.neutral for p in prepared])
@@ -330,8 +368,8 @@ def _validate_inference(options, spec, fixture):
     if spec.configuration != {'network_profile': PROFILE}:
         raise ValueError('inference network profile differs')
     _validate_options(options, fixture, inference=True)
-    expected = FixtureReadout.identity if fixture else None
-    if fixture and spec.identity['model'] != expected:
+    expected = FixtureReadout.identity if fixture else _native_model_identity(options)
+    if spec.identity['model'] != expected:
         raise ValueError('inference frozen model identity differs')
 
 
