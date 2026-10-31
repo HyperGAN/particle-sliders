@@ -76,3 +76,14 @@ def test_old_network_profile_refuses_before_host_mutation():
     with pytest.raises(ValueError, match='unknown Fibo network profile'):
         FiboParticleSlider(model, network_profile='hypergan-hndl-v1')
     assert before == [module.forward for module in target_modules(model).values()]
+
+
+def test_previous_host_source_refusal_explains_original_cohort_without_mutation():
+    game = fixture()
+    game.step()
+    before = game.state_dict()
+    wrong = deepcopy(before)
+    wrong['config']['implementation_sources']['particle_sliders.pg09'] = 'previous-core-source'
+    with pytest.raises(ValueError, match='original pinned source/model/data cohort'):
+        game.load_state_dict(wrong)
+    equal(before, game.state_dict())

@@ -585,7 +585,9 @@ class ConditionalPG09:
                 'source environment. Use a fresh cohort for this release; '
                 'automatic checkpoint migration is not supported')
         if state.get('schema') != 'conditional-pg09-v1' or saved_config != self._signature:
-            raise ValueError('checkpoint objective, recipe, domain, source or conditioning mismatch')
+            raise ValueError('checkpoint objective, recipe, domain, source or conditioning mismatch; '
+                             'resume with the original pinned source/model/data cohort or start a fresh cohort; '
+                             'automatic checkpoint migration is not supported')
         if type(state['completed_steps']) is not int or not 0 <= state['completed_steps'] <= self.recipe.total_steps:
             raise ValueError('invalid checkpoint step')
         _validate_module(self.network, state['network'])
