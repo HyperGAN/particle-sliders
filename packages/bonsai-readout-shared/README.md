@@ -1,9 +1,23 @@
-# Bonsai shared readout profile
+# Bonsai shared identity/readout-only preview
 
 This is a separate opt-in distribution. It executes the installed shared
 `ConditionalPG094` game, shared routed `HNDLParticleProjection`, shared response
 session/inference lifecycle, and an actual HyperGAN-built HNDL vector critic.
 It contains no GAN losses, optimizers, penalties or training loop.
+
+**This preserves a positive-input identity/readout experiment, not demonstrated
+neutral-to-positive concept learning.** `prepare()` captures the frozen positive
+readout as `target`, and `generated()` sends that same `prepared.target` into the
+residual head. With a zero up matrix, the output already equals the target and
+the paired response error is exactly zero before any update. The neutral readout
+conditions the critic; it is not the generator input in this path. Parameter
+updates, successful resume, derivative parity and an inference export are
+software evidence only, and do not demonstrate learning a concept edit.
+
+The historical Bonsai implementation uses the same positive-input placement.
+A separately named neutral-to-target path would change the task and remains
+held for the user's decision. This preview changes neither inputs nor game
+math to create that path.
 
 **Native Bonsai training remains blocked.** Its real pooled readout is
 `[1,5120]`. The pinned core refuses continuous vectors of width >=170 before
@@ -47,7 +61,7 @@ from particle_sliders.lifecycle import SessionConfig
 from particle_sliders.response import open_response
 from particle_sliders.inference import open_inference
 
-config = SessionConfig("bonsai-readout-fixture", "new-bonsai-software-fixture-v1",
+config = SessionConfig("bonsai-readout-fixture", "bonsai-identity-readout-software-fixture-v1",
                        rows_file="rows.json", steps=4, batch=2, seed=7,
                        ema_decay=0.9)
 with open_response(config) as session:
@@ -71,7 +85,7 @@ identity too. A future enabled path also needs independent proof that the server
 is serving those same bytes; the local file hash does not attest a remote server.
 There is no download, server launch or native model execution here.
 
-The architecture remains a torch-side residual on a frozen readout, with
+The identity/readout architecture remains a torch-side residual on a frozen readout, with
 rank8/alpha8, one shared128x4 bank, zero-initialized up matrix and exact strength0
 bypass. The HNDL projection is the existing shared router/bridge architecture;
 the critic matches shared `ConditionalReadoutCritic(hidden=16)` via
@@ -80,13 +94,14 @@ Linear16/SiLU/Linear1 with graph, shapes, plan and verified builder identity in
 
 This new profile uses the public `bispf_optimized` recipe and fixed Gaussian
 reference from the shared core. It is **not an objective-preserving upgrade** of
-the historical Bonsai Rp/annealed-noise/VIC game. Positive-input adaptation and
-frozen positive targets remain explicit; the new critic conditions on the frozen
-neutral readout. Strengths0/0.5/1 return numerical readouts, not generated tokens
+the historical Bonsai Rp/annealed-noise/VIC game. Positive-input identity/readout
+placement and frozen positive targets remain explicit; the new critic conditions
+on the frozen neutral readout. Strengths0/0.5/1 return numerical readouts, not generated tokens
 or a modified GGUF model. Old safetensors cannot resume here. Preserve their
 original source, dependencies and `train_lora_bonsai_gguf.py` entrypoint.
-Artifacts from earlier draft source2593452 also retain their original factory
-and class/source identity; the namespace change does not silently rebind them.
+Artifacts from earlier draft sources, including2593452 andcb3d42c, retain their
+original factory and class/source identity. These claim corrections do not
+silently rebind or relabel saved artifacts.
 
 Required follow-up: centrally reviewed explicit continuous-domain source/profile
 admission for width5120, new exact core signature/provenance, and separate real

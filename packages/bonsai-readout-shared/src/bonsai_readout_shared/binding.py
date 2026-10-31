@@ -1,9 +1,12 @@
-"""Separate Bonsai readout cohort using the installed core and actual HNDL.
+"""Positive-input identity/readout control using installed core and HNDL.
 
 Historical particle_bridge_gan is deliberately not imported. The new game is
 the shared public BISPF preset, not a reproduction of its archived Rp/noise/VIC
 game. Native width5120 is refused before model/server/graph construction.
 The separately named width16 fixture tests software only, never Bonsai quality.
+The network receives the positive readout that is also its target: zero-up
+identity already has zero paired error. Neutral readouts condition the critic;
+this path does not train a neutral-to-positive concept transformation.
 """
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -217,7 +220,7 @@ class PreparedReadout:
 
 
 class BonsaiReadoutAdapter:
-    """Frozen readout capture and head ownership; shared core owns the game."""
+    """Frozen positive-input identity/readout control; core owns the game."""
     def __init__(self, runtime):
         validate_pg09_domain((1, runtime.width), response_domain='continuous_vector')
         self.runtime = runtime
@@ -254,6 +257,8 @@ class BonsaiReadoutAdapter:
             network_profile=PROFILE, response_domain='continuous_vector',
             response_width=self.runtime.width, placement='frozen_readout_residual',
             student_conditioning='positive_input', target='frozen_positive_readout',
+            semantic_task='positive_input_identity_readout_control',
+            neutral_to_positive_training=False, concept_learning_qualified=False,
             objective='shared_public_bispf_optimized; separate from legacy particle_bridge_gan',
             native_model_differentiable=False, token_generation_qualified=False)
 
@@ -262,11 +267,12 @@ class BonsaiReadoutAdapter:
 
 
 def _caps(width, fixture):
+    # This arm names the actual game machinery, not concept-learning evidence.
     return ResponseCapabilities('routed_particle_gan', 'synthetic_vector' if fixture else 'text_readout',
-        'synthetic_pooled_readout' if fixture else 'frozen_gguf_last_token_embedding',
+        'positive_input_identity_readout_fixture' if fixture else 'frozen_gguf_positive_input_identity_readout',
         'continuous_vector', (1, width), PG_VERSION, PG_SOURCE_PROFILE,
-        qualification=('CPU fixture only; no pretrained/native qualification' if fixture else
-                       'BLOCKED: width5120 needs reviewed explicit continuous-domain support'))
+        qualification=('Identity/readout software fixture only; no neutral-to-positive concept-learning qualification' if fixture else
+                       'Identity/readout-only preview; BLOCKED: width5120 needs reviewed explicit continuous-domain support'))
 
 
 def _validate_options(options, fixture, inference=False):

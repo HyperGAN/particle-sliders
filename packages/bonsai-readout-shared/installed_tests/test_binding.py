@@ -1,5 +1,6 @@
-"""Installed modern Bonsai binding: real PG/HG/HNDL, synthetic readouts only."""
+"""Identity/readout software controls: real PG/HG/HNDL, synthetic readouts."""
 from copy import deepcopy
+from dataclasses import replace
 from importlib.metadata import distribution, version
 import json
 import os
@@ -40,7 +41,7 @@ def config(tmp_path):
         dict(positive='a bright room', neutral='a room'),
         dict(positive='a cheerful person', neutral='a person'),
         dict(positive='a sunny day', neutral='a day')]))
-    return SessionConfig('bonsai-readout-fixture', 'new-bonsai-software-fixture-v1',
+    return SessionConfig('bonsai-readout-fixture', 'bonsai-identity-readout-software-fixture-v1',
         rows_file=str(path), steps=4, batch=2, seed=7, ema_decay=.9)
 
 
@@ -183,7 +184,7 @@ def test_shared_head_matches_exact_historical_architecture_and_vjps():
     assert sum(p is actual.particles for p in actual.parameters()) == 1
 
 
-def test_head_init_zero_nested_strength_and_gradient_ownership():
+def test_identity_readout_head_zero_init_strength_and_gradient_ownership():
     runtime = product.FixtureReadout()
     adapter = product.BonsaiReadoutAdapter(runtime)
     network = adapter.network
@@ -213,7 +214,36 @@ def test_head_init_zero_nested_strength_and_gradient_ownership():
     assert network.scale == 0.
 
 
-def test_actual_shared_game_update_resume_ema_strength_and_native_only_inference(config, tmp_path, monkeypatch):
+def test_zero_up_positive_input_identity_control_has_zero_paired_error_before_training(config):
+    """Characterize the existing task; this is not concept-learning evidence."""
+    with open_response(config) as session:
+        game, network = session.game, session.game.network
+        assert game.completed_steps == 0
+        assert torch.count_nonzero(network.projection.lora_up.weight) == 0
+        assert torch.equal(game.conditions, torch.cat([row.neutral for row in game.rows]))
+        assert session.capabilities.response_kind == 'positive_input_identity_readout_fixture'
+        assert game.backend.metadata()['neutral_to_positive_training'] is False
+        observed = []
+        handle = network.register_forward_pre_hook(
+            lambda module, args: observed.append(args[0].detach().clone()))
+        try:
+            for prepared in game.rows:
+                assert not torch.equal(prepared.neutral, prepared.target)
+                for strength in (0., .5, 1.):
+                    row = replace(prepared, row=replace(prepared.row, scale=strength))
+                    generated = game.backend.generated(row)
+                    # Observe the actual executed input rather than assuming
+                    # that neutral critic conditioning reaches the generator.
+                    assert torch.equal(observed[-1], prepared.target)
+                    assert not torch.equal(observed[-1], prepared.neutral)
+                    assert torch.equal(generated, prepared.target)
+                    assert torch.count_nonzero(generated - prepared.target) == 0
+        finally:
+            handle.remove()
+        assert game.completed_steps == 0
+
+
+def test_identity_readout_game_software_update_resume_ema_and_inference(config, tmp_path, monkeypatch):
     with open_response(config) as full, open_response(config) as split:
         original = deepcopy(full.game.network.state_dict())
         critic = deepcopy(full.game.critic.state_dict())

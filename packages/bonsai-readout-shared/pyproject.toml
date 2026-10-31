@@ -6,7 +6,7 @@ backend-path = ["."]
 [project]
 name = "bonsai-readout-shared"
 version = "0.1.0"
-description = "Opt-in shared ParticleGAN and HyperGAN/HNDL Bonsai readout binding"
+description = "Opt-in ParticleGAN and HyperGAN/HNDL Bonsai identity/readout-only preview"
 readme = "README.md"
 requires-python = ">=3.11,<3.15"
 license = "MIT"
