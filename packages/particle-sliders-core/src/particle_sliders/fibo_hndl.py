@@ -14,7 +14,7 @@ import sys
 import torch
 from torch import nn
 
-PROFILE = 'hypergan-hndl-v1'
+PROFILE = 'hypergan-hndl-v2'
 ROOT = Path(__file__).parent
 
 
@@ -31,19 +31,29 @@ def verified_builder():
         from hypergan.hndl_networks import build_network
     except ModuleNotFoundError as exc:
         raise ImportError('Fibo HNDL requires particle-sliders-core[fibo-hndl]') from exc
-    if version('hndl') != '0.9.0':
-        raise ValueError('Fibo HNDL requires hndl==0.9.0')
-    expected = json.loads((ROOT / 'fibo_hndl_sources.json').read_text())
+    if version('hndl') != '0.10.0':
+        raise ValueError('Fibo HNDL requires hndl==0.10.0')
+    expected = json.loads((ROOT / 'fibo_hndl_010_sources.json').read_text())
+    if (expected['schema'], expected['profile'], expected['hndl_version'],
+            expected['hypergan_commit'], expected['particlegan_version']) != (
+            'particle-sliders-hypergan-hndl-profile-v2', PROFILE, '0.10.0',
+            '5f368a3770cf5bdae0448995c9f76e29af8049f7', '0.9.4'):
+        raise ValueError('Fibo HNDL profile manifest contradicts the binding')
     hndl_root = Path(hndl.__file__).parent
     actual = {str(p.relative_to(hndl_root)): _sha(p) for p in hndl_root.rglob('*.py')}
     if actual != expected['hndl']:
         raise ValueError('Fibo HNDL source closure differs from the reviewed runtime')
     hypergan_root = Path(inspect.getsourcefile(build_network)).parent
+    provenance = hypergan_root / '_build_provenance.json'
+    if not provenance.is_file() or json.loads(provenance.read_text()) != {
+            'schema_version': 1, 'commit': expected['hypergan_commit'], 'dirty': False}:
+        raise ValueError('Fibo requires the exact clean HyperGAN develop build provenance')
     if any(_sha(hypergan_root / name) != digest for name, digest in expected['hypergan'].items()):
         raise ValueError('Fibo HyperGAN builder closure differs from the reviewed runtime')
-    identity = dict(profile=PROFILE, hndl_version='0.9.0',
-        hypergan_commit='bff6de3d5162f151180d64513b662eb79fbebb2a',
-        runtime_sources_sha256=_sha(ROOT / 'fibo_hndl_sources.json'),
+    identity = dict(profile=PROFILE, hndl_version='0.10.0',
+        hypergan_commit='5f368a3770cf5bdae0448995c9f76e29af8049f7',
+        hypergan_build_provenance_sha256=_sha(provenance),
+        runtime_sources_sha256=_sha(ROOT / 'fibo_hndl_010_sources.json'),
         projection_sha256=_sha(ROOT / 'fibo_projection.hndl'),
         critic_sha256=_sha(ROOT / 'fibo_critic.hndl'))
     return build_network, identity

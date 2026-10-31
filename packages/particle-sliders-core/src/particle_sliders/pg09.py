@@ -1,4 +1,4 @@
-"""Conditional native-response GAN using released ParticleGAN 0.9.3 components (explicit core0.9 line).
+"""Conditional native-response GAN using released ParticleGAN 0.9.4 components (explicit core0.9 line).
 
 Backends own frozen conditioning and differentiable response generation. This
 module owns the adversarial game, optimizer lifecycle, sampling and checkpoint
@@ -21,18 +21,18 @@ from particlegan import get_recipe, scale_learning_rates
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 from .optimizer_policy import configure_dense_profile, optimizer_diagnostics
 
-PG_VERSION = '0.9.3'
-PG_SOURCE_PROFILE = 'release-0.9.3'
-PG_WHEEL_SHA256 = 'fd7ee424d4c67e1dc3cf0b9dd345222049a67e8c293c30c8a3c42d54805affec'
+PG_VERSION = '0.9.4'
+PG_SOURCE_PROFILE = 'release-0.9.4'
+PG_WHEEL_SHA256 = 'ad21eeaea861cf0582fc39aa96eb3fd8ab8cf21e8e0f0179f0597a9c42eb99b6'
 
 
 def _released_sources(profile=PG_SOURCE_PROFILE):
     import particlegan
     if profile != PG_SOURCE_PROFILE:
-        raise ValueError('unknown/unqualified PG0.9.3 source profile; no overlay or release alias')
-    document = json.loads(Path(__file__).with_name('pg093_release.json').read_text())
+        raise ValueError('unknown/unqualified PG0.9.4 source profile; no overlay or release alias')
+    document = json.loads(Path(__file__).with_name('pg094_release.json').read_text())
     if (document['version'], document['wheel_sha256'], document['source_profile']) != (PG_VERSION, PG_WHEEL_SHA256, profile):
-        raise RuntimeError('PG0.9.3 release manifest contradicts this engine')
+        raise RuntimeError('PG0.9.4 release manifest contradicts this engine')
     root = Path(particlegan.__file__).resolve().parent
     actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob('*.py'))}
@@ -333,7 +333,7 @@ class ConditionalPG09:
             raise ValueError('conditions tensor or lazy provider.conditions(indices) is required')
         self.response_domain, self.response_scale = response_domain, float(response_scale)
         self.batch_size, self.sigma = batch_size, float(sigma)
-        # Preserve the authoritative PG0.9.3 research recipe's declared precision.
+        # Preserve the authoritative PG0.9.4 research recipe's declared precision.
         # This native host executes FP32 leaves without GANTrainer autocast; bind
         # that separately below instead of rewriting the public recipe.
         options = dict(batch_size=batch_size, total_steps=total_steps)

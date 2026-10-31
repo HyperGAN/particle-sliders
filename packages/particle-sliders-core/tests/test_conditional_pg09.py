@@ -229,7 +229,7 @@ def test_installed_pg_source_override_fails_closed(monkeypatch):
     original = pg09.Path.read_text
     def altered(path, *args, **kwargs):
         text = original(path, *args, **kwargs)
-        return text.replace('"__init__.py": "', '"__init__.py": "invalid') if path.name == 'pg093_release.json' else text
+        return text.replace('"__init__.py": "', '"__init__.py": "invalid') if path.name == 'pg094_release.json' else text
     monkeypatch.setattr(pg09.Path, 'read_text', altered)
     with pytest.raises(RuntimeError, match='sources differ'):
         fixture()
