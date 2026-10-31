@@ -319,11 +319,16 @@ class AttnLoRANetwork(nn.Module):
             except BaseException as error:
                 errors.append(error)
             else:
+                branch = self.loras[index]
+                if self._modules.get(branch.lora_name) is branch:
+                    del self._modules[branch.lora_name]
                 del self.loras[index]
         if errors:
+            errors[0].cleanup_failures = tuple(errors)
             for error in errors[1:]:
-                if hasattr(errors[0], "add_note"):
-                    errors[0].add_note("Additional H3 LoRA cleanup failure: " + repr(error))
+                note = "Additional H3 LoRA cleanup failure: " + repr(error)
+                if callable(getattr(errors[0], "add_note", None)) and note not in getattr(errors[0], "__notes__", ()):
+                    errors[0].add_note(note)
             raise errors[0]
 
     def set_lora_slider(self, scale: float) -> None:

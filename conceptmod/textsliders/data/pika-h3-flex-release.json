@@ -322,5 +322,47 @@
     "video_features": 96,
     "audio_features": 32,
     "source": "Pinned Pika H3 Flex modular_pipeline.py geometry and transformer config (24 video channels, 1x2x2 patches; 32 audio features)"
+  },
+  "geometry_provenance": {
+    "diffusers_revision": "d0b9b1b5a540e5f9df2f8ec236347bf9c5aa7d1f",
+    "source_sha256": "1e431dd4a668571b2ca1cf39d4a588f6d8586e4250c1d8e1de8bbb328bf392e8",
+    "constants": {
+      "latent_frame_bias": {
+        "value": 2,
+        "source": "https://github.com/huggingface/diffusers/blob/d0b9b1b5a540e5f9df2f8ec236347bf9c5aa7d1f/src/diffusers/modular_pipelines/pika_h3_flex/modular_pipeline.py#L176-L190",
+        "derivation": "video_latent_num_frames returns ((num_frames-latents_per_chunk)//frames_per_chunk)*latents_per_chunk + 2"
+      },
+      "audio_latents_per_second": {
+        "value": 40,
+        "source": "https://github.com/huggingface/diffusers/blob/d0b9b1b5a540e5f9df2f8ec236347bf9c5aa7d1f/src/diffusers/modular_pipelines/pika_h3_flex/modular_pipeline.py#L194-L209",
+        "derivation": "audio_latent_num_frames default uses PIKA_H3_FLEX_AUDIO_LATENTS_PER_SECOND=40"
+      },
+      "audio_channels": {
+        "value": 2,
+        "source": "https://github.com/huggingface/diffusers/blob/d0b9b1b5a540e5f9df2f8ec236347bf9c5aa7d1f/src/diffusers/modular_pipelines/pika_h3_flex/modular_pipeline.py#L318-L320",
+        "derivation": "audio_channels property returns stereo PIKA_H3_FLEX_AUDIO_CHANNELS=2"
+      },
+      "canvases": {
+        "source": "https://github.com/huggingface/diffusers/blob/d0b9b1b5a540e5f9df2f8ec236347bf9c5aa7d1f/src/diffusers/modular_pipelines/pika_h3_flex/modular_pipeline.py#L65-L80",
+        "derivation": "PIKA_H3_FLEX_TIER_RULES p480 and p768 short edges and pixel budgets yield [480,832] and [768,1344]"
+      },
+      "row_spatial_multiple": {
+        "value": 32,
+        "source": "https://github.com/huggingface/diffusers/blob/d0b9b1b5a540e5f9df2f8ec236347bf9c5aa7d1f/src/diffusers/modular_pipelines/pika_h3_flex/modular_pipeline.py#L250-L300",
+        "derivation": "vae_spatial_compression_ratio=16 times patch_size spatial factor2"
+      },
+      "video_features": {
+        "value": 96,
+        "source": "https://github.com/huggingface/diffusers/blob/d0b9b1b5a540e5f9df2f8ec236347bf9c5aa7d1f/src/diffusers/modular_pipelines/pika_h3_flex/modular_pipeline.py#L256-L294",
+        "model_config": "https://huggingface.co/Pika-Labs/Pika-H3-Flex/blob/3ff166447d5edb1406107ab8370c42000ce173e4/transformer/config.json",
+        "derivation": "vae_latent_channels=24 * product(patch_size=(1,2,2))=96; corroborated by released transformer in_channels and patch_size"
+      },
+      "audio_features": {
+        "value": 32,
+        "source": "https://github.com/huggingface/diffusers/blob/d0b9b1b5a540e5f9df2f8ec236347bf9c5aa7d1f/src/diffusers/modular_pipelines/pika_h3_flex/modular_pipeline.py#L280-L284",
+        "derivation": "audio_latent_channels property default32; released transformer audio_in_channels=32"
+      }
+    },
+    "qualification": "Derived from pinned source/defaults and published model configuration; actual native packing fixtures verify both canvas tiers, without pretrained weights."
   }
 }

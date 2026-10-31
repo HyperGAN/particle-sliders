@@ -212,6 +212,43 @@ def test_plain_linear_selection_and_initialization_match_historical_uni():
     assert all(torch.equal(value, reference.state_dict()[name]) for name, value in current.state_dict().items())
 
 
+def test_partial_legacy_network_construction_unwinds_forwards_and_registrations(monkeypatch):
+    from conceptmod.textsliders import minimax_h3_backend as legacy
+    transformer = legacy.DummyOmniTransformer()
+    originals = [(module, "forward" in vars(module), vars(module).get("forward")) for module in transformer.modules()]
+    original_branch = legacy._AttnLoRA
+    calls = []
+    def fail_third(*args, **kwargs):
+        calls.append(True)
+        if len(calls) == 3:
+            raise ValueError("partial construction failure")
+        return original_branch(*args, **kwargs)
+    monkeypatch.setattr(legacy, "_AttnLoRA", fail_third)
+    network = legacy.AttnLoRANetwork.__new__(legacy.AttnLoRANetwork)
+    with pytest.raises(ValueError, match="partial construction failure"):
+        network.__init__(transformer, rank=2, alpha=2)
+    assert network.loras == [] and not network.state_dict()
+    assert list(network.parameters()) == []
+    for module, had_forward, forward in originals:
+        assert ("forward" in vars(module)) == had_forward
+        assert vars(module).get("forward") is forward
+    network.close()
+
+
+def test_cleanup_notes_are_optional_and_do_not_accumulate_on_retry():
+    class Pre311Error(RuntimeError):
+        add_note = None
+    primary = Pre311Error("primary")
+    def fail():
+        raise RuntimeError("secondary")
+    flex._cleanup_preserving_primary(primary, fail)
+    assert isinstance(primary.cleanup_error, RuntimeError)
+    current = ValueError("primary")
+    flex._cleanup_preserving_primary(current, fail)
+    flex._cleanup_preserving_primary(current, fail)
+    assert len(current.__notes__) == 1
+
+
 def test_constructor_failure_unwinds_owned_forwards_guards_and_flags(monkeypatch):
     model = tiny_native_backend().stock_reference
     from diffusers import PikaH3FlexModularPipeline

@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from dataclasses import dataclass
 import hashlib
-from importlib.metadata import version
+from importlib.metadata import version, PackageNotFoundError
 import json
 from pathlib import Path
 import re
@@ -18,7 +18,7 @@ from torch import nn
 from .minimax_h3_backend import LORA_ATTN_CLASS, LORA_LINEAR_NAMES, PackedLayout
 from .pika_h3_flex import (
     PikaH3FlexBackend, MODEL_ID, MODEL_REVISION, RELEASE, request_frames,
-    prepared_frame_count, _frame_details, _attempt_cleanups, _cleanup_preserving_primary,
+    prepared_frame_count, _frame_details, _attempt_cleanups, _cleanup_preserving_primary, _raise_cleanup_errors,
 )
 
 ROOT = Path(__file__).with_name("data")
@@ -34,7 +34,11 @@ def require_shared_runtime():
     """Check an installed reviewed core; never edit sys.path or install code."""
     import particle_sliders
     lock = json.loads(LOCK.read_text())
-    if version("particle-sliders-core") != lock["core_version"]:
+    try:
+        core_version = version("particle-sliders-core")
+    except PackageNotFoundError as error:
+        raise RuntimeError("H3 shared sessions require installed particle-sliders-core distribution metadata") from error
+    if core_version != lock["core_version"]:
         raise RuntimeError("H3 shared sessions require the separately installed reviewed core " + lock["core_revision"])
     root = Path(particle_sliders.__file__).resolve().parent
     for name, digest in lock["core_sources"].items():
@@ -67,6 +71,7 @@ class HNDLProjection(nn.Module):
         self.org_forward = host.forward
         object.__setattr__(self, "_host", host)
         self._had_forward, self._previous_forward = "forward" in vars(host), vars(host).get("forward")
+        self._closed = False
         host.forward = self.forward
         self._installed_forward = host.forward
 
@@ -90,12 +95,15 @@ class HNDLProjection(nn.Module):
         return base + delta.to(base) * (self.multiplier * self.scale)
 
     def close(self):
+        if self._closed:
+            return
         if self._host.forward is not self._installed_forward:
             raise RuntimeError("H3 HNDL forward ownership changed; cleanup remains pending")
         if self._had_forward:
             self._host.forward = self._previous_forward
         else:
             vars(self._host).pop("forward", None)
+        self._closed = True
 
 
 class HNDLSlider(nn.Module):
@@ -122,16 +130,18 @@ class HNDLSlider(nn.Module):
 
     def close(self):
         # Keep unresolved handles; do not restore unrelated owners after failure.
-        first = None
+        errors = []
         for index in range(len(self.loras) - 1, -1, -1):
             try:
                 self.loras[index].close()
             except BaseException as error:
-                first = first or error
+                errors.append((self.loras[index].lora_name, error))
             else:
+                branch = self.loras[index]
+                if self._modules.get(branch.lora_name) is branch:
+                    del self._modules[branch.lora_name]
                 del self.loras[index]
-        if first is not None:
-            raise first
+        _raise_cleanup_errors(errors)
 
 
 class HNDLH3FlexBackend(PikaH3FlexBackend):
@@ -229,16 +239,15 @@ class H3ResponseAdapter:
                                              for name in ("pika_h3_flex.py", "minimax_h3_backend.py")})
 
     def close(self):
-        first = None
+        errors = []
         for index in range(len(self._handles) - 1, -1, -1):
             try:
                 self._handles[index].close()
             except BaseException as error:
-                first = first or error
+                errors.append((f"checkpoint handle {index}", error))
             else:
                 del self._handles[index]
-        if first is not None:
-            raise first
+        _raise_cleanup_errors(errors)
 
 
 @contextmanager
@@ -270,19 +279,23 @@ def bind(runtime, pairs, *, options, model_identity, shape):
     """Construct the real shared game; this contains no alternate objective."""
     from particle_sliders.pg09 import ConditionalPG09
     from particle_sliders.lifecycle import Binding
-    adapter = H3ResponseAdapter(runtime, shape, model_identity=model_identity,
-                                checkpointing=options.get("checkpointing", False))
+    adapter = None
     closed = False
     def close():
         nonlocal closed
         if not closed:
             try:
-                _attempt_cleanups(("checkpoint handles", adapter.close), ("HNDL forwards", runtime.network.close))
+                actions = [("HNDL forwards", runtime.network.close)]
+                if adapter is not None:
+                    actions.insert(0, ("checkpoint handles", adapter.close))
+                _attempt_cleanups(*actions)
             except BaseException as error:
                 error.retry_cleanup = close
                 raise
             closed = True
     try:
+        adapter = H3ResponseAdapter(runtime, shape, model_identity=model_identity,
+                                    checkpointing=options.get("checkpointing", False))
         rows = tuple(adapter.prepare(pair) for pair in pairs)
         conditions = torch.eye(len(rows), device=runtime.device)
         critic = HNDLCritic(shape[1], len(rows)).to(runtime.device)

@@ -5,16 +5,24 @@ Run with ``-o pythonpath=.`` in the separately qualified shared environment.
 """
 from copy import deepcopy
 from dataclasses import replace
-from importlib.metadata import version
+from importlib.metadata import version, PackageNotFoundError
 import json
 from pathlib import Path
 
 import pytest
 import torch
 
-pytest.importorskip("particle_sliders")
-if version("particle-sliders-core") != "0.12.0":
-    pytest.skip("requires the separately installed reviewed core0.12 cohort", allow_module_level=True)
+pytest.importorskip("particle_sliders", reason="shared H3 fixture requires particle_sliders package")
+try:
+    core_version = version("particle-sliders-core")
+except PackageNotFoundError:
+    pytest.skip("shared H3 fixture requires installed particle-sliders-core distribution metadata", allow_module_level=True)
+if core_version != "0.12.0":
+    pytest.skip("shared H3 fixture requires reviewed core0.12.0; installed version is " + core_version, allow_module_level=True)
+diffusers = pytest.importorskip("diffusers", reason="shared H3 fixture requires Pika-native Diffusers")
+pytest.importorskip("peft", reason="shared H3 fixture requires PEFT for its frozen companion adapter")
+if not hasattr(diffusers, "PikaH3FlexModularPipeline"):
+    pytest.skip("shared H3 fixture requires pinned PikaH3FlexModularPipeline support", allow_module_level=True)
 
 from conceptmod.textsliders import pika_h3_flex_session as h3
 from conceptmod.textsliders.pika_h3_flex import PIKA_ADAPTER
@@ -74,6 +82,14 @@ def open_fixture(config, **kwargs):
     return _open_registered(config, resume=kwargs.get("resume"), artifact=kwargs.get("artifact"),
         operation=kwargs.get("operation", "train"), request={}, resolve=lambda name: FIXTURE,
         training_schema=TRAINING, inference_schema=INFERENCE)
+
+
+def test_runtime_reports_missing_distribution_metadata(monkeypatch):
+    def missing(_name):
+        raise PackageNotFoundError("particle-sliders-core")
+    monkeypatch.setattr(h3, "version", missing)
+    with pytest.raises(RuntimeError, match="installed particle-sliders-core distribution metadata"):
+        h3.require_shared_runtime()
 
 
 def test_native_preflight_uses_actual_shape_and_refuses_before_loader(monkeypatch):
@@ -144,6 +160,36 @@ def test_bind_attempts_independent_cleanup_and_retains_retry(monkeypatch):
     binding.close()  # idempotent after both cleanup owners finish
 
 
+def test_direct_bind_adapter_refusal_removes_registered_hndl_forwards():
+    runtime, pairs, identity = fixture_runtime()
+    branches = tuple(runtime.network.loras)
+    with pytest.raises(ValueError, match="width >=170"):
+        h3.bind(runtime, pairs, options={}, model_identity=identity, shape=(1, 1398528))
+    assert runtime.network.loras == []
+    assert list(runtime.network.parameters()) == []
+    assert not runtime.network.state_dict()
+    for branch in branches:
+        assert ("forward" in vars(branch._host)) == branch._had_forward
+        branch.close()  # direct projection cleanup is idempotent too
+
+
+def test_hndl_close_retains_all_failures_and_only_failed_registrations():
+    runtime, _, _ = fixture_runtime()
+    branches = tuple(runtime.network.loras[:2])
+    installed = [branch._host.forward for branch in branches]
+    for branch in branches:
+        branch._host.forward = lambda value: value
+    with pytest.raises(RuntimeError) as caught:
+        runtime.network.close()
+    assert len(caught.value.cleanup_failures) == 2
+    assert runtime.network.loras == list(branches)
+    assert set(runtime.network._modules) == {branch.lora_name for branch in branches}
+    for branch, forward in zip(branches, installed):
+        branch._host.forward = forward
+    runtime.network.close()
+    assert not runtime.network.state_dict()
+
+
 def test_bind_cleanup_does_not_hide_primary_error(monkeypatch):
     runtime, pairs, identity = fixture_runtime()
     original_close = runtime.network.close
@@ -174,6 +220,20 @@ def test_prepare_cleanup_does_not_hide_native_primary(monkeypatch):
     assert "native cleanup secondary" in repr(caught.value.cleanup_error)
 
 
+def test_prepare_native_refuses_frame_metadata_mismatch_before_bind(monkeypatch):
+    from types import SimpleNamespace
+    closed = []
+    metadata = h3.native_geometry({})["frame_metadata"]
+    metadata["prepared_frame_count"] = 120
+    runtime = SimpleNamespace(prepare_t2va=lambda *_a, **_k: SimpleNamespace(frame_metadata=metadata),
+                              network=SimpleNamespace(close=lambda: closed.append(True)))
+    monkeypatch.setattr(h3, "HNDLH3FlexBackend", lambda *_a, **_k: runtime)
+    monkeypatch.setattr(h3, "bind", lambda *_a, **_k: pytest.fail("mismatch reached bind"))
+    with pytest.raises(ValueError, match="frame metadata differs"):
+        h3.prepare_native({"snapshot": "not-read", "rows": [{"neutral": "fox", "positive": "red fox"}]})
+    assert closed == [True]
+
+
 def assert_atomic_refusal(session, refuse):
     from particlegan.bispf import _LAST_THERMAL_SCALE
     packet = _hash(session.checkpoint())
@@ -193,14 +253,16 @@ def assert_atomic_refusal(session, refuse):
             assert torch.equal(p.grad, value)
 
 
-def test_changed_model_identity_refuses_restore_atomically():
+@pytest.mark.parametrize("field,value", [("frozen_base_sha256", "0" * 64),
+                                         ("frame_metadata", {"requested_frame_count": 120, "prepared_frame_count": 120})])
+def test_changed_model_identity_refuses_restore_atomically(field, value):
     config = SessionConfig(FIXTURE.name, "identity-refusal-v1", seed=7, steps=2, batch=2)
     with open_fixture(config) as source:
         source.train(stop_after=1)
         packet = source.checkpoint()
     def other_identity(options):
         runtime, pairs, identity = fixture_runtime(options.get("seed", 7))
-        identity["frozen_base_sha256"] = "0" * 64
+        identity[field] = value
         return h3.bind(runtime, pairs, options=options, model_identity=identity, shape=(1, 6))
     receiver_backend = replace(FIXTURE, prepare=other_identity)
     with receiver_backend.open(config) as receiver:

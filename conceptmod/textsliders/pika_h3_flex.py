@@ -28,11 +28,18 @@ class H3FlexUnavailable(RuntimeError):
     """The native runtime or a requested operation has not been qualified."""
 
 
+def _cleanup_note(error, note):
+    # Standalone conceptmod also runs outside the core's Python >=3.11 lane.
+    add_note = getattr(error, "add_note", None)
+    if callable(add_note) and note not in getattr(error, "__notes__", ()):
+        add_note(note)
+
+
 def _raise_cleanup_errors(errors):
     if errors:
         first = errors[0][1]
         for label, error in errors:
-            first.add_note(f"{label} cleanup failed: {error!r}")
+            _cleanup_note(first, f"{label} cleanup failed: {error!r}")
         first.cleanup_failures = tuple(errors)
         raise first
 
@@ -51,7 +58,7 @@ def _cleanup_preserving_primary(primary, cleanup):
     try:
         cleanup()
     except BaseException as error:
-        primary.add_note(f"Cleanup also failed: {error!r}; retry_cleanup retains the pending owner.")
+        _cleanup_note(primary, f"Cleanup also failed: {error!r}; retry_cleanup retains the pending owner.")
         primary.cleanup_error = error
         pending = getattr(primary, "pending_cleanups", ()) + (cleanup,)
         primary.pending_cleanups = pending
@@ -426,7 +433,7 @@ class PikaH3FlexBackend:
         prep = blocks.init_pipeline()
         prep.update_components(**{name: component for name, component in self.pipe.components.items() if name in prep.components})
         prep.register_to_config(denoising_step_list=list(SCHEDULE))
-        height, width = {"480p": (480, 832), "768p": (768, 1344)}[resolution]
+        height, width = RELEASE["packed_geometry"]["canvases"][resolution]
         state = prep(prompt=prompt, height=height, width=width, num_frames=num_frames,
                      generator=torch.Generator(device="cpu").manual_seed(seed))
         metadata = frame_metadata(num_frames, state.get("num_frames"))
@@ -450,7 +457,7 @@ class PikaH3FlexBackend:
         prepared_frames = prepared_frame_count(num_frames)
         # Warn before starting generation, then verify the actual returned count.
         metadata = frame_metadata(num_frames, prepared_frames)
-        height, width = {"480p": (480, 832), "768p": (768, 1344)}[resolution]
+        height, width = RELEASE["packed_geometry"]["canvases"][resolution]
         with self.scaled(strength):
             # The native pipeline owns all six re-noising steps and both shifts.
             result = self.pipe(prompt=prompt, height=height, width=width, num_frames=num_frames,

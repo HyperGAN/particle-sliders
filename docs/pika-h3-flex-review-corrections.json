@@ -1,11 +1,11 @@
 {
   "schema": "pika-h3-flex-review-corrections-v1",
-  "reviewed_head": "3ef3d3092e9136bb66f01dad5b230ad6ecf1cc96",
+  "reviewed_head": "d936cabd109d203deebb577655405990d5d72faa",
   "date": "2026-10-31",
   "scope": "Claude actual-source findings; scoped CPU/source fixes only",
   "executed": {
     "legacy_lane": {
-      "result": "93 passed in 5.34s",
+      "result": "95 passed in 4.86s",
       "tests": [
         "tests/test_pika_h3_flex.py",
         "tests/test_minimax_h3_slider.py"
@@ -16,7 +16,7 @@
       "device": "cpu"
     },
     "shared_lane": {
-      "result": "64 passed in 8.53s",
+      "result": "71 passed in 9.00s",
       "tests": [
         "tests/test_pika_h3_flex_session.py",
         "tests/test_pika_h3_flex.py"
@@ -36,7 +36,14 @@
     "documentation_links": "Both Pika guides linked from root README and docs/README; local targets verified",
     "model_weights_downloaded": false,
     "gpu_jobs_started": false,
-    "driver_reprobed": false
+    "driver_reprobed": false,
+    "qualified_run_skips": 0,
+    "optional_module_check": {
+      "environment": "original native env without shared installation",
+      "result": "1 module skipped in 0.04s; pytest exit5 (no collected tests)",
+      "reason": "shared H3 fixture requires particle_sliders package",
+      "not_counted_as_pass": true
+    }
   },
   "findings": {
     "independent_close": "Injected checkpoint-close failure still removes all HNDL attention forwards; checkpoint handles remain retryable, then close succeeds idempotently.",
@@ -73,5 +80,17 @@
   ],
   "official_refusal": "ValueError: released PG09 cannot admit flat continuous vectors with width >=170",
   "shared_core_files_modified": [],
-  "release_impact": "Opt-in conceptmod source/docs/tests; no entry point, core version, core package source or dependency change. No model publication or deployment."
+  "release_impact": "Opt-in conceptmod source/docs/tests; no entry point, core version, core package source or dependency change. No model publication or deployment.",
+  "original_reviewed_head": "3ef3d3092e9136bb66f01dad5b230ad6ecf1cc96",
+  "rereview_findings": {
+    "direct_bind": "Adapter construction moved inside bind try. Actual official width>=170 refusal directly through bind removes all HNDL forwards/registered parameters without relying on prepare_native.",
+    "idempotence_and_aggregation": "Projection close is idempotent; HNDL slider and checkpoint handle close retain every labeled failure. Legacy close retains failure objects and deduplicates notes.",
+    "closed_registration": "Successful close unregisters only the exact owned module identity. Failed owners remain registered for retry. Partial legacy construction test confirms zero remaining registrations/parameters and original forwards.",
+    "python_and_notes": "Core pyproject requires >=3.11. Standalone helper tolerates no callable add_note and deduplicates repeated notes. Compatibility simulated on3.11, not tested on3.10.",
+    "geometry_source": "Native prepare/render and session geometry read the same release canvases. Release geometry_provenance pins source functions/defaults, source digest, and model config for bias/audio/feature/canvas constants.",
+    "frame_identity": "Checkpoint identity-refusal parameterized for frozen-base hash and frame_metadata; both atomic. Prepared frame_metadata mismatch is separately rejected and cleans runtime before bind.",
+    "optional_dependencies": "Test module catches PackageNotFoundError and states absent package/metadata/wrong-version/Pika/PEFT skip reasons. Runtime missing metadata regression checks explicit diagnostic.",
+    "safetensors_metadata": "No header metadata is relied on: pinned bytes are decoded; release rank/alpha and actual fixed adapter scaling checks remain authoritative. Pretrained loading remains unqualified."
+  },
+  "dependency_lock": "Unchanged pika-h3-flex-session.json, exact core4abc0eb candidate; no in-progress reviewed core fixes adopted."
 }

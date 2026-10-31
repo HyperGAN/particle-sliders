@@ -144,9 +144,28 @@ HF_HUB_OFFLINE=1 CUDA_VISIBLE_DEVICES='' python -m pytest -q \
 shadowing the installed candidate. The source hash gate rejects a mixed cohort.
 The original Pika/legacy H3 suite is also retained in its original environment.
 The [review correction receipt](pika-h3-flex-review-corrections.json) records
-the expanded 64 shared-lane and 93 legacy-lane passes after Claude's source
+the final 71 shared-lane and 95 legacy-lane passes after Claude's source
 review. These suites overlap. The original qualification receipt is retained
 as historical evidence rather than relabeled with later results.
+
+The shared core declares Python >=3.11. Standalone cleanup uses optional,
+deduplicated exception notes so it does not depend on `add_note`; this
+compatibility branch is simulated in tests, not a Python 3.10 runtime claim.
+Both qualified CPU runs above have zero skips. The shared test module explicitly
+skips if `particle_sliders` is absent, distribution metadata is absent, the
+installed core version differs from 0.12.0, Pika-native Diffusers or PEFT is
+absent, or Pika pipeline support is missing. Without the shared installation,
+the observed reason was `shared H3 fixture requires particle_sliders package`
+(one module skipped, pytest exit 5 because no tests were collected). Native
+architecture tests skip absent Diffusers/PEFT or missing Pika pipeline support;
+a source-hash mismatch in an available runtime fails rather than skips.
+
+The final regression set covers direct `bind()` adapter-construction refusal,
+idempotent projection cleanup, aggregated cleanup failures, removal of closed
+module registrations, partial legacy-network construction, and frame-metadata
+restore/preparation mismatches. Active legacy behavior remains unchanged.
+`geometry_provenance` in the release JSON names the pinned functions/defaults
+and published transformer config behind every added geometry constant.
 
 ## Publication overlap
 
