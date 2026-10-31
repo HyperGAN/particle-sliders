@@ -1,5 +1,12 @@
 # Bonsai-GGUF particle slider (opt-in)
 
+The historical `particle_bridge_gan` cohort documented below is preserved.
+A separate [shared-core/HyperGAN/HNDL profile](../packages/bonsai-readout-shared/README.md)
+now executes the real shared core0.12/PG0.9.4 game and HNDL0.10 networks in an
+installed width16 CPU fixture. **Native width5120 remains refused before model
+execution.** This is a new BISPF cohort, not a relabeling of old checkpoints or
+a claim that the frozen GGUF server supports gradients or attention LoRA.
+
 Runs the YuE2 working game `anneal-routed-particle-error` (`--recipe
 particle_bridge`) through the **shared**
 `conceptmod/textsliders/particle_bridge_gan` module on frozen

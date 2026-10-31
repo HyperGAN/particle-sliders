@@ -1,0 +1,5 @@
+.....s................s.                                                 [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_bonsai_gguf_slider.py:203: BONSAI_PTQ1_0 not set; live header probe is opt-in
+SKIPPED [1] tests/test_bonsai_gguf_slider.py:534: BONSAI_SERVER_URL not set; live readout is opt-in
+22 passed, 2 skipped in 1.30s
