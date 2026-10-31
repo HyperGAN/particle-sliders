@@ -261,6 +261,8 @@ fake pack only.
 
 ## Related
 
+- [Opt-in dummy video-field GAN preview](ltx25-modern-gan.md) — separate objective,
+  dummy-only cohort and environment; no pretrained qualification. UNI remains the default.
 - [docs/README.md](README.md) — backend map and shared UNI pitfalls
 - [docs/prompts.md](prompts.md) — `prompts-ltx25-smile.yaml` / `prompts-ltx25-chiaroscuro.yaml`
 - [docs/minimax-h3-slider.md](minimax-h3-slider.md) — velocity UNI (plus pack); different live box
