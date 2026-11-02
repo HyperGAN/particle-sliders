@@ -14,7 +14,6 @@ from particle_sliders import teachers
 from particle_sliders.grad_regularizers import GradRegularizer
 
 torch.set_num_threads(1)
-ROOT = Path(__file__).resolve().parents[3]
 
 
 def test_reference_sources_exact():
