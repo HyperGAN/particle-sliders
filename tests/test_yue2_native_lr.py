@@ -2,10 +2,10 @@
 from copy import deepcopy
 import pytest
 import torch
-from analysis.slider2d.adv import delayed_cosine
+from particle_sliders.textsliders._slider2d.adv import delayed_cosine
 from analysis.slider2d.unipolar_gan import Student
-from conceptmod.textsliders import yue2_arm_b as arm, yue2_gan_plus_neu as plus, unipolar_gan as shared
-from conceptmod.textsliders.train_lora_yue2_arm_b import parse_args, run_recipe, apply_run_lrs
+from particle_sliders.textsliders import yue2_arm_b as arm, yue2_gan_plus_neu as plus, unipolar_gan as shared
+from particle_sliders.textsliders.train_lora_yue2_arm_b import parse_args, run_recipe, apply_run_lrs
 
 @pytest.mark.parametrize('game, name', [(arm, 'unipolar_gan'), (plus, 'gan_plus_neu')])
 def test_native_scale_changes_only_optimizer_rates(game, name):

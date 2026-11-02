@@ -214,7 +214,7 @@ def test_batch4_music_stressors():
 
 def test_music_close_posture_warn_n1_close_family():
     """Fire #22: Music parts0 (n=1) warns on close-family; silent elsewhere."""
-    from analysis.slider2d.adv import AdvConfig
+    from particle_sliders.textsliders._slider2d.adv import AdvConfig
 
     w = music_close_posture_warn(1, cell_kind="close")
     assert w and "n_particles=1" in w and "n_particles>=2" in w

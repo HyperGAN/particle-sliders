@@ -3,8 +3,8 @@ import torch
 
 from analysis.slider2d import yue2_unipg_c as unipg
 from analysis.slider2d.yue2_gan_exam import run_cell as ref_run_cell
-from analysis.slider2d.adv import AdvConfig
-from conceptmod.textsliders import yue2_arm_b as game
+from particle_sliders.textsliders._slider2d.adv import AdvConfig
+from particle_sliders.textsliders import yue2_arm_b as game
 
 
 def test_propose_only_and_no_trainer_merge():

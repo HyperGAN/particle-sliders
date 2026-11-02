@@ -38,7 +38,7 @@ ready. It includes (the three JSON files are not in git):
 
 **The evaluator and controller CLI described below are not implemented yet.**
 Creating this handoff did not start another GPU campaign. Implement the CLI in a
-new package, such as `conceptmod/textsliders/reward_game/`, and reuse the existing
+new package, such as `packages/particle-sliders-core/src/particle_sliders/textsliders/reward_game/`, and reuse the existing
 model, rendering, scoring, capture and export code through explicit interfaces.
 
 The benchmark's cases are already exposed development material. Their purpose
@@ -156,24 +156,24 @@ and run from `/ml2/music/sliders-conceptmod`.
 
 ```bash
 # Verify the frozen game and initialize its ledger without generating audio.
-python -m conceptmod.textsliders.reward_game init \
+python -m particle_sliders.textsliders.reward_game init \
   --spec analysis/reward_slider_game_20260908/benchmark.json
 
 # Test any compatible checkpoint. Auto means the fixed 4 -> 8 -> 16 ladder.
-python -m conceptmod.textsliders.reward_game evaluate \
+python -m particle_sliders.textsliders.reward_game evaluate \
   --checkpoint /absolute/path/candidate.safetensors \
   --multiplier 1.0 --stage auto --tag attempt-001
 
 # Explicit, recorded development diagnostics and comparisons.
-python -m conceptmod.textsliders.reward_game evaluate \
+python -m particle_sliders.textsliders.reward_game evaluate \
   --checkpoint /absolute/path/candidate.safetensors \
   --multiplier 1.0 --stage 16 --tag attempt-001-full
-python -m conceptmod.textsliders.reward_game leaderboard
-python -m conceptmod.textsliders.reward_game compare --left RUN_ID --right RUN_ID
-python -m conceptmod.textsliders.reward_game inspect --run RUN_ID
+python -m particle_sliders.textsliders.reward_game leaderboard
+python -m particle_sliders.textsliders.reward_game compare --left RUN_ID --right RUN_ID
+python -m particle_sliders.textsliders.reward_game inspect --run RUN_ID
 
 # The bounded-attempt controller resumes the overall search ledger.
-python -m conceptmod.textsliders.reward_game search --resume
+python -m particle_sliders.textsliders.reward_game search --resume
 ```
 
 Return both machine-readable JSON and a short Markdown scorecard. A scientifically
@@ -386,9 +386,9 @@ All paths below are relative to `/ml2/music/sliders-conceptmod` unless absolute.
 | 48 verified semantic histories | `analysis/reward_preference_20260908/tokens/` |
 | Cached initial-half policy references | `analysis/reward_preference_20260908/reference.pt` |
 | Failed continuation weights/full states | `analysis/reward_preference_20260908/students/{gentle,faster}/` |
-| GPU-selectable ordinary renderer | `conceptmod/textsliders/reward_search/renderer.py` |
-| Exact code recovery and preference trainer | `conceptmod/textsliders/reward_preference/` |
-| Scoring, observations, integrity helpers | `conceptmod/textsliders/reward_sliders/` |
+| GPU-selectable ordinary renderer | `packages/particle-sliders-core/src/particle_sliders/textsliders/reward_search/renderer.py` |
+| Exact code recovery and preference trainer | `packages/particle-sliders-core/src/particle_sliders/textsliders/reward_preference/` |
+| Scoring, observations, integrity helpers | `packages/particle-sliders-core/src/particle_sliders/textsliders/reward_sliders/` |
 | Existing tests | `tests/test_reward_sliders.py`, `tests/test_reward_search.py`, `tests/test_reward_preference.py` |
 
 The original LoRA is rank 8, alpha 8, `kind: language_model`, all 144 q/k/v/o

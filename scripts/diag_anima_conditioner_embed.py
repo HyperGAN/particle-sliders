@@ -38,8 +38,8 @@ _REPO = Path(__file__).resolve().parents[1]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
-from conceptmod.textsliders.anima_fake import FakeAnimaBackend
-from conceptmod.textsliders.anima_peft_sync import (
+from particle_sliders.textsliders.anima_fake import FakeAnimaBackend
+from particle_sliders.textsliders.anima_peft_sync import (
     SAMPLE_TRAIN_MISMATCH,
     adapter_scale_api,
     assert_sample_train_conditioner_shared,
@@ -48,13 +48,13 @@ from conceptmod.textsliders.anima_peft_sync import (
     sample_conditioner_module,
     train_conditioner_module,
 )
-from conceptmod.textsliders.anima_slider import (
+from particle_sliders.textsliders.anima_slider import (
     MAN_NEU,
     MAN_PLUS,
     WOMAN_NEU,
     WOMAN_PLUS,
 )
-from conceptmod.textsliders.train_lora_anima import (
+from particle_sliders.textsliders.train_lora_anima import (
     peft_adapter_scale,
     sync_backend_peft_modules,
 )
@@ -171,7 +171,7 @@ def run_dummy(args) -> dict:
 
 
 def run_live(args) -> dict:
-    from conceptmod.textsliders.train_lora_anima import load_live_backend, parse_args
+    from particle_sliders.textsliders.train_lora_anima import load_live_backend, parse_args
 
     argv = [
         "--model_id",

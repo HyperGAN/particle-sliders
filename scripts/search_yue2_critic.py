@@ -20,8 +20,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 PYTHON = '/ml2/music/.cache/yue2-test-env/bin/python'
-TRAIN_PROMPTS = ROOT / 'conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml'
-EVAL_PROMPTS = ROOT / 'conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml'
+TRAIN_PROMPTS = ROOT / 'packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml'
+EVAL_PROMPTS = ROOT / 'packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml'
 MUSIC3_REFERENCE = ROOT / 'analysis/music3_critic_sweep_bal_20260917'
 
 # MLP is the accepted YuE2 control. Mix is the Music 3 transformer finalist.
@@ -73,7 +73,7 @@ def training_score(run: Path) -> float:
 
 
 def train_command(candidate: dict, run: Path, steps: int) -> list[str]:
-    return [PYTHON, '-u', str(ROOT/'conceptmod/textsliders/train_lora_yue2_arm_b.py'),
+    return [PYTHON, '-u', str(ROOT/'packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2_arm_b.py'),
         '--recipe','particle_bridge','--name',f"metal-yue2-{candidate['name']}",
         '--prompts_file',str(TRAIN_PROMPTS),'--save_dir',str(run),
         '--steps',str(steps),'--until',str(steps),'--save_every','100',

@@ -94,9 +94,9 @@ Gender-v4 declares no `leak_*`, so both halves are a no-op and the
 teacher is `faithful`. No live listen on this branch.
 
 ```bash
-python conceptmod/textsliders/train_lm_slider_music3.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
   --name energy-lm-even-blend \
-  --prompts_file conceptmod/textsliders/data/prompts-energy-v4.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-v4.yaml \
   --lm_target faithful_even_blend --pole_mode hidden \
   --rank 8 --alpha 8 --lr 5e-4 --steps 800 --seed 7 \
   --no-early_stop --endreg_weight 1.0

@@ -5,7 +5,7 @@ Arm B = `#94` ParticleGAN-faithful RpGAN + `b_cap`, leftover-gated:
 `mlp` (`--adv_norm l2`), `--parts 0`, `pole_weight=1`, `cover_weight=1`,
 `vicreg_weight=0`. Fail-closed gates: `tests/test_music_arm_b_gates.py`
 (shape) + `tests/test_music_arm_b.py` (formulation); single source is the
-trainer `ARM_B` row in `conceptmod/textsliders/train_lm_slider_music3.py`.
+trainer `ARM_B` row in `packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py`.
 No Music GPU train in this port.
 
 This note reconciles Strategy E (#100, tests-first gates) onto Strategy B
@@ -57,6 +57,6 @@ argv. Music extras layered on top: cover/pole weights, span/end cloud,
 ## Propose-only (not gates)
 
 Reoc0 (`e_on_content=0` lexical proxy) and FLP (`se < max(su,sc)` over
-caller-supplied vectors) live in `conceptmod/textsliders/arm_b_yaml_lint.py`
+caller-supplied vectors) live in `packages/particle-sliders-core/src/particle_sliders/textsliders/arm_b_yaml_lint.py`
 with `PROPOSE_ONLY = True`. Encoder wiring, thresholds, eval scales, and
 multi-seed wins stay unproven until a GPU run.

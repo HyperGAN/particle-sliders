@@ -130,7 +130,7 @@ shipped.
 ## Music 3 target formulas
 
 CPU-pure copies of the live losses live in
-`conceptmod/textsliders/slider_targets.py`. The module docstring is
+`packages/particle-sliders-core/src/particle_sliders/textsliders/slider_targets.py`. The module docstring is
 the contract: Music 3 `--lm_target` recipes (`v9`, `pair_odd_sub_e`,
 `faithful_*`), SD enhance/erase, and the image UNI helpers (ZiT / Krea
 embed). 2-D fixture write-ups that import it:
@@ -217,8 +217,8 @@ Workflow: [slider_selection/README.md](../slider_selection/README.md).
 | [reward-model-sliders-handoff.md](reward-model-sliders-handoff.md) | spec: reward-derived Music 3 sliders, starting with Audiobox Content Enjoyment |
 | [reward-slider-game-handoff.md](reward-slider-game-handoff.md) | handoff: a repeatable reward-slider game and the search loop around it |
 
-Code: [reward_sliders/](../conceptmod/textsliders/reward_sliders/README.md),
-[reward_game/](../conceptmod/textsliders/reward_game/README.md).
+Code: [reward_sliders/](../packages/particle-sliders-core/src/particle_sliders/textsliders/reward_sliders/README.md),
+[reward_game/](../packages/particle-sliders-core/src/particle_sliders/textsliders/reward_game/README.md).
 
 ## Release-card sources
 

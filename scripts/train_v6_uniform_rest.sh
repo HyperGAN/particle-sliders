@@ -12,28 +12,28 @@ cd "$ROOT"
 . "$ROOT/scripts/train_v6_lib.sh"
 
 echo "[uniform-rest] waiting for in-flight LM python jobs..."
-while pgrep -f 'minimax-music3/bin/python -u conceptmod/textsliders/train_lm_slider_music3.py' >/dev/null; do
+while pgrep -f 'minimax-music3/bin/python -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py' >/dev/null; do
   sleep 30
 done
 echo "[uniform-rest] starting space-lm + 11 TF halves"
 
 (
-  train_lm 0 space-lm-v6 conceptmod/textsliders/data/prompts-space.yaml
-  train_tf 0 energy-tf-v6 conceptmod/textsliders/data/prompts-energy.yaml
-  train_tf 0 distortion-tf-v6 conceptmod/textsliders/data/prompts-distortion.yaml
-  train_tf 0 space-tf-v6 conceptmod/textsliders/data/prompts-space.yaml
-  train_tf 0 gender-tf-v6 conceptmod/textsliders/data/prompts-gender-tf.yaml --plus_label Female --minus_label Male
-  train_tf 0 live-tf-v6 conceptmod/textsliders/data/prompts-live-tf.yaml
+  train_lm 0 space-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-space.yaml
+  train_tf 0 energy-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy.yaml
+  train_tf 0 distortion-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-distortion.yaml
+  train_tf 0 space-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-space.yaml
+  train_tf 0 gender-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-tf.yaml --plus_label Female --minus_label Male
+  train_tf 0 live-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-live-tf.yaml
 ) > models/v6-uniform-gpu0.log 2>&1 &
 pid0=$!
 
 (
-  train_tf 1 tempo-tf-v6 conceptmod/textsliders/data/prompts-tempo.yaml
-  train_tf 1 triphop-tf-v6 conceptmod/textsliders/data/prompts-triphop-v3-single.yaml
-  train_tf 1 dust-tf-v6 conceptmod/textsliders/data/prompts-cand-dust-v1.yaml
-  train_tf 1 rapslow-tf-v6 conceptmod/textsliders/data/prompts-rapslow-tf.yaml
-  train_tf 1 breath-tf-v6 conceptmod/textsliders/data/prompts-breath-tf.yaml
-  train_tf 1 rhyme-tf-v6 conceptmod/textsliders/data/prompts-rhyme-tf.yaml
+  train_tf 1 tempo-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tempo.yaml
+  train_tf 1 triphop-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-triphop-v3-single.yaml
+  train_tf 1 dust-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-cand-dust-v1.yaml
+  train_tf 1 rapslow-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-rapslow-tf.yaml
+  train_tf 1 breath-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-breath-tf.yaml
+  train_tf 1 rhyme-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-rhyme-tf.yaml
 ) > models/v6-uniform-gpu1.log 2>&1 &
 pid1=$!
 

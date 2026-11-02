@@ -11,9 +11,9 @@ import pytest
 import torch
 import yaml
 
-from conceptmod.textsliders import particle_bridge_gan as yue2_game
-from conceptmod.textsliders import bonsai_gguf_particle as bonsai_game
-from conceptmod.textsliders.bonsai_gguf_backend import (
+from particle_sliders.textsliders import particle_bridge_gan as yue2_game
+from particle_sliders.textsliders import bonsai_gguf_particle as bonsai_game
+from particle_sliders.textsliders.bonsai_gguf_backend import (
     ARCH,
     BASE_MODEL,
     CONTEXT,
@@ -46,7 +46,7 @@ from conceptmod.textsliders.bonsai_gguf_backend import (
     require_fork_binary,
     resolve_weights,
 )
-from conceptmod.textsliders.bonsai_gguf_particle import (
+from particle_sliders.textsliders.bonsai_gguf_particle import (
     FORMAT,
     RECIPE,
     BonsaiParticleHead,
@@ -55,7 +55,7 @@ from conceptmod.textsliders.bonsai_gguf_particle import (
     resolve_head_path,
     update,
 )
-from conceptmod.textsliders.train_lora_bonsai_gguf import (
+from particle_sliders.textsliders.train_lora_bonsai_gguf import (
     DEFAULT_SAMPLE_SCALES,
     load_slider_rows,
     main as train_main,
@@ -297,7 +297,7 @@ def test_head_pins_and_zero_init():
 
 def test_build_game_uses_reference_lrs_and_betas():
     backend = BonsaiGGUFBackend(device="cpu", dummy=True)
-    rows = load_slider_rows("conceptmod/textsliders/data/prompts-bonsai-gguf.yaml")
+    rows = load_slider_rows("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-bonsai-gguf.yaml")
     fixed = prepare_rows(backend, rows)
     network = BonsaiParticleHead()
     critic, g, d = build_game(backend, network, fixed)
@@ -313,7 +313,7 @@ def test_build_game_uses_reference_lrs_and_betas():
 
 def test_shared_build_game_rejects_wrong_cloud_shape():
     backend = BonsaiGGUFBackend(device="cpu", dummy=True)
-    rows = load_slider_rows("conceptmod/textsliders/data/prompts-bonsai-gguf.yaml")
+    rows = load_slider_rows("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-bonsai-gguf.yaml")
     fixed = prepare_rows(backend, rows)
     network = BonsaiParticleHead()
     network.particles = torch.nn.Parameter(torch.randn(16, 4))
@@ -361,7 +361,7 @@ def test_dummy_train_runs_shared_game_with_no_mse(tmp_path):
     ])
     sidecar = train(args)
     assert sidecar["recipe"] == "anneal-routed-particle-error-bonsai-gguf-v1"
-    assert sidecar["game_module"] == "conceptmod.textsliders.particle_bridge_gan"
+    assert sidecar["game_module"] == "particle_sliders.textsliders.particle_bridge_gan"
     assert sidecar["backend"] == "bonsai_gguf"
     assert sidecar["model_repo"] == "prism-ml/Ternary-Bonsai-2-27B-gguf"
     assert sidecar["model_file"] == "Ternary-Bonsai-2-27B-PTQ1_0.gguf"
@@ -405,7 +405,7 @@ def test_dummy_train_runs_shared_game_with_no_mse(tmp_path):
 
 def test_save_load_roundtrip_and_rejections(tmp_path):
     backend = BonsaiGGUFBackend(device="cpu", dummy=True)
-    rows = load_slider_rows("conceptmod/textsliders/data/prompts-bonsai-gguf.yaml")
+    rows = load_slider_rows("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-bonsai-gguf.yaml")
     fixed = prepare_rows(backend, rows)
     network = BonsaiParticleHead()
     critic, g, d = build_game(backend, network, fixed)
@@ -475,12 +475,12 @@ def test_needs_two_rows(tmp_path):
 
 
 def test_yaml_rows_and_config_card_match_shared_reference():
-    rows = load_slider_rows("conceptmod/textsliders/data/prompts-bonsai-gguf.yaml")
+    rows = load_slider_rows("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-bonsai-gguf.yaml")
     assert len(rows) == 3
     for row in rows:
         assert row["positive"] != row["neutral"]
     cfg = yaml.safe_load(
-        Path("conceptmod/textsliders/data/config-bonsai-gguf.yaml").read_text()
+        Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-bonsai-gguf.yaml").read_text()
     )
     assert cfg["pretrained_model"]["repo"] == "prism-ml/Ternary-Bonsai-2-27B-gguf"
     assert cfg["pretrained_model"]["file"] == "Ternary-Bonsai-2-27B-PTQ1_0.gguf"
@@ -488,7 +488,7 @@ def test_yaml_rows_and_config_card_match_shared_reference():
     assert "F16" not in yaml.safe_dump(cfg)
     assert "mmproj" not in yaml.safe_dump(cfg).lower()
     assert cfg["train"]["recipe"] == "particle_bridge"
-    assert cfg["game"]["module"] == "conceptmod.textsliders.particle_bridge_gan"
+    assert cfg["game"]["module"] == "particle_sliders.textsliders.particle_bridge_gan"
     ref = yue2_game.REFERENCE
     for key in ("g_lr", "d_lr", "particle_lr", "ema", "vic_coeff",
                 "cap_coeff", "cap_kappa", "cap_every",
@@ -545,14 +545,14 @@ def test_live_server_readout_when_present():
 
 
 def test_production_files_unchanged():
-    tf_src = Path("conceptmod/textsliders/train_lora_music3.py").read_text()
+    tf_src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py").read_text()
     assert 'parser.add_argument("--steps", type=int, default=500)' in tf_src
     assert 'parser.add_argument("--rank", type=int, default=8)' in tf_src
     assert 'parser.add_argument("--lr", type=float, default=2e-3' in tf_src
-    lm_src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    lm_src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert '"--lm_target"' in lm_src and 'default="v9"' in lm_src
     assert '"--pole_mode"' in lm_src and 'default="hidden"' in lm_src
-    music3_yaml = Path("conceptmod/textsliders/data/prompts-music3.yaml").read_text()
+    music3_yaml = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-music3.yaml").read_text()
     assert "bonsai" not in music3_yaml.lower()
     assert "Bonsai-2-27B" not in music3_yaml
     for name in (
@@ -566,7 +566,7 @@ def test_production_files_unchanged():
         "tiny_llm_particle.py",
         "train_lora_tiny_llm.py",
     ):
-        src = Path("conceptmod/textsliders") / name
+        src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders") / name
         if src.is_file():
             assert "bonsai" not in src.read_text().lower(), name
     adv_src = Path("analysis/slider2d/adv.py").read_text()

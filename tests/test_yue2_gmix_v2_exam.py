@@ -12,7 +12,7 @@ from torch.nn import functional as F
 
 from analysis.slider2d import yue2_gmix_v2_exam as v2
 from analysis.slider2d.plus_neu_exam import PLUS_NEU_CELLS
-from conceptmod.textsliders import particle_bridge_gan as shared
+from particle_sliders.textsliders import particle_bridge_gan as shared
 
 
 @pytest.fixture(autouse=True)
@@ -177,13 +177,13 @@ def test_v2_short_run_is_finite_and_reports_honestly():
 
 
 def test_v2_arm_changes_no_locked_defaults_or_live_recipes():
-    from analysis.slider2d.adv import AdvConfig
+    from particle_sliders.textsliders._slider2d.adv import AdvConfig
     from analysis.slider2d.locked_baseline_defaults import assert_advconfig_defaults_match_locked
     assert_advconfig_defaults_match_locked(AdvConfig())
-    from conceptmod.textsliders import yue2_arm_b as production
+    from particle_sliders.textsliders import yue2_arm_b as production
     assert production.RECIPE['name'] == 'unipolar-rpgan-bcap-yue2-v3'
     assert production.RECIPE['critic_hidden'] == 256
-    from conceptmod.textsliders.train_lm_slider_music3 import ARM_B, parse_args
+    from particle_sliders.textsliders.train_lm_slider_music3 import ARM_B, parse_args
     assert ARM_B['lm_target'] == 'faithful_guard_e'
     assert ARM_B['pole_weight'] == 1.0 and ARM_B['cover_weight'] == 1.0
     assert parse_args(['--prompts_file', 'dummy.yaml']).lm_target == 'v9'

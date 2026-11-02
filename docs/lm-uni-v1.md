@@ -31,7 +31,7 @@ is declared and unused; uni-v1 must be raw h+.
 | triphop | dusty / vinyl / hazy (Global Metadata) |
 | live | bleed / crowd / human time (Global Metadata) |
 
-Prompts: `conceptmod/textsliders/data/prompts-<axis>-uni-v1.yaml`.
+Prompts: `packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-<axis>-uni-v1.yaml`.
 
 ## Train card (opt-in)
 
@@ -43,9 +43,9 @@ No pair-odd, no `h0 ± a`, no minus MSE. Inference may still expose a
 `plus_only`.
 
 ```bash
-CUDA_VISIBLE_DEVICES=N python conceptmod/textsliders/train_lm_slider_music3.py \
+CUDA_VISIBLE_DEVICES=N python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
   --name energy-lm-uni-v1 \
-  --prompts_file conceptmod/textsliders/data/prompts-energy-uni-v1.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-uni-v1.yaml \
   --lm_target faithful_plus --pole_mode hidden \
   --rank 8 --alpha 8 --lr 5e-4 --steps 800 --seed 7 \
   --no-early_stop --endreg_weight 1.0 --device 0

@@ -30,7 +30,7 @@ from analysis.slider2d.formulation_leaderboard import (
 )
 from analysis.slider2d.plus_exam import PLUS_COVER_MIN, PLUS_OFF_MAX
 from analysis.slider2d.plus_neu_exam import PLUS_NEU_HOLD_MIN
-from conceptmod.textsliders.train_lm_slider_music3 import (
+from particle_sliders.textsliders.train_lm_slider_music3 import (
     ARM_B,
     parse_args,
 )

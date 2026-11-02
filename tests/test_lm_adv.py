@@ -1,6 +1,6 @@
 """Gates for the training-only LM adversarial head (RpGAN + b_cap).
 
-No model weights, no GPU. Covers ``conceptmod.textsliders.lm_adv`` only —
+No model weights, no GPU. Covers ``particle_sliders.textsliders.lm_adv`` only —
 the live trainer imports it but these tests never construct the 8B LM.
 """
 
@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 import pytest
 
-from conceptmod.textsliders.lm_adv import (
+from particle_sliders.textsliders.lm_adv import (
     LMDiscriminator,
     cap_penalty,
     flat_param_grad,

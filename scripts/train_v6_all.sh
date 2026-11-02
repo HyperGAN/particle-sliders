@@ -14,31 +14,31 @@ cd "$ROOT"
 echo "[v6-all] LM then TF, collapse<0 or retry seed"
 
 (
-  train_lm 0 gender-lm-v6 conceptmod/textsliders/data/prompts-gender-v4.yaml
-  train_lm 0 triphop-lm-v6 conceptmod/textsliders/data/prompts-triphop-v4.yaml
-  train_lm 0 distortion-lm-v6 conceptmod/textsliders/data/prompts-distortion-v4.yaml
-  train_lm 0 live-lm-v6 conceptmod/textsliders/data/prompts-live-v4.yaml
-  train_lm 0 rhyme-lm-v6 conceptmod/textsliders/data/prompts-rhyme-v4.yaml
-  train_lm 0 space-lm-v6 conceptmod/textsliders/data/prompts-space.yaml
-  train_tf 0 energy-tf-v6 conceptmod/textsliders/data/prompts-energy.yaml
-  train_tf 0 distortion-tf-v6 conceptmod/textsliders/data/prompts-distortion.yaml
-  train_tf 0 space-tf-v6 conceptmod/textsliders/data/prompts-space.yaml
-  train_tf 0 gender-tf-v6 conceptmod/textsliders/data/prompts-gender-tf.yaml --plus_label Female --minus_label Male
-  train_tf 0 live-tf-v6 conceptmod/textsliders/data/prompts-live-tf.yaml
+  train_lm 0 gender-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-v4.yaml
+  train_lm 0 triphop-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-triphop-v4.yaml
+  train_lm 0 distortion-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-distortion-v4.yaml
+  train_lm 0 live-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-live-v4.yaml
+  train_lm 0 rhyme-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-rhyme-v4.yaml
+  train_lm 0 space-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-space.yaml
+  train_tf 0 energy-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy.yaml
+  train_tf 0 distortion-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-distortion.yaml
+  train_tf 0 space-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-space.yaml
+  train_tf 0 gender-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-tf.yaml --plus_label Female --minus_label Male
+  train_tf 0 live-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-live-tf.yaml
 ) > models/v6-all-gpu0.log 2>&1 &
 pid0=$!
 
 (
-  train_lm 1 rapslow-lm-v6 conceptmod/textsliders/data/prompts-rapslow-v4.yaml
-  train_lm 1 energy-lm-v6 conceptmod/textsliders/data/prompts-energy-v4.yaml
-  train_lm 1 tempo-lm-v6 conceptmod/textsliders/data/prompts-tempo-v4.yaml
-  train_lm 1 breath-lm-v6 conceptmod/textsliders/data/prompts-breath-v4.yaml
-  train_tf 1 tempo-tf-v6 conceptmod/textsliders/data/prompts-tempo.yaml
-  train_tf 1 triphop-tf-v6 conceptmod/textsliders/data/prompts-triphop-v3-single.yaml
-  train_tf 1 dust-tf-v6 conceptmod/textsliders/data/prompts-cand-dust-v1.yaml
-  train_tf 1 rapslow-tf-v6 conceptmod/textsliders/data/prompts-rapslow-tf.yaml
-  train_tf 1 breath-tf-v6 conceptmod/textsliders/data/prompts-breath-tf.yaml
-  train_tf 1 rhyme-tf-v6 conceptmod/textsliders/data/prompts-rhyme-tf.yaml
+  train_lm 1 rapslow-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-rapslow-v4.yaml
+  train_lm 1 energy-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-v4.yaml
+  train_lm 1 tempo-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tempo-v4.yaml
+  train_lm 1 breath-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-breath-v4.yaml
+  train_tf 1 tempo-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tempo.yaml
+  train_tf 1 triphop-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-triphop-v3-single.yaml
+  train_tf 1 dust-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-cand-dust-v1.yaml
+  train_tf 1 rapslow-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-rapslow-tf.yaml
+  train_tf 1 breath-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-breath-tf.yaml
+  train_tf 1 rhyme-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-rhyme-tf.yaml
 ) > models/v6-all-gpu1.log 2>&1 &
 pid1=$!
 

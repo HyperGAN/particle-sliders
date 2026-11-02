@@ -24,9 +24,9 @@ sys.path.insert(0, str(ROOT))
 
 # Do NOT import generate_listen — its module-level code rewrites
 # CUDA_VISIBLE_DEVICES from --device (e.g. "cuda:0"), which hides every GPU.
-from conceptmod.textsliders.infer_music3 import _load_pipeline, _to_wav_array
-from conceptmod.textsliders.music3_particle_bridge import ParticleNetwork, load_prompts
-from conceptmod.textsliders.train_lora_yue2_fresh import write_json
+from particle_sliders.textsliders.infer_music3 import _load_pipeline, _to_wav_array
+from particle_sliders.textsliders.music3_particle_bridge import ParticleNetwork, load_prompts
+from particle_sliders.textsliders.train_lora_yue2_fresh import write_json
 
 TAKES = [
     ("off", 0.0, "neutral"),

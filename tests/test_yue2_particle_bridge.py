@@ -8,9 +8,9 @@ from torch import nn
 from torch.nn import functional as F
 import yaml
 
-from conceptmod.textsliders import particle_bridge_gan as pg
-from conceptmod.textsliders import yue2_particle_bridge as native
-from conceptmod.textsliders.train_lora_yue2_arm_b import (
+from particle_sliders.textsliders import particle_bridge_gan as pg
+from particle_sliders.textsliders import yue2_particle_bridge as native
+from particle_sliders.textsliders.train_lora_yue2_arm_b import (
     critic_config, parse_args, train, run_recipe,
 )
 
@@ -275,7 +275,7 @@ def test_yue2_transformer_critic_flags_are_explicit_and_resume_safe():
 
 def test_native_shared_cloud_checkpointing_and_deployment(tmp_path):
     pytest.importorskip('yue2')
-    from conceptmod.textsliders.yue2_backend import YuE2Backend, YuE2Slider
+    from particle_sliders.textsliders.yue2_backend import YuE2Backend, YuE2Slider
     torch.manual_seed(19); a = YuE2Backend(dummy=True); b = YuE2Backend(dummy=True)
     b.model.load_state_dict(a.model.state_dict())
     na = native.ParticleSlider(a.model); nb = native.ParticleSlider(b.model)
@@ -314,7 +314,7 @@ def _same(a,b):
 
 def test_native_resume_restores_particles_ema_both_optimizers_and_all_streams(tmp_path,monkeypatch):
     pytest.importorskip('yue2')
-    from conceptmod.textsliders.yue2_backend import YuE2Backend
+    from particle_sliders.textsliders.yue2_backend import YuE2Backend
     def forbidden(*a,**k): raise AssertionError('No audio sampling or MSE')
     monkeypatch.setattr(YuE2Backend,'continuation',forbidden); monkeypatch.setattr(F,'mse_loss',forbidden)
     prompts=tmp_path/'p.yaml';prompts.write_text(yaml.safe_dump(dict(rows=[
@@ -355,7 +355,7 @@ def test_invalid_particle_checkpoint_rejects_before_attaching(tmp_path, damage):
     pytest.importorskip('yue2')
     from safetensors import safe_open
     from safetensors.torch import load_file, save_file
-    from conceptmod.textsliders.yue2_backend import YuE2Backend, YuE2Slider, attention_targets, _Adapter
+    from particle_sliders.textsliders.yue2_backend import YuE2Backend, YuE2Slider, attention_targets, _Adapter
     source=YuE2Backend(dummy=True); network=native.ParticleSlider(source.model)
     path=tmp_path/'invalid.safetensors'; network.save(path,dict(dummy=False))
     with safe_open(str(path),framework='pt',device='cpu') as handle: metadata=handle.metadata()

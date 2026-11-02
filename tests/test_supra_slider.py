@@ -9,8 +9,8 @@ import pytest
 import torch
 import yaml
 
-from conceptmod.textsliders.supra_fake import FakeSupraBackend
-from conceptmod.textsliders.supra_model import (
+from particle_sliders.textsliders.supra_fake import FakeSupraBackend
+from particle_sliders.textsliders.supra_model import (
     CKPT_FILENAME,
     D_CTX,
     D_MODEL,
@@ -34,7 +34,7 @@ from conceptmod.textsliders.supra_model import (
     count_parameters,
     load_supra_weights,
 )
-from conceptmod.textsliders.supra_slider import (
+from particle_sliders.textsliders.supra_slider import (
     CROSS_LORA_TARGETS,
     DEFAULT_CFG,
     DEFAULT_CONCEPT_WORDS,
@@ -74,9 +74,9 @@ from conceptmod.textsliders.supra_slider import (
     supra_uni_teachers,
     unused_vocab,
 )
-from conceptmod.textsliders.train_lora_krea import assert_krea_only
-from conceptmod.textsliders.train_lora_sana import assert_sana_only
-from conceptmod.textsliders.train_lora_supra import (
+from particle_sliders.textsliders.train_lora_krea import assert_krea_only
+from particle_sliders.textsliders.train_lora_sana import assert_sana_only
+from particle_sliders.textsliders.train_lora_supra import (
     _sample_zt,
     LiveSupraBackend,
     assert_supra_only,
@@ -87,13 +87,13 @@ from conceptmod.textsliders.train_lora_supra import (
 )
 
 REPO = Path(__file__).resolve().parents[1]
-PROMPTS = REPO / "conceptmod/textsliders/data/prompts-supra.yaml"
-CANARY = REPO / "conceptmod/textsliders/data/prompts-supra-canary.yaml"
-CONFIG = REPO / "conceptmod/textsliders/data/config-supra.yaml"
+PROMPTS = REPO / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-supra.yaml"
+CANARY = REPO / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-supra-canary.yaml"
+CONFIG = REPO / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-supra.yaml"
 
 
 def test_music3_defaults_stay_v9_hidden():
-    from conceptmod.textsliders.train_lm_slider_music3 import parse_args as lm_parse
+    from particle_sliders.textsliders.train_lm_slider_music3 import parse_args as lm_parse
 
     args = lm_parse(["--prompts_file", "prompts.yaml"])
     assert args.lm_target == "v9"
@@ -499,7 +499,7 @@ def test_live_loader_stays_offline(monkeypatch):
         raise AssertionError("live loader must not download in this test")
 
     monkeypatch.setattr(
-        "conceptmod.textsliders.train_lora_supra._download_checkpoint",
+        "particle_sliders.textsliders.train_lora_supra._download_checkpoint",
         _boom,
     )
     with pytest.raises(RuntimeError, match="dummy"):

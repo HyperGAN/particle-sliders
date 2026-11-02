@@ -13,11 +13,11 @@ pytest.importorskip("yue2", reason="Install the isolated YuE2 runtime to test th
 from yue2.modeling_yue2 import YuE2Config, YuE2ForCausalLM
 from yue2.pipeline import SemanticResult, SymbolicPlan
 
-from conceptmod.textsliders.yue2_backend import (
+from particle_sliders.textsliders.yue2_backend import (
     YuE2Backend, YuE2Slider, aligned_suffix, attention_targets, normalized_mse,
 )
-from conceptmod.textsliders.train_lora_yue2 import load_rows, parse_args, prepare_pairs, train
-from conceptmod.textsliders.infer_yue2 import parse_args as infer_args, render
+from particle_sliders.textsliders.train_lora_yue2 import load_rows, parse_args, prepare_pairs, train
+from particle_sliders.textsliders.infer_yue2 import parse_args as infer_args, render
 
 
 @pytest.fixture(autouse=True)
@@ -177,7 +177,7 @@ def test_prompt_and_config_validation(tmp_path):
     args = parse_args(["--config_file", str(config), "--steps", "3"])
     assert (args.rank, args.steps) == (4, 3)
     assert args.save_dir.parent.name == "models"
-    prompts = Path(__file__).resolve().parents[1] / "conceptmod/textsliders/data/prompts-yue2.yaml"
+    prompts = Path(__file__).resolve().parents[1] / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2.yaml"
     rows = load_rows(prompts)
     assert len(rows) == 4 and rows[0]["neutral"].startswith("Low male register.")
     bad = tmp_path / "bad.yaml"

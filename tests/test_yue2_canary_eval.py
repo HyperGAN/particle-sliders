@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import torch
 import pytest
 from scripts.evaluate_yue2_arm_b import hidden_diagnostics,takes,page
-from conceptmod.textsliders.yue2_backend import YuE2Backend
+from particle_sliders.textsliders.yue2_backend import YuE2Backend
 
 
 def test_heldout_geometry_keeps_zero_exact_and_minus_unscored(monkeypatch,tmp_path):

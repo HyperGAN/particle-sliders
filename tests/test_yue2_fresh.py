@@ -6,10 +6,10 @@ import torch
 import yaml
 
 pytest.importorskip("yue2")
-from conceptmod.textsliders.train_lora_yue2_fresh import (
+from particle_sliders.textsliders.train_lora_yue2_fresh import (
     FRESH_RECIPE, RowSampler, fresh_history, prepare, parse_args, train,
 )
-from conceptmod.textsliders.yue2_backend import YuE2Backend, YuE2Slider
+from particle_sliders.textsliders.yue2_backend import YuE2Backend, YuE2Slider
 
 
 @pytest.fixture(autouse=True)

@@ -163,9 +163,9 @@ doubling the 768 OOM.
 | sample scales | 0.0, 0.25, 0.5, 1.0 |
 
 ```bash
-HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_anima.py \
+HF_HUB_OFFLINE=1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py \
   --name smile-anima \
-  --prompts_file conceptmod/textsliders/data/prompts-anima.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml \
   --model_id circlestone-labs/Anima-Base-v1.0-Diffusers \
   --lora_targets conditioner --rank 16 --resolution 768 \
   --sample_steps 40 --cfg 4 \
@@ -178,9 +178,9 @@ Recommended **4090 24GB smile retrain** (fits; closed-mouth → smile at
 scale ~0.25 without needing DiT identity collapse):
 
 ```bash
-HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_anima.py \
+HF_HUB_OFFLINE=1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py \
   --name smile-anima \
-  --prompts_file conceptmod/textsliders/data/prompts-anima.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml \
   --model_id circlestone-labs/Anima-Base-v1.0-Diffusers \
   --lora_targets conditioner --rank 16 --resolution 512 \
   --sample_steps 40 --cfg 4 \
@@ -207,9 +207,9 @@ and denoise plus from mid-σ.
 smoke (8 optimizer steps, 8 sample steps, end-of-train grid only):
 
 ```bash
-HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_anima.py \
+HF_HUB_OFFLINE=1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py \
   --name smile-anima-same-crop-smoke \
-  --prompts_file conceptmod/textsliders/data/prompts-anima.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml \
   --model_id circlestone-labs/Anima-Base-v1.0-Diffusers \
   --lora_targets conditioner --rank 16 --resolution 512 \
   --sample_steps 8 --cfg 4 \
@@ -228,7 +228,7 @@ CPU dummy (CI / no Hub):
 
 ```bash
 PYTHONPATH=. python scripts/smoke_anima_same_crop_teacher.py
-PYTHONPATH=. python conceptmod/textsliders/train_lora_anima.py \
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py \
   --dummy --lm_target same_crop --teacher same_crop --steps 8 --device cpu
 ```
 
@@ -255,9 +255,9 @@ Requires `--lora_targets conditioner` (default). dit-only has no
 smile smoke (8 optimizer steps, 8 sample steps, end-of-train grid):
 
 ```bash
-HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_anima.py \
+HF_HUB_OFFLINE=1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py \
   --name smile-anima-embed-struct-smoke \
-  --prompts_file conceptmod/textsliders/data/prompts-anima.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml \
   --model_id circlestone-labs/Anima-Base-v1.0-Diffusers \
   --lora_targets conditioner --rank 16 --resolution 512 \
   --sample_steps 8 --cfg 4 \
@@ -275,7 +275,7 @@ CPU dummy (CI / no Hub):
 
 ```bash
 PYTHONPATH=. python scripts/smoke_anima_embed_struct.py
-PYTHONPATH=. python conceptmod/textsliders/train_lora_anima.py \
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py \
   --dummy --lm_target embed_struct --steps 8 --device cpu
 ```
 
@@ -333,9 +333,9 @@ python convert_anima_to_diffusers.py \
 Turbo preview sample (sample path only; train recipe stays Base):
 
 ```bash
-HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_anima.py \
+HF_HUB_OFFLINE=1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py \
   --name smile-anima-turbo-preview \
-  --prompts_file conceptmod/textsliders/data/prompts-anima.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml \
   --model_id ./Anima-Turbo-v1.1-Diffusers \
   --rank 16 --resolution 768 --sample_steps 10 --cfg 1 \
   --lr 1e-4 --lm_target trajectory --traj_steps 4 \
@@ -350,7 +350,7 @@ applied. `--cfg` does not change the trajectory train loss.
 Print the preview card without training:
 
 ```bash
-PYTHONPATH=. python conceptmod/textsliders/train_lora_anima.py --print_turbo_preview
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py --print_turbo_preview
 python scripts/convert_anima_turbo_diffusers.py --print-recipe
 ```
 
@@ -360,7 +360,7 @@ lower (`~2e-5` for rank 32); `1e-4` is the trainer default.
 Dummy (CI / no GPU / no Hub):
 
 ```bash
-PYTHONPATH=. python conceptmod/textsliders/train_lora_anima.py \
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py \
   --dummy --steps 8 --device cpu --save_dir /tmp/anima-dummy
 PYTHONPATH=. pytest tests/test_anima_slider.py -q
 python scripts/smoke_anima_slider.py
@@ -538,13 +538,13 @@ the teacher a real gap. This check needs local Anima weights; CI /
 `--dummy` does not run Hub.
 
 ```python
-from conceptmod.textsliders.anima_slider import stock_teacher_smoke_captions
+from particle_sliders.textsliders.anima_slider import stock_teacher_smoke_captions
 print(stock_teacher_smoke_captions())
 ```
 
 ## Yaml
 
-`conceptmod/textsliders/data/prompts-anima.yaml`: closed-mouth neu vs
+`packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml`: closed-mouth neu vs
 hard-smile plus (v3). Captions stay **bare** — unused `attributes`
 (`indoor`, `portrait`) are pins for hold bookkeeping, not caption
 prefixes. `concept_words: smiling, smile, happy, joyful, teeth`. + is

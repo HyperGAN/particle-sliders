@@ -1,6 +1,6 @@
 import pytest
-from conceptmod.textsliders.reward_game.core import read, write, IntegrityError
-from conceptmod.textsliders.reward_game.joint_confirmation_support import check_fresh
+from particle_sliders.textsliders.reward_game.core import read, write, IntegrityError
+from particle_sliders.textsliders.reward_game.joint_confirmation_support import check_fresh
 
 
 def test_failed_sibling_confirmation_and_composition_are_exposed(tmp_path):
@@ -22,9 +22,9 @@ def test_failed_sibling_confirmation_and_composition_are_exposed(tmp_path):
 
 def test_joint_composition_matches_native_studio_energy_allocation(tmp_path,monkeypatch):
     from app.sliders import _apply_host_energy
-    from conceptmod.textsliders.reward_game import joint_composition as composition
-    from conceptmod.textsliders.reward_game.joint_renderer import JointRenderer
-    from conceptmod.textsliders.reward_sliders import render,evaluate,specs
+    from particle_sliders.textsliders.reward_game import joint_composition as composition
+    from particle_sliders.textsliders.reward_game.joint_renderer import JointRenderer
+    from particle_sliders.textsliders.reward_sliders import render,evaluate,specs
     families=[dict(family=f'f{i}',style_multipliers={'first':.8,'second':1.2}) for i in range(8)]
     candidate=dict(path='candidate',multiplier=1.)
     protocol=dict(candidate=candidate,seeds=[13,17])
@@ -50,7 +50,7 @@ def test_joint_composition_matches_native_studio_energy_allocation(tmp_path,monk
 
 
 def test_partial_development_cannot_freeze_joint_confirmation(tmp_path,monkeypatch):
-    from conceptmod.textsliders.reward_game import joint_confirmation as confirmation,joint_evaluate
+    from particle_sliders.textsliders.reward_game import joint_confirmation as confirmation,joint_evaluate
     monkeypatch.setattr(confirmation,'verify',lambda *args:({},{}))
     monkeypatch.setattr(joint_evaluate,'inspect',lambda *args:dict(stage=8,valid_cases=8,advance=True))
     with pytest.raises(IntegrityError,match='strict completed'):
@@ -59,9 +59,9 @@ def test_partial_development_cannot_freeze_joint_confirmation(tmp_path,monkeypat
 
 
 def test_full_pass_freezes_pair_provenance_and_diagnostic_lock(tmp_path,monkeypatch):
-    from conceptmod.textsliders.reward_game import joint_confirmation as confirmation,joint_evaluate
-    from conceptmod.textsliders.reward_game.joint_replication_fixtures import families
-    from conceptmod.textsliders.reward_sliders import render,evaluate
+    from particle_sliders.textsliders.reward_game import joint_confirmation as confirmation,joint_evaluate
+    from particle_sliders.textsliders.reward_game.joint_replication_fixtures import families
+    from particle_sliders.textsliders.reward_sliders import render,evaluate
     home=tmp_path/'joint-v1'
     write(home/'game.json',dict(parent_home=str(tmp_path)))
     write(tmp_path/'recipes/confirmation-template-joint-v1.json',dict(version='joint-v1'))
@@ -87,7 +87,7 @@ def test_full_pass_freezes_pair_provenance_and_diagnostic_lock(tmp_path,monkeypa
 
 
 def test_replication_failure_prevents_pair_packaging(tmp_path,monkeypatch):
-    from conceptmod.textsliders.reward_game import joint_complete_confirmation as completion
+    from particle_sliders.textsliders.reward_game import joint_complete_confirmation as completion
     def verify(home,folder):
         first=folder.name=='first'
         return dict(replication_of=None if first else 'first',candidate=dict(path='same'),

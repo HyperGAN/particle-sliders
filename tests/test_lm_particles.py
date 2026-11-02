@@ -1,6 +1,6 @@
 """Regression checks for adaptive row mining and latent VICReg.
 
-No model weights, no GPU. Covers ``conceptmod.textsliders.lm_particles``.
+No model weights, no GPU. Covers ``particle_sliders.textsliders.lm_particles``.
 """
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ from __future__ import annotations
 import torch
 import pytest
 
-from conceptmod.textsliders.lm_particles import ParticleBatch, VICRegLikeLoss
+from particle_sliders.textsliders.lm_particles import ParticleBatch, VICRegLikeLoss
 
 
 def test_vicreg_collapsed_triggers_hinge():

@@ -7,13 +7,13 @@ import pytest
 import torch
 from torch import nn
 
-from conceptmod.textsliders.gan_v2.critic import (
+from particle_sliders.textsliders.gan_v2.critic import (
     SpanCritic, conditional_cap, matching_loss, full_width_guard, bounded_policy_kl)
-from conceptmod.textsliders.gan_v2.optimization import (
+from particle_sliders.textsliders.gan_v2.optimization import (
     add_bounded_fm, factor_distance_squared, limit_effective_step, effective_distance,
     compress_factors, EffectiveEMA, cosine_rate)
-from conceptmod.textsliders.gan_v2.engine import GANEngine, Recipe
-from conceptmod.textsliders.lora import LoRAModule
+from particle_sliders.textsliders.gan_v2.engine import GANEngine, Recipe
+from particle_sliders.textsliders.lora import LoRAModule
 
 
 def critic(**kwargs):
@@ -215,7 +215,7 @@ def test_diagnostics_do_not_change_updates_and_limits_are_real():
 
 
 def test_versioned_resume_restores_annealing_sampler_optimizers_and_ema(tmp_path):
-    from conceptmod.textsliders.gan_v2 import state
+    from particle_sliders.textsliders.gan_v2 import state
     a,b=make_engine(1),make_engine(1)
     sa,sb=state.RowSampler(3,2,91),state.RowSampler(3,2,91)
     ea,eb=EffectiveEMA(rank=4),EffectiveEMA(rank=4)
@@ -239,7 +239,7 @@ def test_versioned_resume_restores_annealing_sampler_optimizers_and_ema(tmp_path
 
 
 def test_sampler_does_not_drop_the_last_partial_batch():
-    from conceptmod.textsliders.gan_v2.state import RowSampler
+    from particle_sliders.textsliders.gan_v2.state import RowSampler
     sampler=RowSampler(7,3,1)
     batches=[sampler.next() for _ in range(3)]
     assert [len(b) for b in batches]==[3,3,1]
@@ -247,7 +247,7 @@ def test_sampler_does_not_drop_the_last_partial_batch():
 
 
 def test_teacher_geometry_and_student_policy_alignment(tmp_path,monkeypatch):
-    from conceptmod.textsliders.gan_v2 import data
+    from particle_sliders.textsliders.gan_v2 import data
     from test_lm_gan_trainer_integration import _TinyLM
     lm=_TinyLM().eval().requires_grad_(False)
     monkeypatch.setattr(data,'validate_prompts',lambda rows:None)
@@ -265,7 +265,7 @@ def test_teacher_geometry_and_student_policy_alignment(tmp_path,monkeypatch):
     monkeypatch.setattr(data,'allowed_logits',lambda lm,hidden:hidden[...,:4].float())
     rows=data.prepare_rows(lm,object(),[dict(neutral='neutral',positive='positive',lyrics='new words')],
         model_dir=tmp_path,cache_dir=tmp_path/'cache',device=torch.device('cpu'),frames=0,seeds=(7,),policy_stride=2)
-    from conceptmod.textsliders.lora import LoRANetwork
+    from particle_sliders.textsliders.lora import LoRANetwork
     net=LoRANetwork(lm,rank=2,alpha=2,target_replace=['Qwen3Attention'],prefix='lora_te',train_method='full')
     result=data.StudentForward(lm,net,torch.device('cpu'))(rows[0],True)
     assert torch.count_nonzero(result['fake'])==0
@@ -276,7 +276,7 @@ def test_teacher_geometry_and_student_policy_alignment(tmp_path,monkeypatch):
 
 def test_diversity_detects_duplicate_collapse_even_with_a_noisy_outlier():
     import numpy as np
-    from conceptmod.textsliders.gan_v2.metrics import compare_diversity
+    from particle_sliders.textsliders.gan_v2.metrics import compare_diversity
     rng=np.random.default_rng(407)
     reference=rng.normal(size=(8,32))
     collapsed=np.tile(reference[0],(8,1));collapsed[-1]=reference[-1]*100
@@ -288,7 +288,7 @@ def test_diversity_detects_duplicate_collapse_even_with_a_noisy_outlier():
 
 
 def test_quality_gate_keeps_absolute_condition_and_rejects_failures():
-    from conceptmod.textsliders.gan_v2.metrics import clip_diagnostics,quality_decision
+    from particle_sliders.textsliders.gan_v2.metrics import clip_diagnostics,quality_decision
     neutral=dict(rms=.1,duration=20.,lyrics=.9,concept=-.2,hf14k_fraction=.01,clipped_fraction=0.)
     positive=dict(neutral,concept=.1)
     candidate=dict(neutral,concept=-.05)
@@ -305,7 +305,7 @@ def test_quality_gate_keeps_absolute_condition_and_rejects_failures():
 
 
 def test_training_and_evaluation_lyrics_must_be_disjoint():
-    from conceptmod.textsliders.gan_v2.data import check_disjoint
+    from particle_sliders.textsliders.gan_v2.data import check_disjoint
     with pytest.raises(ValueError,match='overlap'):
         check_disjoint([dict(lyrics='same')],[dict(lyrics='same')])
 

@@ -13,8 +13,8 @@ def test_thirty_step_replay_and_early_credit_with_fixed_overlap():
         MiniMaxMusic3ChunkDenoiseInner, MiniMaxMusic3ChunkUpdateStep,
         MiniMaxMusic3ChunkSetTimestepsStep,
     )
-    from conceptmod.textsliders.reward_game.full_flow import FullFlowCapture, replay, validate
-    from conceptmod.textsliders.reward_game.core import IntegrityError
+    from particle_sliders.textsliders.reward_game.full_flow import FullFlowCapture, replay, validate
+    from particle_sliders.textsliders.reward_game.core import IntegrityError
 
     torch.set_num_threads(2)
     torch.manual_seed(15)

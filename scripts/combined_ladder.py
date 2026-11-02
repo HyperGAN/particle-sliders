@@ -34,8 +34,8 @@ import yaml
 _REPO = Path("/ml2/music/sliders-conceptmod")
 sys.path.insert(0, str(_REPO))
 
-from conceptmod.textsliders.infer_music3 import _load_pipeline, _to_wav_array
-from conceptmod.textsliders.lora import LoRANetwork
+from particle_sliders.textsliders.infer_music3 import _load_pipeline, _to_wav_array
+from particle_sliders.textsliders.lora import LoRANetwork
 
 TF_REPLACE = ["MiniMaxMusic3Attention", "MiniMaxMusic3TransformerBlock", "MiniMaxMusic3Transformer1DModel"]
 LM_REPLACE = ["Qwen3Attention"]
@@ -74,7 +74,7 @@ def main() -> None:
     root = Path(_REPO)
     tf_w = Path(a.tf_weights)
     lm_w = Path(a.lm_weights or root / "models" / f"{a.axis}-lm-v9" / f"{a.axis}-lm-v9_last.safetensors")
-    prompts_file = Path(a.prompts_file or root / "conceptmod/textsliders/data" / f"prompts-{a.axis}-v7.yaml")
+    prompts_file = Path(a.prompts_file or root / "packages/particle-sliders-core/src/particle_sliders/textsliders/data" / f"prompts-{a.axis}-v7.yaml")
     out_dir = Path(a.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 

@@ -445,7 +445,7 @@ The studio rescales slider mixtures by host energy, so its fader position can di
     reward_card += '[All fresh Off/On comparisons](../../samples/reward-refined-block/README.md) · [Formulation](../../evidence/uni16-gan-v1/formulation.md) · [Fresh scorecard](../../evidence/reward-refined-block/scorecard.json) · [Preservation report](../../evidence/reward-refined-block/preservation.json)\n\n'
     reward_card += 'The failed dynamics check measures peak level relative to RMS level (crest factor). The first twenty seconds of a take do not establish full-song completion. A higher automated score does not establish human preference. See the linked method for the objective, equations and exact training settings.\n'
     (folder / 'reward/refined-block-step2/README.md').write_text(reward_card)
-    r.copy(ROOT / 'conceptmod/textsliders/lora.py', 'source/lora.py')
+    r.copy(ROOT / 'packages/particle-sliders-core/src/particle_sliders/textsliders/lora.py', 'source/lora.py')
     r.copy(ROOT / 'docs/hub-native-usage.md', 'usage.md')
     print(f'Encoding {len(r.encodes)} MP3s from verified existing audio', flush=True)
     with ThreadPoolExecutor(max_workers=4) as pool:

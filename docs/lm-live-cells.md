@@ -93,8 +93,8 @@ Old short-û project is `--lm_target v9_project` (slider-level gate)
 or `--lm_target v9_always`.
 
 ```bash
-python conceptmod/textsliders/train_lm_slider_music3.py --prompts_file conceptmod/textsliders/data/prompts-gender-v4.yaml
-python conceptmod/textsliders/train_lm_slider_music3.py --lm_target pair_odd_sub_e --prompts_file conceptmod/textsliders/data/prompts-energy-v4.yaml
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-v4.yaml
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py --lm_target pair_odd_sub_e --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-v4.yaml
 ```
 
 ## How to run

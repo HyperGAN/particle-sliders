@@ -7,9 +7,9 @@ def test_real_blocks_train_only_feed_forward_and_native_merge_matches(tmp_path,m
     from safetensors.torch import save_file
     from diffusers.models.transformers.transformer_minimax_music3 import MiniMaxMusic3Transformer1DModel
     from app import generator
-    from conceptmod.textsliders.reward_game.ff_network import make,check_frozen_attention
-    from conceptmod.textsliders.reward_game.ff_artifact import STRUCTURE
-    from conceptmod.textsliders.reward_game.merged_forward import MergedForward
+    from particle_sliders.textsliders.reward_game.ff_network import make,check_frozen_attention
+    from particle_sliders.textsliders.reward_game.ff_artifact import STRUCTURE
+    from particle_sliders.textsliders.reward_game.merged_forward import MergedForward
     torch.set_num_threads(2);torch.manual_seed(79)
     tf=MiniMaxMusic3Transformer1DModel(in_channels=2,condition_dim=8,num_layers=36,
         num_attention_heads=2,attention_head_dim=4,ff_inner_dim=16,rotary_dim=4,fourier_embedding_dim=4).to(torch.bfloat16).eval().requires_grad_(False)
@@ -41,8 +41,8 @@ def test_real_blocks_train_only_feed_forward_and_native_merge_matches(tmp_path,m
 def test_format_requires_zero_attention_and_exact_block_shapes(tmp_path):
     import torch
     from safetensors.torch import save_file
-    from conceptmod.textsliders.reward_game.ff_artifact import STRUCTURE,checkpoint
-    from conceptmod.textsliders.reward_game.core import write,sha,IntegrityError
+    from particle_sliders.textsliders.reward_game.ff_artifact import STRUCTURE,checkpoint
+    from particle_sliders.textsliders.reward_game.core import write,sha,IntegrityError
     tensors={}
     for layer in range(36):
         dims={**{f'attn-{n}':(2048,2048) for n in ('to_q','to_k','to_v','to_out-0')},'ff_in':(16384,2048),'ff_out':(2048,8192)}

@@ -6,13 +6,13 @@ from pathlib import Path
 
 import yaml
 
-from conceptmod.textsliders.train_lm_slider_music3 import (
+from particle_sliders.textsliders.train_lm_slider_music3 import (
     parse_args,
     resolve_leak_axis_captions,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / "conceptmod" / "textsliders" / "data"
+DATA = ROOT / "packages" / "particle-sliders-core" / "src" / "particle_sliders" / "textsliders" / "data"
 AXES = (
     "energy",
     "gender",

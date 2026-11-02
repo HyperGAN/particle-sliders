@@ -26,7 +26,7 @@ CATALOG="grit distortion joy energy hurt rapslow gender tempo"
 
 prompts_for() {
   local axis="$1"
-  local uni="conceptmod/textsliders/data/prompts-${axis}-uni-v2.yaml"
+  local uni="packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-${axis}-uni-v2.yaml"
   case "$axis" in
     *-minus*|minus-*)
       echo "[uni-lyric] FAIL ${axis}: plus queue refuses minus slugs" >&2
@@ -72,7 +72,7 @@ train_one() {
   wait_vram "$gpu"
   echo "[gpu${gpu}] TRAIN ${name} lm_target=faithful_plus_neu_lyric pole_mode=hidden endreg=1.0"
   echo "  prompts=$prompts"
-  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
       --name "$name" \
       --prompts_file "$prompts" \
       --save_dir "$ROOT/$save" \
@@ -133,7 +133,7 @@ sample_plus() {
   wait_vram "$gpu"
   echo "[gpu${gpu}] SAMPLE ${name} 0,1,2 -> $out_dir (exam +1; +2 canary)"
   mkdir -p "$out_dir"
-  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/generate_listen.py \
+  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
     --weights "$weights" \
     --prompts_file "$prompts" \
     --name "$name" --kind lm \
@@ -176,7 +176,7 @@ if [ "$#" -lt 2 ]; then
   echo "usage: $0 <gpu> <axis> [axis...]" >&2
   echo "  catalog: $CATALOG" >&2
   echo "  recipe: --lm_target faithful_plus_neu_lyric --pole_mode hidden (UNI lyric-hold)" >&2
-  echo "  prompts: conceptmod/textsliders/data/prompts-<axis>-uni-v2.yaml (never v4)" >&2
+  echo "  prompts: packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-<axis>-uni-v2.yaml (never v4)" >&2
   echo "  both GPUs:" >&2
   echo "    $0 0 grit joy energy gender" >&2
   echo "    $0 1 distortion hurt rapslow tempo" >&2

@@ -45,7 +45,7 @@ from analysis.slider2d.exam import (
     visible_sweep,
 )
 from analysis.slider2d.sheet import leaky_cell
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     UNUSED_E_OVERLAP_MAX,
     lm_e_overlap_a,
     lm_faithful_sub_e,
@@ -53,7 +53,7 @@ from conceptmod.textsliders.slider_targets import (
     lm_faithful_sub_e_if_unused,
     lm_unit,
 )
-from conceptmod.textsliders.train_lm_slider_music3 import parse_args
+from particle_sliders.textsliders.train_lm_slider_music3 import parse_args
 
 
 STEPS = 400

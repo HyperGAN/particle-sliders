@@ -68,7 +68,7 @@ def slider_page_html(label: str) -> str:
 
 def campaign_argv(manifest, job):
     return [
-        manifest["python"], "-u", str(ROOT / "conceptmod/textsliders/train_lora_music3_particle.py"),
+        manifest["python"], "-u", str(ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3_particle.py"),
         "--name", job["name"], "--save_dir", job["save_dir"], "--steps", str(manifest["steps"]),
         "--seed", "7", "--device", "cuda:0", "--prompts_file", job["train_prompts"],
         "--save_every", "100",
@@ -77,7 +77,7 @@ def campaign_argv(manifest, job):
 
 def prepare(args):
     sys.path.insert(0, str(args.registry.parent.parent))
-    from conceptmod.textsliders.music3_particle_bridge import load_prompts
+    from particle_sliders.textsliders.music3_particle_bridge import load_prompts
     from app.rewriter import _artist_name_hit
 
     target = args.queue_dir / "manifest.json"
@@ -146,9 +146,9 @@ def prepare(args):
         manifest["files"][str(train_prompts.relative_to(ROOT))] = sha(train_prompts)
     for name in [
         "scripts/queue_music3_particle_catalog.py",
-        "conceptmod/textsliders/train_lora_music3_particle.py",
-        "conceptmod/textsliders/music3_particle_bridge.py",
-        "conceptmod/textsliders/particle_bridge_gan.py",
+        "packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3_particle.py",
+        "packages/particle-sliders-core/src/particle_sliders/textsliders/music3_particle_bridge.py",
+        "packages/particle-sliders-core/src/particle_sliders/textsliders/particle_bridge_gan.py",
         "scripts/assets/music3-particle-catalog-dashboard.html",
         "scripts/assets/music3-training-dashboard.html",
     ]:

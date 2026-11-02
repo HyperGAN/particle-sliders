@@ -1,6 +1,6 @@
 import pytest
 import torch
-from conceptmod.textsliders.reward_game.latent_transport import bounded_step, transported, velocity_loss
+from particle_sliders.textsliders.reward_game.latent_transport import bounded_step, transported, velocity_loss
 
 
 @pytest.mark.parametrize('start,end', [(0., 1.), (1., 0.)])

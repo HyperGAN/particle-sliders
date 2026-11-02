@@ -14,7 +14,6 @@ from particle_sliders import teachers
 from particle_sliders.grad_regularizers import GradRegularizer
 
 torch.set_num_threads(1)
-ROOT = Path(__file__).resolve().parents[3]
 
 
 def test_reference_sources_exact():
@@ -29,10 +28,13 @@ def test_reference_sources_exact():
     assert "class GradRegularizer" not in wrapper
     assert "def _grad_norm" not in wrapper
     assert "def _fixed_penalty" not in wrapper
-    source = ROOT / meta["teacher_source"]
-    if not source.is_file():
-        pytest.skip("historical teacher source is not included in the installed package")
+    source = package / meta["teacher_source"]
+    assert source.is_file(), "Canonical teacher source must ship in both checkout and wheel"
+    assert hashlib.sha256(source.read_bytes()).hexdigest() == meta["teacher_source_sha256"]
     upstream = source.read_text()
+    historical = upstream.replace("particle_sliders.textsliders", "conceptmod.textsliders")
+    historical = historical.replace("packages/particle-sliders-core/src/particle_sliders/", "conceptmod/")
+    assert hashlib.sha256(historical.encode()).hexdigest() == meta["historical_teacher_source_sha256"]
     extracted = Path(teachers.__file__).read_text()
     def functions(text):
         return {n.name: ast.dump(n) for n in ast.parse(text).body if isinstance(n, ast.FunctionDef)}

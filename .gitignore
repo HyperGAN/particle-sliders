@@ -37,3 +37,4 @@ STUDIO_STOPPED.txt
 # Notebook autosaves
 .ipynb_checkpoints/
 *.egg-info/
+/packages/particle-sliders-core/build/

@@ -22,7 +22,7 @@ GPU                   dual RTX A6000: TE+connectors cuda:1, DiT cuda:0
 Dummy / CI:
 
 python scripts/smoke_ltx25_slider.py
-PYTHONPATH=. python conceptmod/textsliders/train_lora_ltx25.py --dummy --steps 2
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_ltx25.py --dummy --steps 2
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.train_lora_ltx25 import main as train_main
+from particle_sliders.textsliders.train_lora_ltx25 import main as train_main
 
 
 def main(argv: list[str] | None = None) -> dict:
@@ -49,7 +49,7 @@ def main(argv: list[str] | None = None) -> dict:
             "--name",
             "smile-ltx25-smoke",
             "--prompts_file",
-            str(_REPO_ROOT / "conceptmod/textsliders/data/prompts-ltx25-smile.yaml"),
+            str(_REPO_ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-ltx25-smile.yaml"),
             "--save_dir",
             str(_REPO_ROOT / "models/ltx25-smoke"),
             "--sample_scales=-1,0,0.5,1",

@@ -43,9 +43,9 @@ Sidecar records `lm_target` and `plus_only`. Default stays
 `--lm_target v9` / `--pole_mode hidden`.
 
 ```bash
-python conceptmod/textsliders/train_lm_slider_music3.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
   --name energy-lm-plus \
-  --prompts_file conceptmod/textsliders/data/prompts-energy-v4.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-v4.yaml \
   --lm_target faithful_plus --pole_mode hidden \
   --rank 8 --alpha 8 --lr 5e-4 --steps 800 --seed 7 \
   --no-early_stop --endreg_weight 1.0

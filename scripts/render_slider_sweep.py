@@ -6,7 +6,7 @@ the same song-time from every take and equal-power crossfades between adjacent
 scales, so you hear the axis move instead of a two-pole dip.
 
   CUDA_VISIBLE_DEVICES=1 $PY scripts/render_slider_sweep.py energy \
-      --prompts_file conceptmod/textsliders/data/prompts-energy-v4.yaml \
+      --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-v4.yaml \
       --out_dir eval/listen/energy-sweep-8s \
       --start -1 --stop 1 --step 0.25 --duration 8 --device 1
 """
@@ -45,14 +45,14 @@ import numpy as np  # noqa: E402
 import soundfile as sf  # noqa: E402
 import torch  # noqa: E402
 
-from conceptmod.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
-from conceptmod.textsliders.generate_listen import (  # noqa: E402
+from particle_sliders.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
+from particle_sliders.textsliders.generate_listen import (  # noqa: E402
     DEFAULT_MODEL_DIR,
     _accept_wav,
     _load_prompt_row,
     _write_wav,
 )
-from conceptmod.textsliders.infer_music3 import _load_pipeline  # noqa: E402
+from particle_sliders.textsliders.infer_music3 import _load_pipeline  # noqa: E402
 
 
 def _scale_grid(start: float, stop: float, step: float) -> list[float]:

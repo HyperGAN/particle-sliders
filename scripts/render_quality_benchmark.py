@@ -29,8 +29,8 @@ def main():
     args = parser.parse_args()
     import torch
     from safetensors.torch import load_file
-    from conceptmod.textsliders import generate_listen as G
-    from conceptmod.textsliders.lora import LoRANetwork
+    from particle_sliders.textsliders import generate_listen as G
+    from particle_sliders.textsliders.lora import LoRANetwork
     torch.set_num_threads(4)
     fixtures = ROOT / "slider_selection/heldout-prompts.json"
     rows = json.loads(fixtures.read_text())["rows"]

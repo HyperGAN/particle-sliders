@@ -8,7 +8,7 @@ import torch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 
-from conceptmod.textsliders.reward_preference.objective import (
+from particle_sliders.textsliders.reward_preference.objective import (
     guided_log_probs,selected_mean,preference_loss,detached_pair_coefficients,reference_kl,screen_summary)
 
 
@@ -35,7 +35,7 @@ def test_cfg_distribution_uses_both_branches_and_excludes_text_tokens():
 def test_preference_update_increases_margin_without_changing_base():
     from transformers import Qwen3Config,Qwen3ForCausalLM
     from app.lora_runtime import LoRANetwork
-    from conceptmod.textsliders.reward_sliders.data import generation_hidden
+    from particle_sliders.textsliders.reward_sliders.data import generation_hidden
     torch.manual_seed(17);torch.set_num_threads(2)
     lm=Qwen3ForCausalLM(Qwen3Config(hidden_size=16,intermediate_size=32,num_hidden_layers=2,
         num_attention_heads=2,num_key_value_heads=1,head_dim=8,vocab_size=32)).eval().requires_grad_(False)
@@ -58,7 +58,7 @@ def test_preference_update_increases_margin_without_changing_base():
 
 def test_recovered_tokens_are_shifted_past_warmup_and_reject_changed_feedback(monkeypatch):
     from diffusers.modular_pipelines.minimax_music3 import encoders
-    from conceptmod.textsliders.reward_preference.replay import recover
+    from particle_sliders.textsliders.reward_preference.replay import recover
     class Block(torch.nn.Module):
         def forward(self,inputs_embeds,**kwargs):
             return SimpleNamespace(last_hidden_state=inputs_embeds,past_key_values=None)
@@ -93,8 +93,8 @@ def test_screen_rejects_large_average_gain_with_many_losses_and_retains_failures
 
 
 def test_fresh_confirmation_is_balanced_and_sound_only():
-    from conceptmod.textsliders.reward_preference.setup import fresh_confirmation
-    from conceptmod.textsliders.reward_sliders.specs import validate_families
+    from particle_sliders.textsliders.reward_preference.setup import fresh_confirmation
+    from particle_sliders.textsliders.reward_sliders.specs import validate_families
     rows=fresh_confirmation();validate_families(rows)
     assert {r['voice'] for r in rows}=={'female','male','unspecified','instrumental'}
     assert len({r['lyrics'] for r in rows})==4

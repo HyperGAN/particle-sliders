@@ -18,7 +18,7 @@ from analysis.slider2d.faithful import (
     teacher_geometry,
 )
 from analysis.slider2d.field import E_ATTR, Field2D
-from conceptmod.textsliders.slider_targets import lm_hidden_targets
+from particle_sliders.textsliders.slider_targets import lm_hidden_targets
 
 
 _TABLE = None

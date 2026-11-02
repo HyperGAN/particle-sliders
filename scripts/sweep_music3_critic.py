@@ -115,7 +115,7 @@ def score(rows, *, late_frac=0.3):
 
 def argv_for(cfg, *, steps, save_dir, gpu):
     cmd = [
-        PY, "-u", str(ROOT / "conceptmod/textsliders/train_lora_music3_particle.py"),
+        PY, "-u", str(ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3_particle.py"),
         "--name", f"metal-{cfg['name']}",
         "--prompts_file", str(PROMPTS),
         "--save_dir", str(save_dir),

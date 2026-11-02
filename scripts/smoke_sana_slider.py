@@ -17,9 +17,9 @@ device          cuda:0
 
 Live command (Modal / RunPod — first GPU look):
 
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_sana.py \\
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_sana.py \\
   --name happy-sana \\
-  --prompts_file conceptmod/textsliders/data/prompts-sana.yaml \\
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-sana.yaml \\
   --model_id Efficient-Large-Model/Sana_600M_512px_diffusers \\
   --train_method xattn \\
   --resolution 512 \\
@@ -31,7 +31,7 @@ CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_sana.py \\
 Dummy / CI:
 
 python scripts/smoke_sana_slider.py
-python conceptmod/textsliders/train_lora_sana.py --dummy --steps 2 --device 0
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_sana.py --dummy --steps 2 --device 0
 """
 
 from __future__ import annotations
@@ -44,11 +44,11 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     sana_live_train_card,
     sana_live_train_command,
 )
-from conceptmod.textsliders.train_lora_sana import main as train_main
+from particle_sliders.textsliders.train_lora_sana import main as train_main
 
 
 def main(argv: list[str] | None = None) -> dict:
@@ -69,7 +69,7 @@ def main(argv: list[str] | None = None) -> dict:
             "--name",
             "happy-sana-smoke",
             "--prompts_file",
-            str(_REPO_ROOT / "conceptmod/textsliders/data/prompts-sana.yaml"),
+            str(_REPO_ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-sana.yaml"),
             "--save_dir",
             str(_REPO_ROOT / "models/sana-smoke"),
             "--train_method",

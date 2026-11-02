@@ -9,7 +9,7 @@ import torch
 
 from analysis.slider2d.exam import close_field, divergent_field, unused_e_field
 from analysis.slider2d.sheet import leaky_field
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     UNUSED_E_OVERLAP_MAX,
     leftover_bipolar,
     lm_blend_guard,
@@ -133,7 +133,7 @@ def test_even_blend_guard_refuses_when_the_target_is_a_blend():
     # The claim: we never return a target nearer mid than the pole without
     # the caller seeing that.
     if not guard["admissible"]:
-        from conceptmod.textsliders.slider_targets import lm_faithful_sub_even_blend_guard
+        from particle_sliders.textsliders.slider_targets import lm_faithful_sub_even_blend_guard
 
         kept_plus, kept_minus = lm_faithful_sub_even_blend_guard(
             pos, neg, neu, even_dir

@@ -7,8 +7,8 @@ import torch
 from torch import nn
 import yaml
 
-from conceptmod.textsliders import distribution_probe as probe
-from conceptmod.textsliders.train_lora_yue2_arm_b import parse_args, train
+from particle_sliders.textsliders import distribution_probe as probe
+from particle_sliders.textsliders.train_lora_yue2_arm_b import parse_args, train
 
 
 def _groups(n, vocal='female'):

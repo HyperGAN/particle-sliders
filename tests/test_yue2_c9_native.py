@@ -8,8 +8,8 @@ from analysis.slider2d import yue2_unipg_c as sweep
 from analysis.slider2d.yue2_gan_exam import ToyBackend, ToySlider
 from analysis.slider2d.plus_neu_exam import PLUS_NEU_CELLS, score_plus_neu_residual
 from analysis.slider2d.rng import isolated_seed
-from conceptmod.textsliders import yue2_arm_b as game
-from conceptmod.textsliders.train_lora_yue2_arm_b import parse_args,run_recipe,apply_run_lrs
+from particle_sliders.textsliders import yue2_arm_b as game
+from particle_sliders.textsliders.train_lora_yue2_arm_b import parse_args,run_recipe,apply_run_lrs
 
 
 def test_flag_only_changes_recorded_lrs_and_does_not_mutate_defaults():

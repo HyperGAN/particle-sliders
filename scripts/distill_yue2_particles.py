@@ -22,7 +22,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import yaml
-from conceptmod.textsliders.yue2_backend import YuE2Slider, attention_targets, file_digest
+from particle_sliders.textsliders.yue2_backend import YuE2Slider, attention_targets, file_digest
 from app.rewriter import _artist_name_hit
 
 

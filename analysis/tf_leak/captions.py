@@ -17,7 +17,7 @@ import yaml
 
 
 _REPO = Path(__file__).resolve().parents[2]
-DATA = _REPO / "conceptmod" / "textsliders" / "data"
+DATA = _REPO / "packages" / "particle-sliders-core" / "src" / "particle_sliders" / "textsliders" / "data"
 LISTEN = _REPO / "eval" / "listen"
 
 TOKEN_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)?")

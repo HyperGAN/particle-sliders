@@ -9,12 +9,12 @@ from pathlib import Path
 import pytest
 import torch
 
-from conceptmod.textsliders.anima_fake import (
+from particle_sliders.textsliders.anima_fake import (
     LORA_TARGETS as FAKE_LORA_TARGETS,
     FakeAnimaBackend,
     write_plus_alignment,
 )
-from conceptmod.textsliders.anima_slider import (
+from particle_sliders.textsliders.anima_slider import (
     CONDITIONER_LORA_TARGETS,
     DEFAULT_CFG,
     DEFAULT_CONCEPT_WORDS,
@@ -99,7 +99,7 @@ from conceptmod.textsliders.anima_slider import (
     TURBO_SAMPLE_STEPS,
     TURBO_TRANSFORMER_FILE,
 )
-from conceptmod.textsliders.train_lora_anima import (
+from particle_sliders.textsliders.train_lora_anima import (
     _call_modular_pipe,
     _cycle_row,
     _sample_zt,
@@ -113,13 +113,13 @@ from conceptmod.textsliders.train_lora_anima import (
 )
 
 REPO = Path(__file__).resolve().parents[1]
-PROMPTS = REPO / "conceptmod/textsliders/data/prompts-anima.yaml"
-CANARY = REPO / "conceptmod/textsliders/data/prompts-anima-canary.yaml"
+PROMPTS = REPO / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml"
+CANARY = REPO / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima-canary.yaml"
 
 
 def test_music3_defaults_stay_v9_hidden():
     """Anima is opt-in. Music 3 trainer default is unchanged."""
-    from conceptmod.textsliders.train_lm_slider_music3 import parse_args as lm_parse
+    from particle_sliders.textsliders.train_lm_slider_music3 import parse_args as lm_parse
 
     args = lm_parse(["--prompts_file", "prompts.yaml"])
     assert args.lm_target == "v9"
@@ -433,7 +433,7 @@ def test_dummy_conditioner_frozen_when_disabled():
     assert not any("text_conditioner" in n for n in names)
     cond = backend.transformer.text_conditioner
     assert all(not p.requires_grad for p in cond.parameters())
-    from conceptmod.textsliders.train_lora_anima import _assert_lora_train_state
+    from particle_sliders.textsliders.train_lora_anima import _assert_lora_train_state
 
     _assert_lora_train_state(backend, resolve_anima_lora_targets("dit"))
     with pytest.raises(RuntimeError, match="trainable"):
@@ -633,14 +633,14 @@ def test_live_loader_stays_offline(monkeypatch):
         raise AssertionError("live loader must not import / download in this test")
 
     monkeypatch.setattr(
-        "conceptmod.textsliders.train_lora_anima.ModularPipeline", _boom, raising=False
+        "particle_sliders.textsliders.train_lora_anima.ModularPipeline", _boom, raising=False
     )
     with pytest.raises(RuntimeError, match="dummy"):
         load_live_backend(args, torch.device("cpu"))
 
 
 def test_print_card_does_not_train():
-    from conceptmod.textsliders.train_lora_anima import train
+    from particle_sliders.textsliders.train_lora_anima import train
 
     out = train(parse_args(["--print_card"]))
     assert out["model_id"] == DEFAULT_MODEL_ID
@@ -1474,7 +1474,7 @@ def test_turbo_is_preview_only_train_stays_base():
 
 
 def test_print_turbo_preview_does_not_train():
-    from conceptmod.textsliders.train_lora_anima import train
+    from particle_sliders.textsliders.train_lora_anima import train
 
     out = train(parse_args(["--print_turbo_preview"]))
     assert out["role"] == "preview_only"
@@ -1593,7 +1593,7 @@ def test_sync_peft_updates_stale_components_and_blocks():
     """Bare setattr leaves a captured components dict / block ref stale."""
     from types import SimpleNamespace
 
-    from conceptmod.textsliders.anima_peft_sync import (
+    from particle_sliders.textsliders.anima_peft_sync import (
         assert_peft_modules_synced,
         sync_peft_into_modular_pipeline,
     )
@@ -1628,12 +1628,12 @@ def test_sync_peft_updates_stale_components_and_blocks():
 
 def test_after_attach_sample_and_encode_share_conditioner():
     backend = FakeAnimaBackend(device="cpu", rank=4, seed=0, lora_targets="conditioner")
-    from conceptmod.textsliders.anima_peft_sync import (
+    from particle_sliders.textsliders.anima_peft_sync import (
         assert_sample_train_conditioner_shared,
         sample_conditioner_module,
         train_conditioner_module,
     )
-    from conceptmod.textsliders.train_lora_anima import sync_backend_peft_modules
+    from particle_sliders.textsliders.train_lora_anima import sync_backend_peft_modules
 
     sync_backend_peft_modules(backend)
     shared = assert_sample_train_conditioner_shared(backend)
@@ -1676,7 +1676,7 @@ def _load_embed_diag():
 
 
 def test_embed_diag_pass_fail_on_dummy():
-    from conceptmod.textsliders.anima_peft_sync import (
+    from particle_sliders.textsliders.anima_peft_sync import (
         SAMPLE_TRAIN_MISMATCH,
         compare_sample_train_embeds,
         measure_conditioner_embed_deltas,
@@ -1731,7 +1731,7 @@ def test_sample_mode_train_faithful_uses_encode_text(tmp_path):
 
 
 def test_peft_modules_skip_transformer_when_train_dit_false():
-    from conceptmod.textsliders.train_lora_anima import _peft_modules
+    from particle_sliders.textsliders.train_lora_anima import _peft_modules
 
     backend = FakeAnimaBackend(device="cpu", rank=4, seed=0, lora_targets="conditioner")
     # Dummy exposes backend-level scale APIs, so _peft_modules returns
@@ -1761,7 +1761,7 @@ def test_peft_modules_skip_transformer_when_train_dit_false():
 
 
 def test_sample_train_mismatch_when_pipe_conditioner_stale():
-    from conceptmod.textsliders.anima_peft_sync import (
+    from particle_sliders.textsliders.anima_peft_sync import (
         SAMPLE_TRAIN_MISMATCH,
         compare_sample_train_embeds,
     )

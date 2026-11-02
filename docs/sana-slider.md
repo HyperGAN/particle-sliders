@@ -69,9 +69,9 @@ First GPU look (Modal / RunPod). Do **not** run this in CI.
 | steps | 500 |
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_sana.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_sana.py \
   --name happy-sana \
-  --prompts_file conceptmod/textsliders/data/prompts-sana.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-sana.yaml \
   --model_id Efficient-Large-Model/Sana_600M_512px_diffusers \
   --train_method xattn \
   --resolution 512 \
@@ -84,7 +84,7 @@ CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_sana.py \
 Optional LoRA (same UNI / CFG card):
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_sana.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_sana.py \
   --name happy-sana-lora \
   --lora 8 --train_method xattn \
   --resolution 512 --sample_steps 20 --sample_guidance 4.5 \
@@ -94,7 +94,7 @@ CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_sana.py \
 Dummy (CI / no GPU):
 
 ```bash
-PYTHONPATH=. python conceptmod/textsliders/train_lora_sana.py \
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_sana.py \
   --dummy --steps 2 --save_dir /tmp/sana-dummy
 PYTHONPATH=. pytest tests/test_sana_slider.py -q
 python scripts/smoke_sana_slider.py
@@ -102,7 +102,7 @@ python scripts/smoke_sana_slider.py
 
 ## Yaml
 
-`conceptmod/textsliders/data/prompts-sana.yaml`: stronger-smile
+`packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-sana.yaml`: stronger-smile
 positive / neutral (`a person smiling, happy expression` / `a person`),
 unused `attributes` pinned (`male`, `female`). `negative` is stored
 for the canary and is not a teacher. `control_prompt` is the fruit

@@ -13,7 +13,7 @@ from analysis.slider2d.train import (
     pair_slider_dir,
     train_lm,
 )
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     leftover_bipolar,
     lm_anchor_kappa,
     lm_anchor_targets,

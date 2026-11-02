@@ -77,7 +77,7 @@ def test_current_600_step_production_update_is_rejected():
 
 
 def test_native_rate_audit_changes_actual_updates_without_mutating_defaults():
-    from conceptmod.textsliders import yue2_arm_b as game
+    from particle_sliders.textsliders import yue2_arm_b as game
     before = deepcopy(game.RECIPE)
     result = run_cell('divergent', steps=(2,), seed=7, lr_scale=.2)
     assert result['recipe']['propose_only'] is True

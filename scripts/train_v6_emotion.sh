@@ -12,8 +12,8 @@ cd "$ROOT"
 
 GPU="${1:-1}"
 echo "[v6-emotion] LM then TF on GPU ${GPU}"
-train_lm "$GPU" sexy-lm-v6 conceptmod/textsliders/data/prompts-sexy-v4.yaml
-train_lm "$GPU" tender-lm-v6 conceptmod/textsliders/data/prompts-tender-v4.yaml
-train_tf "$GPU" sexy-tf-v6 conceptmod/textsliders/data/prompts-sexy-tf.yaml
-train_tf "$GPU" tender-tf-v6 conceptmod/textsliders/data/prompts-tender-tf.yaml
+train_lm "$GPU" sexy-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-sexy-v4.yaml
+train_lm "$GPU" tender-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tender-v4.yaml
+train_tf "$GPU" sexy-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-sexy-tf.yaml
+train_tf "$GPU" tender-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tender-tf.yaml
 echo "[v6-emotion] done"

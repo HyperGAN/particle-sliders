@@ -1,6 +1,6 @@
 import pytest
 
-from conceptmod.textsliders.reward_game.confirmation_stats import family_interval, summarize
+from particle_sliders.textsliders.reward_game.confirmation_stats import family_interval, summarize
 
 
 def bank():

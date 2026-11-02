@@ -51,9 +51,9 @@ import numpy as np  # noqa: E402
 import soundfile as sf  # noqa: E402
 import torch  # noqa: E402
 
-from conceptmod.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
-from conceptmod.textsliders.generate_listen import DEFAULT_MODEL_DIR, _load_prompt_row  # noqa: E402
-from conceptmod.textsliders.infer_music3 import _load_pipeline  # noqa: E402
+from particle_sliders.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
+from particle_sliders.textsliders.generate_listen import DEFAULT_MODEL_DIR, _load_prompt_row  # noqa: E402
+from particle_sliders.textsliders.infer_music3 import _load_pipeline  # noqa: E402
 
 
 def _parse_variant(spec: str) -> tuple[str, Path, float]:

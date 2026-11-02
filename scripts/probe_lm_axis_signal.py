@@ -33,7 +33,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.train_lm_slider_music3 import (  # noqa: E402
+from particle_sliders.textsliders.train_lm_slider_music3 import (  # noqa: E402
     DEFAULT_MODEL,
     _assemble,
     _encode_static,
@@ -54,7 +54,7 @@ DEFAULT_AXES = [
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data_dir", default=str(_REPO_ROOT / "conceptmod/textsliders/data"))
+    parser.add_argument("--data_dir", default=str(_REPO_ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/data"))
     parser.add_argument("--model_dir", default=str(DEFAULT_MODEL))
     parser.add_argument("--device", type=int, default=0)
     parser.add_argument("axes", nargs="*", default=DEFAULT_AXES)

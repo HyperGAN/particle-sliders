@@ -6,8 +6,8 @@ import torch
 from torch import nn
 from torch.utils.checkpoint import checkpoint
 
-from conceptmod.textsliders.reward_game.merged_forward import MergedForward
-from conceptmod.textsliders.reward_game.cached_merged_forward import CachedMergedForward
+from particle_sliders.textsliders.reward_game.merged_forward import MergedForward
+from particle_sliders.textsliders.reward_game.cached_merged_forward import CachedMergedForward
 
 
 def network(seed=93, zero=False, frozen=False):
@@ -128,7 +128,7 @@ def test_parameter_mutation_before_backward_is_rejected():
 
 def test_actual_small_music3_blocks_match_two_optimizer_steps():
     from diffusers.models.transformers.transformer_minimax_music3 import MiniMaxMusic3Transformer1DModel
-    from conceptmod.textsliders.reward_game.ff_network import make,check_frozen_attention
+    from particle_sliders.textsliders.reward_game.ff_network import make,check_frozen_attention
     torch.set_num_threads(2);torch.manual_seed(79)
     original=MiniMaxMusic3Transformer1DModel(in_channels=2,condition_dim=8,num_layers=36,
         num_attention_heads=2,attention_head_dim=4,ff_inner_dim=16,rotary_dim=4,fourier_embedding_dim=4).to(torch.bfloat16).eval().requires_grad_(False)

@@ -14,7 +14,7 @@ Never a 500-step train. Never rents a GPU. CI uses --dummy (default).
 
 4090 / L40S short train smoke (not this script; not 500 steps):
 
-    HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_anima.py \\
+    HF_HUB_OFFLINE=1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py \\
       --name smile-anima-embed-struct-smoke \\
       --lora_targets conditioner --rank 16 --resolution 512 \\
       --lm_target embed_struct --concept_target caption \\
@@ -35,8 +35,8 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.anima_fake import FakeAnimaBackend
-from conceptmod.textsliders.anima_slider import (
+from particle_sliders.textsliders.anima_fake import FakeAnimaBackend
+from particle_sliders.textsliders.anima_slider import (
     WOMAN_NEU,
     WOMAN_PLUS,
     anima_embed_delta_cosine,
@@ -45,7 +45,7 @@ from conceptmod.textsliders.anima_slider import (
     anima_teacher_crop_gap,
     embed_struct_smoke_command,
 )
-from conceptmod.textsliders.train_lora_anima import main as train_main
+from particle_sliders.textsliders.train_lora_anima import main as train_main
 
 
 def dummy_split_report(*, seed: int = 0, traj_steps: int = 4) -> dict:
@@ -129,7 +129,7 @@ def dummy_train_smoke(tmp: Path) -> dict:
             "--name",
             "smile-anima-embed-struct-dummy",
             "--prompts_file",
-            str(_REPO_ROOT / "conceptmod/textsliders/data/prompts-anima.yaml"),
+            str(_REPO_ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml"),
             "--save_dir",
             str(tmp),
             "--rank",

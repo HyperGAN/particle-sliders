@@ -7,7 +7,7 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 PY="${MUSIC3_PYTHON:-/home/mikkel/anaconda3/envs/minimax-music3/bin/python}"
 GPU="${1:-1}"
 NAME="${2:-repaired-tx-smoke}"
-PROMPTS="${3:-conceptmod/textsliders/data/prompts-gender-uni-v2.yaml}"
+PROMPTS="${3:-packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-uni-v2.yaml}"
 STEPS="${STEPS:-120}"
 SEED="${SEED:-7}"
 SAVE_EVERY="${SAVE_EVERY:-0}"
@@ -30,7 +30,7 @@ fi
 export CUDA_VISIBLE_DEVICES="$GPU"
 export HF_HUB_OFFLINE=1 HF_HOME=/ml2/music/.cache/huggingface
 export PYTHONPATH="$ROOT" PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-exec "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+exec "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
   --name "$NAME" --prompts_file "$PROMPTS" --save_dir "$SAVE" \
   --lm_target faithful_plus_neu_lyric --pole_mode hidden \
   --rank 8 --alpha 8 --lr 5e-4 --steps "$STEPS" --seed "$SEED" \

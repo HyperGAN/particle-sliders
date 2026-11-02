@@ -3,7 +3,7 @@ import copy
 import pytest
 import torch
 
-from conceptmod.textsliders.lora import LoRAModule
+from particle_sliders.textsliders.lora import LoRAModule
 from analysis.gan_bcap.mmd_game_20260905.calibrate_strength import calibrated_tensors
 
 

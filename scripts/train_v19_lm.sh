@@ -22,7 +22,7 @@ CATALOG="gender energy tempo distortion rapslow live breath rhyme triphop"
 
 prompts_for() {
   local axis="$1"
-  local v4="conceptmod/textsliders/data/prompts-${axis}-v4.yaml"
+  local v4="packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-${axis}-v4.yaml"
   if [ -f "$v4" ]; then
     echo "$v4"
   else
@@ -101,7 +101,7 @@ run_one() {
   sidecar="models/${name}/${name}_last.json"
   mkdir -p "$logs" "$out" "models/${name}"
   echo "[v19] flags ${name} GPU${gpu} recipe=symmetric common_beta=1 pole_mode=hidden"
-  echo "  $PY -u conceptmod/textsliders/train_lm_slider_music3.py \\"
+  echo "  $PY -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \\"
   echo "    --name ${name} --lm_target symmetric --common_beta 1 --pole_mode hidden \\"
   echo "    --prompts_file ${prompts} \\"
   echo "    --save_dir $ROOT/models/${name} \\"

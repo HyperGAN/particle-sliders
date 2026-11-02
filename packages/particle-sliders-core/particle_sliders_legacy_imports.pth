@@ -1,0 +1,1 @@
+import particle_sliders._legacy_namespace; particle_sliders._legacy_namespace.install()

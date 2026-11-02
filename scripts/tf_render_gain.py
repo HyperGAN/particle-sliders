@@ -74,7 +74,7 @@ def main() -> None:
 
         ROOT = Path(__file__).resolve().parents[1]
         cmd = [
-            sys.executable, str(ROOT / "conceptmod/textsliders/generate_listen.py"),
+            sys.executable, str(ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py"),
             "--weights", str(args.weights), "--prompts_file", str(args.prompts_file),
             "--name", args.weights.stem if args.weights else "gain",
             "--out_dir", str(folder), "--scales", "-2,-1,0,1,2",

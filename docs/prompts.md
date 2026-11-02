@@ -1,6 +1,6 @@
 # Prompt-file catalog
 
-All files are under `conceptmod/textsliders/data/` unless noted.
+All files are under `packages/particle-sliders-core/src/particle_sliders/textsliders/data/` unless noted.
 Axes and constraints below are taken from the YAML headers and the
 trainer that loads them — not from listen folklore.
 

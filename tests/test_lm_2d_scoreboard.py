@@ -38,7 +38,7 @@ from analysis.slider2d.scoreboard import (
     sort_rows,
 )
 from analysis.slider2d.sheet import leaky_cell
-from conceptmod.textsliders.train_lm_slider_music3 import (
+from particle_sliders.textsliders.train_lm_slider_music3 import (
     LM_RECIPES,
     POLE_MODES,
     parse_args,

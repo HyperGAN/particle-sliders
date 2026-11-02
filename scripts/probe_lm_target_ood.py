@@ -27,7 +27,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.train_lm_slider_music3 import (  # noqa: E402
+from particle_sliders.textsliders.train_lm_slider_music3 import (  # noqa: E402
     DEFAULT_MODEL,
     _assemble,
     _encode_static,

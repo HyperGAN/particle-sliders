@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 from analysis.slider2d.field import E_ATTR, E_SLIDER, Field2D
 from analysis.slider2d.train import music3_pairs, sd_pairs
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     expand_attributes_music3,
     expand_attributes_sd,
     lm_hidden_targets,

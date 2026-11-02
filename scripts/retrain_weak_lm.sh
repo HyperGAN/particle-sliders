@@ -44,7 +44,7 @@ train_lm_strict() {
   for seed in "${seeds[@]}"; do
     echo "[gpu${gpu}] START ${name} seed=${seed}"
     rm -f "$save"/*.safetensors "$save"/*_last.json
-    if gpu_run "$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+    if gpu_run "$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
         --name "$name" \
         --prompts_file "$prompts" \
         --save_dir "$ROOT/$save" \
@@ -72,11 +72,11 @@ train_lm_strict() {
 
 echo "[retrain-weak-lm] GPU ${GPU}, no endreg, min cos ${MIN_COS}"
 fail=0
-train_lm_strict "$GPU" yearn-lm-v6b conceptmod/textsliders/data/prompts-yearn-v6.yaml || fail=1
-train_lm_strict "$GPU" hurt-lm-v6b conceptmod/textsliders/data/prompts-hurt-v6.yaml || fail=1
-train_lm_strict "$GPU" live-lm-v6b conceptmod/textsliders/data/prompts-live-v6.yaml || fail=1
-train_lm_strict "$GPU" breath-lm-v6b conceptmod/textsliders/data/prompts-breath-v6.yaml || fail=1
-train_lm_strict "$GPU" tender-lm-v6b conceptmod/textsliders/data/prompts-tender-v6.yaml || fail=1
-train_lm_strict "$GPU" grit-lm-v6b conceptmod/textsliders/data/prompts-grit-v6.yaml || fail=1
+train_lm_strict "$GPU" yearn-lm-v6b packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yearn-v6.yaml || fail=1
+train_lm_strict "$GPU" hurt-lm-v6b packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-hurt-v6.yaml || fail=1
+train_lm_strict "$GPU" live-lm-v6b packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-live-v6.yaml || fail=1
+train_lm_strict "$GPU" breath-lm-v6b packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-breath-v6.yaml || fail=1
+train_lm_strict "$GPU" tender-lm-v6b packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tender-v6.yaml || fail=1
+train_lm_strict "$GPU" grit-lm-v6b packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-grit-v6.yaml || fail=1
 echo "[retrain-weak-lm] finished fail=${fail}"
 exit "$fail"

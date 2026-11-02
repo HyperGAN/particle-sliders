@@ -6,7 +6,7 @@ every denoise step, so a per-frame envelope is a real fader. The LM half stays
 off so the plan does not change mid-song.
 
   CUDA_VISIBLE_DEVICES=1 $PY scripts/render_lora_ramp.py energy \
-      --prompts_file conceptmod/textsliders/data/prompts-energy-v4.yaml \
+      --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-v4.yaml \
       --out eval/listen/energy-ramp-8s/energy_ramp.wav \
       --start -1 --stop 1 --duration 8 --device 1
 """
@@ -42,13 +42,13 @@ for path in (str(ROOT), str(APP_ROOT)):
 
 import torch  # noqa: E402
 
-from conceptmod.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
-from conceptmod.textsliders.generate_listen import (  # noqa: E402
+from particle_sliders.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
+from particle_sliders.textsliders.generate_listen import (  # noqa: E402
     DEFAULT_MODEL_DIR,
     _load_prompt_row,
     _write_wav,
 )
-from conceptmod.textsliders.infer_music3 import _load_pipeline  # noqa: E402
+from particle_sliders.textsliders.infer_music3 import _load_pipeline  # noqa: E402
 
 
 def hold_lerp_hold(n: int, start: float, stop: float, hold: float, sweep: float) -> torch.Tensor:

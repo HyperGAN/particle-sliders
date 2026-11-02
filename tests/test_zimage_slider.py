@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 import torch
 
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     ZImageHoldError,
     expand_attributes_zimage,
     zimage_canary_minus,
@@ -25,8 +25,8 @@ from conceptmod.textsliders.slider_targets import (
     zimage_unused_token_hold,
     zimage_unused_token_positions,
 )
-from conceptmod.textsliders.train_lora_music3 import parse_args as parse_music3
-from conceptmod.textsliders.train_lora_zimage import (
+from particle_sliders.textsliders.train_lora_music3 import parse_args as parse_music3
+from particle_sliders.textsliders.train_lora_zimage import (
     DEFAULT_MODEL_ID,
     dummy_tokenize,
     load_prompts,
@@ -34,7 +34,7 @@ from conceptmod.textsliders.train_lora_zimage import (
     train,
 )
 
-PROMPTS = Path("conceptmod/textsliders/data/prompts-zimage.yaml")
+PROMPTS = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-zimage.yaml")
 
 
 def test_music3_defaults_unchanged():
@@ -212,7 +212,7 @@ def test_dummy_train_never_imports_hub(tmp_path, monkeypatch):
         raise AssertionError("Hub / ZImagePipeline must not load in dummy mode")
 
     monkeypatch.setattr(
-        "conceptmod.textsliders.train_lora_zimage._LiveZImage", _boom, raising=False
+        "particle_sliders.textsliders.train_lora_zimage._LiveZImage", _boom, raising=False
     )
     args = parse_args(
         [
@@ -244,7 +244,7 @@ def test_dummy_train_never_imports_hub(tmp_path, monkeypatch):
 
 def test_trainer_student_plus_is_neu_not_pos():
     """Train +1 on neu (match infer). Concept teacher still uses + caption."""
-    src = Path("conceptmod/textsliders/train_lora_zimage.py").read_text()
+    src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_zimage.py").read_text()
     assert "pred_plus = _student(1.0, emb_neu)" in src
     assert "pred_zero = _student(0.0, emb_neu)" in src
     assert "pred_plus = _student(1.0, emb_pos)" not in src
@@ -254,14 +254,14 @@ def test_trainer_student_plus_is_neu_not_pos():
 
 
 def test_trainer_source_is_zit_only():
-    src = Path("conceptmod/textsliders/train_lora_zimage.py").read_text()
+    src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_zimage.py").read_text()
     assert "Tongyi-MAI/Z-Image-Turbo" in src
     assert "lyric-hold" in src
     assert "Anima / Krea / H3" in src
     assert "from conceptmod.backends.anima" not in src
     assert "from conceptmod.backends.krea" not in src
     assert "Hunyuan" not in src
-    music3 = Path("conceptmod/textsliders/train_lora_music3.py").read_text()
+    music3 = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py").read_text()
     assert "Z-Image" not in music3
     assert "train_lora_zimage" not in music3
 

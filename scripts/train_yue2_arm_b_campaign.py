@@ -11,8 +11,8 @@ import sys
 import time
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from conceptmod.textsliders.train_lora_yue2_fresh import write_json
-from conceptmod.textsliders.yue2_arm_b import load_prompts
+from particle_sliders.textsliders.train_lora_yue2_fresh import write_json
+from particle_sliders.textsliders.yue2_arm_b import load_prompts
 from scripts.evaluate_yue2_arm_b import page
 from scripts.yue2_training_dashboard import publish_metrics
 
@@ -30,8 +30,8 @@ def main(argv=None):
     p.add_argument('--name',default='metal-yue2-arm-b')
     p.add_argument('--steps',type=int,default=600)
     p.add_argument('--gpu',default='1')
-    p.add_argument('--prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml')
-    p.add_argument('--eval_prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml')
+    p.add_argument('--prompts_file',type=Path,default=ROOT/'packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml')
+    p.add_argument('--eval_prompts_file',type=Path,default=ROOT/'packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml')
     a=p.parse_args(argv)
     if a.recipe=='particle_bridge' and (a.propose_only_c9_g4x or a.propose_only_lr_scale is not None):
         p.error('Particle bridge pins the reference constant learning rates')
@@ -74,7 +74,7 @@ def main(argv=None):
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         old={sig:signal.signal(sig,interrupted) for sig in (signal.SIGTERM,signal.SIGINT)}
         try:
-            command([sys.executable,'-u',str(ROOT/'conceptmod/textsliders/train_lora_yue2_arm_b.py'),
+            command([sys.executable,'-u',str(ROOT/'packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2_arm_b.py'),
                 '--recipe',a.recipe,'--save_dir',str(a.save_dir),'--name',a.name,'--steps',str(a.steps),
                 '--seed',str(a.seed),'--device','cuda:0','--prompts_file',str(a.prompts_file)]
                 +(['--propose_only_c9_g4x'] if a.propose_only_c9_g4x else [])

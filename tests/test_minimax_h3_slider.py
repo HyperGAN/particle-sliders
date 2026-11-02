@@ -9,7 +9,7 @@ import pytest
 import torch
 import yaml
 
-from conceptmod.textsliders.minimax_h3_backend import (
+from particle_sliders.textsliders.minimax_h3_backend import (
     DEFAULT_LORA_UP_INIT_STD,
     DEFAULT_MODEL,
     DEFAULT_SAMPLE_DURATION,
@@ -34,7 +34,7 @@ from conceptmod.textsliders.minimax_h3_backend import (
     resolve_h3_lora_path,
     same_device,
 )
-from conceptmod.textsliders.minimax_h3_uni import (
+from particle_sliders.textsliders.minimax_h3_uni import (
     DEFAULT_HOLD_MODE,
     HOLD_MODE_ATTRIBUTES,
     HOLD_MODE_NON_CONCEPT,
@@ -53,7 +53,7 @@ from conceptmod.textsliders.minimax_h3_uni import (
     unused_token_ids,
     velocity_pair,
 )
-from conceptmod.textsliders.diag_minimax_h3_uni import (
+from particle_sliders.textsliders.diag_minimax_h3_uni import (
     COS_L2_KEYS,
     DIAG_ROW_KEYS,
     HOW_TO_READ,
@@ -63,7 +63,7 @@ from conceptmod.textsliders.diag_minimax_h3_uni import (
     parse_diag_args,
     run_diag,
 )
-from conceptmod.textsliders.train_lora_minimax_h3 import (
+from particle_sliders.textsliders.train_lora_minimax_h3 import (
     load_slider_rows,
     main as train_main,
     parse_args,
@@ -100,7 +100,7 @@ def test_resolved_model_id_is_minimax_h3():
 
 
 def test_no_hunyuan_hub_id_in_new_files():
-    root = Path("conceptmod/textsliders")
+    root = Path("packages/particle-sliders-core/src/particle_sliders/textsliders")
     for path in (
         root / "minimax_h3_backend.py",
         root / "minimax_h3_uni.py",
@@ -311,7 +311,7 @@ def test_unused_hold_mse_skips_concept_tokens():
 
 
 def test_yaml_pins_unused_and_keeps_concept_free():
-    rows = load_slider_rows("conceptmod/textsliders/data/prompts-minimax-h3.yaml", "")
+    rows = load_slider_rows("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3.yaml", "")
     assert {r["positive"] for r in rows} >= {"male old person", "female old person"}
     assert {r["neutral"] for r in rows} >= {"male person", "female person"}
     for r in rows:
@@ -343,7 +343,7 @@ def _h3_subject_clause(caption: str) -> str:
 
 
 def test_chiaroscuro_yaml_loads_same_subject_lighting():
-    path = Path("conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml")
+    path = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml")
     raw = yaml.safe_load(path.read_text())
     assert isinstance(raw, list)
     assert len(raw) == 3
@@ -409,7 +409,7 @@ def test_chiaroscuro_yaml_loads_same_subject_lighting():
 def test_chiaroscuro_non_concept_hold_keeps_lighting_free():
     tok = DummyTokenizer()
     rows = load_slider_rows(
-        "conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml", ""
+        "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml", ""
     )
     for row in rows:
         concept = concept_token_ids(tok, row["positive"], row["neutral"])
@@ -439,9 +439,9 @@ def test_chiaroscuro_non_concept_hold_keeps_lighting_free():
 
 def test_chiaroscuro_config_and_docs_card():
     cfg = yaml.safe_load(
-        Path("conceptmod/textsliders/data/config-minimax-h3-chiaroscuro.yaml").read_text()
+        Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-minimax-h3-chiaroscuro.yaml").read_text()
     )
-    assert cfg["prompts_file"] == "conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml"
+    assert cfg["prompts_file"] == "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml"
     assert cfg["pretrained_model"]["name_or_path"] == "MiniMaxAI/MiniMax-H3"
     assert cfg["pretrained_model"]["variant"] == "FL2VA"
     assert cfg["pretrained_model"]["workflow"] == "t2va"
@@ -645,19 +645,19 @@ def test_plus_and_neu_velocities_differ():
 
 
 def test_music3_defaults_unchanged():
-    tf_src = Path("conceptmod/textsliders/train_lora_music3.py").read_text()
+    tf_src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py").read_text()
     assert 'parser.add_argument("--steps", type=int, default=500)' in tf_src
     assert 'parser.add_argument("--rank", type=int, default=8)' in tf_src
     assert 'parser.add_argument("--lr", type=float, default=2e-3' in tf_src
-    lm_src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    lm_src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert '"--lm_target"' in lm_src and 'default="v9"' in lm_src
     assert '"--pole_mode"' in lm_src and 'default="hidden"' in lm_src
-    music3_yaml = Path("conceptmod/textsliders/data/prompts-music3.yaml").read_text()
+    music3_yaml = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-music3.yaml").read_text()
     assert "MiniMax-H3" not in music3_yaml
 
 
 def test_config_points_at_minimax_h3():
-    cfg = yaml.safe_load(Path("conceptmod/textsliders/data/config-minimax-h3.yaml").read_text())
+    cfg = yaml.safe_load(Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-minimax-h3.yaml").read_text())
     assert cfg["pretrained_model"]["name_or_path"] == "MiniMaxAI/MiniMax-H3"
     assert cfg["pretrained_model"]["variant"] == "FL2VA"
     assert cfg["pretrained_model"]["workflow"] == "t2va"
@@ -670,7 +670,7 @@ def test_config_points_at_minimax_h3():
 
 
 def test_live_load_is_not_imported_on_dummy():
-    import conceptmod.textsliders.minimax_h3_backend as h3
+    import particle_sliders.textsliders.minimax_h3_backend as h3
 
     called = {"n": 0}
 
@@ -705,7 +705,7 @@ def test_sample_geometry_defaults():
 
 def test_sample_prompts_are_unique_yaml_targets():
     rows = load_slider_rows(
-        "conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml", ""
+        "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml", ""
     )
     prompts = sample_prompts_from_rows(rows)
     assert prompts == [
@@ -852,7 +852,7 @@ def test_load_h3_lora_roundtrip_and_steps_zero_sample(tmp_path):
 
 
 def test_dummy_encoder_device_does_not_hit_hub():
-    import conceptmod.textsliders.minimax_h3_backend as h3
+    import particle_sliders.textsliders.minimax_h3_backend as h3
 
     called = {"n": 0}
 
@@ -1012,7 +1012,7 @@ def test_load_components_omits_workflow_kwarg(monkeypatch):
     fake.ModularPipeline = FakeMP
     monkeypatch.setitem(sys.modules, "diffusers", fake)
 
-    from conceptmod.textsliders.minimax_h3_backend import _load_minimax_h3_modular
+    from particle_sliders.textsliders.minimax_h3_backend import _load_minimax_h3_modular
 
     pipe = _load_minimax_h3_modular(
         "MiniMaxAI/MiniMax-H3", workflow="t2va", device="cpu",
@@ -1109,7 +1109,7 @@ def test_dummy_diag_json_keys_and_hold(tmp_path):
         "--dummy",
         "--name", "h3-diag",
         "--save_dir", str(tmp_path),
-        "--prompts_file", "conceptmod/textsliders/data/prompts-minimax-h3.yaml",
+        "--prompts_file", "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3.yaml",
         "--seed", "0",
     ])
     summary = run_diag(args)
@@ -1151,7 +1151,7 @@ def test_dummy_diag_json_keys_and_hold(tmp_path):
 def test_dummy_diag_chiaro_and_attributes_leak(tmp_path):
     backend = MiniMaxH3Backend(device="cpu", dummy=True)
     rows = load_slider_rows(
-        "conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml", ""
+        "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml", ""
     )
     row = diagnose_row(
         backend, rows[0], hold_mode=HOLD_MODE_NON_CONCEPT, seed=0, index=0,
@@ -1173,7 +1173,7 @@ def test_dummy_diag_chiaro_and_attributes_leak(tmp_path):
         "--name", "h3-chiaro-diag",
         "--save_dir", str(tmp_path),
         "--prompts_file",
-        "conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml",
+        "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml",
         "--max_rows", "2",
         "--seed", "1",
     ])
@@ -1231,7 +1231,7 @@ def test_dummy_diag_load_h3_lora_and_trainer_flag(tmp_path):
 
 
 def test_dummy_diag_does_not_hit_hub():
-    import conceptmod.textsliders.minimax_h3_backend as h3
+    import particle_sliders.textsliders.minimax_h3_backend as h3
 
     called = {"n": 0}
 

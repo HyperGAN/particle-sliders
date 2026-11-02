@@ -14,18 +14,18 @@ cd "$ROOT"
 GPU="${1:-1}"
 echo "[v6-feel] LM then TF on GPU ${GPU}"
 
-train_lm "$GPU" sexy-lm-v6 conceptmod/textsliders/data/prompts-sexy-v4.yaml
-train_lm "$GPU" tender-lm-v6 conceptmod/textsliders/data/prompts-tender-v4.yaml
-train_lm "$GPU" grit-lm-v6 conceptmod/textsliders/data/prompts-grit-v4.yaml
-train_lm "$GPU" hurt-lm-v6 conceptmod/textsliders/data/prompts-hurt-v4.yaml
-train_lm "$GPU" joy-lm-v6 conceptmod/textsliders/data/prompts-joy-v4.yaml
-train_lm "$GPU" yearn-lm-v6 conceptmod/textsliders/data/prompts-yearn-v4.yaml
+train_lm "$GPU" sexy-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-sexy-v4.yaml
+train_lm "$GPU" tender-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tender-v4.yaml
+train_lm "$GPU" grit-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-grit-v4.yaml
+train_lm "$GPU" hurt-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-hurt-v4.yaml
+train_lm "$GPU" joy-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-joy-v4.yaml
+train_lm "$GPU" yearn-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yearn-v4.yaml
 
-train_tf "$GPU" sexy-tf-v6 conceptmod/textsliders/data/prompts-sexy-tf.yaml
-train_tf "$GPU" tender-tf-v6 conceptmod/textsliders/data/prompts-tender-tf.yaml
-train_tf "$GPU" grit-tf-v6 conceptmod/textsliders/data/prompts-grit-tf.yaml
-train_tf "$GPU" hurt-tf-v6 conceptmod/textsliders/data/prompts-hurt-tf.yaml
-train_tf "$GPU" joy-tf-v6 conceptmod/textsliders/data/prompts-joy-tf.yaml
-train_tf "$GPU" yearn-tf-v6 conceptmod/textsliders/data/prompts-yearn-tf.yaml
+train_tf "$GPU" sexy-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-sexy-tf.yaml
+train_tf "$GPU" tender-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tender-tf.yaml
+train_tf "$GPU" grit-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-grit-tf.yaml
+train_tf "$GPU" hurt-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-hurt-tf.yaml
+train_tf "$GPU" joy-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-joy-tf.yaml
+train_tf "$GPU" yearn-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yearn-tf.yaml
 
 echo "[v6-feel] done"

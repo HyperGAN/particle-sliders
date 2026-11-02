@@ -2,7 +2,7 @@
 
 Runs the YuE2 working game `anneal-routed-particle-error` (`--recipe
 particle_bridge`) through the **shared**
-`conceptmod/textsliders/particle_bridge_gan` module on frozen
+`packages/particle-sliders-core/src/particle_sliders/textsliders/particle_bridge_gan` module on frozen
 **Ternary-Bonsai-2-27B** readouts. Opt-in only. Not a default, not a
 production recipe. Propose-only: does not flip Music ARM_B, live
 `--lm_target`, locked AdvConfig, or YuE2 defaults.
@@ -99,7 +99,7 @@ unscored canaries.
 CPU / CI (no weights, no fork, no server):
 
 ```bash
-python3 conceptmod/textsliders/train_lora_bonsai_gguf.py --dummy \
+python3 packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_bonsai_gguf.py --dummy \
   --steps 20 --name bonsai-gguf-particle --save_dir models/bonsai-gguf-particle
 ```
 
@@ -110,13 +110,13 @@ Live (needs ~7 GB disk for weights, ~8 GB RAM to serve CPU-only):
 curl -sL -o fork.tar.gz https://github.com/PrismML-Eng/llama.cpp/releases/download/prism-b10685-7dffb15/llama-prism-b10685-7dffb15-bin-ubuntu-x64.tar.gz
 tar -xzf fork.tar.gz
 # 2. Pinned weights ONLY (never F16, never mmproj for this path)
-python3 -c "from conceptmod.textsliders.bonsai_gguf_backend import download_weights; print(download_weights('models/bonsai-gguf', allow_download=True))"
+python3 -c "from particle_sliders.textsliders.bonsai_gguf_backend import download_weights; print(download_weights('models/bonsai-gguf', allow_download=True))"
 # 3. Serve the frozen readout (text-only: no --mmproj, ever)
 export LD_LIBRARY_PATH=$PWD/llama-prism-b10685-7dffb15${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 ./llama-prism-b10685-7dffb15/llama-server -m models/bonsai-gguf/Ternary-Bonsai-2-27B-PTQ1_0.gguf \
   --host 127.0.0.1 --port 8080 --embedding --pooling last -c 512 -ngl 0
 # 4. Train the head on the live readout
-python3 conceptmod/textsliders/train_lora_bonsai_gguf.py \
+python3 packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_bonsai_gguf.py \
   --weights models/bonsai-gguf/Ternary-Bonsai-2-27B-PTQ1_0.gguf \
   --server_url http://127.0.0.1:8080 \
   --steps 20 --name bonsai-gguf-live --save_dir models/bonsai-gguf-live
@@ -125,7 +125,7 @@ python3 conceptmod/textsliders/train_lora_bonsai_gguf.py \
 Reload + report only:
 
 ```bash
-python3 conceptmod/textsliders/train_lora_bonsai_gguf.py \
+python3 packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_bonsai_gguf.py \
   --weights models/bonsai-gguf/Ternary-Bonsai-2-27B-PTQ1_0.gguf \
   --server_url http://127.0.0.1:8080 \
   --steps 0 --load_head models/bonsai-gguf-live \

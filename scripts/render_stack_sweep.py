@@ -12,7 +12,7 @@ The combined budget is deliberately *off* by default — this tool is what the
 budget gets measured with. Pass --apply_budget to hear the budgeted result.
 
   python scripts/render_stack_sweep.py \
-      --prompts_file conceptmod/textsliders/data/prompts-triphop-v3-single.yaml \
+      --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-triphop-v3-single.yaml \
       --out_dir eval/listen/stack-sweep-20s \
       --stack "" \
       --stack "energy:+1,space:-0.5" \
@@ -49,13 +49,13 @@ for path in (str(ROOT), str(APP_ROOT)):
 import numpy as np  # noqa: E402
 import torch  # noqa: E402
 
-from conceptmod.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
-from conceptmod.textsliders.generate_listen import (  # noqa: E402
+from particle_sliders.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
+from particle_sliders.textsliders.generate_listen import (  # noqa: E402
     DEFAULT_MODEL_DIR,
     _load_prompt_row,
     _write_wav,
 )
-from conceptmod.textsliders.infer_music3 import _load_pipeline  # noqa: E402
+from particle_sliders.textsliders.infer_music3 import _load_pipeline  # noqa: E402
 from scripts.compare_slider import load_mono  # noqa: E402
 from scripts.probe_axis import crest_db  # noqa: E402
 

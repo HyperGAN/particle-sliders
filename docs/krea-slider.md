@@ -48,7 +48,7 @@ Turbo trains and samples at CFG 0.
 
 Official advice: **train LoRAs on Raw, run on Turbo.**
 
-Live backend (`conceptmod/textsliders/krea_live.py`, lazy-imported
+Live backend (`packages/particle-sliders-core/src/particle_sliders/textsliders/krea_live.py`, lazy-imported
 from `_load_live_backend`):
 
 - `Krea2Pipeline.from_pretrained("krea/Krea-2-Raw", dtype=bfloat16)`
@@ -172,9 +172,9 @@ Retrain card (**smile-krea-v4**, TE-only embed UNI, MSE + rel-L2,
 ones-mask, CFG 0). Gate on teeth vs oracle, not `embed_cos`:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_krea.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name smile-krea-v4 \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-happy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml \
   --model_id krea/Krea-2-Raw --allow_hub \
   --lora_targets te --lm_target embed \
   --embed_cosine_weight 0 --hold_weight 0.1 --sample_guidance 0 \
@@ -196,9 +196,9 @@ not a detail delta. Gate: student neu@1 looks more detailed than
 neu@0 and approaches frozen-plus oracle (not `embed_cos` alone).
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_krea.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name detail-krea-v1 \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-detailed.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-detailed.yaml \
   --model_id krea/Krea-2-Raw --allow_hub \
   --lora_targets te --lm_target embed \
   --embed_cosine_weight 0 --hold_weight 0.1 --sample_guidance 0 \
@@ -223,9 +223,9 @@ subject (object → soft fabric). Smile worked because closed-mouth
 vs teeth kept the same person.
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_krea.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name detail-krea-v2 \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-detailed.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-detailed.yaml \
   --model_id krea/Krea-2-Raw --allow_hub \
   --lora_targets te --lm_target embed \
   --embed_cosine_weight 0 --embed_rel_l2_weight 2.0 --embed_late_weight 4.0 \
@@ -246,9 +246,9 @@ student neu@1 keeps the same subject and approaches frozen-plus
 oracle detail (not `embed_cos`).
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_krea.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name detail-krea-v3 \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-detailed.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-detailed.yaml \
   --model_id krea/Krea-2-Raw --allow_hub \
   --lora_targets te --lm_target embed \
   --embed_cosine_weight 0 --embed_rel_l2_weight 2.0 --embed_late_weight 4.0 \
@@ -264,9 +264,9 @@ Compare `student_neu_scale1` /
 `student_neu_scale1_onesmask` vs `student_neu_scale1_tokmask`:
 
 ```bash
-python conceptmod/textsliders/train_lora_krea.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name smile-krea-v5-resmoke \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-happy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml \
   --model_id krea/Krea-2-Raw --allow_hub \
   --lora_targets te --lm_target embed \
   --load_te_lora models/smile-krea-v3/smile-krea-v3_lora/te_lora \
@@ -283,9 +283,9 @@ Previous cosine-weighted card (smile-krea-v4 @ 500 steps;
 `--embed_cosine_weight` default was 1.0, neu tokenizer mask):
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_krea.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name smile-krea-v4 \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-happy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml \
   --model_id krea/Krea-2-Raw --allow_hub \
   --lora_targets te --lm_target embed \
   --rank 16 --hold_weight 0.1 --resolution 512 \
@@ -304,9 +304,9 @@ TE-only). `--recipe embed_uni` is the same flag as `--lm_target embed`.
 Resmoke a saved adapter without retraining:
 
 ```bash
-python conceptmod/textsliders/train_lora_krea.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name smile-krea-v4-resmoke \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-happy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml \
   --model_id krea/Krea-2-Raw --allow_hub \
   --lora_targets te --lm_target embed \
   --load_te_lora models/smile-krea-v4/smile-krea-v4_lora/te_lora \
@@ -318,9 +318,9 @@ CFG 4.5 with both CFG branches under the active TE scale — Δ
 cancelled in pixels):
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_krea.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name smile-krea-v3 \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-happy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml \
   --model_id krea/Krea-2-Raw --allow_hub \
   --lora_targets te --lm_target embed \
   --rank 16 --hold_weight 0.1 --resolution 512 \
@@ -333,9 +333,9 @@ Joint DiT+TE velocity UNI (**smile-krea-v2**, A100 80GB preferred;
 A6000 48GB is tight once TE stays resident):
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_krea.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name smile-krea-v2 \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-happy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml \
   --model_id krea/Krea-2-Raw \
   --allow_hub \
   --lora_targets dit+te --rank 16 --hold_weight 0.1 \
@@ -354,9 +354,9 @@ broken again.
 DiT-only (v1 card, frozen TE parked, 48GB):
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_krea.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name smile-krea \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-happy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml \
   --model_id krea/Krea-2-Raw \
   --allow_hub \
   --lora_targets dit --rank 16 --hold_weight 0.1 \
@@ -369,9 +369,9 @@ CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_krea.py \
 Age yaml (prefixed unused gender) is still the stock file:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_krea.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name age-krea \
-  --prompts_file conceptmod/textsliders/data/prompts-krea.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea.yaml \
   --model_id krea/Krea-2-Raw \
   --allow_hub \
   --rank 16 --resolution 512 \
@@ -383,7 +383,7 @@ Local Turbo file (inference / sample card only; do not prefer this for
 train). VAE + Qwen3-VL still come from a cached Raw skeleton:
 
 ```bash
-python conceptmod/textsliders/train_lora_krea.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --name age-krea-turbo-card \
   --model_id /path/to/Krea-2-Turbo.safetensors \
   --rank 16 --resolution 512
@@ -394,37 +394,37 @@ python conceptmod/textsliders/train_lora_krea.py \
 transformer or Hub weights, never imports `krea_live.py`.
 
 ```bash
-python conceptmod/textsliders/train_lora_krea.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --dummy --name krea-age-dummy \
-  --prompts_file conceptmod/textsliders/data/prompts-krea.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea.yaml \
   --save_dir /tmp/krea-dummy
-python conceptmod/textsliders/train_lora_krea.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --dummy --name smile-krea-v3-dummy \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-happy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml \
   --lora_targets te --lm_target embed --hold_weight 0.1 \
   --save_dir /tmp/krea-embed-dummy
-python conceptmod/textsliders/train_lora_krea.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --dummy --name smile-krea-v4-dummy \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-happy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml \
   --lora_targets te --lm_target embed \
   --embed_cosine_weight 0 --hold_weight 0.1 \
   --te_dit_mask auto \
   --save_dir /tmp/krea-embed-v4-dummy
-python conceptmod/textsliders/train_lora_krea.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --dummy --name smile-krea-v5-dummy \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-happy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml \
   --lora_targets te --lm_target embed --hold_weight 0.1 \
   --save_dir /tmp/krea-embed-v5-dummy
-python conceptmod/textsliders/train_lora_krea.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --dummy --name detail-krea-v2-dummy \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-detailed.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-detailed.yaml \
   --lora_targets te --lm_target embed \
   --embed_cosine_weight 0 --embed_rel_l2_weight 2.0 --embed_late_weight 4.0 \
   --hold_weight 0.1 --te_dit_mask auto \
   --save_dir /tmp/krea-detail-v2-dummy
-python conceptmod/textsliders/train_lora_krea.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py \
   --dummy --name detail-krea-v3-dummy \
-  --prompts_file conceptmod/textsliders/data/prompts-krea-detailed.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-detailed.yaml \
   --lora_targets te --lm_target embed \
   --embed_cosine_weight 0 --embed_rel_l2_weight 2.0 --embed_late_weight 4.0 \
   --hold_weight 0.1 --te_dit_mask auto \
@@ -434,14 +434,14 @@ PYTHONPATH=. pytest tests/test_krea_slider.py -q
 
 ## Yaml
 
-`conceptmod/textsliders/data/prompts-krea-happy.yaml`: UNI happy/smile
+`packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml`: UNI happy/smile
 (not age). Stronger Anima teacher (`big smile showing teeth, happy
 joyful expression`) on a closed-mouth neu. `attributes` pin unused
 gender (`male` / `female`) without prefixing. `negative` is the
 canary. `control_prompt` is `a bowl of fruit on a table` — verify
 only, never a teacher.
 
-`conceptmod/textsliders/data/prompts-krea-detailed.yaml`: UNI
+`packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-detailed.yaml`: UNI
 **detailed** (not smile). Three same-subject rows (landscape-ish
 oak tree / interior wooden chair / object ceramic vase). Neu is
 ordinary / plain / smooth / untextured (photographic, not cartoon
@@ -451,7 +451,7 @@ fruit-bowl / canary-minus shape as happy. v1/v2 teachers invited
 a style jump; v3 is a detail-only delta. Generalizes
 smile-krea-v4 TE-only embed UNI.
 
-`conceptmod/textsliders/data/prompts-krea.yaml`: stock age slider
+`packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea.yaml`: stock age slider
 (old / young) with prefixed unused gender. Still valid.
 
 ## Related

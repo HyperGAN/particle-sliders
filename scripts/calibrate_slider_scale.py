@@ -38,7 +38,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.calibrate_scale import (  # noqa: E402
+from particle_sliders.textsliders.calibrate_scale import (  # noqa: E402
     DEFAULT_MODEL_DIR,
     DEFAULT_SCALES,
     calibrate_weights,

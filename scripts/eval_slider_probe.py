@@ -9,7 +9,7 @@ one scale.
     export CUDA_VISIBLE_DEVICES=0 PYTHONPATH=/ml2/music/sliders-conceptmod
     python scripts/eval_slider_probe.py \
       models/triphop-tf-v3/triphop-tf-v3_alpha8.0_rank8_attn_last.safetensors \
-      --prompts_file conceptmod/textsliders/data/prompts-triphop-v3-single.yaml \
+      --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-triphop-v3-single.yaml \
       --cache_dir cache/triphop-v3
 
 Rank / alpha / targets are read from the checkpoint's `_last.json` sidecar when
@@ -32,8 +32,8 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.lora import LoRANetwork  # noqa: E402
-from conceptmod.textsliders.train_lora_music3 import (  # noqa: E402
+from particle_sliders.textsliders.lora import LoRANetwork  # noqa: E402
+from particle_sliders.textsliders.train_lora_music3 import (  # noqa: E402
     DEFAULT_MODEL_DIR,
     EVAL_TIMESTEPS,
     TARGET_REPLACE_ATTN,
@@ -139,7 +139,7 @@ def main(argv: list[str] | None = None) -> int:
                 torch.load(p, map_location="cpu", weights_only=False)["latents"] for p in matched
             ]
     if args.eval_holdout:
-        from conceptmod.textsliders.train_lora_music3 import build_x0_banks
+        from particle_sliders.textsliders.train_lora_music3 import build_x0_banks
 
         print("generating held-out eval anchor", file=sys.stderr)
         x0_bank = build_x0_banks(

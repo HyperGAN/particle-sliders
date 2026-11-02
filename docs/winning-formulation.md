@@ -147,7 +147,7 @@ their trainers.
    absence checks. Keep the Hub id `jimmycarter/krea2-turbo-bbox`, the Comfy
    node, the turbo sample numbers, and the prompt cards in that repo.
 3. **supra-concept-sliders.** The opt-in trainer still lives in this
-   repository as `conceptmod/textsliders/train_lora_supra.py`. Move that
+   repository as `packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_supra.py`. Move that
    product entrypoint into the supra repo and depend on this core for the
    game. Keep Supra2-IMG ids, the Euler sample card, and Comfy (when it
    exists) in the product repo. Do not copy `RoutedMLP` or

@@ -2,7 +2,7 @@
 from types import SimpleNamespace
 import torch
 
-from conceptmod.textsliders.reward_game.residual_policy import log_probs,selected_mean
+from particle_sliders.textsliders.reward_game.residual_policy import log_probs,selected_mean
 
 
 def test_residual_teacher_forcing_matches_sequential_decoder_and_keeps_gradients():

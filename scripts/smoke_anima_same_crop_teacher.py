@@ -15,7 +15,7 @@ Live ``--live`` needs local Base weights; it only builds the two teachers
 
 4090 / L40S short train smoke (not this script; not 500 steps):
 
-    HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_anima.py \\
+    HF_HUB_OFFLINE=1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py \\
       --name smile-anima-same-crop-smoke \\
       --lora_targets conditioner --rank 16 --resolution 512 \\
       --lm_target same_crop --teacher same_crop --teacher_strength 0.5 \\
@@ -36,8 +36,8 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.anima_fake import FakeAnimaBackend
-from conceptmod.textsliders.anima_slider import (
+from particle_sliders.textsliders.anima_fake import FakeAnimaBackend
+from particle_sliders.textsliders.anima_slider import (
     DEFAULT_TEACHER_STRENGTH,
     DEFAULT_TRAJ_STEPS,
     WOMAN_NEU,
@@ -47,7 +47,7 @@ from conceptmod.textsliders.anima_slider import (
     anima_teacher_pair,
     same_crop_smoke_command,
 )
-from conceptmod.textsliders.train_lora_anima import main as train_main
+from particle_sliders.textsliders.train_lora_anima import main as train_main
 
 
 def dummy_teacher_report(
@@ -109,7 +109,7 @@ def dummy_train_smoke(tmp: Path) -> dict:
             "--name",
             "smile-anima-same-crop-dummy",
             "--prompts_file",
-            str(_REPO_ROOT / "conceptmod/textsliders/data/prompts-anima.yaml"),
+            str(_REPO_ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml"),
             "--save_dir",
             str(tmp),
             "--rank",

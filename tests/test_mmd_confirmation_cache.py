@@ -3,7 +3,7 @@ import json
 import pytest
 
 from analysis.gan_bcap.mmd_game_20260905.confirmation_cache import reuse_confirmation
-from conceptmod.textsliders.gan_v2.data import sha
+from particle_sliders.textsliders.gan_v2.data import sha
 
 
 def fixture(tmp_path):

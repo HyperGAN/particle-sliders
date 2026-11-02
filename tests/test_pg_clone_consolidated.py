@@ -18,7 +18,7 @@ import torch.nn as nn
 
 from analysis.slider2d import locked_baseline_defaults as locked
 from analysis.slider2d import pg_clone_propose as propose
-from analysis.slider2d.adv import AdvConfig, make_grad_regularizer, toy_lr_triplet
+from particle_sliders.textsliders._slider2d.adv import AdvConfig, make_grad_regularizer, toy_lr_triplet
 from analysis.slider2d.gan import (
     DEFAULT_TEACHER,
     default_cfg,
@@ -26,10 +26,10 @@ from analysis.slider2d.gan import (
     score_field2d,
     train_lm_adv,
 )
-from analysis.slider2d.grad_regularizers import GradRegularizer
+from particle_sliders.textsliders._slider2d.grad_regularizers import GradRegularizer
 from analysis.slider2d.run_lm_adv import build_parser
 from analysis.slider2d.sheet import leaky_field
-from conceptmod.textsliders.train_lm_slider_music3 import ARM_B, parse_args
+from particle_sliders.textsliders.train_lm_slider_music3 import ARM_B, parse_args
 
 
 # -- propose-only markers -------------------------------------------------
@@ -195,7 +195,7 @@ def test_vicreg_weight_cfg_only_moves_weight():
 def test_vicreg_fn_none_is_locked_path():
     # The default None path uses the locked demo loss: explicit vicreg_loss
     # through the hook must match the None default run exactly (same seed).
-    from analysis.slider2d.adv import vicreg_loss
+    from particle_sliders.textsliders._slider2d.adv import vicreg_loss
     from analysis.slider2d.field import Field2D
 
     field = Field2D()

@@ -50,3 +50,11 @@ registration does not qualify a product migration.
 Optional `[serialization]` adds safetensors for native adapter/cache IO;
 `[hndl]` adds the distinct optional conditional readout critic. No campaign
 launchers or reverse product imports enter this package closure.
+
+## Research backend namespace
+
+The wheel also contains `particle_sliders.textsliders` and
+`particle_sliders.notrigger`, with `conceptmod.*` compatibility imports.
+See [the namespace migration](../../docs/python-namespace.md). Importing a
+backend does not load the shared GAN engine or native model libraries; using
+a backend still requires its documented runtime.

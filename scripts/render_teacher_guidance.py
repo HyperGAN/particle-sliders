@@ -57,8 +57,8 @@ _ROOT = Path("/ml2/music/sliders-conceptmod")
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from conceptmod.textsliders.infer_music3 import _load_pipeline, _to_wav_array  # noqa: E402
-from conceptmod.textsliders.train_lora_music3 import (  # noqa: E402
+from particle_sliders.textsliders.infer_music3 import _load_pipeline, _to_wav_array  # noqa: E402
+from particle_sliders.textsliders.train_lora_music3 import (  # noqa: E402
     build_conditions,
     load_prompts,
 )
@@ -67,7 +67,7 @@ from conceptmod.textsliders.train_lora_music3 import (  # noqa: E402
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--prompts_file", type=Path,
-                    default=_ROOT / "conceptmod/textsliders/data/prompts-triphop-v3-single.yaml")
+                    default=_ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-triphop-v3-single.yaml")
     ap.add_argument("--cache_dir", type=Path, default=_ROOT / "cache/triphop-v3")
     ap.add_argument("--encode_ar", action="store_true",
                     help="run the AR/LM stage to populate an empty --cache_dir. Needed for a duration\n"

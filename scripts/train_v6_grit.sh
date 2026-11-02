@@ -12,6 +12,6 @@ cd "$ROOT"
 
 GPU="${1:-1}"
 echo "[v6-grit] GPU ${GPU}"
-train_lm "$GPU" grit-lm-v6 conceptmod/textsliders/data/prompts-grit-v4.yaml
-train_tf "$GPU" grit-tf-v6 conceptmod/textsliders/data/prompts-grit-tf.yaml
+train_lm "$GPU" grit-lm-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-grit-v4.yaml
+train_tf "$GPU" grit-tf-v6 packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-grit-tf.yaml
 echo "[v6-grit] done"
