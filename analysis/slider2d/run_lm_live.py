@@ -26,13 +26,13 @@ from conceptmod.textsliders.slider_targets import LEAK_HOLD_WEIGHT, SLIDER_ALIGN
 DEFAULT_OUT = _REPO / "docs" / "lm-live-cells"
 
 BARE_TRAIN = (
-    "python conceptmod/textsliders/train_lm_slider_music3.py "
+    "python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py "
     "--lm_target pair_odd_sub_e "
-    "--prompts_file conceptmod/textsliders/data/prompts-energy-v4.yaml"
+    "--prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-v4.yaml"
 )
 BARE_TRAIN_GENDER = (
-    "python conceptmod/textsliders/train_lm_slider_music3.py "
-    "--prompts_file conceptmod/textsliders/data/prompts-gender-v4.yaml"
+    "python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py "
+    "--prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-v4.yaml"
 )
 
 

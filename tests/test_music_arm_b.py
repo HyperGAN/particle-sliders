@@ -20,9 +20,9 @@ import torch
 import torch.nn as nn
 
 from analysis.slider2d import grad_regularizers as gr
-from analysis.slider2d.adv import AdvConfig, cap_penalty, make_grad_regularizer
-from analysis.slider2d.grad_regularizers import GradRegularizer
-from conceptmod.textsliders.train_lm_slider_music3 import (
+from particle_sliders.textsliders._slider2d.adv import AdvConfig, cap_penalty, make_grad_regularizer
+from particle_sliders.textsliders._slider2d.grad_regularizers import GradRegularizer
+from particle_sliders.textsliders.train_lm_slider_music3 import (
     ARM_B,
     make_music_grad_regularizer,
     parse_args,

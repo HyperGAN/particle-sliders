@@ -5,8 +5,8 @@ import sys
 import pytest
 import torch
 from test_reward_game_recomputed_flow import capture_fixture
-from conceptmod.textsliders.reward_game.latent_transport import schedule, transported, velocity_loss
-from conceptmod.textsliders.reward_game.merged_forward import MergedForward
+from particle_sliders.textsliders.reward_game.latent_transport import schedule, transported, velocity_loss
+from particle_sliders.textsliders.reward_game.merged_forward import MergedForward
 
 
 @pytest.mark.parametrize('dtype', [torch.float32, torch.bfloat16])

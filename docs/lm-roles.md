@@ -55,9 +55,9 @@ is raw `h+` at last. +1 lyrics → encode(neu). +1 Vocal Details /
 caption → encode(pos). Scale 0 → `h0`.
 
 ```bash
-CUDA_VISIBLE_DEVICES=N python conceptmod/textsliders/train_lm_slider_music3.py \
+CUDA_VISIBLE_DEVICES=N python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
   --name energy-lm-uni-roles \
-  --prompts_file conceptmod/textsliders/data/prompts-energy-v4.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-v4.yaml \
   --lm_target faithful_plus_neu_roles --pole_mode hidden \
   --rank 8 --alpha 8 --lr 5e-4 --steps 800 --seed 7 \
   --no-early_stop --endreg_weight 1.0 --device 0

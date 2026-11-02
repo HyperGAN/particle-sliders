@@ -26,6 +26,9 @@ hypergan-hndl = ["hndl==0.10.0; python_version >= '3.11' and python_version < '3
 where = ["src"]
 
 [tool.setuptools.package-data]
+"particle_sliders.textsliders" = ["data/*.yaml"]
+"particle_sliders.notrigger" = ["data/*.yaml"]
+"*" = ["*.md", "*.sh"]
 particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json", "pg09_continuous_profile.json", "fibo_provenance.json", "audio_closure_provenance.json", "legacy_stamp.json", "pg093_release.json", "pg094_release.json", "fibo_hndl_010_sources.json", "fibo_hndl_sources.json", "*.hndl"]
 
 [tool.pytest.ini_options]

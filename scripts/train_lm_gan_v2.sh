@@ -7,7 +7,7 @@ NAME="${1:?Supply a new run name}"
 ARM="${ARM:-fm_capped}"
 case "$ARM" in
   baseline|fm|fm_normalized|fm_capped|decay)
-    DEFAULT_PROMPTS="$ROOT/conceptmod/textsliders/data/prompts-gender-uni-v2.yaml"
+    DEFAULT_PROMPTS="$ROOT/packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-uni-v2.yaml"
     DEFAULT_EMA=0 ;;
   *) DEFAULT_PROMPTS="$ROOT/analysis/gan_bcap/v2_20260905/fixtures/train.yaml"
      DEFAULT_EMA=1 ;;
@@ -28,7 +28,7 @@ if [[ -n "${RESUME_STATE:-}" ]]; then SOURCE_ARGS=(--resume "$RESUME_STATE"); fi
 export CUDA_VISIBLE_DEVICES="${MUSIC_GAN_GPU:-0}" HF_HUB_OFFLINE=1 HF_HOME=/ml2/music/.cache/huggingface
 export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
 cd "$ROOT"
-exec "$PY" -u -m conceptmod.textsliders.gan_v2.train \
+exec "$PY" -u -m particle_sliders.textsliders.gan_v2.train \
   --prompts "$PROMPTS" --run-dir "$ROOT/models/gan-v2/$NAME" --arm "$ARM" \
   --schedule-origin "$ORIGIN" --schedule-horizon "$HORIZON" --until "$UNTIL" \
   --save-every "${SAVE_EVERY:-30}" --ema-every "${EMA_EVERY:-15}" \

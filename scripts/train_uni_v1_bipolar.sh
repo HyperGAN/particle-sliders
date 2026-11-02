@@ -19,7 +19,7 @@ CATALOG="gender tempo distortion breath rhyme triphop live rapslow grit hurt joy
 
 prompts_for() {
   local axis="$1"
-  local v4="conceptmod/textsliders/data/prompts-${axis}-v4.yaml"
+  local v4="packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-${axis}-v4.yaml"
   if [ -f "$v4" ]; then
     echo "$v4"
   else
@@ -33,7 +33,7 @@ train_one() {
   mkdir -p "$save"
   wait_vram "$gpu"
   echo "[gpu${gpu}] TRAIN ${name} lm_target=faithful pole_mode=hidden endreg=1.0"
-  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
       --name "$name" \
       --prompts_file "$prompts" \
       --save_dir "$ROOT/$save" \

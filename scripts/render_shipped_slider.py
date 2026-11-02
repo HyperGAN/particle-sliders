@@ -7,7 +7,7 @@ sidecar unit_scale, and possibly several LoRA networks at once. This renders the
 resolved multipliers so what you hear is what the app produces.
 
   python scripts/render_shipped_slider.py energy \
-      --prompts_file conceptmod/textsliders/data/prompts-energy-v3.yaml \
+      --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-v3.yaml \
       --out_dir eval/listen/energy-v3-shipped-20s --scales=-2,0,2
 """
 
@@ -39,15 +39,15 @@ for path in (str(ROOT), str(APP_ROOT)):
 
 import torch  # noqa: E402
 
-from conceptmod.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
-from conceptmod.textsliders.generate_listen import (  # noqa: E402
+from particle_sliders.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
+from particle_sliders.textsliders.generate_listen import (  # noqa: E402
     DEFAULT_MODEL_DIR,
     _accept_wav,
     _glue_negative_option,
     _load_prompt_row,
     _write_wav,
 )
-from conceptmod.textsliders.infer_music3 import _load_pipeline  # noqa: E402
+from particle_sliders.textsliders.infer_music3 import _load_pipeline  # noqa: E402
 
 
 def main() -> None:

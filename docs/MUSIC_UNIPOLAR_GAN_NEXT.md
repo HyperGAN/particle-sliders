@@ -31,14 +31,14 @@ control. No supervised MSE on G. Keep bipolar Arm B /
 locked_shared / live --lm_target intact.
 
 ENTRYPOINTS (already on main, nothing to invent)
-- Trainer: conceptmod/textsliders/train_lora_yue2_arm_b.py
-  --recipe unipolar_gan   -> conceptmod/textsliders/yue2_arm_b.py
-  --recipe gan_plus_neu   -> conceptmod/textsliders/yue2_gan_plus_neu.py
-                           (shared update: conceptmod/textsliders/unipolar_gan.py)
+- Trainer: packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2_arm_b.py
+  --recipe unipolar_gan   -> packages/particle-sliders-core/src/particle_sliders/textsliders/yue2_arm_b.py
+  --recipe gan_plus_neu   -> packages/particle-sliders-core/src/particle_sliders/textsliders/yue2_gan_plus_neu.py
+                           (shared update: packages/particle-sliders-core/src/particle_sliders/textsliders/unipolar_gan.py)
 - Campaign (train + held-out renders + dashboard):
   scripts/train_yue2_arm_b_campaign.py --recipe {unipolar_gan,gan_plus_neu}
-- Prompts: conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml (4 train rows)
-  Eval:    conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml (2 held-out rows,
+- Prompts: packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml (4 train rows)
+  Eval:    packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml (2 held-out rows,
            seeds 1709/2903, scales 0/0.5/1 + positive-caption reference)
 
 RULES
@@ -68,7 +68,7 @@ RULES
 
 ## 1) The production unipolar YuE2 GAN that already ran (recipe identity)
 
-Primary recipe — `conceptmod/textsliders/yue2_arm_b.py`:
+Primary recipe — `packages/particle-sliders-core/src/particle_sliders/textsliders/yue2_arm_b.py`:
 
 | Knob | Value |
 |---|---|
@@ -87,9 +87,9 @@ Primary recipe — `conceptmod/textsliders/yue2_arm_b.py`:
 | Prompt policy | `balanced_shuffled_passes`, `history_policy='none_prompt_states_only'` |
 | Default budget | `--steps 600` |
 
-Opt-in +/0 sibling — `conceptmod/textsliders/yue2_gan_plus_neu.py`
+Opt-in +/0 sibling — `packages/particle-sliders-core/src/particle_sliders/textsliders/yue2_gan_plus_neu.py`
 (RECIPE `rpgan-bcap-plus-neu-yue2-v1`, shared update in
-`conceptmod/textsliders/unipolar_gan.py`): trains scales **[0, 1]** with a
+`packages/particle-sliders-core/src/particle_sliders/textsliders/unipolar_gan.py`): trains scales **[0, 1]** with a
 scale-conditioned critic (2x256 LeakyReLU MLP, positive-teacher-RMS
 calibrated), G/D lr **5e-4 equal**, betas **(0, 0.99)**,
 **delayed_cosine delay 80, floor 0.05**. GAN-only, no MSE/FM/particles/EMA/
@@ -103,17 +103,17 @@ YAML / prompts:
 
 | File | Role |
 |---|---|
-| `conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml` | 4 sound-only train rows (`neutral`/`positive`/`lyrics`), `recommended_range: [0, 1]` |
-| `conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml` | 2 held-out rows, disjoint lyrics |
-| `conceptmod/textsliders/data/config-yue2.yaml` / `config-yue2-female-uni16.yaml` | historical UNI16 configs (`recipe: uni16`, `lr: 5e-4`, 600 steps) — **not** the unipolar-GAN path; do not confuse them |
+| `packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml` | 4 sound-only train rows (`neutral`/`positive`/`lyrics`), `recommended_range: [0, 1]` |
+| `packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml` | 2 held-out rows, disjoint lyrics |
+| `packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-yue2.yaml` / `config-yue2-female-uni16.yaml` | historical UNI16 configs (`recipe: uni16`, `lr: 5e-4`, 600 steps) — **not** the unipolar-GAN path; do not confuse them |
 
 `train_lora_yue2_arm_b.py` argv (both unipolar recipes; historical filename,
 checkpoint recipe is what matters):
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python conceptmod/textsliders/train_lora_yue2_arm_b.py \
+CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2_arm_b.py \
   --recipe unipolar_gan \
-  --prompts_file conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml \
   --save_dir models/metal-yue2-unipolar-gan --steps 600
 # sibling:
 #   --recipe gan_plus_neu --save_dir models/metal-yue2-gan-plus-neu-600-<date>
@@ -213,7 +213,7 @@ for `g_interp_cap` if you deliberately turn particles back on.
 
 ## 4) Keep intact unless explicitly training uni
 
-- Music bipolar `ARM_B` (`conceptmod/textsliders/train_lm_slider_music3.py`,
+- Music bipolar `ARM_B` (`packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py`,
   `docs/music-arm-b-gates.md`): Rp + b_cap k=1, FM=0, mlp, `--parts 0`,
   `pole/cover_weight=1`, `vicreg_weight=0`, eval scales -1/0/0.5/1.
 - Live trainer defaults: `--lm_target v9` / `--pole_mode hidden` /
@@ -230,9 +230,9 @@ Control (production LR) + ablation (c9_g4x), same budget/seed/prompts:
 
 ```bash
 # A: matched control — production LR, 600 steps, seed 7
-CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python conceptmod/textsliders/train_lora_yue2_arm_b.py \
+CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2_arm_b.py \
   --recipe unipolar_gan \
-  --prompts_file conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml \
   --save_dir models/metal-yue2-uni-control-600 --steps 600 --seed 7
 # B: propose-only c9_g4x — same command + explicit RECIPE patch
 #    (g_lr=2e-3, d_lr=3e-3, D still 1.5x G), different save_dir, same seed

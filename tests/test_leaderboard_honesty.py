@@ -30,7 +30,7 @@ from analysis.slider2d.scoreboard import _row, sort_rows
 from analysis.slider2d.sheet import leaky_field, teacher_points as sheet_teacher_points
 from analysis.slider2d.exam import teacher_points as exam_teacher_points
 from analysis.slider2d.train import music3_pairs, score_residual, train_lm
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     lm_faithful_guard_e,
     lm_faithful_sub_e,
 )

@@ -98,7 +98,7 @@ train_lm() {
   for seed in "${seeds[@]}"; do
     echo "[gpu${gpu}] START ${name} seed=${seed}"
     rm -f "$save"/*.safetensors "$save"/*_last.json
-    if gpu_run "$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+    if gpu_run "$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
         --name "$name" \
         --prompts_file "$prompts" \
         --save_dir "$ROOT/$save" \
@@ -136,7 +136,7 @@ train_lm_v9() {
   mkdir -p "$save"
   wait_vram "$gpu"
   echo "[gpu${gpu}] TRAIN ${name} lm_target=v9 pole_mode=hidden (pair-odd + hold ê_⊥û)"
-  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
       --name "$name" \
       --prompts_file "$prompts" \
       --save_dir "$ROOT/$save" \
@@ -161,7 +161,7 @@ train_lm_pair_odd_sub_e() {
   mkdir -p "$save"
   wait_vram "$gpu"
   echo "[gpu${gpu}] TRAIN ${name} lm_target=pair_odd_sub_e pole_mode=hidden (pair-odd − ê, hold_ê=0)"
-  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
       --name "$name" \
       --prompts_file "$prompts" \
       --save_dir "$ROOT/$save" \
@@ -188,7 +188,7 @@ train_lm_symmetric_beta1() {
   mkdir -p "$save"
   wait_vram "$gpu"
   echo "[gpu${gpu}] TRAIN ${name} lm_target=symmetric common_beta=1 pole_mode=hidden"
-  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
       --name "$name" \
       --prompts_file "$prompts" \
       --save_dir "$ROOT/$save" \
@@ -213,7 +213,7 @@ train_lm_symmetric() {
   mkdir -p "$save"
   wait_vram "$gpu"
   echo "[gpu${gpu}] TRAIN ${name} lm_target=symmetric (no hub leash, no project)"
-  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
       --name "$name" \
       --prompts_file "$prompts" \
       --save_dir "$ROOT/$save" \
@@ -238,7 +238,7 @@ train_lm_hub() {
   mkdir -p "$save"
   wait_vram "$gpu"
   echo "[gpu${gpu}] TRAIN ${name} lm_target=hub (symmetric + κ floor) endreg=default"
-  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
       --name "$name" \
       --prompts_file "$prompts" \
       --save_dir "$ROOT/$save" \
@@ -272,7 +272,7 @@ sample_lm() {
   wait_vram "$gpu"
   echo "[gpu${gpu}] SAMPLE ${name} -2,-1,0,1,2 -> $out_dir"
   mkdir -p "$out_dir"
-  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/generate_listen.py \
+  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
     --weights "$weights" \
     --prompts_file "$prompts" \
     --name "$name" --kind lm \
@@ -294,14 +294,14 @@ sample_lm_split() {
   wait_vram 0
   wait_vram 1
   echo "[sample-split] ${name} GPU0=-2,-1,0 GPU1=+1,+2+REFs"
-  CUDA_VISIBLE_DEVICES=0 "$PY" -u conceptmod/textsliders/generate_listen.py \
+  CUDA_VISIBLE_DEVICES=0 "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
     --weights "$weights" --prompts_file "$prompts" \
     --name "$name" --kind lm --out_dir "$out_dir" \
     --scales=-2,-1,0 --start_index 1 --no-refs \
     --duration 20 --seed 7 --device 0 \
     > "$out_dir/sample_gpu0.log" 2>&1 &
   local p0=$!
-  CUDA_VISIBLE_DEVICES=1 "$PY" -u conceptmod/textsliders/generate_listen.py \
+  CUDA_VISIBLE_DEVICES=1 "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
     --weights "$weights" --prompts_file "$prompts" \
     --name "$name" --kind lm --out_dir "$out_dir" \
     --scales=1,2 --start_index 4 \
@@ -321,7 +321,7 @@ sample_lm_split() {
   fi
   echo "[sample-split] resume LISTEN.md (and any missing clips) on GPU1"
   wait_vram 1
-  CUDA_VISIBLE_DEVICES=1 "$PY" -u conceptmod/textsliders/generate_listen.py \
+  CUDA_VISIBLE_DEVICES=1 "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
     --weights "$weights" --prompts_file "$prompts" \
     --name "$name" --kind lm --out_dir "$out_dir" \
     --scales=-2,-1,0,1,2 --duration 20 --seed 7 --device 0 \
@@ -349,7 +349,7 @@ train_tf() {
   for seed in "${seeds[@]}"; do
     echo "[gpu${gpu}] START ${name} seed=${seed}"
     rm -f "$save"/*.safetensors "$save"/*_last.json "$save"/*_best.safetensors
-    if gpu_run "$gpu" "$PY" -u conceptmod/textsliders/train_lora_music3.py \
+    if gpu_run "$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py \
         --name "$name" \
         --prompts_file "$prompts" \
         --save_dir "$ROOT/$save" \

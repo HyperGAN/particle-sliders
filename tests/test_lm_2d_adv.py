@@ -12,7 +12,7 @@ import pytest
 import torch
 
 from analysis.gan_bcap.gaussian_repro import hq_and_cover, mixture_means, train_gaussians
-from analysis.slider2d.adv import (
+from particle_sliders.textsliders._slider2d.adv import (
     AdvConfig,
     ParticlePrior,
     _l2_norm,
@@ -24,7 +24,7 @@ from analysis.slider2d.adv import (
     rp_g_loss,
     vicreg_loss,
 )
-from analysis.slider2d.grad_regularizers import GradRegularizer
+from particle_sliders.textsliders._slider2d.grad_regularizers import GradRegularizer
 from analysis.slider2d.exam import close_field, divergent_field, unused_e_field
 from analysis.slider2d.field import Field2D
 from analysis.slider2d.gan import (
@@ -46,7 +46,7 @@ from analysis.slider2d.scoreboard import (
     exam_score,
 )
 from analysis.slider2d.sheet import gender_like_field, leaky_field, score_sheet
-from conceptmod.textsliders.train_lm_slider_music3 import parse_args
+from particle_sliders.textsliders.train_lm_slider_music3 import parse_args
 
 
 STEPS = 1200

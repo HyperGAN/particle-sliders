@@ -71,9 +71,9 @@ def verify(manifest):
 def prepare(args):
     import yaml
     from types import SimpleNamespace
-    from conceptmod.textsliders.train_lora_yue2_arm_b import source_hashes
-    from conceptmod.textsliders.yue2_arm_b import load_prompts
-    from conceptmod.textsliders.yue2_backend import YuE2Backend
+    from particle_sliders.textsliders.train_lora_yue2_arm_b import source_hashes
+    from particle_sliders.textsliders.yue2_arm_b import load_prompts
+    from particle_sliders.textsliders.yue2_backend import YuE2Backend
     from yue2.storage import resolve_model
     from yue2.tokenization_yue2 import YuE2TextTokenizer
     sys.path.insert(0, str(args.registry.parent.parent))
@@ -120,8 +120,8 @@ def prepare(args):
             state = read(args.metal_run/'manifest.json')
             if state['settings']['sources'] != source_hashes():
                 raise ValueError('Metal training source differs; use its identical frozen trainer')
-            source_train = ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml'
-            source_eval = ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml'
+            source_train = ROOT/'packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml'
+            source_eval = ROOT/'packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml'
         audit = {}
         for split, source in [('train', source_train), ('eval', source_eval)]:
             original = yaml.safe_load(source.read_text())

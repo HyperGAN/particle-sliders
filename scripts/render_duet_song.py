@@ -44,9 +44,9 @@ for path in (str(ROOT), str(APP_ROOT)):
 
 import torch  # noqa: E402
 
-from conceptmod.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
-from conceptmod.textsliders.generate_listen import DEFAULT_MODEL_DIR, _write_wav  # noqa: E402
-from conceptmod.textsliders.infer_music3 import _load_pipeline  # noqa: E402
+from particle_sliders.textsliders.generate_gender_stack import _apply, _wrap_sidecar  # noqa: E402
+from particle_sliders.textsliders.generate_listen import DEFAULT_MODEL_DIR, _write_wav  # noqa: E402
+from particle_sliders.textsliders.infer_music3 import _load_pipeline  # noqa: E402
 
 # Duet plan: sign of the gender slider per section, equal-length sections.
 # -1 = male pole, +1 = female pole. Four 15s trades over a 60s take.

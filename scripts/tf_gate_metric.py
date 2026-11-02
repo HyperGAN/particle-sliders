@@ -7,7 +7,7 @@ This is the metric that actually tracks render quality (the open-loop probe
 is blind to pole explode/collapse); see docs/tf-leak.md.
 
   python scripts/tf_gate_metric.py --weights models/distortion-tf-v7/distortion-tf-v7_last.safetensors \
-      --prompts_file conceptmod/textsliders/data/prompts-distortion-tf-v7.yaml \
+      --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-distortion-tf-v7.yaml \
       --cache_dir cache/distortion-tf-v7
 
 Pass --no-vocoder to get the cheap latent-energy variant (used to measure
@@ -37,9 +37,9 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.lora import LoRANetwork  # noqa: E402
-from conceptmod.textsliders.render_gate import load_vocoder, run_gate  # noqa: E402
-from conceptmod.textsliders.train_lora_music3 import (  # noqa: E402
+from particle_sliders.textsliders.lora import LoRANetwork  # noqa: E402
+from particle_sliders.textsliders.render_gate import load_vocoder, run_gate  # noqa: E402
+from particle_sliders.textsliders.train_lora_music3 import (  # noqa: E402
     _load_transformer,
     _pick_device,
     build_conditions,

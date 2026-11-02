@@ -147,7 +147,7 @@ caption REFs) live under [`samples/uni-lyric/`](samples/uni-lyric/).
 <audio controls preload="none"><source src="https://huggingface.co/ntc-ai/minimax-music3-concept-sliders/resolve/main/samples/demo/joy-somber-2.mp3" type="audio/mpeg"></audio>
 
 Training code: [ntc-ai/sliders-conceptmod](https://github.com/ntc-ai/sliders-conceptmod)
-(`conceptmod/textsliders/train_lm_slider_music3.py`).
+(`packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py`).
 
 ## Objective (uni-lyric)
 

@@ -29,8 +29,8 @@ from analysis.slider2d.rich import (
 from analysis.slider2d.train import Residual, infer_dim, music3_pairs, subtract_axis, train_lm
 from analysis.slider2d.faithful import leak_teacher, score_leak_lm
 from analysis.slider2d.mismatch import MismatchField2D, mismatch_pairs, score_against_odd
-from conceptmod.textsliders.slider_targets import lm_hidden_targets, lm_odd_align
-from conceptmod.textsliders.train_lm_slider_music3 import parse_args, resolve_lm_recipe
+from particle_sliders.textsliders.slider_targets import lm_hidden_targets, lm_odd_align
+from particle_sliders.textsliders.train_lm_slider_music3 import parse_args, resolve_lm_recipe
 
 
 _CORE = None

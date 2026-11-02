@@ -1,10 +1,10 @@
 import pytest
-from conceptmod.textsliders.reward_game import confirmation as module
-from conceptmod.textsliders.reward_game.core import IntegrityError, Store, immutable, digest, write
+from particle_sliders.textsliders.reward_game import confirmation as module
+from particle_sliders.textsliders.reward_game.core import IntegrityError, Store, immutable, digest, write
 
 
 def test_freeze_refuses_partial_development_before_loading_candidate(tmp_path,monkeypatch):
-    from conceptmod.textsliders.reward_game import evaluate
+    from particle_sliders.textsliders.reward_game import evaluate
     monkeypatch.setattr(module,'verify',lambda home: ({},{}))
     monkeypatch.setattr(evaluate,'inspect',lambda home,evaluation: dict(stage=16,valid_cases=15,advance=False))
     monkeypatch.setattr(module,'checkpoint',lambda *args:pytest.fail('Must not inspect or render a candidate before its development pass'))

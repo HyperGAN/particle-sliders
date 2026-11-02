@@ -163,8 +163,8 @@ and [stability evidence](https://huggingface.co/ntc-ai/yue2-concept-sliders/blob
 normalization, generated continuation histories and a run-budget noise schedule;
 alternative critics and noise holds are also available. The core paired-error
 game remains, but a fresh run is not an exact replay of the published release.
-Implementation: [YuE2 adapter and trainer](../conceptmod/textsliders/yue2_particle_bridge.py),
-[shared game](../conceptmod/textsliders/particle_bridge_gan.py),
+Implementation: [YuE2 adapter and trainer](../packages/particle-sliders-core/src/particle_sliders/textsliders/yue2_particle_bridge.py),
+[shared game](../packages/particle-sliders-core/src/particle_sliders/textsliders/particle_bridge_gan.py),
 [reference audit](yue2-particle-bridge.md).
 
 ## Training evidence
@@ -235,7 +235,7 @@ $r$ is the rank, $\alpha$ is the adapter normalization and $s$ is the slider
 strength. The up projection starts at zero. At $s=0$ the adapter contributes
 nothing; at $s=1$ it applies the learned unit edit. The complete generator can
 respond nonlinearly even though this weight update is linear. See
-[`lora.py`](../conceptmod/textsliders/lora.py).
+[`lora.py`](../packages/particle-sliders-core/src/particle_sliders/textsliders/lora.py).
 
 **Unipolar** recipes teach neutral → positive at $+1$. Negative strengths are
 untrained extrapolation, not a learned opposite. **Bipolar** recipes explicitly
@@ -272,7 +272,7 @@ Its training inputs are anchored to generated clean latents,
 $x_t=(1-t)\epsilon+t x_0$, using Music 3's noise-to-clean time convention.
 The alternative `pole` target learns each caption's displacement from neutral
 instead of forcing symmetric movement along $c_+-c_-$. Executable definitions:
-[`slider_targets.py`](../conceptmod/textsliders/slider_targets.py).
+[`slider_targets.py`](../packages/particle-sliders-core/src/particle_sliders/textsliders/slider_targets.py).
 
 ### Language-model targets and the common component
 
@@ -363,7 +363,7 @@ histories. Continuation uses one row per update in balanced shuffled passes,
 with a fresh base history for ending supervision and a per-parameter update
 norm cap of 2. Prompt-state teachers remain fixed. See the
 [release formulation](hub-formulation-fresh-selected.md) and
-[`gan_v2/`](../conceptmod/textsliders/gan_v2/) for implementation details.
+[`gan_v2/`](../packages/particle-sliders-core/src/particle_sliders/textsliders/gan_v2/) for implementation details.
 
 ## Evaluation
 

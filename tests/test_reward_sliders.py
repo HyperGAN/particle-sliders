@@ -7,10 +7,10 @@ import pytest
 import torch
 from torch import nn
 
-from conceptmod.textsliders.reward_sliders.capture import ResidualCapture
-from conceptmod.textsliders.reward_sliders.directions import choose_dev, causal_gate, paired_statistics, fit_direction
-from conceptmod.textsliders.reward_sliders.reward import scoring_windows
-from conceptmod.textsliders.reward_sliders.fixtures import pilot
+from particle_sliders.textsliders.reward_sliders.capture import ResidualCapture
+from particle_sliders.textsliders.reward_sliders.directions import choose_dev, causal_gate, paired_statistics, fit_direction
+from particle_sliders.textsliders.reward_sliders.reward import scoring_windows
+from particle_sliders.textsliders.reward_sliders.fixtures import pilot
 
 
 class Decoder(nn.Module):
@@ -133,9 +133,9 @@ def test_authored_fixture_split_and_balance():
 
 def test_real_qwen_generation_student_has_nonzero_target_and_trainable_lora(tmp_path):
     from transformers import Qwen3Config, Qwen3ForCausalLM
-    from conceptmod.textsliders.reward_sliders.data import prepare_reward_rows, RewardStudentForward, set_scale
-    from conceptmod.textsliders.reward_sliders.directions import RewardTeacher
-    from conceptmod.textsliders.reward_sliders.specs import sha, WORKSPACE
+    from particle_sliders.textsliders.reward_sliders.data import prepare_reward_rows, RewardStudentForward, set_scale
+    from particle_sliders.textsliders.reward_sliders.directions import RewardTeacher
+    from particle_sliders.textsliders.reward_sliders.specs import sha, WORKSPACE
     import sys
     sys.path.insert(0,str(WORKSPACE))
     from app.lora_runtime import LoRANetwork
@@ -159,9 +159,9 @@ def test_real_qwen_generation_student_has_nonzero_target_and_trainable_lora(tmp_
     loss.backward()
     assert sum(float(m.lora_up.weight.grad.abs().sum()) for m in network.unet_loras)>0
     assert all(p.grad is None for p in lm.parameters())
-    from conceptmod.textsliders.gan_v2.critic import SpanCritic,pad_sequences
-    from conceptmod.textsliders.gan_v2.engine import GANEngine
-    from conceptmod.textsliders.gan_v2.train import arm_settings
+    from particle_sliders.textsliders.gan_v2.critic import SpanCritic,pad_sequences
+    from particle_sliders.textsliders.gan_v2.engine import GANEngine
+    from particle_sliders.textsliders.gan_v2.train import arm_settings
     recipe,_=arm_settings('baseline',origin=0,horizon=660,diagnostics_every=0)
     critic=SpanCritic(16,width=8,layers=1,heads=2,conditioned=False,ordered=False,normalized_features=False)
     real,mask=pad_sequences([r['real'] for r in rows]); critic.calibrate_input_scale(real,mask)
@@ -174,7 +174,7 @@ def test_real_qwen_generation_student_has_nonzero_target_and_trainable_lora(tmp_
 
 
 def test_family_sampler_restores_and_weights_families_equally():
-    from conceptmod.textsliders.reward_sliders.data import FamilySampler
+    from particle_sliders.textsliders.reward_sliders.data import FamilySampler
     rows=[dict(family=f) for f in ('a','b','c') for _ in range(8)]
     sampler=FamilySampler(rows)
     batches=[sampler.next() for _ in range(6)]
@@ -186,7 +186,7 @@ def test_family_sampler_restores_and_weights_families_equally():
 
 
 def test_composition_preserves_direct_strength_and_has_reduced_control():
-    from conceptmod.textsliders.reward_sliders.evaluate import composition_settings
+    from particle_sliders.textsliders.reward_sliders.evaluate import composition_settings
     settings=composition_settings({'female':1.68,'pop':1.12},.2,4.)
     assert settings['added-isolated']['energy']==pytest.approx(3.)
     assert settings['added-isolated']['shares']['female']==pytest.approx(.56)
@@ -198,7 +198,7 @@ def test_composition_preserves_direct_strength_and_has_reduced_control():
 
 def test_full_song_normalizes_one_copy_and_weights_actual_tail(tmp_path):
     import soundfile as sf
-    from conceptmod.textsliders.reward_sliders.reward import CEReward
+    from particle_sliders.textsliders.reward_sliders.reward import CEReward
     signal=np.concatenate([np.ones(100)*.05,np.ones(100)*.2,np.ones(53)*.1]).astype('float32')[:,None]
     path=tmp_path/'audio.wav';sf.write(path,signal,10,subtype='FLOAT')
     scorer=CEReward();scorer.model=object()
@@ -216,8 +216,8 @@ def test_full_song_normalizes_one_copy_and_weights_actual_tail(tmp_path):
 
 
 def test_generic_lower_reward_orientation_is_not_just_a_label():
-    from conceptmod.textsliders.reward_sliders.interfaces import fit_reward_teacher
-    from conceptmod.textsliders.reward_sliders.specs import RewardSpec,digest
+    from particle_sliders.textsliders.reward_sliders.interfaces import fit_reward_teacher
+    from particle_sliders.textsliders.reward_sliders.specs import RewardSpec,digest
     from dataclasses import asdict
     rows=[obs('a',i,'off',float(i),'train') for i in (1,2)]
     features={r['id']:{'11':dict(mean=torch.tensor([float(r['seed']),0.]),residual_norms=torch.ones(2,500))} for r in rows}
@@ -235,7 +235,7 @@ def test_checkpoint_formula_matches_full_merge_and_exact_off(tmp_path):
     from safetensors.torch import save_file
     from types import SimpleNamespace
     from app.lora_runtime import LoRANetwork
-    from conceptmod.textsliders.reward_sliders.audit import audit_merged_adapter
+    from particle_sliders.textsliders.reward_sliders.audit import audit_merged_adapter
     from app import generator
     lm=Qwen3ForCausalLM(Qwen3Config(hidden_size=16,intermediate_size=32,num_hidden_layers=36,
                         num_attention_heads=2,num_key_value_heads=1,head_dim=8,vocab_size=64)).bfloat16().eval()
@@ -256,8 +256,8 @@ def test_checkpoint_formula_matches_full_merge_and_exact_off(tmp_path):
 
 
 def test_training_gate_recomputes_evidence_and_requires_reversed_controls(tmp_path):
-    from conceptmod.textsliders.reward_sliders.train import require_causal_evidence
-    from conceptmod.textsliders.reward_sliders.specs import write_json,read_json,digest,sha
+    from particle_sliders.textsliders.reward_sliders.train import require_causal_evidence
+    from particle_sliders.textsliders.reward_sliders.specs import write_json,read_json,digest,sha
     manifest={'pilot':{'minimum_causal_ce_gain':.02}}
     teacher=tmp_path/'teacher.pt';teacher.write_bytes(b'test teacher identity')
     audio=tmp_path/'test.wav';audio.write_bytes(b'test audio identity')

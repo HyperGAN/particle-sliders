@@ -28,7 +28,7 @@ from analysis.slider2d.roles import (
     role_rank,
     role_verdict,
 )
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     RoleSpanError,
     lm_faithful_plus_neu,
     lm_faithful_plus_neu_prefix,
@@ -40,7 +40,7 @@ from conceptmod.textsliders.slider_targets import (
     lm_role_span_bounds,
     lm_span_mse,
 )
-from conceptmod.textsliders.train_lm_slider_music3 import (
+from particle_sliders.textsliders.train_lm_slider_music3 import (
     PLUS_NEU_PREFIX_RECIPES,
     PLUS_NEU_RECIPES,
     PLUS_NEU_ROLES_RECIPES,
@@ -199,7 +199,7 @@ def test_role_spans_prefer_vocal_details_and_fail_closed():
 
 
 def test_not_last_delta_off_lyric_and_not_whole_prefix():
-    src = Path("conceptmod/textsliders/slider_targets.py").read_text()
+    src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/slider_targets.py").read_text()
     roles = Path("analysis/slider2d/roles.py").read_text()
     assert "lm_plus_neu_roles_loss" in src
     assert "lm_project_last_delta_off_lyric" in src
@@ -208,7 +208,7 @@ def test_not_last_delta_off_lyric_and_not_whole_prefix():
     span = torch.ones(3, 4)
     projected = lm_project_last_delta_off_lyric(delta, span)
     assert projected.shape == delta.shape
-    trainer = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    trainer = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert "PLUS_NEU_PREFIX_RECIPES = frozenset({\"faithful_plus_neu_prefix\"})" in trainer
     assert "PLUS_NEU_ROLES_RECIPES = frozenset({\"faithful_plus_neu_roles\"})" in trainer
 

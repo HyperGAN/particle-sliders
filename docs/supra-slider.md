@@ -72,9 +72,9 @@ cross-attn, so targets are path suffixes.
 ## Live train card
 
 ```bash
-HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_supra.py \
+HF_HUB_OFFLINE=1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_supra.py \
   --name lighting-supra \
-  --prompts_file conceptmod/textsliders/data/prompts-supra.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-supra.yaml \
   --model_id SupraLabs/Supra2-IMG \
   --lora_targets cross --rank 16 --resolution 256 \
   --sample_steps 50 --cfg 3 \
@@ -86,13 +86,13 @@ HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_supra.py \
 Print the card without training:
 
 ```bash
-PYTHONPATH=. python conceptmod/textsliders/train_lora_supra.py --print_card
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_supra.py --print_card
 ```
 
 Dummy (CI / no GPU / no Hub):
 
 ```bash
-PYTHONPATH=. python conceptmod/textsliders/train_lora_supra.py \
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_supra.py \
   --dummy --steps 8 --device cpu --save_dir /tmp/supra-dummy
 PYTHONPATH=. pytest tests/test_supra_slider.py -q
 ```
@@ -117,8 +117,8 @@ Not in this PR:
 
 ## Yaml
 
-`conceptmod/textsliders/data/prompts-supra.yaml` — woman and man, neutral
-daylight vs warm sun. `conceptmod/textsliders/data/config-supra.yaml`
+`packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-supra.yaml` — woman and man, neutral
+daylight vs warm sun. `packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-supra.yaml`
 records the same card the CLI defaults use.
 
 ## Related

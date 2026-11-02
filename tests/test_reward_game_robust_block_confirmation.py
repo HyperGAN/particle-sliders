@@ -1,15 +1,15 @@
 import pytest
-from conceptmod.textsliders.reward_game import acoustic_confirmation as confirmation
-from conceptmod.textsliders.reward_game import acoustic_composition as composition
-from conceptmod.textsliders.reward_game.core import IntegrityError, write, read, digest
+from particle_sliders.textsliders.reward_game import acoustic_confirmation as confirmation
+from particle_sliders.textsliders.reward_game import acoustic_composition as composition
+from particle_sliders.textsliders.reward_game.core import IntegrityError, write, read, digest
 
 
 @pytest.mark.parametrize('host', ['robust_block'])
 def test_acoustic_confirmation_requires_full_development_pass(tmp_path, monkeypatch, host):
     import importlib
-    confirmation=importlib.import_module('conceptmod.textsliders.reward_game.'+host+'_confirmation')
-    composition=importlib.import_module('conceptmod.textsliders.reward_game.'+host+'_composition')
-    acoustic_evaluate=importlib.import_module('conceptmod.textsliders.reward_game.'+('block' if host=='robust_block' else host)+'_evaluate')
+    confirmation=importlib.import_module('particle_sliders.textsliders.reward_game.'+host+'_confirmation')
+    composition=importlib.import_module('particle_sliders.textsliders.reward_game.'+host+'_composition')
+    acoustic_evaluate=importlib.import_module('particle_sliders.textsliders.reward_game.'+('block' if host=='robust_block' else host)+'_evaluate')
     monkeypatch.setattr(confirmation, 'verify', lambda home: ({}, {}))
     monkeypatch.setattr(acoustic_evaluate, 'inspect', lambda *args: dict(stage=8, valid_cases=8, advance=True))
     with pytest.raises(IntegrityError, match='strict completed'):
@@ -20,11 +20,11 @@ def test_acoustic_confirmation_requires_full_development_pass(tmp_path, monkeypa
 @pytest.mark.parametrize('host', ['robust_block'])
 def test_fresh_manifest_carries_separate_host_limits(tmp_path, monkeypatch, host):
     import importlib
-    confirmation=importlib.import_module('conceptmod.textsliders.reward_game.'+host+'_confirmation')
-    composition=importlib.import_module('conceptmod.textsliders.reward_game.'+host+'_composition')
-    acoustic_evaluate=importlib.import_module('conceptmod.textsliders.reward_game.'+('block' if host=='robust_block' else host)+'_evaluate')
-    from conceptmod.textsliders.reward_game.confirmation_fixtures import families
-    from conceptmod.textsliders.reward_sliders import render, evaluate
+    confirmation=importlib.import_module('particle_sliders.textsliders.reward_game.'+host+'_confirmation')
+    composition=importlib.import_module('particle_sliders.textsliders.reward_game.'+host+'_composition')
+    acoustic_evaluate=importlib.import_module('particle_sliders.textsliders.reward_game.'+('block' if host=='robust_block' else host)+'_evaluate')
+    from particle_sliders.textsliders.reward_game.confirmation_fixtures import families
+    from particle_sliders.textsliders.reward_sliders import render, evaluate
     parent=tmp_path/'parent'; home=parent/(host+'-v1')
     write(home/'game.json', dict(parent_home=str(parent)))
     write(parent/('recipes/confirmation-template-'+host.replace('_','-')+'-v1.json'), dict(version=host+'-v1'))
@@ -50,12 +50,12 @@ def test_fresh_manifest_carries_separate_host_limits(tmp_path, monkeypatch, host
 @pytest.mark.parametrize('host', ['robust_block'])
 def test_composition_matches_actual_studio_allocation_without_reducing_other_host(tmp_path, monkeypatch, host):
     import importlib
-    confirmation=importlib.import_module('conceptmod.textsliders.reward_game.'+host+'_confirmation')
-    composition=importlib.import_module('conceptmod.textsliders.reward_game.'+host+'_composition')
+    confirmation=importlib.import_module('particle_sliders.textsliders.reward_game.'+host+'_confirmation')
+    composition=importlib.import_module('particle_sliders.textsliders.reward_game.'+host+'_composition')
     from app.sliders import _apply_host_energy
-    renderer_module=importlib.import_module('conceptmod.textsliders.reward_game.'+('block' if host=='robust_block' else host)+'_renderer')
+    renderer_module=importlib.import_module('particle_sliders.textsliders.reward_game.'+('block' if host=='robust_block' else host)+'_renderer')
     renderer_class=getattr(renderer_module, {'acoustic':'AcousticRenderer','ff':'FeedForwardRenderer','block':'AcousticBlockRenderer','robust_block':'AcousticBlockRenderer'}[host])
-    from conceptmod.textsliders.reward_sliders import render, evaluate, specs
+    from particle_sliders.textsliders.reward_sliders import render, evaluate, specs
     families=[dict(family=f'f{i}', style_multipliers={'first':.8, 'second':1.2}) for i in range(8)]
     candidate=dict(path='candidate', multiplier=1.)
     protocol=dict(candidate=candidate, seeds=[13, 17])
@@ -83,9 +83,9 @@ def test_composition_matches_actual_studio_allocation_without_reducing_other_hos
 @pytest.mark.parametrize('host', ['robust_block'])
 def test_acoustic_replication_failure_prevents_packaging(tmp_path, monkeypatch, host):
     import importlib
-    confirmation=importlib.import_module('conceptmod.textsliders.reward_game.'+host+'_confirmation')
-    composition=importlib.import_module('conceptmod.textsliders.reward_game.'+host+'_composition')
-    completion=importlib.import_module('conceptmod.textsliders.reward_game.'+host+'_complete_confirmation')
+    confirmation=importlib.import_module('particle_sliders.textsliders.reward_game.'+host+'_confirmation')
+    composition=importlib.import_module('particle_sliders.textsliders.reward_game.'+host+'_composition')
+    completion=importlib.import_module('particle_sliders.textsliders.reward_game.'+host+'_complete_confirmation')
     def verify(home, folder):
         first=folder.name=='first'
         return dict(replication_of=None if first else 'first', candidate=dict(path='same'),

@@ -17,7 +17,7 @@ from analysis.slider2d.overlap import (
     mean_odd_unit,
     score_overlap_policy,
 )
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     LEAK_HOLD_WEIGHT,
     lm_hold_dir,
     lm_unit,

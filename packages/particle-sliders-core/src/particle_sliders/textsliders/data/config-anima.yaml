@@ -1,0 +1,33 @@
+# Anima live train card. Dummy / CI never reads Hub weights.
+prompts_file: packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml
+pretrained_model:
+  name_or_path: circlestone-labs/Anima-Base-v1.0-Diffusers
+network:
+  type: lierla
+  rank: 16
+  alpha: 16.0
+  training_method: lora
+  lora_targets: conditioner
+  targets:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+  train_text_conditioner: true
+train:
+  precision: bfloat16
+  iterations: 500
+  lr: 0.0001
+  cfg: 4.0
+  sample_steps: 40
+  sample_every: 100
+  resolution: 768
+  hold_weight: 1.0
+  lm_target: direct
+save:
+  name: smile-anima
+  path: ./models/smile-anima
+  per_steps: 100
+logging:
+  use_wandb: false
+  verbose: false

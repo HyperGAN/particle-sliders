@@ -74,8 +74,8 @@ holding identity. That is the teacher: frozen `encode(plus)`, not
 
 ```bash
 # first live: diagnose the text-path gap (no train)
-python conceptmod/textsliders/diag_ltx25_uni.py \
-  --prompts_file conceptmod/textsliders/data/prompts-ltx25-smile.yaml \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/diag_ltx25_uni.py \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-ltx25-smile.yaml \
   --device cuda:0 --encoder_device cuda:1 \
   --save_dir models/smile-ltx25-uni/diag
 ```
@@ -162,12 +162,12 @@ Prompts:
 
 ```bash
 # smile (validated v1g)
-python conceptmod/textsliders/train_lora_ltx25.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_ltx25.py \
   --name smile-ltx25-uni \
   --model_id Lightricks/LTX-2.5-Diffusers \
   --transformer_subfolder transformer \
   --recipe ltx25_uni_embed \
-  --prompts_file conceptmod/textsliders/data/prompts-ltx25-smile.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-ltx25-smile.yaml \
   --attributes "male, female" \
   --rank 16 --alpha 16 --lr 2e-4 --steps 700 --seed 7 \
   --te_last_n 4 --embed_rel_l2_weight 1.0 \
@@ -179,10 +179,10 @@ python conceptmod/textsliders/train_lora_ltx25.py \
   --save_dir models/smile-ltx25-uni
 
 # chiaroscuro (validated v1, same recipe)
-python conceptmod/textsliders/train_lora_ltx25.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_ltx25.py \
   --name chiaro-ltx25-uni \
-  --prompts_file conceptmod/textsliders/data/prompts-ltx25-chiaroscuro.yaml \
-  --config_file conceptmod/textsliders/data/config-ltx25-chiaroscuro.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-ltx25-chiaroscuro.yaml \
+  --config_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-ltx25-chiaroscuro.yaml \
   --rank 16 --lr 2e-4 --steps 700 --seed 7 --te_last_n 4 \
   --hold_mode non_concept \
   --device cuda:0 --encoder_device cuda:1 \
@@ -215,9 +215,9 @@ Single-GPU fallback: `--encoder_device cuda:0` and park DiT with
 Sample a saved adapter without training:
 
 ```bash
-python conceptmod/textsliders/train_lora_ltx25.py \
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_ltx25.py \
   --name smile-ltx25-uni \
-  --prompts_file conceptmod/textsliders/data/prompts-ltx25-smile.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-ltx25-smile.yaml \
   --steps 0 --load_ltx_lora models/smile-ltx25-uni \
   --sample_scales=-1,0,0.5,1 \
   --sample_num_frames 49 --sample_height 544 --sample_width 960 \
@@ -250,8 +250,8 @@ Embed-match train does not need the DiT on GPU. Sample does.
 ## CPU / CI
 
 ```bash
-PYTHONPATH=. python conceptmod/textsliders/train_lora_ltx25.py --dummy --steps 4 --name ltx25-dummy
-PYTHONPATH=. python conceptmod/textsliders/diag_ltx25_uni.py --dummy --save_dir /tmp/ltx25-diag
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_ltx25.py --dummy --steps 4 --name ltx25-dummy
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/diag_ltx25_uni.py --dummy --save_dir /tmp/ltx25-diag
 PYTHONPATH=. pytest tests/test_ltx25_slider.py -q
 python scripts/smoke_ltx25_slider.py
 ```

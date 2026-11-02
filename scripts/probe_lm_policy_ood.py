@@ -17,7 +17,7 @@ winners. This probe instead asks, at the first AR token (prompt-last):
 Slider clips encode the *neutral* caption with the LoRA on, same as generate.
 
   $PY scripts/probe_lm_policy_ood.py \\
-      --prompts_file conceptmod/textsliders/data/prompts-cand-dust-v1.yaml \\
+      --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-cand-dust-v1.yaml \\
       --weights models/dust-lm-v1-planreg03/dust-lm-v1-planreg03_last.safetensors \\
                  models/dust-lm-v1-faithful-kl-pole03/dust-lm-v1-faithful-kl-pole03_last.safetensors \\
       --device 1
@@ -45,9 +45,9 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.generate_listen import _sidecar  # noqa: E402
-from conceptmod.textsliders.lora import LoRANetwork  # noqa: E402
-from conceptmod.textsliders.train_lm_slider_music3 import (  # noqa: E402
+from particle_sliders.textsliders.generate_listen import _sidecar  # noqa: E402
+from particle_sliders.textsliders.lora import LoRANetwork  # noqa: E402
+from particle_sliders.textsliders.train_lm_slider_music3 import (  # noqa: E402
     DEFAULT_MODEL,
     TARGET_REPLACE,
     _assemble,

@@ -9,7 +9,7 @@ import pytest
 import torch
 import yaml
 
-from conceptmod.textsliders.ltx25_backend import (
+from particle_sliders.textsliders.ltx25_backend import (
     DEFAULT_ALPHA,
     DEFAULT_ENCODER_DEVICE,
     DEFAULT_LORA_UP_INIT_STD,
@@ -69,7 +69,7 @@ from conceptmod.textsliders.ltx25_backend import (
     video_attn_lora_targets,
     video_connector_lora_targets,
 )
-from conceptmod.textsliders.ltx25_uni import (
+from particle_sliders.textsliders.ltx25_uni import (
     DEFAULT_EMBED_REL_L2_WEIGHT,
     DEFAULT_HOLD_MODE,
     DEFAULT_RECIPE,
@@ -103,7 +103,7 @@ from conceptmod.textsliders.ltx25_uni import (
     valid_hidden_rows,
     velocity_pair,
 )
-from conceptmod.textsliders.diag_ltx25_uni import (
+from particle_sliders.textsliders.diag_ltx25_uni import (
     COS_L2_KEYS,
     DIAG_ROW_KEYS,
     HOW_TO_READ,
@@ -113,7 +113,7 @@ from conceptmod.textsliders.diag_ltx25_uni import (
     parse_diag_args,
     run_diag,
 )
-from conceptmod.textsliders.train_lora_ltx25 import (
+from particle_sliders.textsliders.train_lora_ltx25 import (
     load_slider_rows,
     main as train_main,
     parse_args,
@@ -203,7 +203,7 @@ def test_embed_lora_attaches_to_te_last_n_and_video_connectors():
     assert indices == list(range(DUMMY_TE_LAYERS))
     keep = set(indices[-DEFAULT_TE_LAST_N:])
     for name in te_targets:
-        from conceptmod.textsliders.ltx25_backend import te_layer_index
+        from particle_sliders.textsliders.ltx25_backend import te_layer_index
         assert te_layer_index(name) in keep
     conn_targets = video_connector_lora_targets(backend.connectors)
     assert conn_targets
@@ -360,7 +360,7 @@ def test_uni_velocity_has_no_minus_teacher():
 
 
 def test_smile_yaml_same_subject_bare_captions():
-    path = Path("conceptmod/textsliders/data/prompts-ltx25-smile.yaml")
+    path = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-ltx25-smile.yaml")
     raw = yaml.safe_load(path.read_text())
     assert raw["bare_captions"] is True
     assert raw["concept_words"] == "smiling, smile, happy, joyful, teeth"
@@ -462,19 +462,19 @@ def test_plus_and_neu_velocities_differ():
 
 
 def test_music3_defaults_unchanged():
-    tf_src = Path("conceptmod/textsliders/train_lora_music3.py").read_text()
+    tf_src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py").read_text()
     assert 'parser.add_argument("--steps", type=int, default=500)' in tf_src
     assert 'parser.add_argument("--rank", type=int, default=8)' in tf_src
-    lm_src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    lm_src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert '"--lm_target"' in lm_src and 'default="v9"' in lm_src
     assert '"--pole_mode"' in lm_src and 'default="hidden"' in lm_src
-    music3_yaml = Path("conceptmod/textsliders/data/prompts-music3.yaml").read_text()
+    music3_yaml = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-music3.yaml").read_text()
     assert "LTX-2.5" not in music3_yaml
-    assert "MiniMax-H3" not in Path("conceptmod/textsliders/data/prompts-ltx25-smile.yaml").read_text()
+    assert "MiniMax-H3" not in Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-ltx25-smile.yaml").read_text()
 
 
 def test_config_points_at_ltx25_distilled():
-    cfg = yaml.safe_load(Path("conceptmod/textsliders/data/config-ltx25.yaml").read_text())
+    cfg = yaml.safe_load(Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-ltx25.yaml").read_text())
     assert cfg["pretrained_model"]["name_or_path"] == "Lightricks/LTX-2.5-Diffusers"
     assert cfg["pretrained_model"]["transformer_subfolder"] == "transformer"
     assert cfg["train"]["recipe"] == RECIPE_EMBED
@@ -501,7 +501,7 @@ def test_config_points_at_ltx25_distilled():
 
 
 def test_live_load_is_not_imported_on_dummy():
-    import conceptmod.textsliders.ltx25_backend as ltx
+    import particle_sliders.textsliders.ltx25_backend as ltx
 
     called = {"n": 0}
 
@@ -719,7 +719,7 @@ def _assert_diag_row(row: dict) -> None:
 def test_dummy_diag_expression_gap_not_lighting(tmp_path):
     args = parse_diag_args([
         "--dummy", "--name", "ltx-diag", "--save_dir", str(tmp_path),
-        "--prompts_file", "conceptmod/textsliders/data/prompts-ltx25-smile.yaml",
+        "--prompts_file", "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-ltx25-smile.yaml",
         "--seed", "0",
     ])
     summary = run_diag(args)
@@ -741,7 +741,7 @@ def test_dummy_diag_expression_gap_not_lighting(tmp_path):
     via = train_main([
         "--dummy", "--diag", "--name", "ltx-diag-flag",
         "--save_dir", str(tmp_path / "via-train"),
-        "--prompts_file", "conceptmod/textsliders/data/prompts-ltx25-smile.yaml",
+        "--prompts_file", "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-ltx25-smile.yaml",
         "--seed", "2",
     ])
     assert via["recipe"] == "ltx25_uni_diag"
@@ -919,7 +919,7 @@ def test_embed_match_cli_dummy_and_velocity_opt_in(tmp_path):
 
 
 def test_chiaroscuro_yaml_locked_non_concept_structure():
-    path = Path("conceptmod/textsliders/data/prompts-ltx25-chiaroscuro.yaml")
+    path = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-ltx25-chiaroscuro.yaml")
     raw = yaml.safe_load(path.read_text())
     assert raw["bare_captions"] is True
     assert "chiaroscuro" in raw["concept_words"].lower()
@@ -943,7 +943,7 @@ def test_chiaroscuro_yaml_locked_non_concept_structure():
             DummyTokenizer(), row["positive"], row["neutral"], row["concept_words"],
         )
         assert concept
-    cfg = yaml.safe_load(Path("conceptmod/textsliders/data/config-ltx25-chiaroscuro.yaml").read_text())
+    cfg = yaml.safe_load(Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-ltx25-chiaroscuro.yaml").read_text())
     assert cfg["train"]["recipe"] == RECIPE_EMBED
     assert cfg["network"]["train_dit"] is False
     assert cfg["train"]["sample_scales"] == [-1.0, 0.0, 0.5, 1.0]
@@ -953,7 +953,7 @@ def test_te_attn_selector_skips_early_layers_and_audio_connectors():
     backend = LTX25Backend(device="cpu", dummy=True)
     last = te_last_n_attn_targets(backend.encoder, last_n=4)
     assert last
-    from conceptmod.textsliders.ltx25_backend import te_layer_index
+    from particle_sliders.textsliders.ltx25_backend import te_layer_index
     assert {te_layer_index(n) for n in last} == {2, 3, 4, 5}
     assert is_te_attn_linear("layers.5.self_attn.q_proj", last_n=4, layer_indices=list(range(6)))
     assert not is_te_attn_linear("layers.0.self_attn.q_proj", last_n=4, layer_indices=list(range(6)))

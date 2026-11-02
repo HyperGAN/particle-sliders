@@ -24,8 +24,8 @@ from .spec import REPO_ROOT, SCORED_FEATURES, SweepSpec, VariantSpec
 from .stats import paired_summary, percentile
 
 PY = "/home/mikkel/anaconda3/envs/minimax-music3/bin/python"
-TRAINER = REPO_ROOT / "conceptmod/textsliders/train_lora_music3.py"
-RENDERER = REPO_ROOT / "conceptmod/textsliders/generate_listen.py"
+TRAINER = REPO_ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py"
+RENDERER = REPO_ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py"
 
 # sidecar key per trainer arg the pipeline pins or varies; used for the
 # config-echo check after every adopted or fresh training run.

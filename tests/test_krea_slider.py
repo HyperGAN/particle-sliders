@@ -13,7 +13,7 @@ import pytest
 import torch
 import torch.nn.functional as F
 
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     KREA_CONTROL_PROMPT,
     KREA_DEFAULT_LORA_TARGETS,
     KREA_DEFAULT_RANK,
@@ -78,7 +78,7 @@ from conceptmod.textsliders.slider_targets import (
     resolve_krea_lora_targets,
     resolve_krea_sample_guidance,
 )
-from conceptmod.textsliders.train_lora_krea import (
+from particle_sliders.textsliders.train_lora_krea import (
     DummyKreaBackend,
     DummyKreaTE,
     assert_krea_only,
@@ -92,15 +92,15 @@ from conceptmod.textsliders.train_lora_krea import (
     train,
     unused_words_for,
 )
-from conceptmod.textsliders.train_lm_slider_music3 import parse_args as parse_lm
+from particle_sliders.textsliders.train_lm_slider_music3 import parse_args as parse_lm
 
 
 ROOT = Path(__file__).resolve().parents[1]
-KREA_YAML = ROOT / "conceptmod/textsliders/data/prompts-krea.yaml"
-KREA_HAPPY_YAML = ROOT / "conceptmod/textsliders/data/prompts-krea-happy.yaml"
-KREA_DETAILED_YAML = ROOT / "conceptmod/textsliders/data/prompts-krea-detailed.yaml"
-KREA_TRAINER = ROOT / "conceptmod/textsliders/train_lora_krea.py"
-KREA_LIVE = ROOT / "conceptmod/textsliders/krea_live.py"
+KREA_YAML = ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea.yaml"
+KREA_HAPPY_YAML = ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-happy.yaml"
+KREA_DETAILED_YAML = ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-krea-detailed.yaml"
+KREA_TRAINER = ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_krea.py"
+KREA_LIVE = ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/krea_live.py"
 
 
 def test_music3_lm_default_is_still_v9_hidden():
@@ -110,7 +110,7 @@ def test_music3_lm_default_is_still_v9_hidden():
 
 
 def test_music3_tf_defaults_are_unchanged():
-    src = (ROOT / "conceptmod/textsliders/train_lora_music3.py").read_text(
+    src = (ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py").read_text(
         encoding="utf-8"
     )
     assert 'default=8)' in src or 'default=8,' in src
@@ -412,7 +412,7 @@ def test_refuses_foreign_backends():
 
 def test_dummy_step_has_no_minus_teacher(tmp_path: Path):
     backend = DummyKreaBackend(dim=8, rank=2, seed=0)
-    from conceptmod.textsliders.train_lora_krea import KreaSliderPrompt
+    from particle_sliders.textsliders.train_lora_krea import KreaSliderPrompt
 
     prompt = KreaSliderPrompt(
         target="a person",
@@ -523,8 +523,8 @@ def test_dummy_happy_train_writes_smile_grid(tmp_path: Path):
 def test_dummy_does_not_import_krea_live(tmp_path: Path):
     import sys
 
-    sys.modules.pop("conceptmod.textsliders.krea_live", None)
-    sys.modules.pop("conceptmod.textsliders.krea_weights", None)
+    sys.modules.pop("particle_sliders.textsliders.krea_live", None)
+    sys.modules.pop("particle_sliders.textsliders.krea_weights", None)
     args = parse_args(
         [
             "--dummy",
@@ -537,8 +537,8 @@ def test_dummy_does_not_import_krea_live(tmp_path: Path):
         ]
     )
     train(args)
-    assert "conceptmod.textsliders.krea_live" not in sys.modules
-    assert "conceptmod.textsliders.krea_weights" not in sys.modules
+    assert "particle_sliders.textsliders.krea_live" not in sys.modules
+    assert "particle_sliders.textsliders.krea_weights" not in sys.modules
 
 
 def test_live_loader_does_not_run_in_dummy():
@@ -714,7 +714,7 @@ def test_dummy_te_hold_has_grad(tmp_path: Path):
     backend = DummyKreaBackend(dim=8, rank=2, seed=2, lora_targets="te")
     with torch.no_grad():
         backend.te.lora_up.weight.fill_(0.2)
-    from conceptmod.textsliders.train_lora_krea import KreaSliderPrompt
+    from particle_sliders.textsliders.train_lora_krea import KreaSliderPrompt
 
     prompt = KreaSliderPrompt(
         target="a person",
@@ -977,7 +977,7 @@ def test_higher_embed_late_weight_increases_late_layer_loss():
     backend = DummyKreaBackend(dim=8, rank=2, seed=3, lora_targets="te")
     with torch.no_grad():
         backend.te.lora_up.weight.fill_(0.35)
-    from conceptmod.textsliders.train_lora_krea import KreaSliderPrompt
+    from particle_sliders.textsliders.train_lora_krea import KreaSliderPrompt
 
     prompt = KreaSliderPrompt(
         target="a person",
@@ -1023,7 +1023,7 @@ def test_dummy_embed_step_has_te_grad_no_dit_and_no_velocity():
     backend = DummyKreaBackend(dim=8, rank=2, seed=3, lora_targets="te")
     with torch.no_grad():
         backend.te.lora_up.weight.fill_(0.25)
-    from conceptmod.textsliders.train_lora_krea import KreaSliderPrompt
+    from particle_sliders.textsliders.train_lora_krea import KreaSliderPrompt
 
     prompt = KreaSliderPrompt(
         target="a person, closed mouth",
@@ -1152,7 +1152,7 @@ def test_velocity_path_still_default_after_embed_flag():
     assert bare.lm_target == "v"
     assert bare.recipe == "uni"
     backend = DummyKreaBackend(dim=8, rank=2, seed=0)
-    from conceptmod.textsliders.train_lora_krea import KreaSliderPrompt
+    from particle_sliders.textsliders.train_lora_krea import KreaSliderPrompt
 
     prompt = KreaSliderPrompt(
         target="a person",
@@ -1337,7 +1337,7 @@ def test_embed_hold_does_not_adapt_encode_plus():
     backend = DummyKreaBackend(dim=8, rank=2, seed=6, lora_targets="te")
     with torch.no_grad():
         backend.te.lora_up.weight.fill_(0.3)
-    from conceptmod.textsliders.train_lora_krea import KreaSliderPrompt
+    from particle_sliders.textsliders.train_lora_krea import KreaSliderPrompt
 
     prompt = KreaSliderPrompt(
         target="a person, closed mouth",

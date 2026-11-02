@@ -29,9 +29,9 @@ device          cuda:0
 
 Live command (local weights, HF_HUB_OFFLINE=1):
 
-HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_anima.py \\
+HF_HUB_OFFLINE=1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py \\
   --name smile-anima \\
-  --prompts_file conceptmod/textsliders/data/prompts-anima.yaml \\
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml \\
   --model_id circlestone-labs/Anima-Base-v1.0-Diffusers \\
   --lora_targets conditioner --rank 16 --resolution 768 --sample_steps 40 --cfg 4 \\
   --lr 1e-4 --lm_target trajectory --traj_steps 4 \\
@@ -41,7 +41,7 @@ HF_HUB_OFFLINE=1 python conceptmod/textsliders/train_lora_anima.py \\
 Dummy / CI:
 
 python scripts/smoke_anima_slider.py
-python conceptmod/textsliders/train_lora_anima.py --dummy --steps 8 --device cpu
+python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_anima.py --dummy --steps 8 --device cpu
 """
 
 from __future__ import annotations
@@ -54,12 +54,12 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.anima_slider import (
+from particle_sliders.textsliders.anima_slider import (
     live_train_card,
     live_train_command,
     stock_teacher_smoke_captions,
 )
-from conceptmod.textsliders.train_lora_anima import main as train_main
+from particle_sliders.textsliders.train_lora_anima import main as train_main
 
 
 def main(argv: list[str] | None = None) -> dict:
@@ -85,7 +85,7 @@ def main(argv: list[str] | None = None) -> dict:
             "--name",
             "smile-anima-smoke",
             "--prompts_file",
-            str(_REPO_ROOT / "conceptmod/textsliders/data/prompts-anima.yaml"),
+            str(_REPO_ROOT / "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-anima.yaml"),
             "--save_dir",
             str(_REPO_ROOT / "models/anima-smoke"),
             "--rank",

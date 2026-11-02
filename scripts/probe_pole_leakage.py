@@ -15,7 +15,7 @@ displacements d+ = h(+1)-h(neu) and d- = h(-1)-h(neu):
 
 Usage:
   python scripts/probe_pole_leakage.py models/joy-lm-v6 \
-      --prompts_file conceptmod/textsliders/data/prompts-joy-v7.yaml \
+      --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-joy-v7.yaml \
       --device 1 [--json]
 """
 
@@ -32,14 +32,14 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from conceptmod.textsliders.train_lm_slider_music3 import (  # noqa: E402
+from particle_sliders.textsliders.train_lm_slider_music3 import (  # noqa: E402
     DEFAULT_MODEL,
     _assemble,
     _encode_static,
     _load_rows,
     _tokenize,
 )
-from conceptmod.textsliders.generate_gender_stack import _apply, _wrap  # noqa: E402
+from particle_sliders.textsliders.generate_gender_stack import _apply, _wrap  # noqa: E402
 
 
 def json_sidecar(path: Path) -> dict:

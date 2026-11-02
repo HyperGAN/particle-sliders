@@ -16,8 +16,8 @@ from safetensors.torch import load_file
 
 ROOT = Path("/ml2/music/sliders-conceptmod")
 sys.path.insert(0, str(ROOT))
-from conceptmod.textsliders.lora import LoRANetwork
-from conceptmod.textsliders.train_lora_music3 import _load_transformer
+from particle_sliders.textsliders.lora import LoRANetwork
+from particle_sliders.textsliders.train_lora_music3 import _load_transformer
 
 MODEL = Path("/ml2/music/models/MiniMax-Music3")
 

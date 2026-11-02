@@ -1,7 +1,7 @@
 """Gates for the span-set transformer discriminator (``--adv_arch tx``).
 
 No model weights, no GPU. Covers ``SpanTransformerD`` in
-``conceptmod.textsliders.lm_adv``: the soundness constraints are all
+``particle_sliders.textsliders.lm_adv``: the soundness constraints are all
 load-bearing for the adversarial game, so each gets a test.
 """
 
@@ -10,8 +10,8 @@ from __future__ import annotations
 import pytest
 import torch
 
-from conceptmod.textsliders import lm_adv
-from conceptmod.textsliders.lm_adv import LMDiscriminator, SpanTransformerD
+from particle_sliders.textsliders import lm_adv
+from particle_sliders.textsliders.lm_adv import LMDiscriminator, SpanTransformerD
 
 
 def _tiny() -> SpanTransformerD:

@@ -45,9 +45,9 @@ guidance is **0**, so CFG is off and the UNI teacher is raw velocity.
 ## Live train card
 
 ```bash
-CUDA_VISIBLE_DEVICES=N python conceptmod/textsliders/train_lora_zimage.py \
+CUDA_VISIBLE_DEVICES=N python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_zimage.py \
   --name age-zit \
-  --prompts_file conceptmod/textsliders/data/prompts-zimage.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-zimage.yaml \
   --model_id Tongyi-MAI/Z-Image-Turbo \
   --rank 16 --alpha 16 --resolution 768 \
   --sample_steps 8 --sample_guidance 0.0 \
@@ -63,7 +63,7 @@ zimage backend.
 Dummy (CI / no GPU):
 
 ```bash
-PYTHONPATH=. python conceptmod/textsliders/train_lora_zimage.py \
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_zimage.py \
   --dummy --steps 2 --save_dir /tmp/zimage-dummy
 ```
 

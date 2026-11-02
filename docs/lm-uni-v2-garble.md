@@ -15,9 +15,9 @@ UNI plus only. One concept per yaml. Teacher is raw `h+` (the +
 caption). Scale 0 is taught `h0`. Minus is not a teacher.
 
 ```bash
-CUDA_VISIBLE_DEVICES=N python conceptmod/textsliders/train_lm_slider_music3.py \
+CUDA_VISIBLE_DEVICES=N python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
   --name energy-lm-uni-v2 \
-  --prompts_file conceptmod/textsliders/data/prompts-energy-uni-v1.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-uni-v1.yaml \
   --lm_target faithful_plus_neu --pole_mode hidden \
   --rank 8 --alpha 8 --lr 5e-4 --steps 800 --seed 7 \
   --no-early_stop --endreg_weight 1.0 --device 0

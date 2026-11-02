@@ -6,7 +6,7 @@ def test_tail_capture_replays_actual_flow_blocks_and_short_overlap_exactly():
     from diffusers import MiniMaxMusic3Transformer1DModel,FlowMatchEulerDiscreteScheduler
     from diffusers.guiders import ClassifierFreeGuidance
     from diffusers.modular_pipelines.minimax_music3.denoise import MiniMaxMusic3ChunkDenoiseInner,MiniMaxMusic3ChunkUpdateStep,MiniMaxMusic3ChunkSetTimestepsStep
-    from conceptmod.textsliders.reward_game.acoustic_tail import TailCapture,replay_latents
+    from particle_sliders.textsliders.reward_game.acoustic_tail import TailCapture,replay_latents
     torch.set_num_threads(2);torch.manual_seed(15)
     tf=MiniMaxMusic3Transformer1DModel(in_channels=4,condition_dim=8,num_layers=2,num_attention_heads=2,attention_head_dim=8,ff_inner_dim=32,rotary_dim=8).eval().requires_grad_(False)
     pipe=SimpleNamespace(transformer=tf,condition_encoder=torch.nn.Identity(),vocoder=torch.nn.Identity(),

@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from conceptmod.textsliders.reward_game.core import read, write, digest, scorecard, DEFAULT_SPEC
-from conceptmod.textsliders.reward_game.overview import snapshot, render
+from particle_sliders.textsliders.reward_game.core import read, write, digest, scorecard, DEFAULT_SPEC
+from particle_sliders.textsliders.reward_game.overview import snapshot, render
 
 
 @pytest.fixture

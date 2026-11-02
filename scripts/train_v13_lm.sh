@@ -17,7 +17,7 @@ cd "$ROOT"
 
 prompts_for() {
   local axis="$1"
-  local v4="conceptmod/textsliders/data/prompts-${axis}-v4.yaml"
+  local v4="packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-${axis}-v4.yaml"
   if [ -f "$v4" ]; then
     echo "$v4"
   else

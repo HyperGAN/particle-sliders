@@ -296,7 +296,7 @@ that needed it got a **new** file beside the original (originals untouched):
 
 Both halves have to move together: `app/lora_runtime.refresh_scales()` derives
 each module's scale from the checkpoint's `.alpha` **tensors**, while
-`conceptmod/textsliders/lora.py` derives it from the **sidecar** `alpha` at
+`packages/particle-sliders-core/src/particle_sliders/textsliders/lora.py` derives it from the **sidecar** `alpha` at
 construction and never re-reads the buffers. Bake one and not the other and the
 studio and the eval scripts drift apart silently.
 
@@ -540,7 +540,7 @@ python scripts/compare_slider_runs.py models/*/[a-z]*_train.jsonl --by_t
 
 # score checkpoints trained before the probe existed (v3/v4 have no eval blocks)
 python scripts/eval_slider_probe.py models/triphop-tf-v3/*_attn_last.safetensors \
-  --prompts_file conceptmod/textsliders/data/prompts-triphop-v3-single.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-triphop-v3-single.yaml \
   --cache_dir cache/triphop-v3 --by_t
 ```
 
@@ -672,7 +672,7 @@ filenames (energy, distortion, tempo, space) contain **attention only** — so t
 old "full beats attn" A/B was comparing two attention-only checkpoints.
 
 The fix skips empty path segments, and had to land in **both**
-`conceptmod/textsliders/lora.py` and `app/lora_runtime.py`: each builds the key
+`packages/particle-sliders-core/src/particle_sliders/textsliders/lora.py` and `app/lora_runtime.py`: each builds the key
 independently, and if they disagree the studio silently fails to find a trained
 module. `scripts/normalize_lora_keys.py` rewrites pre-fix checkpoints in place.
 
@@ -915,9 +915,9 @@ One-off trainings (a shipped slider, an LM half) stay manual.
 New transformer slider — defaults *are* the dust recipe; pin seed + paths:
 
 ```bash
-$PY conceptmod/textsliders/train_lora_music3.py \
+$PY packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py \
   --name dust-tf-v1 --seed 7 --device 0 \
-  --prompts_file conceptmod/textsliders/data/prompts-cand-dust-v1.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-cand-dust-v1.yaml \
   --cache_dir /ml2/music/sliders-conceptmod/cache/dust-v1 \
   --save_dir /ml2/music/sliders-conceptmod/models/dust-tf-v1
 ```
@@ -925,11 +925,11 @@ $PY conceptmod/textsliders/train_lora_music3.py \
 Reproduce a v2 energy-class TF slider (old lr / loss / clip):
 
 ```bash
-$PY conceptmod/textsliders/train_lora_music3.py \
+$PY packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py \
   --name energy --rank 8 --alpha 8 --steps 500 --lr 1e-4 \
   --loss mse --grad_clip value --targets attn \
   --duration 4 --seed 7 --device 0 \
-  --prompts_file conceptmod/textsliders/data/prompts-energy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy.yaml \
   --cache_dir /ml2/music/sliders-conceptmod/cache/energy-v2 \
   --save_dir /ml2/music/sliders-conceptmod/models/energy-slider-v2
 ```
@@ -945,21 +945,21 @@ YAML `leak_positive` / `leak_negative`, hold 0). `--no-early_stop`
 stays the train-card choice. Stop the studio first (bf16 LM is ~16 GB):
 
 ```bash
-$PY conceptmod/textsliders/train_lm_slider_music3.py \
+$PY packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
   --name gender-lm-v14 \
-  --prompts_file conceptmod/textsliders/data/prompts-gender-v4.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-v4.yaml \
   --save_dir /ml2/music/sliders-conceptmod/models/gender-lm-v14 \
   --rank 8 --alpha 8 --lr 5e-4 --steps 800 --seed 7 --no-early_stop --device 0
-$PY conceptmod/textsliders/train_lm_slider_music3.py \
+$PY packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
   --name gender-lm-v16 \
   --lm_target faithful --pole_mode semantic_kl \
-  --prompts_file conceptmod/textsliders/data/prompts-gender-v4.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-v4.yaml \
   --save_dir /ml2/music/sliders-conceptmod/models/gender-lm-v16 \
   --rank 8 --alpha 8 --lr 5e-4 --steps 800 --seed 7 --no-early_stop --device 0
-$PY conceptmod/textsliders/train_lm_slider_music3.py \
+$PY packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
   --name energy-lm-v16 \
   --lm_target faithful_sub_e --pole_mode semantic_kl \
-  --prompts_file conceptmod/textsliders/data/prompts-energy-v4.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-v4.yaml \
   --save_dir /ml2/music/sliders-conceptmod/models/energy-lm-v16 \
   --rank 8 --alpha 8 --lr 5e-4 --steps 800 --seed 7 --no-early_stop --device 0
 ```
@@ -989,9 +989,9 @@ FORCE=1 ./scripts/run_gpu0_sliders.sh demo-20   # regenerate wavs
 ## Demo (labeled wavs)
 
 ```bash
-$PY conceptmod/textsliders/generate_listen.py \
+$PY packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
   --weights models/energy-slider-v2/energy_alpha8.0_rank8_full_last.safetensors \
-  --prompts_file conceptmod/textsliders/data/prompts-energy.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy.yaml \
   --name energy --plus_label loud --minus_label quiet \
   --kind transformer --rank 8 --alpha 8 \
   --out_dir eval/listen/energy-20s \

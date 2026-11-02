@@ -30,34 +30,34 @@ ADV_WEIGHT="0.01"
 # Full uni-lyric catalog: run name -> prompts file (mirrors shipped sidecars).
 prompts_for() {
   case "$1" in
-    breath-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-breath-uni-v1.yaml" ;;
-    distortion-clean-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-distortion-minus-uni-v1.yaml" ;;
-    distortion-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-distortion-uni-v2.yaml" ;;
-    energy-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-energy-uni-v2.yaml" ;;
-    energy-quiet-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-energy-minus-uni-v1.yaml" ;;
-    gender-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-gender-uni-v2.yaml" ;;
-    gender-male-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-gender-minus-uni-v1.yaml" ;;
-    grit-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-grit-uni-v2.yaml" ;;
-    grit-smooth-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-grit-minus-uni-v1.yaml" ;;
-    hurt-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-hurt-uni-v2.yaml" ;;
-    hurt-numb-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-hurt-minus-uni-v1.yaml" ;;
-    joy-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-joy-uni-v2.yaml" ;;
-    joy-somber-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-joy-minus-uni-v1.yaml" ;;
-    live-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-live-uni-v1.yaml" ;;
-    live-studio-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-live-minus-uni-v1.yaml" ;;
-    rapslow-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-rapslow-uni-v2.yaml" ;;
-    rhyme-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-rhyme-uni-v1.yaml" ;;
-    rhyme-prose-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-rhyme-minus-uni-v1.yaml" ;;
-    sexy-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-sexy-uni-v1.yaml" ;;
-    sexy-plain-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-sexy-minus-uni-v1.yaml" ;;
-    tempo-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-tempo-uni-v2.yaml" ;;
-    tempo-slow-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-tempo-minus-uni-v1.yaml" ;;
-    tender-fierce-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-tender-minus-uni-v1.yaml" ;;
-    tender-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-tender-uni-v1.yaml" ;;
-    triphop-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-triphop-uni-v1.yaml" ;;
-    triphop-pop-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-triphop-minus-uni-v1.yaml" ;;
-    yearn-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-yearn-uni-v1.yaml" ;;
-    yearn-settled-lm-uni-lyric) echo "conceptmod/textsliders/data/prompts-yearn-minus-uni-v1.yaml" ;;
+    breath-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-breath-uni-v1.yaml" ;;
+    distortion-clean-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-distortion-minus-uni-v1.yaml" ;;
+    distortion-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-distortion-uni-v2.yaml" ;;
+    energy-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-uni-v2.yaml" ;;
+    energy-quiet-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-minus-uni-v1.yaml" ;;
+    gender-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-uni-v2.yaml" ;;
+    gender-male-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-minus-uni-v1.yaml" ;;
+    grit-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-grit-uni-v2.yaml" ;;
+    grit-smooth-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-grit-minus-uni-v1.yaml" ;;
+    hurt-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-hurt-uni-v2.yaml" ;;
+    hurt-numb-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-hurt-minus-uni-v1.yaml" ;;
+    joy-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-joy-uni-v2.yaml" ;;
+    joy-somber-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-joy-minus-uni-v1.yaml" ;;
+    live-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-live-uni-v1.yaml" ;;
+    live-studio-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-live-minus-uni-v1.yaml" ;;
+    rapslow-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-rapslow-uni-v2.yaml" ;;
+    rhyme-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-rhyme-uni-v1.yaml" ;;
+    rhyme-prose-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-rhyme-minus-uni-v1.yaml" ;;
+    sexy-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-sexy-uni-v1.yaml" ;;
+    sexy-plain-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-sexy-minus-uni-v1.yaml" ;;
+    tempo-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tempo-uni-v2.yaml" ;;
+    tempo-slow-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tempo-minus-uni-v1.yaml" ;;
+    tender-fierce-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tender-minus-uni-v1.yaml" ;;
+    tender-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tender-uni-v1.yaml" ;;
+    triphop-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-triphop-uni-v1.yaml" ;;
+    triphop-pop-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-triphop-minus-uni-v1.yaml" ;;
+    yearn-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yearn-uni-v1.yaml" ;;
+    yearn-settled-lm-uni-lyric) echo "packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yearn-minus-uni-v1.yaml" ;;
     *) echo "[adv-uni] FAIL: unknown run name $1" >&2; return 1 ;;
   esac
 }
@@ -68,7 +68,7 @@ train_one() {
   mkdir -p "$save"
   wait_vram "$gpu"
   echo "[gpu${gpu}] TRAIN ${name} lyric-hold + adv ${ADV_WEIGHT}"
-  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
       --name "$name" \
       --prompts_file "$prompts" \
       --save_dir "$ROOT/$save" \
@@ -123,7 +123,7 @@ sample_plus() {
   wait_vram "$gpu"
   echo "[gpu${gpu}] SAMPLE ${name} 0,1,2 -> $out_dir (exam +1; +2 canary)"
   mkdir -p "$out_dir"
-  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/generate_listen.py \
+  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
     --weights "$weights" \
     --prompts_file "$prompts" \
     --name "$name" --kind lm \

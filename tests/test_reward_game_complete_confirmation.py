@@ -1,6 +1,6 @@
 import pytest
-from conceptmod.textsliders.reward_game import complete_confirmation as module
-from conceptmod.textsliders.reward_game.core import IntegrityError
+from particle_sliders.textsliders.reward_game import complete_confirmation as module
+from particle_sliders.textsliders.reward_game.core import IntegrityError
 
 
 def test_first_fresh_success_never_packages_failed_replication(tmp_path,monkeypatch):

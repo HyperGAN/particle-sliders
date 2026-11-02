@@ -22,7 +22,7 @@ CATALOG="energy gender tempo distortion breath rhyme triphop live"
 
 prompts_for() {
   local axis="$1"
-  local uni="conceptmod/textsliders/data/prompts-${axis}-uni-v1.yaml"
+  local uni="packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-${axis}-uni-v1.yaml"
   if [ -f "$uni" ]; then
     echo "$uni"
   else
@@ -36,7 +36,7 @@ train_lm_uni_v1() {
   mkdir -p "$save"
   wait_vram "$gpu"
   echo "[gpu${gpu}] TRAIN ${name} lm_target=faithful_plus pole_mode=hidden endreg=1.0"
-  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
       --name "$name" \
       --prompts_file "$prompts" \
       --save_dir "$ROOT/$save" \
@@ -146,7 +146,7 @@ sample_uni() {
   wait_vram "$gpu"
   echo "[gpu${gpu}] SAMPLE ${name} 0,1,2 -> $out_dir"
   mkdir -p "$out_dir"
-  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/generate_listen.py \
+  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
     --weights "$weights" \
     --prompts_file "$prompts" \
     --name "$name" --kind lm \
@@ -174,7 +174,7 @@ run_one() {
   sidecar="models/${name}/${name}_last.json"
   mkdir -p "$logs" "$out" "models/${name}"
   echo "[uni-v1] flags ${name} GPU${gpu} recipe=faithful_plus pole_mode=hidden endreg=1.0"
-  echo "  $PY -u conceptmod/textsliders/train_lm_slider_music3.py \\"
+  echo "  $PY -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \\"
   echo "    --name ${name} --lm_target faithful_plus --pole_mode hidden \\"
   echo "    --prompts_file ${prompts} \\"
   echo "    --save_dir $ROOT/models/${name} \\"
@@ -210,7 +210,7 @@ if [ "$#" -lt 2 ]; then
   echo "usage: $0 <gpu> <axis> [axis...]" >&2
   echo "  catalog: $CATALOG" >&2
   echo "  recipe: --lm_target faithful_plus --pole_mode hidden --endreg_weight 1.0" >&2
-  echo "  prompts: conceptmod/textsliders/data/prompts-<axis>-uni-v1.yaml" >&2
+  echo "  prompts: packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-<axis>-uni-v1.yaml" >&2
   exit 2
 fi
 GPU="$1"

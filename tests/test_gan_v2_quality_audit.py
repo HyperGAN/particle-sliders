@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from analysis.gan_bcap.quality_audit_v2 import compare_diversity,quality_decision,duplicate_groups
-from conceptmod.textsliders.gan_v2.metrics import clip_diagnostics
+from particle_sliders.textsliders.gan_v2.metrics import clip_diagnostics
 
 
 def test_partial_two_mode_collapse_is_detected_despite_large_total_spread():

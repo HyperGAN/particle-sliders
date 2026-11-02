@@ -149,11 +149,11 @@ the full 8,000-update noise schedule; at 600, sigma is still 0.768748. A short
 smoke is therefore not a completed reference convergence experiment.
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 python conceptmod/textsliders/train_lora_yue2_arm_b.py \
+CUDA_VISIBLE_DEVICES=1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2_arm_b.py \
   --recipe particle_bridge --device cuda:0 --seed 7 --steps 600 --until 20 \
   --name metal-yue2-particle-bridge-s7-20260917 \
   --save_dir /ml2/music/sliders-conceptmod/models/metal-yue2-particle-bridge-s7-20260917 \
-  --prompts_file conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml
 # Resume through the existing campaign after native preflight:
 python scripts/train_yue2_arm_b_campaign.py --recipe particle_bridge \
   --gpu 1 --seed 7 --steps 600 \

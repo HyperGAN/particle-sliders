@@ -5,7 +5,7 @@ import math
 import pytest
 import torch
 
-from conceptmod.textsliders.lm_adv import (
+from particle_sliders.textsliders.lm_adv import (
     LMDiscriminator, RowConditionalD, SpanTransformerD, cap_penalty, rp_d_loss,
 )
 

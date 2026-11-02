@@ -85,12 +85,12 @@ GPU box with the Hub checkpoint. Do **not** run this in CI. Do **not** download
 MiniMax-H3 (33B Omni-Transformer + 32B encoder) in CI.
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_minimax_h3.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_minimax_h3.py \
   --name age-minimax-h3-uni \
   --model_id MiniMaxAI/MiniMax-H3 \
   --variant FL2VA \
   --workflow t2va \
-  --prompts_file conceptmod/textsliders/data/prompts-minimax-h3.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3.yaml \
   --attributes "male, female" \
   --rank 8 --alpha 8 --lr 1e-4 --steps 500 --seed 7 \
   --lora_up_init_std 0.02 \
@@ -180,13 +180,13 @@ Gate is **look across sampled frames** (contrast moves, subject holds),
 not last-50 c+.
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_minimax_h3.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_minimax_h3.py \
   --name chiaroscuro-minimax-h3-uni \
   --model_id MiniMaxAI/MiniMax-H3 \
   --variant FL2VA \
   --workflow t2va \
-  --prompts_file conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
-  --config_file conceptmod/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
+  --config_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
   --attributes "male, female" \
   --rank 16 --alpha 16 --lr 1e-4 --steps 1500 --seed 7 \
   --lora_up_init_std 0.02 \
@@ -227,13 +227,13 @@ and may be rejected live; 4.5 s snaps to 124 (same as 5 s). Tighter canvas:
 encoder on the second GPU and leave transformer + VAEs on cuda:0:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0,1 python conceptmod/textsliders/train_lora_minimax_h3.py \
+CUDA_VISIBLE_DEVICES=0,1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_minimax_h3.py \
   --name chiaroscuro-minimax-h3-uni \
   --model_id MiniMaxAI/MiniMax-H3 \
   --variant FL2VA \
   --workflow t2va \
-  --prompts_file conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
-  --config_file conceptmod/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
+  --config_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
   --attributes "male, female" \
   --rank 16 --alpha 16 --lr 1e-4 --steps 1500 --seed 7 \
   --lora_up_init_std 0.02 \
@@ -245,9 +245,9 @@ CUDA_VISIBLE_DEVICES=0,1 python conceptmod/textsliders/train_lora_minimax_h3.py 
 Sample a saved adapter without training:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_minimax_h3.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_minimax_h3.py \
   --name chiaroscuro-minimax-h3-uni \
-  --prompts_file conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
   --steps 0 --load_h3_lora models/chiaroscuro-minimax-h3-uni \
   --sample_scales 0,1 --sample_duration 5 --sample_fps 24 \
   --short_side 768 --guidance 0 --device cuda:0 \
@@ -262,13 +262,13 @@ still weak, keep rank 16 and add steps rather than going back to zeros.
 Recommended escalate:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_minimax_h3.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_minimax_h3.py \
   --name chiaroscuro-minimax-h3-uni-r16 \
   --model_id MiniMaxAI/MiniMax-H3 \
   --variant FL2VA \
   --workflow t2va \
-  --prompts_file conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
-  --config_file conceptmod/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
+  --config_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
   --attributes "male, female" \
   --rank 16 --alpha 16 --lr 1e-4 --steps 1200 --seed 7 \
   --lora_up_init_std 0.02 \
@@ -310,13 +310,13 @@ sampled videos, not last-50 c+. Next cards are **chiaro-v4** then
 **chiaro-v5**.
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_minimax_h3.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_minimax_h3.py \
   --name chiaroscuro-minimax-h3-uni-v3 \
   --model_id MiniMaxAI/MiniMax-H3 \
   --variant FL2VA \
   --workflow t2va \
-  --prompts_file conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
-  --config_file conceptmod/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
+  --config_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
   --attributes "male, female" \
   --rank 16 --alpha 16 --lr 1e-4 --steps 2000 --seed 7 \
   --hold_mode non_concept --hold_weight 2.0 \
@@ -381,13 +381,13 @@ already passes; need room and/or vase identity. Watch sampled videos,
 not last-50 c+.
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_minimax_h3.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_minimax_h3.py \
   --name chiaroscuro-minimax-h3-uni-v4 \
   --model_id MiniMaxAI/MiniMax-H3 \
   --variant FL2VA \
   --workflow t2va \
-  --prompts_file conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
-  --config_file conceptmod/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
+  --config_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
   --attributes "male, female" \
   --rank 16 --alpha 16 --lr 1e-4 --steps 2000 --seed 7 \
   --hold_mode non_concept --hold_weight 5.0 \
@@ -446,13 +446,13 @@ already passes; need room lighting without dropping the held props,
 and/or vase lighting+identity. Watch sampled videos, not last-50 c+.
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_minimax_h3.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_minimax_h3.py \
   --name chiaroscuro-minimax-h3-uni-v5 \
   --model_id MiniMaxAI/MiniMax-H3 \
   --variant FL2VA \
   --workflow t2va \
-  --prompts_file conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
-  --config_file conceptmod/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
+  --config_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-minimax-h3-chiaroscuro.yaml \
   --attributes "male, female" \
   --rank 16 --alpha 16 --lr 1e-4 --steps 2500 --seed 7 \
   --hold_mode non_concept --hold_weight 3.0 \
@@ -495,19 +495,19 @@ Same stack as train (FL2VA / t2va, `--device`, optional
 
 ```bash
 # CI / CPU mock
-PYTHONPATH=. python conceptmod/textsliders/diag_minimax_h3_uni.py --dummy \
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/diag_minimax_h3_uni.py --dummy \
   --save_dir /tmp/h3-diag
 
 # Live: existing chiaro LoRA (no retrain)
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/diag_minimax_h3_uni.py \
-  --prompts_file conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/diag_minimax_h3_uni.py \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
   --load_h3_lora models/chiaroscuro-minimax-h3-uni-v5 \
   --device cuda:0 --save_dir models/chiaroscuro-minimax-h3-uni-v5/diag
 
 # same via the trainer
-CUDA_VISIBLE_DEVICES=0 python conceptmod/textsliders/train_lora_minimax_h3.py \
+CUDA_VISIBLE_DEVICES=0 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_minimax_h3.py \
   --diag --steps 0 \
-  --prompts_file conceptmod/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-minimax-h3-chiaroscuro.yaml \
   --load_h3_lora models/chiaroscuro-minimax-h3-uni-v5 \
   --device cuda:0 --save_dir models/chiaroscuro-minimax-h3-uni-v5/diag
 ```
@@ -540,8 +540,8 @@ Read lighting match and drift **together**:
 ## CPU / CI
 
 ```bash
-PYTHONPATH=. python conceptmod/textsliders/train_lora_minimax_h3.py --dummy --steps 4 --name minimax-h3-dummy
-PYTHONPATH=. python conceptmod/textsliders/diag_minimax_h3_uni.py --dummy --save_dir /tmp/h3-diag
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_minimax_h3.py --dummy --steps 4 --name minimax-h3-dummy
+PYTHONPATH=. python packages/particle-sliders-core/src/particle_sliders/textsliders/diag_minimax_h3_uni.py --dummy --save_dir /tmp/h3-diag
 PYTHONPATH=. pytest tests/test_minimax_h3_slider.py -q
 ```
 

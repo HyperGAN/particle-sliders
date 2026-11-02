@@ -1,6 +1,6 @@
 import pytest
-from conceptmod.textsliders.reward_game import composition
-from conceptmod.textsliders.reward_game.core import write,digest
+from particle_sliders.textsliders.reward_game import composition
+from particle_sliders.textsliders.reward_game.core import write,digest
 
 
 def test_composition_counts_ties_and_missing_outputs_honestly(tmp_path,monkeypatch):

@@ -212,7 +212,7 @@ def write_report(results: list[MethodResult], blob: dict, path: Path) -> None:
         "PYTHONPATH=. pytest tests/test_2d_slider_geometry.py -q",
         "```",
         "",
-        "Shared loss extract: `conceptmod/textsliders/slider_targets.py`.",
+        "Shared loss extract: `packages/particle-sliders-core/src/particle_sliders/textsliders/slider_targets.py`.",
         "`train_lora_music3.py` imports `music3_slider_loss` from there.",
         "The GPU trainers were not rewritten beyond that import.",
         "",

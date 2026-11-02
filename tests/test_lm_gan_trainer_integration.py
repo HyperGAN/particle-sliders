@@ -7,7 +7,7 @@ import pytest
 import torch
 from torch import nn
 
-from conceptmod.textsliders import train_lm_slider_music3 as trainer
+from particle_sliders.textsliders import train_lm_slider_music3 as trainer
 
 
 class Qwen3Attention(nn.Module):

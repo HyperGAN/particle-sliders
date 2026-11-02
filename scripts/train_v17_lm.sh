@@ -28,7 +28,7 @@ is_clean() {
 
 prompts_for() {
   local axis="$1"
-  local v4="conceptmod/textsliders/data/prompts-${axis}-v4.yaml"
+  local v4="packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-${axis}-v4.yaml"
   if [ -f "$v4" ]; then
     echo "$v4"
   else
@@ -78,13 +78,13 @@ run_one() {
   mkdir -p "$logs" "$out" "models/${name}"
   if is_clean "$axis"; then
     echo "[v17] flags ${name} GPU${gpu} recipe=v9 pole_mode=hidden (no leak_*, hold_ê=0)"
-    echo "  $PY -u conceptmod/textsliders/train_lm_slider_music3.py \\"
+    echo "  $PY -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \\"
     echo "    --name ${name} --prompts_file ${prompts} --pole_mode hidden \\"
     echo "    --save_dir $ROOT/models/${name} \\"
     echo "    --rank 8 --alpha 8 --lr 5e-4 --steps 800 --seed 7 --no-early_stop --device 0"
   else
     echo "[v17] flags ${name} GPU${gpu} recipe=pair_odd_sub_e pole_mode=hidden (hold_ê=0)"
-    echo "  $PY -u conceptmod/textsliders/train_lm_slider_music3.py \\"
+    echo "  $PY -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \\"
     echo "    --name ${name} --lm_target pair_odd_sub_e --pole_mode hidden --prompts_file ${prompts} \\"
     echo "    --save_dir $ROOT/models/${name} \\"
     echo "    --rank 8 --alpha 8 --lr 5e-4 --steps 800 --seed 7 --no-early_stop --device 0"

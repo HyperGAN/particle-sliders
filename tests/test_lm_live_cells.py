@@ -28,7 +28,7 @@ from analysis.slider2d.mismatch import (
     score_leak_policy,
 )
 from analysis.slider2d.train import music3_pairs, pair_slider_dir
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     LEAK_HOLD_WEIGHT,
     SAME_DIR_MAX,
     SLIDER_ALIGN_MIN,
@@ -37,7 +37,7 @@ from conceptmod.textsliders.slider_targets import (
     lm_project_decisions,
     lm_teachers_mixed,
 )
-from conceptmod.textsliders.train_lm_slider_music3 import (
+from particle_sliders.textsliders.train_lm_slider_music3 import (
     parse_args,
     resolve_lm_loss_weights,
     resolve_lm_recipe,

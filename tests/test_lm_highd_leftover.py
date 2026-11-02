@@ -54,7 +54,7 @@ from analysis.slider2d.highd import (
     teacher_poles,
 )
 from analysis.slider2d.overlap import score_overlap_policy
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     LEAK_HOLD_WEIGHT,
     lm_axis_hold,
     lm_unit,

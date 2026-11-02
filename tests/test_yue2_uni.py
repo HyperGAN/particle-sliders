@@ -8,11 +8,11 @@ from safetensors.torch import load_file
 
 pytest.importorskip("yue2")
 from yue2.protocol import CODEC_OFFSET, CODEC_SIZE, MUSIC_END
-from conceptmod.textsliders.yue2_backend import YuE2Backend, YuE2Slider
-from conceptmod.textsliders.yue2_uni import RECIPE, end_margins, lyric_positions, prepare_rows, update
-from conceptmod.textsliders.train_lora_yue2 import parse_args, train
-from conceptmod.textsliders.lm_adv import SpanTransformerD
-from conceptmod.textsliders.gan_v2.critic import pad_sequences
+from particle_sliders.textsliders.yue2_backend import YuE2Backend, YuE2Slider
+from particle_sliders.textsliders.yue2_uni import RECIPE, end_margins, lyric_positions, prepare_rows, update
+from particle_sliders.textsliders.train_lora_yue2 import parse_args, train
+from particle_sliders.textsliders.lm_adv import SpanTransformerD
+from particle_sliders.textsliders.gan_v2.critic import pad_sequences
 
 
 @pytest.fixture(autouse=True)

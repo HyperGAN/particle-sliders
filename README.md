@@ -33,6 +33,25 @@ an integration path.
 | Understand the math and the evidence | [docs/math.md](docs/math.md) |
 | Find a backend guide, prompt file or experiment write-up | [docs/README.md](docs/README.md) |
 
+## Python imports
+
+Use `particle_sliders` for both the shared core and the research backends:
+
+```python
+from particle_sliders.textsliders.particle_bridge_gan import update
+from particle_sliders.textsliders.lora import LoRAModule
+```
+
+Install the reviewed source pin with `pip install './packages/particle-sliders-core[serialization]'`
+(or `pip install -e './packages/particle-sliders-core[serialization]'` for development).
+Backend runtimes remain optional and model-specific. Existing `conceptmod.*`
+imports are compatibility aliases to the same modules and classes; the name
+comes from this repository's history. It does not make these backends depend on
+[HyperGAN/conceptmod](https://github.com/HyperGAN/conceptmod).
+See [the namespace migration](docs/python-namespace.md) for checkpoint limits,
+installed-wheel checks and downstream adoption. Research credit and the
+[MIT license](LICENSE) are preserved.
+
 ## Listen
 
 | Project | Hugging Face links |
@@ -274,7 +293,7 @@ and training recipe, and adapter formats are not interchangeable.
 | **[YuE2 particles](docs/yue2-slider.md)** | AR attention; NAR and VAE frozen. Preferred formulation; published 16-control release. |
 | **[Music 3 LM](MUSIC3.md)** | Qwen3 attention for voice and composition. Published 16-control release. |
 | **[Music 3 flow](MUSIC3.md)** | Acoustic flow transformer (`train_lora_music3.py`). Earlier mix and production controls. |
-| **[Music 3 particles](conceptmod/textsliders/train_lora_music3_particle.py)** (script) | Nonlinear branches on Music 3. Experimental transfer of the particle game. |
+| **[Music 3 particles](packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3_particle.py)** (script) | Nonlinear branches on Music 3. Experimental transfer of the particle game. |
 | [Krea 2](docs/krea-slider.md) | Text encoder and/or DiT. Opt-in images. |
 | [Anima](docs/anima-slider.md) | Conditioner or DiT. Opt-in images. |
 | [Supra2-IMG](docs/supra-slider.md) | Cross-attn or DiT on `SupraLabs/Supra2-IMG`. Opt-in images. |
@@ -284,7 +303,7 @@ and training recipe, and adapter formats are not interchangeable.
 | [MiniMax-H3](docs/minimax-h3-slider.md) | Omni-Transformer. Opt-in video and audio. |
 | [Tiny LLM](docs/tiny-llm-slider.md) | Qwen3-0.6B attention. Particle-bridge test target. |
 | [Bonsai GGUF](docs/bonsai-gguf-slider.md) | Frozen readouts. Opt-in particle experiment. |
-| [Diffusion images](conceptmod/textsliders/) | SD 1.x/2.x, SDXL, SD3, Flux and Stable Cascade trainers (this fork's, not `legacy/`). |
+| [Diffusion images](packages/particle-sliders-core/src/particle_sliders/textsliders/) | SD 1.x/2.x, SDXL, SD3, Flux and Stable Cascade trainers (this fork's, not `legacy/`). |
 
 Each backend needs its own environment. There is no universal installer.
 Base-model weights and their runtimes are separate prerequisites. On the
@@ -303,6 +322,7 @@ uv venv --python 3.12 .venv-yue2
 uv pip install --python .venv-yue2/bin/python \
   'yue2-infer @ git+https://github.com/multimodal-art-projection/YuE.git@ef1936f2ee39fe8de486a0f47a481c95f8d4da87' \
   PyYAML pytest
+uv pip install --python .venv-yue2/bin/python -e ./packages/particle-sliders-core
 ```
 
 Training reads base models from the local Hugging Face cache and never
@@ -313,9 +333,9 @@ train a **routed-particle slider with the current experimental defaults**:
 
 ```bash
 CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python \
-  conceptmod/textsliders/train_lora_yue2_arm_b.py \
+  packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2_arm_b.py \
   --recipe particle_bridge --name metal-yue2-particles \
-  --prompts_file conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml \
   --save_dir models/metal-yue2-particles --steps 1200
 ```
 
@@ -334,7 +354,7 @@ To compare scales, put original section-tagged lyrics (`[verse]`, `[chorus]`,
 …) in `lyrics.txt`:
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python conceptmod/textsliders/infer_yue2.py \
+CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python packages/particle-sliders-core/src/particle_sliders/textsliders/infer_yue2.py \
   --weights models/metal-yue2-particles/metal-yue2-particles_last.safetensors \
   --style 'English, piano-led pop, clear close lead vocal, steady bass and dry drums.' \
   --lyrics_file lyrics.txt --scales=0,0.5,1 --seed 7 \
@@ -363,10 +383,10 @@ To train an **acoustic flow slider** on the included energy prompts:
 
 ```bash
 conda activate minimax-music3   # workstation env
-CUDA_VISIBLE_DEVICES=1 python conceptmod/textsliders/train_lora_music3.py \
+CUDA_VISIBLE_DEVICES=1 python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py \
   --name energy-example \
   --model_dir /path/to/MiniMax-Music3 \
-  --prompts_file conceptmod/textsliders/data/prompts-energy-tf-v7.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-tf-v7.yaml \
   --save_dir models/energy-example \
   --rank 8 --alpha 8 --steps 500 --seed 7 --device 0
 ```
@@ -438,10 +458,10 @@ models and recovery artifacts. Most backend guides list their own tests and a
 | Path | What it is |
 |---|---|
 | [packages/particle-sliders-core](packages/particle-sliders-core) | Shared lifecycle and preserved `winning_formulation()` helpers; merged core0.11.0/PG0.9.3 source with eligible dense Gram |
-| [conceptmod/textsliders/](conceptmod/textsliders/) | Trainers, backends, adapters, objectives and inference for every model |
-| [conceptmod/textsliders/gan_v2/](conceptmod/textsliders/gan_v2/) | Music 3 span critics, game updates and recovery states |
-| [conceptmod/textsliders/reward_game/](conceptmod/textsliders/reward_game/) | Reward-model research with its own [acceptance checks](conceptmod/textsliders/reward_game/README.md) |
-| [conceptmod/textsliders/data/](conceptmod/textsliders/data/) | Prompt and config YAMLs; see the [prompt catalog](docs/prompts.md) |
+| [packages/particle-sliders-core/src/particle_sliders/textsliders/](packages/particle-sliders-core/src/particle_sliders/textsliders/) | Trainers, backends, adapters, objectives and inference for every model |
+| [packages/particle-sliders-core/src/particle_sliders/textsliders/gan_v2/](packages/particle-sliders-core/src/particle_sliders/textsliders/gan_v2/) | Music 3 span critics, game updates and recovery states |
+| [packages/particle-sliders-core/src/particle_sliders/textsliders/reward_game/](packages/particle-sliders-core/src/particle_sliders/textsliders/reward_game/) | Reward-model research with its own [acceptance checks](packages/particle-sliders-core/src/particle_sliders/textsliders/reward_game/README.md) |
+| [packages/particle-sliders-core/src/particle_sliders/textsliders/data/](packages/particle-sliders-core/src/particle_sliders/textsliders/data/) | Prompt and config YAMLs; see the [prompt catalog](docs/prompts.md) |
 | [docs/](docs/README.md) | Backend guides, math, experiment write-ups and release-card sources, all indexed |
 | [MUSIC3.md](MUSIC3.md) · [SCORING.md](SCORING.md) · [LM-SCORING.md](LM-SCORING.md) | Music 3 operator guide, acoustic gates, LM composition checks |
 | [analysis/](analysis/) | Dated campaigns, audits and 2-D geometry fixtures ([slider2d](analysis/slider2d/)); some need local artifacts |

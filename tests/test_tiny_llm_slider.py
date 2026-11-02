@@ -9,9 +9,9 @@ import pytest
 import torch
 import yaml
 
-from conceptmod.textsliders import particle_bridge_gan as yue2_game
-from conceptmod.textsliders import tiny_llm_particle as tiny_game
-from conceptmod.textsliders.tiny_llm_backend import (
+from particle_sliders.textsliders import particle_bridge_gan as yue2_game
+from particle_sliders.textsliders import tiny_llm_particle as tiny_game
+from particle_sliders.textsliders.tiny_llm_backend import (
     ATTN_CLASS_NAMES,
     DEFAULT_MODEL,
     LORA_LINEAR_NAMES,
@@ -20,7 +20,7 @@ from conceptmod.textsliders.tiny_llm_backend import (
     TinyLLMBackend,
     hidden_delta_metrics,
 )
-from conceptmod.textsliders.tiny_llm_particle import (
+from particle_sliders.textsliders.tiny_llm_particle import (
     FORMAT,
     RECIPE,
     TinyParticleSlider,
@@ -30,7 +30,7 @@ from conceptmod.textsliders.tiny_llm_particle import (
     resolve_particle_path,
     update,
 )
-from conceptmod.textsliders.train_lora_tiny_llm import (
+from particle_sliders.textsliders.train_lora_tiny_llm import (
     DEFAULT_SAMPLE_SCALES,
     load_slider_rows,
     main as train_main,
@@ -83,7 +83,7 @@ def test_game_is_the_shared_yue2_module_not_a_copy():
 
 def test_build_game_uses_reference_lrs_and_betas():
     backend = TinyLLMBackend(device="cpu", dummy=True)
-    rows = load_slider_rows("conceptmod/textsliders/data/prompts-tiny-llm.yaml")
+    rows = load_slider_rows("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tiny-llm.yaml")
     fixed = prepare_rows(backend, rows)
     network = TinyParticleSlider(backend.model, rank=8, alpha=8.0)
     critic, g, d = build_game(backend, network, fixed)
@@ -166,7 +166,7 @@ def test_scale_zero_is_exact_base_before_and_after_train(tmp_path):
 
 def test_shared_build_game_rejects_wrong_cloud_shape():
     backend = TinyLLMBackend(device="cpu", dummy=True)
-    rows = load_slider_rows("conceptmod/textsliders/data/prompts-tiny-llm.yaml")
+    rows = load_slider_rows("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tiny-llm.yaml")
     fixed = prepare_rows(backend, rows)
     network = TinyParticleSlider(backend.model, rank=8, alpha=8.0)
     network.particles = torch.nn.Parameter(torch.randn(16, 4))
@@ -189,7 +189,7 @@ def test_dummy_train_runs_shared_game_with_no_mse(tmp_path):
     ])
     sidecar = train(args)
     assert sidecar["recipe"] == "anneal-routed-particle-error-tiny-llm-v1"
-    assert sidecar["game_module"] == "conceptmod.textsliders.particle_bridge_gan"
+    assert sidecar["game_module"] == "particle_sliders.textsliders.particle_bridge_gan"
     assert sidecar["output_mse"] is False
     assert sidecar["propose_only"] is True
     assert sidecar["unipolar"] is True
@@ -229,7 +229,7 @@ def test_dummy_train_runs_shared_game_with_no_mse(tmp_path):
 
 def test_save_load_roundtrip_and_rejections(tmp_path):
     backend = TinyLLMBackend(device="cpu", dummy=True)
-    rows = load_slider_rows("conceptmod/textsliders/data/prompts-tiny-llm.yaml")
+    rows = load_slider_rows("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tiny-llm.yaml")
     fixed = prepare_rows(backend, rows)
     network = TinyParticleSlider(backend.model, rank=8, alpha=8.0)
     critic, g, d = build_game(backend, network, fixed)
@@ -302,7 +302,7 @@ def test_live_load_is_not_imported_on_dummy():
     import subprocess
     import sys
 
-    import conceptmod.textsliders.tiny_llm_backend as tiny
+    import particle_sliders.textsliders.tiny_llm_backend as tiny
 
     called = {"n": 0}
 
@@ -322,7 +322,7 @@ def test_live_load_is_not_imported_on_dummy():
     # Other tests may already have imported transformers in this process.
     probe = (
         "import sys\n"
-        "from conceptmod.textsliders.tiny_llm_backend import TinyLLMBackend\n"
+        "from particle_sliders.textsliders.tiny_llm_backend import TinyLLMBackend\n"
         "backend = TinyLLMBackend(device='cpu', dummy=True)\n"
         "backend.hidden(backend.encode('a garden').ids)\n"
         "assert 'transformers' not in sys.modules\n"
@@ -332,17 +332,17 @@ def test_live_load_is_not_imported_on_dummy():
 
 
 def test_yaml_rows_and_config_card_match_shared_reference():
-    rows = load_slider_rows("conceptmod/textsliders/data/prompts-tiny-llm.yaml")
+    rows = load_slider_rows("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-tiny-llm.yaml")
     assert len(rows) == 3
     for row in rows:
         assert row["positive"] != row["neutral"]
     cfg = yaml.safe_load(
-        Path("conceptmod/textsliders/data/config-tiny-llm.yaml").read_text()
+        Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-tiny-llm.yaml").read_text()
     )
     assert cfg["pretrained_model"]["name_or_path"] == "Qwen/Qwen3-0.6B-Base"
     assert cfg["pretrained_model"]["params_total"] == 596049920
     assert cfg["train"]["recipe"] == "particle_bridge"
-    assert cfg["game"]["module"] == "conceptmod.textsliders.particle_bridge_gan"
+    assert cfg["game"]["module"] == "particle_sliders.textsliders.particle_bridge_gan"
     ref = yue2_game.REFERENCE
     for key in ("g_lr", "d_lr", "particle_lr", "ema", "vic_coeff",
                 "cap_coeff", "cap_kappa", "cap_every",
@@ -357,14 +357,14 @@ def test_yaml_rows_and_config_card_match_shared_reference():
 
 
 def test_production_files_unchanged():
-    tf_src = Path("conceptmod/textsliders/train_lora_music3.py").read_text()
+    tf_src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py").read_text()
     assert 'parser.add_argument("--steps", type=int, default=500)' in tf_src
     assert 'parser.add_argument("--rank", type=int, default=8)' in tf_src
     assert 'parser.add_argument("--lr", type=float, default=2e-3' in tf_src
-    lm_src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    lm_src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert '"--lm_target"' in lm_src and 'default="v9"' in lm_src
     assert '"--pole_mode"' in lm_src and 'default="hidden"' in lm_src
-    music3_yaml = Path("conceptmod/textsliders/data/prompts-music3.yaml").read_text()
+    music3_yaml = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-music3.yaml").read_text()
     assert "tiny-llm" not in music3_yaml
     assert "Qwen3-0.6B" not in music3_yaml
     for name in (
@@ -375,7 +375,7 @@ def test_production_files_unchanged():
         "particle_bridge_gan.py",
         "yue2_arm_b.py",
     ):
-        src = Path("conceptmod/textsliders") / name
+        src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders") / name
         if src.is_file():
             assert "tiny-llm" not in src.read_text(), name
             assert "tiny_llm" not in src.read_text(), name

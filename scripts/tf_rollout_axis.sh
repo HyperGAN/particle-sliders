@@ -9,12 +9,12 @@ ROOT=/ml2/music/sliders-conceptmod
 PY=/home/mikkel/anaconda3/envs/minimax-music3/bin/python
 TRAJ_FRAC="${TF_TRAJ_FRAC:-0.5}"   # closed-loop dose; 0.5 won the ship-strength metric
 cd "$ROOT"
-PROMPTS="$ROOT/conceptmod/textsliders/data/prompts-${AXIS}-tf-v7.yaml"
+PROMPTS="$ROOT/packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-${AXIS}-tf-v7.yaml"
 [[ -f "$PROMPTS" ]] || { echo "no pair file for $AXIS"; exit 1; }
 SAVE="$ROOT/models/${AXIS}-tf-v10"
 
 # 1. train (traj25 recipe, in-training gate at full range)
-CUDA_VISIBLE_DEVICES="$GPU" "$PY" conceptmod/textsliders/train_lora_music3.py \
+CUDA_VISIBLE_DEVICES="$GPU" "$PY" packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py \
   --name "${AXIS}-tf-v10" --prompts_file "$PROMPTS" \
   --save_dir "$SAVE" --cache_dir "$ROOT/cache/${AXIS}-tf-v7" \
   --rank 8 --alpha 8 --lr 2e-3 --steps 500 --duration 4 --seed 7 --device 0 \
@@ -57,7 +57,7 @@ json.dump(m, open("$SAVE/${SHIP_STEM}.json", "w"), indent=2)
 PYEOF
 
 # 5. ritual ladder for ears
-CUDA_VISIBLE_DEVICES="$GPU" "$PY" conceptmod/textsliders/generate_listen.py \
+CUDA_VISIBLE_DEVICES="$GPU" "$PY" packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
   --weights "$SAVE/${SHIP_STEM}.safetensors" --prompts_file "$PROMPTS" \
   --name "${AXIS}-tf-v10-ship" \
   --out_dir "$ROOT/eval/listen/v10-roll/${AXIS}-tf-v10-derate" \

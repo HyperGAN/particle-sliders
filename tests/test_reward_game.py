@@ -5,11 +5,11 @@ import threading
 
 import pytest
 
-from conceptmod.textsliders.reward_game.core import (
+from particle_sliders.textsliders.reward_game.core import (
     Store, BusyError, IntegrityError, read, write, digest, sha, scorecard,
     generation_identity, reference_summary, DEFAULT_SPEC, candidate_identity)
-from conceptmod.textsliders.reward_game import evaluate as evaluator
-from conceptmod.textsliders.reward_game import controller
+from particle_sliders.textsliders.reward_game import evaluate as evaluator
+from particle_sliders.textsliders.reward_game import controller
 
 
 @pytest.fixture
@@ -173,8 +173,8 @@ def test_merged_forward_matches_deployment_and_updates_only_adapter():
     from transformers import Qwen3Config,Qwen3ForCausalLM
     sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
     from app.lora_runtime import LoRANetwork
-    from conceptmod.textsliders.reward_game.merged_forward import MergedForward
-    from conceptmod.textsliders.reward_sliders.data import generation_hidden
+    from particle_sliders.textsliders.reward_game.merged_forward import MergedForward
+    from particle_sliders.textsliders.reward_sliders.data import generation_hidden
     torch.manual_seed(71);torch.set_num_threads(2)
     lm=Qwen3ForCausalLM(Qwen3Config(hidden_size=16,intermediate_size=32,num_hidden_layers=2,
         num_attention_heads=2,num_key_value_heads=1,head_dim=8,vocab_size=32)).to(torch.bfloat16).eval().requires_grad_(False)
@@ -210,8 +210,8 @@ def test_merged_forward_matches_deployment_and_updates_only_adapter():
 def test_gpu_lease_restores_settings_on_worker_error(tmp_path,monkeypatch):
     from pathlib import Path
     from types import SimpleNamespace
-    from conceptmod.textsliders.reward_game import resources
-    from conceptmod.textsliders.reward_game.core import locked as real_lock
+    from particle_sliders.textsliders.reward_game import resources
+    from particle_sliders.textsliders.reward_game.core import locked as real_lock
     monkeypatch.setattr(resources,'locked',lambda path:real_lock(tmp_path/'gpu.lock'))
     monkeypatch.setattr(Path,'home',classmethod(lambda cls:tmp_path))
     state=dict(active=[],queued=[],loaded=[],workers=1,keep=dict(enabled=False,prompt='dry drums',duration=60,
@@ -230,8 +230,8 @@ def test_gpu_lease_restores_settings_on_worker_error(tmp_path,monkeypatch):
 
 def test_gpu_lease_refuses_other_owner(tmp_path,monkeypatch):
     from pathlib import Path
-    from conceptmod.textsliders.reward_game import resources
-    from conceptmod.textsliders.reward_game.core import locked as real_lock
+    from particle_sliders.textsliders.reward_game import resources
+    from particle_sliders.textsliders.reward_game.core import locked as real_lock
     monkeypatch.setattr(resources,'locked',lambda path:real_lock(tmp_path/'gpu.lock'))
     monkeypatch.setattr(Path,'home',classmethod(lambda cls:tmp_path))
     path=tmp_path/'.config/systemd/user/music-studio.service.d/30-reward-game-lease.conf'
@@ -243,7 +243,7 @@ def test_gpu_lease_refuses_other_owner(tmp_path,monkeypatch):
 
 def test_depth_gain_controls_and_negative_delta_penalty():
     import torch
-    from conceptmod.textsliders.reward_game.gains import fold,training_objective
+    from particle_sliders.textsliders.reward_game.gains import fold,training_objective
     weights={f'lora_te-model-layers-{layer}-self_attn-q_proj.lora_up.weight':torch.ones(4,8) for layer in (0,12,24)}
     weights['unchanged.alpha']=torch.tensor(8.)
     assert all(torch.equal(v,weights[k]) for k,v in fold(weights,[1.,1.,1.]).items())
@@ -255,7 +255,7 @@ def test_depth_gain_controls_and_negative_delta_penalty():
 
 
 def test_direct_selection_keeps_off_eligible_and_ignores_invalid_proposals():
-    from conceptmod.textsliders.reward_game.direct_search import choose
+    from particle_sliders.textsliders.reward_game.direct_search import choose
     negative=dict(index=0,valid=True,objective=-.01,gains=[.35,.5,.65])
     invalid=dict(index=1,valid=False,objective=10.,gains=[.65,.5,.35])
     assert choose([negative,invalid]) is None

@@ -17,7 +17,7 @@ cd "$ROOT"
 
 prompts_for() {
   local axis="$1"
-  local v4="conceptmod/textsliders/data/prompts-${axis}-v4.yaml"
+  local v4="packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-${axis}-v4.yaml"
   if [ -f "$v4" ]; then
     echo "$v4"
   else
@@ -37,7 +37,7 @@ run_one() {
   logs="eval/listen/v14/logs"
   mkdir -p "$logs" "$out" "models/${name}"
   echo "[v14] flags ${name} GPU${gpu}"
-  echo "  $PY -u conceptmod/textsliders/train_lm_slider_music3.py \\"
+  echo "  $PY -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \\"
   echo "    --name ${name} --prompts_file ${prompts} \\"
   echo "    --save_dir $ROOT/models/${name} \\"
   echo "    --lm_target v9 --rank 8 --alpha 8 --lr 5e-4 --steps 800 --seed 7 --no-early_stop --device 0"

@@ -43,7 +43,7 @@ schedule (80-update hold, final ratio 0.05). The loss does not change phases.
 ## Implementation and transfer checks
 
 The CPU fixture and YuE2 adapter both call
-`conceptmod/textsliders/unipolar_gan.py`; the trainer does not reimplement the
+`packages/particle-sliders-core/src/particle_sliders/textsliders/unipolar_gan.py`; the trainer does not reimplement the
 game. Tests compare the full D/G update with independent equations, including
 active and inactive cap penalties, and compare native eager/checkpointed
 gradients. Resume restores the exact model/critic/optimizer/sampler/RNG state;

@@ -29,10 +29,10 @@ train_tf() {
     echo "skip train $name (exists $weights)"
     return
   fi
-  $PY -u conceptmod/textsliders/train_lora_music3.py \
+  $PY -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_music3.py \
     --name "$name" --rank 8 --alpha 8 --steps 500 --lr 1e-4 \
     --duration 4 --seed 7 --device 0 \
-    --prompts_file "conceptmod/textsliders/data/${prompts}" \
+    --prompts_file "packages/particle-sliders-core/src/particle_sliders/textsliders/data/${prompts}" \
     --cache_dir "$ROOT/cache/${name}" \
     --save_dir "$ROOT/models/${name}-slider"
 }
@@ -43,9 +43,9 @@ demo_tf() {
   if [[ "$FORCE" == "1" ]]; then
     extra+=(--force)
   fi
-  $PY -u conceptmod/textsliders/generate_listen.py \
+  $PY -u packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
     --weights "$(weights_tf "$name")" \
-    --prompts_file "conceptmod/textsliders/data/${prompts}" \
+    --prompts_file "packages/particle-sliders-core/src/particle_sliders/textsliders/data/${prompts}" \
     --name "$name" --plus_label "$plus" --minus_label "$minus" \
     --kind transformer --rank 8 --alpha 8 \
     --out_dir "$ROOT/eval/listen/${name}-${duration}s" \
@@ -59,9 +59,9 @@ demo_lm() {
   if [[ "$FORCE" == "1" ]]; then
     extra+=(--force)
   fi
-  $PY -u conceptmod/textsliders/generate_listen.py \
+  $PY -u packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
     --weights "$ROOT/models/gender-lm-slider/gender-lm_last.safetensors" \
-    --prompts_file conceptmod/textsliders/data/prompts-gender.yaml \
+    --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender.yaml \
     --name gender-lm --plus_label female --minus_label male \
     --kind lm --rank 8 --alpha 8 \
     --out_dir "$ROOT/eval/listen/gender-lm-${duration}s" \

@@ -10,12 +10,12 @@ import torch
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 
-from conceptmod.textsliders.reward_search import queue
-from conceptmod.textsliders.reward_search.data import prepare_window_rows,WindowStudentForward,slices
-from conceptmod.textsliders.reward_sliders.specs import sha,save_tensor,write_json,read_json
-from conceptmod.textsliders.reward_sliders.directions import RewardTeacher
-from conceptmod.textsliders.reward_sliders.data import generation_hidden
-from conceptmod.textsliders.reward_sliders.capture import ResidualCapture
+from particle_sliders.textsliders.reward_search import queue
+from particle_sliders.textsliders.reward_search.data import prepare_window_rows,WindowStudentForward,slices
+from particle_sliders.textsliders.reward_sliders.specs import sha,save_tensor,write_json,read_json
+from particle_sliders.textsliders.reward_sliders.directions import RewardTeacher
+from particle_sliders.textsliders.reward_sliders.data import generation_hidden
+from particle_sliders.textsliders.reward_sliders.capture import ResidualCapture
 
 
 def test_atomic_bundle_claims_and_immutable_reenqueue(tmp_path):
@@ -36,7 +36,7 @@ def test_atomic_bundle_claims_and_immutable_reenqueue(tmp_path):
 @pytest.fixture
 def window_case(tmp_path,monkeypatch):
     from transformers import Qwen3Config,Qwen3ForCausalLM
-    import conceptmod.textsliders.reward_search.data as data
+    import particle_sliders.textsliders.reward_search.data as data
     torch.manual_seed(13);torch.set_num_threads(2)
     lm=Qwen3ForCausalLM(Qwen3Config(hidden_size=16,intermediate_size=32,num_hidden_layers=4,
         num_attention_heads=2,num_key_value_heads=1,head_dim=8,vocab_size=64)).eval().requires_grad_(False)
@@ -79,9 +79,9 @@ def test_later_windows_keep_prefix_and_align_both_cfg_branches(window_case):
 
 def test_window_student_zero_and_real_gan_update_leave_base_frozen(window_case):
     from app.lora_runtime import LoRANetwork
-    from conceptmod.textsliders.gan_v2.critic import SpanCritic,pad_sequences
-    from conceptmod.textsliders.gan_v2.engine import GANEngine
-    from conceptmod.textsliders.gan_v2.train import arm_settings
+    from particle_sliders.textsliders.gan_v2.critic import SpanCritic,pad_sequences
+    from particle_sliders.textsliders.gan_v2.engine import GANEngine
+    from particle_sliders.textsliders.gan_v2.train import arm_settings
     lm,_,_,_,rows=window_case
     pristine={name:p.detach().clone() for name,p in lm.named_parameters()}
     network=LoRANetwork(lm,rank=8,alpha=8.,multiplier=0.,target_replace=['Qwen3Attention'],
@@ -106,7 +106,7 @@ def test_short_trajectory_rejects_late_window(window_case):
 
 
 def test_render_worker_passes_one_component_to_legacy_host(tmp_path,monkeypatch):
-    from conceptmod.textsliders.reward_search import renderer
+    from particle_sliders.textsliders.reward_search import renderer
     checkpoint=tmp_path/'weights.safetensors';checkpoint.write_bytes(b'identity-only fixture')
     metadata=dict(kind='language_model',rank=8,alpha=8,target_replace=['Qwen3Attention'],
                   prefix='lora_te',delimiter='-',train_method='full',unit_scale=1.,weights_sha256=sha(checkpoint))
@@ -135,7 +135,7 @@ def test_render_worker_passes_one_component_to_legacy_host(tmp_path,monkeypatch)
 @pytest.mark.parametrize('disappears',[False,True])
 def test_restart_transient_worker_without_discarding_its_definition(tmp_path,monkeypatch,disappears):
     import subprocess
-    from conceptmod.textsliders.reward_search import resources
+    from particle_sliders.textsliders.reward_search import resources
     calls=[]
     monkeypatch.setattr(resources,'active',lambda _:False)
     monkeypatch.setattr(resources.subprocess,'check_output',lambda *args,**kwargs:'loaded\n')
@@ -153,7 +153,7 @@ def test_restart_transient_worker_without_discarding_its_definition(tmp_path,mon
 
 
 def test_studio_handoff_uses_restart_and_restores_settings(tmp_path,monkeypatch):
-    from conceptmod.textsliders.reward_search import resources
+    from particle_sliders.textsliders.reward_search import resources
     override=tmp_path/'config/override.conf';calls=[];restored=[];phase={'borrowed':False}
     settings=dict(enabled=False,prompt='A close dry drum kit',duration=120.,sliders=[],
                   energy={'language_model':2.},randomize_sliders=False)
@@ -181,7 +181,7 @@ def test_studio_handoff_uses_restart_and_restores_settings(tmp_path,monkeypatch)
 
 @pytest.mark.parametrize('busy',['queued','keep'])
 def test_studio_is_not_taken_while_work_remains(tmp_path,monkeypatch,busy):
-    from conceptmod.textsliders.reward_search import resources
+    from particle_sliders.textsliders.reward_search import resources
     class StopObservation(Exception):pass
     monkeypatch.setattr(resources,'OVERRIDE',tmp_path/'override.conf')
     monkeypatch.setattr(resources,'studio',lambda:dict(active=[],queued=['job'] if busy=='queued' else [],

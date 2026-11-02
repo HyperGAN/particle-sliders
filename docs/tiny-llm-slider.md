@@ -31,7 +31,7 @@ params BF16, Apache-2.0, ungated).
 
 The trainer runs YuE2's current working recipe
 `anneal-routed-particle-error` (`--recipe particle_bridge`) through the
-**shared** `conceptmod/textsliders/particle_bridge_gan` module — the same
+**shared** `packages/particle-sliders-core/src/particle_sliders/textsliders/particle_bridge_gan` module — the same
 Rp paired-error GAN on `e = T(student) - T(positive)` (same noise on
 real/fake, sigma anneals 0.03 over 8000), lazy b_cap every 4th update x4,
 particle VIC, EMA 0.995. The earlier hidden-state MSE UNI recipe is gone
@@ -76,14 +76,14 @@ bypasses every branch exactly; `unconditional` rows are unscored canaries.
 CPU / CI (no weights, no Hub):
 
 ```bash
-python3 conceptmod/textsliders/train_lora_tiny_llm.py --dummy \
+python3 packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_tiny_llm.py --dummy \
   --steps 20 --name tiny-llm-particle --save_dir models/tiny-llm-particle
 ```
 
 Reload + report only:
 
 ```bash
-python3 conceptmod/textsliders/train_lora_tiny_llm.py --dummy \
+python3 packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_tiny_llm.py --dummy \
   --steps 0 --load_tiny_lora models/tiny-llm-particle \
   --name tiny-llm-reload --save_dir models/tiny-llm-reload
 ```
@@ -91,7 +91,7 @@ python3 conceptmod/textsliders/train_lora_tiny_llm.py --dummy \
 Real weights (single small GPU or CPU, needs `transformers>=4.51`):
 
 ```bash
-python3 conceptmod/textsliders/train_lora_tiny_llm.py \
+python3 packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_tiny_llm.py \
   --allow_hub --device cuda:0 --steps 20 --name tiny-llm-real \
   --save_dir models/tiny-llm-real
 ```

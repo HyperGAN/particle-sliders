@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from conceptmod.textsliders.reward_game.policy_objective import balanced_advantages, clipped_loss
+from particle_sliders.textsliders.reward_game.policy_objective import balanced_advantages, clipped_loss
 
 
 def test_clipping_removes_only_updates_beyond_the_improvement_bound():

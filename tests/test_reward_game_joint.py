@@ -1,9 +1,9 @@
 from types import SimpleNamespace
 import pytest
-from conceptmod.textsliders.reward_game.core import STRUCTURE as LM,IntegrityError
-from conceptmod.textsliders.reward_game.acoustic_artifact import STRUCTURE as TF
-from conceptmod.textsliders.reward_game.joint_identity import generation_identity
-from conceptmod.textsliders.reward_game.joint_renderer import JointRenderer
+from particle_sliders.textsliders.reward_game.core import STRUCTURE as LM,IntegrityError
+from particle_sliders.textsliders.reward_game.acoustic_artifact import STRUCTURE as TF
+from particle_sliders.textsliders.reward_game.joint_identity import generation_identity
+from particle_sliders.textsliders.reward_game.joint_renderer import JointRenderer
 
 
 def test_joint_identity_budgets_both_hosts_and_tracks_each_component():

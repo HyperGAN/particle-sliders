@@ -68,7 +68,7 @@ import it.
 Toy or native-probe success does not establish audio quality.
 
 Default prompts are
-`conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml`. Catalog:
+`packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml`. Catalog:
 [prompts.md](prompts.md).
 
 ## Earlier positive/neutral GAN candidate
@@ -125,8 +125,8 @@ so training does not sample audio. The initialization/row sampler seed is
 fixed for reproducibility; audio seeds are used during held-out rendering.
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python conceptmod/textsliders/train_lora_yue2_arm_b.py \
-  --prompts_file conceptmod/textsliders/data/prompts-yue2-metal-arm-b.yaml \
+CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2_arm_b.py \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml \
   --save_dir models/metal-yue2-unipolar-gan --steps 600
 ```
 
@@ -168,8 +168,8 @@ rows **from update 1**, with one unchanged objective, batch size and optimizer
 setup through the requested endpoint:
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python conceptmod/textsliders/train_lora_yue2_fresh.py \
-  --prompts_file conceptmod/textsliders/data/prompts-yue2-female.yaml \
+CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2_fresh.py \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-female.yaml \
   --save_dir models/female-yue2-fresh --steps 3400
 ```
 
@@ -192,9 +192,9 @@ separate listening reference.
 From the project root, on physical GPU 1 while the studio uses GPU 0:
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python conceptmod/textsliders/train_lora_yue2.py \
-  --config_file conceptmod/textsliders/data/config-yue2.yaml \
-  --prompts_file conceptmod/textsliders/data/prompts-yue2.yaml \
+CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2.py \
+  --config_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-yue2.yaml \
+  --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2.yaml \
   --save_dir models/breath-yue2-ar --allow_hub
 ```
 
@@ -247,8 +247,8 @@ same run, preserving completed updates; recipe/model/prompt mismatches are rejec
 ### Female voice, 600 updates
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python conceptmod/textsliders/train_lora_yue2.py \
-  --config_file conceptmod/textsliders/data/config-yue2-female-uni16.yaml \
+CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2.py \
+  --config_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/config-yue2-female-uni16.yaml \
   --save_dir models/female-yue2-uni16-600 --allow_hub
 ```
 
@@ -269,7 +269,7 @@ That feedback applies to the female UNI16 trial, not the new metal Arm B recipe.
 Save a section-tagged original lyric sheet to `lyrics.txt`, then:
 
 ```bash
-CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python conceptmod/textsliders/infer_yue2.py \
+CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python packages/particle-sliders-core/src/particle_sliders/textsliders/infer_yue2.py \
   --weights models/breath-yue2-ar/breath-yue2-ar_last.safetensors \
   --style 'English, slow acoustic pop, close clear lead vocal, fingerpicked steel strings, soft bass, brushed snare, small dry room.' \
   --lyrics_file lyrics.txt --scales=0,0.5,1 --seed 7 \
@@ -301,7 +301,7 @@ off/on listening comparisons and lyric checks.
 .venv-yue2/bin/python -m pytest tests/test_yue2_slider.py tests/test_yue2_uni.py \
   tests/test_yue2_fresh.py tests/test_yue2_arm_b.py tests/test_music_arm_b.py \
   tests/test_yue2_particle_bridge.py tests/test_yue2_gmix_v2_exam.py -q
-.venv-yue2/bin/python conceptmod/textsliders/train_lora_yue2.py \
+.venv-yue2/bin/python packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2.py \
   --dummy --steps 2 --train_tokens 4 --save_dir /tmp/yue2-smoke
 ```
 

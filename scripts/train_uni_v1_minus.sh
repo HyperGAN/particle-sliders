@@ -37,7 +37,7 @@ declare -A MINUS_NAME=(
 
 prompts_for() {
   local axis="$1"
-  local f="conceptmod/textsliders/data/prompts-${axis}-minus-uni-v1.yaml"
+  local f="packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-${axis}-minus-uni-v1.yaml"
   if [ -f "$f" ]; then
     echo "$f"
   else
@@ -51,7 +51,7 @@ train_one() {
   mkdir -p "$save"
   wait_vram "$gpu"
   echo "[gpu${gpu}] TRAIN ${name} lm_target=faithful_plus_neu pole_mode=hidden (minus UNI)"
-  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/train_lm_slider_music3.py \
+  if CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py \
       --name "$name" \
       --prompts_file "$prompts" \
       --save_dir "$ROOT/$save" \
@@ -96,7 +96,7 @@ sample_plus() {
   wait_vram "$gpu"
   echo "[gpu${gpu}] SAMPLE ${name} 0,1,2 -> $out_dir"
   mkdir -p "$out_dir"
-  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u conceptmod/textsliders/generate_listen.py \
+  CUDA_VISIBLE_DEVICES="$gpu" "$PY" -u packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py \
     --weights "$weights" \
     --prompts_file "$prompts" \
     --name "$name" --kind lm \

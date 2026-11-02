@@ -11,12 +11,12 @@ import torch.nn.functional as F
 import yaml
 
 pytest.importorskip('yue2')
-from conceptmod.textsliders import yue2_arm_b as arm
-from conceptmod.textsliders.lm_adv import LMDiscriminator
-from conceptmod.textsliders.slider_targets import lm_faithful_plus_neu
-from conceptmod.textsliders.train_lm_slider_music3 import ARM_B
-from conceptmod.textsliders.train_lora_yue2_arm_b import parse_args,train
-from conceptmod.textsliders.yue2_backend import YuE2Backend,YuE2Slider
+from particle_sliders.textsliders import yue2_arm_b as arm
+from particle_sliders.textsliders.lm_adv import LMDiscriminator
+from particle_sliders.textsliders.slider_targets import lm_faithful_plus_neu
+from particle_sliders.textsliders.train_lm_slider_music3 import ARM_B
+from particle_sliders.textsliders.train_lora_yue2_arm_b import parse_args,train
+from particle_sliders.textsliders.yue2_backend import YuE2Backend,YuE2Slider
 
 @pytest.fixture(autouse=True)
 def single_thread():

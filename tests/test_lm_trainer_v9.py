@@ -14,7 +14,7 @@ import yaml
 
 from analysis.slider2d.field import E_SLIDER, Field2D
 from analysis.slider2d.mismatch import LIVE_GENDER_V1_ALIGN, MismatchField2D
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     DUAL_BAND_WEIGHT,
     EVEN_BLEND_SCALE,
     LEAK_HOLD_WEIGHT,
@@ -41,7 +41,7 @@ from conceptmod.textsliders.slider_targets import (
     lm_slider_loss,
     lm_unit,
 )
-from conceptmod.textsliders.train_lm_slider_music3 import (
+from particle_sliders.textsliders.train_lm_slider_music3 import (
     HIDDEN_KL_WEIGHT,
     lm_train_loss,
     lm_train_targets,
@@ -342,7 +342,7 @@ def test_faithful_and_symmetric_flags_stay_behind_recipe():
 
 
 def test_documented_prompt_files_declare_the_axis():
-    root = Path(__file__).resolve().parents[1] / "conceptmod" / "textsliders" / "data"
+    root = Path(__file__).resolve().parents[1] / "packages" / "particle-sliders-core" / "src" / "particle_sliders" / "textsliders" / "data"
     gender = yaml.safe_load((root / "prompts-gender-v4.yaml").read_text())
     energy = yaml.safe_load((root / "prompts-energy-v4.yaml").read_text())
     assert gender["slider_positive"].startswith("A woman is singing")
@@ -397,7 +397,7 @@ def test_project_align_min_falls_back_to_pair_symmetric():
     assert torch.allclose(fallback[1], symmetric[1])
     assert torch.allclose(slider_level[0], symmetric[0])
     assert not torch.allclose(fallback[0], projected[0])
-    from conceptmod.textsliders.slider_targets import lm_odd_align
+    from particle_sliders.textsliders.slider_targets import lm_odd_align
 
     assert float(lm_odd_align(pos, neg, field.declared_u)) == pytest.approx(
         LIVE_GENDER_V1_ALIGN, abs=1e-6
@@ -471,7 +471,7 @@ def test_pair_odd_sub_e_matches_highd_teacher():
 
 
 def test_leaky_v4_yamls_declare_leftover_not_slider():
-    root = Path(__file__).resolve().parents[1] / "conceptmod" / "textsliders" / "data"
+    root = Path(__file__).resolve().parents[1] / "packages" / "particle-sliders-core" / "src" / "particle_sliders" / "textsliders" / "data"
     leaky = {
         "prompts-energy-v4.yaml": ("slammed", "sparse", "loud", "quiet", "dense", "airy"),
         "prompts-tempo-v4.yaml": ("fast", "slow", "frantic", "bpm"),
@@ -615,7 +615,7 @@ def test_faithful_even_blend_is_wired_and_not_the_default():
     assert bare.lm_target == "v9"
     assert bare.pole_mode == "hidden"
     assert bare.even_blend_scale == EVEN_BLEND_SCALE
-    src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert '"lm_target": recipe' in src
     assert '"even_blend_scale": float(args.even_blend_scale)' in src
     pos, neg, neu = _ungated_pair()
@@ -636,7 +636,7 @@ def test_faithful_even_blend_is_wired_and_not_the_default():
     pair_odd = lm_hidden_targets(pos, neg, neu, target_mode="symmetric")
     assert not torch.allclose(gated, pair_odd[0])
     from analysis.slider2d.exam import divergent_field
-    from conceptmod.textsliders.slider_targets import leftover_bipolar
+    from particle_sliders.textsliders.slider_targets import leftover_bipolar
 
     field = divergent_field()
     d_pos, d_neg, d_neu = field.poles(0)
@@ -678,7 +678,7 @@ def test_faithful_plus_is_wired_and_not_the_default():
     bare = parse_args(["--prompts_file", "prompts.yaml"])
     assert bare.lm_target == "v9"
     assert bare.pole_mode == "hidden"
-    src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert '"lm_target": recipe' in src
     assert '"plus_only": recipe in PLUS_ONLY_RECIPES' in src
     pos, neg, neu = _ungated_pair()
@@ -738,7 +738,7 @@ def test_faithful_plus_neu_is_wired_and_not_the_default():
     bare = parse_args(["--prompts_file", "prompts.yaml"])
     assert bare.lm_target == "v9"
     assert bare.pole_mode == "hidden"
-    src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert '"lm_target": recipe' in src
     assert '"plus_neu": recipe in PLUS_NEU_RECIPES' in src
     pos, neg, neu = _ungated_pair()
@@ -813,7 +813,7 @@ def test_faithful_plus_neu_is_wired_and_not_the_default():
 
 
 def test_faithful_plus_neu_prefix_is_wired_and_not_the_default():
-    from conceptmod.textsliders.train_lm_slider_music3 import (
+    from particle_sliders.textsliders.train_lm_slider_music3 import (
         PLUS_NEU_PREFIX_RECIPES,
         PLUS_NEU_RECIPES,
     )
@@ -892,7 +892,7 @@ def test_faithful_plus_neu_prefix_is_wired_and_not_the_default():
     )
     assert float(moved_prefix) > float(base)
     assert float(base) == pytest.approx(float(uni), abs=1e-7)
-    src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert '"plus_neu_prefix": recipe in PLUS_NEU_PREFIX_RECIPES' in src
     bare = parse_args(["--prompts_file", "prompts.yaml"])
     assert bare.lm_target == "v9"
@@ -900,7 +900,7 @@ def test_faithful_plus_neu_prefix_is_wired_and_not_the_default():
 
 
 def test_faithful_plus_neu_lyric_is_wired_and_not_the_default():
-    from conceptmod.textsliders.train_lm_slider_music3 import (
+    from particle_sliders.textsliders.train_lm_slider_music3 import (
         PLUS_NEU_HOLD_RECIPES,
         PLUS_NEU_LYRIC_RECIPES,
         PLUS_NEU_PREFIX_RECIPES,
@@ -940,7 +940,7 @@ def test_faithful_plus_neu_lyric_is_wired_and_not_the_default():
         leak_dir=leftover,
     )
     assert torch.allclose(still_raw, pos)
-    src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert '"plus_neu_lyric": recipe in PLUS_NEU_LYRIC_RECIPES' in src
     bare = parse_args(["--prompts_file", "prompts.yaml"])
     assert bare.lm_target == "v9"
@@ -948,7 +948,7 @@ def test_faithful_plus_neu_lyric_is_wired_and_not_the_default():
 
 
 def test_faithful_plus_neu_roles_is_wired_and_not_the_default():
-    from conceptmod.textsliders.train_lm_slider_music3 import (
+    from particle_sliders.textsliders.train_lm_slider_music3 import (
         PLUS_NEU_PREFIX_RECIPES,
         PLUS_NEU_RECIPES,
         PLUS_NEU_ROLES_RECIPES,
@@ -1033,7 +1033,7 @@ def test_faithful_plus_neu_roles_is_wired_and_not_the_default():
     )
     assert float(moved_lyric) > float(base)
     assert float(base) == pytest.approx(float(uni), abs=1e-7)
-    src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert '"plus_neu_roles": recipe in PLUS_NEU_ROLES_RECIPES' in src
     bare = parse_args(["--prompts_file", "prompts.yaml"])
     assert bare.lm_target == "v9"
@@ -1041,7 +1041,7 @@ def test_faithful_plus_neu_roles_is_wired_and_not_the_default():
 
 
 def test_faithful_plus_neu_orth_is_wired_and_not_the_default():
-    from conceptmod.textsliders.train_lm_slider_music3 import (
+    from particle_sliders.textsliders.train_lm_slider_music3 import (
         PLUS_NEU_ORTH_RECIPES,
         PLUS_NEU_PREFIX_RECIPES,
         PLUS_NEU_RECIPES,
@@ -1150,7 +1150,7 @@ def test_faithful_plus_neu_orth_is_wired_and_not_the_default():
     assert float(inspan) == pytest.approx(float(base), abs=1e-6)
     assert float(offspan) > float(base)
     assert float(base) == pytest.approx(float(uni), abs=1e-7)
-    src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert '"plus_neu_orth": recipe in PLUS_NEU_ORTH_RECIPES' in src
     bare = parse_args(["--prompts_file", "prompts.yaml"])
     assert bare.lm_target == "v9"
@@ -1619,7 +1619,7 @@ def test_hidden_pole_mode_leaves_v9_and_pair_odd_sub_e_unchanged():
 
 
 def test_plus_neu_skips_minus_endreg_and_minus_early_stop():
-    from conceptmod.textsliders.train_lm_slider_music3 import (
+    from particle_sliders.textsliders.train_lm_slider_music3 import (
         _early_stop_hit,
         _endreg_uses_minus,
         _minus_pole_used,
@@ -1636,7 +1636,7 @@ def test_plus_neu_skips_minus_endreg_and_minus_early_stop():
     assert _minus_pole_used("faithful_plus_neu_lyric") is False
     assert _minus_pole_used("faithful_plus_neu_roles") is False
     assert _minus_pole_used("faithful_plus_neu_orth") is False
-    src = Path("conceptmod/textsliders/train_lm_slider_music3.py").read_text()
+    src = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/train_lm_slider_music3.py").read_text()
     assert "if _minus_pole_used(recipe):" in src
     assert "plus_neu=recipe in PLUS_NEU_RECIPES" in src
     # Dummy minus metrics must not block plus+neu early-stop.
@@ -1665,7 +1665,7 @@ def test_plus_neu_skips_minus_endreg_and_minus_early_stop():
 
 
 def test_last_token_is_audio_start_and_respects_padding():
-    from conceptmod.textsliders.train_lm_slider_music3 import (
+    from particle_sliders.textsliders.train_lm_slider_music3 import (
         _AUDIO_START,
         _assert_last_token_is_audio_start,
         _gather_last_hidden,
@@ -1692,8 +1692,8 @@ def test_last_token_is_audio_start_and_respects_padding():
 
 
 def test_infer_default_prompt_prefers_neutral_over_target():
-    infer = Path("conceptmod/textsliders/infer_music3.py").read_text()
-    listen = Path("conceptmod/textsliders/generate_listen.py").read_text()
+    infer = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/infer_music3.py").read_text()
+    listen = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/generate_listen.py").read_text()
     assert 'item.get("neutral") or item.get("target")' in infer
     assert "plus+neu adapter" in infer
     assert "plus+neu adapter" in listen

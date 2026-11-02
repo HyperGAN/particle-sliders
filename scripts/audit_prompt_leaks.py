@@ -34,7 +34,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / "conceptmod" / "textsliders" / "data"
+DATA = ROOT / "packages" / "particle-sliders-core" / "src" / "particle_sliders" / "textsliders" / "data"
 
 BPM_RE = re.compile(r"BPM[:\s]+(\d{2,3})", re.IGNORECASE)
 HYBRID_NEUTRAL_RE = re.compile(

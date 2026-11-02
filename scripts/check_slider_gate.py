@@ -28,7 +28,7 @@ Usage:
   python scripts/check_slider_gate.py models/energy-lm-v7            # exit rules
   python scripts/check_slider_gate.py --json models/energy-lm-v7     # machine output
   python scripts/check_slider_gate.py models/joy-lm-v7 \\
-      --leakage_prompts conceptmod/textsliders/data/prompts-joy-v7.yaml --device 1
+      --leakage_prompts packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-joy-v7.yaml --device 1
 """
 
 from __future__ import annotations

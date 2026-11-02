@@ -23,7 +23,7 @@ from analysis.slider2d.plus_exam import (
     plus_helps,
     plus_teacher,
 )
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     UNUSED_E_OVERLAP_MAX,
     lm_e_is_unused,
     lm_faithful_plus,
@@ -31,7 +31,7 @@ from conceptmod.textsliders.slider_targets import (
     lm_hidden_targets,
     lm_plus_loss,
 )
-from conceptmod.textsliders.train_lm_slider_music3 import parse_args
+from particle_sliders.textsliders.train_lm_slider_music3 import parse_args
 
 
 STEPS = 400

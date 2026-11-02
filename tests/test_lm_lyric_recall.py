@@ -37,7 +37,7 @@ from analysis.slider2d.lyric_recall import (
     ref_plus_sequence,
     sung_line,
 )
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     lm_faithful_plus_neu,
     lm_faithful_plus_neu_lyric,
     lm_faithful_plus_neu_orth,
@@ -46,7 +46,7 @@ from conceptmod.textsliders.slider_targets import (
     lm_plus_neu_orth_loss,
     lm_plus_neu_prefix_loss,
 )
-from conceptmod.textsliders.train_lm_slider_music3 import parse_args
+from particle_sliders.textsliders.train_lm_slider_music3 import parse_args
 
 
 STEPS = 400

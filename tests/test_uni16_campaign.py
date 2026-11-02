@@ -12,13 +12,13 @@ from safetensors.torch import save_file
 pytest.importorskip('app', reason='needs the parent music workspace')
 
 from analysis.uni16_20260906 import train as campaign
-from conceptmod.textsliders.lora import LoRANetwork
+from particle_sliders.textsliders.lora import LoRANetwork
 
 
 def test_catalog_labels_work_with_native_renderer_and_flat_score_discovery():
     from types import SimpleNamespace
     import yaml
-    from conceptmod.textsliders.generate_listen import _jobs
+    from particle_sliders.textsliders.generate_listen import _jobs
     catalog=campaign.read(campaign.WORK/'catalog.json')
     folder=Path('/tmp/uni16-label-check')
     for item in catalog['sliders']:
@@ -101,7 +101,7 @@ def test_two_native_adapters_add_and_detach_without_changing_base():
 
 
 def test_presentation_edits_are_excluded_but_training_edits_still_block(tmp_path,monkeypatch):
-    from conceptmod.textsliders.gan_v2 import state
+    from particle_sliders.textsliders.gan_v2 import state
     monkeypatch.setattr(campaign,'WORK',tmp_path)
     monkeypatch.setattr(state,'code_fingerprints',lambda:{})
     core=tmp_path/'train.py';core.write_text('training = 1\n')

@@ -15,7 +15,7 @@ def capture_fixture(dtype):
         MiniMaxMusic3ChunkDenoiseInner, MiniMaxMusic3ChunkUpdateStep,
         MiniMaxMusic3ChunkSetTimestepsStep,
     )
-    from conceptmod.textsliders.reward_game.full_flow import FullFlowCapture
+    from particle_sliders.textsliders.reward_game.full_flow import FullFlowCapture
     torch.set_num_threads(2); torch.manual_seed(23)
     tf = MiniMaxMusic3Transformer1DModel(in_channels=4, condition_dim=8, num_layers=2,
         num_attention_heads=2, attention_head_dim=8, ff_inner_dim=32, rotary_dim=8,
@@ -46,9 +46,9 @@ def capture_fixture(dtype):
 
 @pytest.mark.parametrize('dtype', [torch.float32, torch.bfloat16])
 def test_complete_flow_recomputed_factors_and_optimizer_match(dtype):
-    from conceptmod.textsliders.reward_game.full_flow import replay
-    from conceptmod.textsliders.reward_game.merged_forward import MergedForward
-    from conceptmod.textsliders.reward_game.recomputed_flow_forward import RecomputedFlowForward
+    from particle_sliders.textsliders.reward_game.full_flow import replay
+    from particle_sliders.textsliders.reward_game.merged_forward import MergedForward
+    from particle_sliders.textsliders.reward_game.recomputed_flow_forward import RecomputedFlowForward
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from app.lora_runtime import LoRANetwork
     tf, capture = capture_fixture(dtype)
@@ -103,7 +103,7 @@ def test_complete_flow_recomputed_factors_and_optimizer_match(dtype):
 
 
 def test_memory_guard_rejects_before_model_call():
-    from conceptmod.textsliders.reward_game.recomputed_flow_forward import RecomputedFlowForward
+    from particle_sliders.textsliders.reward_game.recomputed_flow_forward import RecomputedFlowForward
     tf = SimpleNamespace(forward=lambda **kwargs: (_ for _ in ()).throw(AssertionError('model called')))
     wrapper = RecomputedFlowForward(tf, max_rss_gib=0).attach()
     try:

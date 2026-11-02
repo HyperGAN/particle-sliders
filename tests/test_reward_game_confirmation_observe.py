@@ -1,9 +1,9 @@
 from pathlib import Path
 import pytest
-from conceptmod.textsliders.reward_game import acoustic_confirmation as confirmation
-from conceptmod.textsliders.reward_game import acoustic_composition as composition
-from conceptmod.textsliders.reward_game.core import read,write,digest,sha,Store,IntegrityError
-from conceptmod.textsliders.reward_game.confirmation_amendments import effective_sources
+from particle_sliders.textsliders.reward_game import acoustic_confirmation as confirmation
+from particle_sliders.textsliders.reward_game import acoustic_composition as composition
+from particle_sliders.textsliders.reward_game.core import read,write,digest,sha,Store,IntegrityError
+from particle_sliders.textsliders.reward_game.confirmation_amendments import effective_sources
 
 
 @pytest.mark.parametrize('kind', ['confirmation','composition'])
@@ -12,10 +12,10 @@ def test_actual_renderer_observation_is_accepted_by_scoring(tmp_path,monkeypatch
     import torch
     import importlib
     prefix={'acoustic':'acoustic_','lm':'','joint':'joint_','ff':'ff_'}[host]
-    confirmation_module=importlib.import_module('conceptmod.textsliders.reward_game.'+prefix+'confirmation')
-    composition_module=importlib.import_module('conceptmod.textsliders.reward_game.'+prefix+'composition')
-    from conceptmod.textsliders.reward_game.acoustic_renderer import AcousticRenderer
-    from conceptmod.textsliders.reward_sliders.specs import digest as renderer_digest
+    confirmation_module=importlib.import_module('particle_sliders.textsliders.reward_game.'+prefix+'confirmation')
+    composition_module=importlib.import_module('particle_sliders.textsliders.reward_game.'+prefix+'composition')
+    from particle_sliders.textsliders.reward_game.acoustic_renderer import AcousticRenderer
+    from particle_sliders.textsliders.reward_sliders.specs import digest as renderer_digest
     family=dict(family='fresh',split='test',caption='A steady acoustic groove.',lyrics='[instrumental theme]',style_multipliers={})
     manifest=dict(style_components={'fresh':[]},host_energy_by_kind={'language_model':4.,'transformer':3.},
                   sampler={},model_hashes={},capture_spec={})

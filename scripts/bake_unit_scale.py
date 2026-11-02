@@ -20,7 +20,7 @@ _APP_REGISTRY = Path("/ml2/music/app/sliders.json")
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
-from conceptmod.textsliders.bake_unit import bake_weights  # noqa: E402
+from particle_sliders.textsliders.bake_unit import bake_weights  # noqa: E402
 
 
 def _catalog_weights() -> list[Path]:

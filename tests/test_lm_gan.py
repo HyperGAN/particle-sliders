@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from conceptmod.textsliders.lm_gan import feature_mean_surrogate, weighted_feature_mean, delayed_cosine_scale
+from particle_sliders.textsliders.lm_gan import feature_mean_surrogate, weighted_feature_mean, delayed_cosine_scale
 
 
 def test_delayed_cosine_schedule():

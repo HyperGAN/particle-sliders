@@ -9,7 +9,7 @@ import yaml
 
 from analysis.slider2d.plus_neu_exam import PLUS_NEU_CELLS, score_plus_neu_residual
 from analysis.slider2d.unipolar_gan import NAME, Student, fit
-from conceptmod.textsliders import unipolar_gan as game
+from particle_sliders.textsliders import unipolar_gan as game
 
 
 @pytest.fixture(autouse=True)
@@ -99,8 +99,8 @@ def rows():
 
 def test_native_checkpointed_gradients_and_exact_zero():
     pytest.importorskip('yue2')
-    from conceptmod.textsliders import yue2_gan_plus_neu as native
-    from conceptmod.textsliders.yue2_backend import YuE2Backend, YuE2Slider
+    from particle_sliders.textsliders import yue2_gan_plus_neu as native
+    from particle_sliders.textsliders.yue2_backend import YuE2Backend, YuE2Slider
     torch.manual_seed(19)
     a = YuE2Backend(dummy=True); b = YuE2Backend(dummy=True)
     b.model.load_state_dict(a.model.state_dict())
@@ -125,8 +125,8 @@ def test_native_checkpointed_gradients_and_exact_zero():
 @pytest.mark.parametrize('native_lr', [False, True])
 def test_native_resume_is_exact_and_schedule_horizon_is_pinned(tmp_path, monkeypatch, native_lr):
     pytest.importorskip('yue2')
-    from conceptmod.textsliders.train_lora_yue2_arm_b import train, parse_args
-    from conceptmod.textsliders.yue2_backend import YuE2Backend
+    from particle_sliders.textsliders.train_lora_yue2_arm_b import train, parse_args
+    from particle_sliders.textsliders.yue2_backend import YuE2Backend
     def no_sampling(*args, **kwargs): raise AssertionError('No unused music sampling')
     monkeypatch.setattr(YuE2Backend, 'continuation', no_sampling)
     prompts = tmp_path / 'prompts.yaml'; prompts.write_text(yaml.safe_dump(dict(rows=rows())))

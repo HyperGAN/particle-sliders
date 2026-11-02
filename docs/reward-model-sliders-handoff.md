@@ -1,7 +1,7 @@
 # Handoff: reward-derived sliders, starting with Content Enjoyment
 
 Date: 2026-09-07. This document defines the experiment. Implementation and current
-execution evidence are tracked in the [research package](../conceptmod/textsliders/reward_sliders/README.md)
+execution evidence are tracked in the [research package](../packages/particle-sliders-core/src/particle_sliders/textsliders/reward_sliders/README.md)
 and [investigation record](../analysis/reward_sliders_20260907/README.md).
 The specification itself does not establish a successful direction or LoRA.
 
@@ -41,7 +41,7 @@ base model and calibration domain. Use the research name `reward-ce-v1`; reserve
 | [Creation probe](../analysis/studio_creation_probe_20260907/README.md) | Warm 10-second scorer forward: median 0.567 seconds on four CPU threads. This excludes generation, loading and preprocessing. |
 | [Feature/scorer implementation](../slider_selection/features.py), [measurement wrapper](../analysis/studio_combo_energy_20260907/measure.py) | Reuse pinned models and auditable preprocessing. Keep CE separate from PQ and style diagnostics. |
 | [Current palette recipe](../analysis/uni16_20260906/README.md) | Fresh rank-8/alpha-8 LM sliders; original GAN warmup then bounded continuation. The successful 660-step setting is not an established optimum for a new reward task. |
-| [Teacher rows](../conceptmod/textsliders/gan_v2/data.py), [objective](../conceptmod/textsliders/gan_v2/engine.py), [export](../conceptmod/textsliders/gan_v2/train.py) | Reuse shared-history residual construction, applicable objective machinery, and ordinary LoRA export. Current main contrast is on **lyric spans**. |
+| [Teacher rows](../packages/particle-sliders-core/src/particle_sliders/textsliders/gan_v2/data.py), [objective](../packages/particle-sliders-core/src/particle_sliders/textsliders/gan_v2/engine.py), [export](../packages/particle-sliders-core/src/particle_sliders/textsliders/gan_v2/train.py) | Reuse shared-history residual construction, applicable objective machinery, and ordinary LoRA export. Current main contrast is on **lyric spans**. |
 | [Resolver](../../app/sliders.py), [generator](../../app/generator.py), [registry](../../app/sliders.json) | Preserve resolved energy, exact-base restoration, and full-delta merging. |
 
 The existing WAVs do **not** include the intermediate residual activations and
@@ -89,7 +89,7 @@ weights or assume the teacher's strength transfers numerically.
 ## Reusable reward and capture interfaces
 
 Keep research code outside the production generator initially, for example in
-`conceptmod/textsliders/reward_sliders/`, with a run directory under
+`packages/particle-sliders-core/src/particle_sliders/textsliders/reward_sliders/`, with a run directory under
 `analysis/reward_sliders_20260907/`. The implementation now uses these paths;
 execution status and evidence are kept in the investigation record.
 

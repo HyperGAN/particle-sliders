@@ -15,7 +15,7 @@ torch.set_num_threads(1)
 
 from analysis.slider2d import run_unipolar_gan_sweep as sweep
 from analysis.slider2d import unipolar_gan as ug
-from analysis.slider2d.adv import AdvConfig
+from particle_sliders.textsliders._slider2d.adv import AdvConfig
 from analysis.slider2d.exam import close_field, divergent_field
 
 

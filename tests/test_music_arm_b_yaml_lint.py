@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from conceptmod.textsliders.arm_b_yaml_lint import (
+from particle_sliders.textsliders.arm_b_yaml_lint import (
     PROPOSE_ONLY,
     check_flp,
     check_reoc0,
@@ -17,7 +17,7 @@ from conceptmod.textsliders.arm_b_yaml_lint import (
     lint_prompts_yaml,
 )
 
-DATA = Path("conceptmod/textsliders/data/prompts-energy-v4.yaml")
+DATA = Path("packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-energy-v4.yaml")
 
 
 def test_lint_is_marked_propose_only():

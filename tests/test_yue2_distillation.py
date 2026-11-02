@@ -25,8 +25,8 @@ class LinearBridge(nn.Module):
 
 
 def test_linear_teacher_is_recovered_and_zero_is_exact():
-    from conceptmod.textsliders.yue2_backend import YuE2Slider, attention_targets
-    from conceptmod.textsliders.yue2_particle_bridge import ParticleSlider
+    from particle_sliders.textsliders.yue2_backend import YuE2Slider, attention_targets
+    from particle_sliders.textsliders.yue2_particle_bridge import ParticleSlider
     from yue2.modeling_yue2 import YuE2Config, YuE2ForCausalLM
     torch.manual_seed(9)
     torch.set_num_threads(1)

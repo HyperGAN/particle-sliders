@@ -11,11 +11,11 @@ import numpy as np
 import torch
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from conceptmod.textsliders.yue2_arm_b import load_prompts,RECIPE
-from conceptmod.textsliders.yue2_gan_plus_neu import RECIPE as PLUS_NEU_RECIPE
-from conceptmod.textsliders.yue2_backend import YuE2Backend,YuE2Slider,file_digest
-from conceptmod.textsliders.infer_yue2 import render
-from conceptmod.textsliders.train_lora_yue2_fresh import write_json
+from particle_sliders.textsliders.yue2_arm_b import load_prompts,RECIPE
+from particle_sliders.textsliders.yue2_gan_plus_neu import RECIPE as PLUS_NEU_RECIPE
+from particle_sliders.textsliders.yue2_backend import YuE2Backend,YuE2Slider,file_digest
+from particle_sliders.textsliders.infer_yue2 import render
+from particle_sliders.textsliders.train_lora_yue2_fresh import write_json
 from scripts.yue2_training_dashboard import dashboard_html
 
 TAKES=[('off',0.,'neutral'),('half',.5,'neutral'),
@@ -104,7 +104,7 @@ def main(argv=None):
     p.add_argument('--include_canary',action='store_true',help='Render -1 as an unscored diagnostic')
     p.add_argument('--hidden_diagnostics',action='store_true',help='Record unscored held-out caption geometry')
     p.add_argument('--weights',type=Path,required=True)
-    p.add_argument('--prompts_file',type=Path,default=ROOT/'conceptmod/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml')
+    p.add_argument('--prompts_file',type=Path,default=ROOT/'packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b-eval.yaml')
     p.add_argument('--output_dir',type=Path,required=True)
     p.add_argument('--takes',nargs='+',default=None,help='Subset to render, e.g. off metal. Default is every take. on is an alias for the scale-1 take.')
     p.add_argument('--seeds',type=int,nargs='+',default=[1709,2903])
@@ -121,7 +121,7 @@ def main(argv=None):
         network,record=YuE2Slider.load(pipe._load_model(),args.weights)
         expected = PLUS_NEU_RECIPE if args.recipe == 'gan_plus_neu' else RECIPE
         if args.recipe == 'particle_bridge':
-            from conceptmod.textsliders.yue2_particle_bridge import RECIPE as expected
+            from particle_sliders.textsliders.yue2_particle_bridge import RECIPE as expected
         if record.get('recipe')!=expected['name'] or record.get('trained_scales')!=expected['trained_scales']:
             raise ValueError('Expected a unipolar GAN checkpoint; bipolar checkpoints are not accepted')
         if record['model_identity']!=pipe.weights['mot']:raise ValueError('Base model differs from training')

@@ -1,8 +1,8 @@
 import pytest
-from conceptmod.textsliders.reward_game.acoustic_identity import generation_identity
-from conceptmod.textsliders.reward_game.acoustic_renderer import AcousticRenderer
-from conceptmod.textsliders.reward_game.acoustic_artifact import STRUCTURE as ACOUSTIC
-from conceptmod.textsliders.reward_game.core import STRUCTURE,IntegrityError
+from particle_sliders.textsliders.reward_game.acoustic_identity import generation_identity
+from particle_sliders.textsliders.reward_game.acoustic_renderer import AcousticRenderer
+from particle_sliders.textsliders.reward_game.acoustic_artifact import STRUCTURE as ACOUSTIC
+from particle_sliders.textsliders.reward_game.core import STRUCTURE,IntegrityError
 
 
 def test_acoustic_and_lm_host_budgets_are_separate():
@@ -22,8 +22,8 @@ def test_acoustic_and_lm_host_budgets_are_separate():
 
 
 def test_acoustic_initialization_refuses_missing_actual_model_audit(tmp_path,monkeypatch):
-    from conceptmod.textsliders.reward_game import acoustic_setup
-    from conceptmod.textsliders.reward_game.core import write
+    from particle_sliders.textsliders.reward_game import acoustic_setup
+    from particle_sliders.textsliders.reward_game.core import write
     parent=tmp_path/'parent';write(parent/'game.json',{})
     monkeypatch.setattr(acoustic_setup,'verify',lambda home: ({},{}))
     with pytest.raises(FileNotFoundError):acoustic_setup.init(tmp_path/'new',parent,tmp_path/'missing-audit')
@@ -35,8 +35,8 @@ def test_real_acoustic_network_export_has_separate_checked_format(tmp_path):
     from diffusers import MiniMaxMusic3Transformer1DModel
     from safetensors.torch import save_file
     from app.lora_runtime import LoRANetwork
-    from conceptmod.textsliders.reward_game.acoustic_artifact import checkpoint
-    from conceptmod.textsliders.reward_game.core import checkpoint as lm_checkpoint,write,sha
+    from particle_sliders.textsliders.reward_game.acoustic_artifact import checkpoint
+    from particle_sliders.textsliders.reward_game.core import checkpoint as lm_checkpoint,write,sha
     # Real host topology, with base weights on meta; only rank-8 factors allocate.
     with torch.device('meta'):
         host=MiniMaxMusic3Transformer1DModel()

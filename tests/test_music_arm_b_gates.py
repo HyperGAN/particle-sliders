@@ -27,9 +27,9 @@ from __future__ import annotations
 
 import pytest
 
-from analysis.slider2d.adv import AdvConfig, cap_penalty
+from particle_sliders.textsliders._slider2d.adv import AdvConfig, cap_penalty
 from analysis.slider2d.gan import DEFAULT_TEACHER
-from conceptmod.textsliders.train_lm_slider_music3 import (
+from particle_sliders.textsliders.train_lm_slider_music3 import (
     ARM_B,
     make_music_grad_regularizer,
     parse_args,

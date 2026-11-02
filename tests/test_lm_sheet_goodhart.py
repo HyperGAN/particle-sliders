@@ -43,13 +43,13 @@ from analysis.slider2d.sheet import (
     teacher_sheet_table,
     teacher_swings,
 )
-from conceptmod.textsliders.slider_targets import (
+from particle_sliders.textsliders.slider_targets import (
     lm_hidden_targets,
     lm_next_token_logits,
     lm_semantic_kl,
     lm_semantic_pole_loss,
 )
-from conceptmod.textsliders.train_lm_slider_music3 import (
+from particle_sliders.textsliders.train_lm_slider_music3 import (
     LM_RECIPES,
     SUB_E_RECIPES,
     V9_RECIPES,

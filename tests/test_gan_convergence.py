@@ -5,7 +5,7 @@ import torch
 
 from analysis.gan_bcap.convergence_probe import discriminator_search, improvement, tensors_equal
 from analysis.gan_bcap.convergence_criteria import paired_gain_bound, stopping_decision, game_evidence
-from conceptmod.textsliders import lm_adv as adv
+from particle_sliders.textsliders import lm_adv as adv
 
 
 def test_gain_includes_initial_checkpoint_and_reports_best_not_last():
