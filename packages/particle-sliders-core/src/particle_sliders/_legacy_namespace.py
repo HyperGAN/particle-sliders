@@ -10,14 +10,13 @@ class _AliasLoader(Loader):
         self.canonical = canonical
 
     def create_module(self, spec):
-        module = import_module(self.canonical)
-        self.original_spec = module.__spec__
-        return module
+        # Let importlib initialize a temporary alias module. Returning the
+        # canonical object here would briefly overwrite its __spec__ while a
+        # concurrent canonical import can observe it.
+        return None
 
     def exec_module(self, module):
-        # importlib assigns the alias spec during loading; keep introspection,
-        # relative imports, reload and pickle anchored to the canonical name.
-        module.__spec__ = self.original_spec
+        sys.modules[module.__name__] = import_module(self.canonical)
 
     def get_code(self, fullname):
         # Preserve python -m conceptmod.textsliders.<command> while users migrate.
@@ -46,7 +45,28 @@ class _LegacyFinder(MetaPathFinder):
         return alias
 
 
+class _CompatibilityRootLoader(Loader):
+    def create_module(self, spec):
+        return None
+
+    def exec_module(self, module):
+        module.__doc__ = "Legacy research namespace; use particle_sliders for new code."
+
+
+class _MissingRootFinder(MetaPathFinder):
+    _particle_sliders_missing_root = True
+
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname == "conceptmod":
+            return util.spec_from_loader(fullname, _CompatibilityRootLoader(), is_package=True)
+
+
 def install():
     if not any(getattr(finder, "_particle_sliders_legacy", False)
                for finder in sys.meta_path):
         sys.meta_path.insert(0, _LegacyFinder())
+    if not any(getattr(finder, "_particle_sliders_missing_root", False)
+               for finder in sys.meta_path):
+        # Existing regular/namespace/editable conceptmod providers get first
+        # refusal. Only synthesize a root when no other finder supplies one.
+        sys.meta_path.append(_MissingRootFinder())

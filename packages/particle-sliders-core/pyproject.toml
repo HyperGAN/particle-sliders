@@ -1,6 +1,7 @@
 [build-system]
 requires = ["setuptools>=84.2.1"]
-build-backend = "setuptools.build_meta"
+build-backend = "_build_backend"
+backend-path = ["."]
 
 [project]
 name = "particle-sliders-core"
@@ -24,11 +25,15 @@ hypergan-hndl = ["hndl==0.10.0; python_version >= '3.11' and python_version < '3
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["particle_sliders*", "concept_slider_core*"]
 
 [tool.setuptools.package-data]
-"particle_sliders.textsliders" = ["data/*.yaml"]
+"particle_sliders.textsliders" = ["data/*.yaml", "run.sh"]
 "particle_sliders.notrigger" = ["data/*.yaml"]
-"*" = ["*.md", "*.sh"]
+"particle_sliders.textsliders.reward_game" = ["README.md"]
+"particle_sliders.textsliders.reward_preference" = ["README.md"]
+"particle_sliders.textsliders.reward_search" = ["README.md"]
+"particle_sliders.textsliders.reward_sliders" = ["README.md"]
 particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json", "pg09_continuous_profile.json", "fibo_provenance.json", "audio_closure_provenance.json", "legacy_stamp.json", "pg093_release.json", "pg094_release.json", "fibo_hndl_010_sources.json", "fibo_hndl_sources.json", "*.hndl"]
 
 [tool.pytest.ini_options]

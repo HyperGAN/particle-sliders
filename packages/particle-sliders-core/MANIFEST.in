@@ -12,3 +12,5 @@ include PEFT-SCALING.md
 include LEGACY-MIGRATION.md
 include FIBO-NETWORK-PROVENANCE.json
 include MODERN-GRAM.md
+include _build_backend.py
+include particle_sliders_legacy_imports.pth

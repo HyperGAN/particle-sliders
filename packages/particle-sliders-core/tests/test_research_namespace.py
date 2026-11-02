@@ -84,6 +84,9 @@ def test_packaged_prompts_and_license(tmp_path):
 def test_backend_imports_do_not_require_shared_core_or_native_runtimes(tmp_path):
     run_python(tmp_path, '''
         import importlib.abc, sys
+        assert 'torch' not in sys.modules
+        assert not any(name in sys.modules for name in
+                       ('particlegan', 'diffusers', 'app', 'hypergan', 'hndl'))
         class BlockOptional(importlib.abc.MetaPathFinder):
             def find_spec(self, fullname, path=None, target=None):
                 if fullname.split('.')[0] in {'particlegan', 'diffusers', 'app', 'hypergan', 'hndl'}:
@@ -106,3 +109,48 @@ def test_legacy_module_command(tmp_path):
                             'particle_sliders.textsliders.distribution_probe')]
     assert 'usage:' in results[0].stdout
     assert results[0].stdout.replace('conceptmod', 'particle_sliders') == results[1].stdout
+
+
+def test_all_27_lazy_root_exports_survive_star_import(tmp_path):
+    run_python(tmp_path, '''
+        import particle_sliders
+        assert len(particle_sliders.__all__) == 27
+        namespace = {}
+        exec('from particle_sliders import *', namespace)
+        assert set(particle_sliders.__all__) <= namespace.keys()
+        for name in particle_sliders.__all__:
+            assert namespace[name] is getattr(particle_sliders, name)
+    ''')
+
+
+def test_concurrent_legacy_import_never_mutates_canonical_spec(tmp_path):
+    run_python(tmp_path, '''
+        import importlib, threading
+        from particle_sliders import _legacy_namespace as aliases
+        canonical = importlib.import_module('particle_sliders.textsliders.lora')
+        ready, finish = threading.Event(), threading.Event()
+        original = aliases._AliasLoader.exec_module
+        def paused(loader, module):
+            if module.__name__.endswith('.lora'):
+                ready.set()
+                assert finish.wait(10)
+            return original(loader, module)
+        aliases._AliasLoader.exec_module = paused
+        results, errors = [], []
+        def load_legacy():
+            try:
+                results.append(importlib.import_module('conceptmod.textsliders.lora'))
+            except BaseException as exc:
+                errors.append(exc)
+        worker = threading.Thread(target=load_legacy)
+        worker.start()
+        try:
+            assert ready.wait(10)
+            assert canonical.__spec__.name == 'particle_sliders.textsliders.lora'
+            assert importlib.import_module(canonical.__name__) is canonical
+        finally:
+            finish.set()
+            worker.join(10)
+        assert not worker.is_alive() and not errors
+        assert results == [canonical]
+    ''')

@@ -43,13 +43,44 @@ receipts, source pins, snapshots and external release cards are not rewritten.
 
 ## Compatibility
 
-The legacy `conceptmod` package installs a narrowly scoped import finder for
-its `textsliders` and `notrigger` trees. Each alias returns the canonical module
-object. It does not execute the same source twice or create wrapper subclasses.
+The wheel owns no files under `conceptmod/`. A uniquely named, RECORD-tracked
+`particle_sliders_legacy_imports.pth` registers a narrowly scoped import finder
+at normal Python startup. It imports only the lightweight package root and
+standard-library alias helpers; it does not load Torch, ParticleGAN, native
+backends, access the network, or write application files. Each research alias returns the
+canonical module object after importlib initializes a disposable alias module,
+so it never temporarily changes the canonical module's `__spec__`.
 Imports work in either order, including nested packages and private attributes.
 Monkeypatches and a Glimmer adapter subclassing `LoRAModule` see one identity.
 The root API exports remain available lazily, so a LoRA/bridge import does not
 require initializing ParticleGAN, HyperGAN/HNDL or Diffusers.
+
+This startup registration is needed for legacy-first imports when the separate
+`conceptmod` distribution is installed: putting a shim in its package would
+make both distributions own the same file, and a namespace subdirectory cannot
+extend an unrelated regular package. Existing regular, namespace and editable
+providers of the `conceptmod` root get first refusal. Only when no provider
+supplies that root does the final fallback finder synthesize a package in
+memory. The separate project's root and native `conceptmod.backends` API remain
+owned by that project. The research `textsliders`/`notrigger` names are reserved
+compatibility routes; installing an unrelated provider of those same legacy
+subtrees is not supported. The repository-root shim remains for source use and
+is deliberately excluded from wheels.
+
+The small PEP 517 backend delegates to setuptools and adds the hook at the wheel
+root with a verified RECORD hash/size. This avoids setuptools `data-files`,
+which would put a `.pth` under the environment prefix rather than site-packages.
+It handles regular and PEP 660 editable wheels alike, and the source archive
+contains the backend and hook. Pip uninstall removes the hook with its owning
+distribution. Tests cover both install orders, legacy-first imports, native
+API preservation, independent uninstalls, and editable installation/removal.
+
+Python `-S` disables site processing, and adding a `pip --target` directory with
+`PYTHONPATH` alone does not process its `.pth` files. In those environments,
+use canonical imports or explicitly call
+`particle_sliders._legacy_namespace.install()` before a legacy import. Restart
+Python after installs or uninstalls; already-running interpreters retain their
+module and importer state. No global Git or interpreter settings are changed.
 
 Old qualified pickle globals (`conceptmod.textsliders.lora.LoRAModule`, for
 example) resolve through the alias. New pickles record canonical names and need
@@ -65,8 +96,27 @@ this change does not relax checkpoint-loading policy.
 The historical research bridge's existing `analysis.slider2d.adv` and
 `grad_regularizers` implementations move unchanged apart from import names into
 `particle_sliders.textsliders._slider2d`, so the bridge works outside a checkout.
-The old analysis imports alias these modules. They remain the historical bridge
+In a checkout, the old analysis imports alias these modules; the wheel does not
+own the generic `analysis` namespace. Old full-object pickles naming those
+repository-only classes still require a checkout. These remain the historical bridge
 losses; they are not silently switched to the current shared-core formulation.
+
+Preset config YAMLs that embed
+`packages/particle-sliders-core/src/particle_sliders/...` paths remain
+source-checkout presets. Their relative prompt paths are not portable when a
+wheel is installed elsewhere. Wheel users should use the backend's packaged
+default prompt path or an explicit absolute `--prompts_file`, and separately
+qualify model-specific config adoption. For example, `config-sana.yaml` embeds
+a checkout-relative prompt path, while its packaged `data/prompts-sana.yaml`
+resource is available from `importlib.resources.files('particle_sliders.textsliders')`.
+This migration does not claim that arbitrary research YAMLs or workstation
+campaigns are runnable from an installed wheel.
+
+`locked_provenance.json` records the canonical teacher file relative to the
+package and its verified hash, preserving the historical repository path,
+hash and commit separately. The endpoint source check runs in a checkout and
+an installed wheel: a missing source fails rather than skips, and its six
+teacher-function ASTs must match the extracted teachers exactly.
 
 ## Downstream adoption
 
@@ -99,7 +149,9 @@ Run the focused import/checkpoint tests and the repository CPU suite:
 
 ```bash
 CUDA_VISIBLE_DEVICES='' HF_HUB_OFFLINE=1 OMP_NUM_THREADS=1 python -m pytest -q \
-  packages/particle-sliders-core/tests/test_research_namespace.py
+  packages/particle-sliders-core/tests/test_research_namespace.py \
+  packages/particle-sliders-core/tests/test_namespace_installation.py \
+  packages/particle-sliders-core/tests/test_endpoint_game.py
 CUDA_VISIBLE_DEVICES='' HF_HUB_OFFLINE=1 OMP_NUM_THREADS=1 python -m pytest -q
 python -m build --no-isolation packages/particle-sliders-core
 ```
@@ -109,7 +161,35 @@ with the built wheel installed and no repository on `sys.path`. It covers both
 import orders, nested modules, reload, monkeypatch identity, old pickle globals,
 a legacy full-object checkpoint, exact state-dict restoration, packaged prompts
 and license, optional-runtime isolation and legacy module execution.
+For the installation matrix outside a checkout, set `PARTICLE_SLIDERS_TEST_WHEEL`
+to the built wheel and `PARTICLE_SLIDERS_TEST_PROJECT` to the source package
+directory for its separate editable-install check. The fixture owns the same
+root file as the separate Conceptmod distribution and exposes a native backend;
+no files in either installed distribution may overlap.
 
 This is naming/packaging work. The original Concept Sliders research credit,
 Rohit Gandikota's copyright and MIT notices remain in the repository and wheel.
 See [Lineage and license](../README.md#lineage-and-license).
+
+## Publishing this migration for review
+
+Check the push destination before publishing a task branch. This checkout
+inherited `push.default=tracking`; an unqualified source branch can therefore
+target its tracked `main` branch. Inspect the setting without changing it, use
+an explicit destination refspec for both the dry run and the push, and verify
+the remote refs afterward:
+
+```bash
+git config --get push.default
+git ls-remote origin refs/heads/main refs/heads/codex/particle-sliders-namespace
+git push --dry-run origin HEAD:refs/heads/codex/particle-sliders-namespace
+git push --set-upstream origin HEAD:refs/heads/codex/particle-sliders-namespace
+git ls-remote origin refs/heads/main refs/heads/codex/particle-sliders-namespace
+```
+
+The dry-run destination must be `codex/particle-sliders-namespace`, and the
+remote `main` SHA must remain the pre-push SHA. For this draft, the reviewed
+initial branch head was `bbda8ed17f1b3ebbe82e13608cef9db57326f00b`; use the
+draft PR's current exact reviewed head after any review fixes. The restored
+`main` is `e4a9273dce38bb47ec9787123c8b1faa38e1bf1c`. This procedure does not
+require changing global or unrelated Git settings.
