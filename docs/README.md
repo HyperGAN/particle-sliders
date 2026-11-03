@@ -15,6 +15,7 @@ prompt files, and 2-D exams.
 | if you need | read |
 |---|---|
 | installable shared core for product repos (`winning_formulation()`, `FormulationGame`) | [particle-sliders-core](../packages/particle-sliders-core/README.md) · [winning-formulation.md](winning-formulation.md) · [shared-core.md](shared-core.md) |
+| common teacher/student evaluation and learning-rate search | [Evaluation and LR-search workflow](../packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md) · [MOSS correction and native results](moss-teacher-student-metric-20261103.md) |
 | YuE2 / Music 3 published weights, install, current train command, CPU tests | [README.md](../README.md) |
 | YuE2 math, training evidence, Music 3 / image objectives, evaluation | [math.md](math.md) |
 | YuE2 recipes, render, resume | [yue2-slider.md](yue2-slider.md) |
@@ -205,6 +206,8 @@ boards behind them.
 
 | page | what it records |
 |---|---|
+| [Evaluation and LR-search workflow](../packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md) | pooled matched-response metric, analytical controls, equal-budget LR screens, saved-checkpoint reevaluation and matched media |
+| [MOSS metric correction](moss-teacher-student-metric-20261103.md) | actual 128/960 native reevaluation, reversed v1 ranking and reuse of existing LR pilots |
 | [slider-selection-metric.md](slider-selection-metric.md) | proposed single objective: usable-slider rate over a fixed ladder (LM first) |
 | [slider-quality-pilot-results.md](slider-quality-pilot-results.md) | first listening pilot: composite not ready to optimize; `optimizer_score` stays null |
 

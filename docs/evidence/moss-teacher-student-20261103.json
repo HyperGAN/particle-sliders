@@ -1,0 +1,366 @@
+{
+  "schema": "particle-sliders-moss-metric-case-study-v1",
+  "date_utc": "2026-11-03",
+  "scope": "Retrospective development case; actual native zero-update128/960 reevaluation plus separately labelled CPU reconstruction of historicalLRpilots/history. Documentation, not a scorer implementation or new shared-core qualification.",
+  "product": {
+    "model": "OpenMOSS-Team/MOSS-Image-SFT",
+    "model_revision": "fc5de0d56fc910cbca6f6625a70f5f582b26deb1",
+    "source_head": "76ebd09c27e4bb3af9456f97514162332a918dd2",
+    "architecture": "direct rank2linearLoRA with HyperGAN/HNDL residuals; no particle bank",
+    "core_version": "0.12.0",
+    "core_source_commit": "a794e3b4a8813b012f2c4faa3da82b78d4a90214",
+    "ParticleGAN_version": "0.9.4",
+    "generator_lr": 1e-05,
+    "critic_lr": 0.001
+  },
+  "numerical_cohort": {
+    "transformer": "float32 after fullBF16loadedweightbinding and exactBF16parameterroundtrip",
+    "text_encoder": "bfloat16",
+    "CUDA_precision": "IEEE deterministic",
+    "device": "GPU1 RTX A6000; samephysicalGPU fororiginalcontrolandreevaluation",
+    "declared_wheel_dependency_conformance": false
+  },
+  "protocol": {
+    "name": "matched_example_teacher_student_relative_l2_v2",
+    "formula": "For each(scene,seed,sign), sum_t||student-teacher||^2 / sum_t||teacher-neutral||^2; average matchedexamples equally.",
+    "teacher": "neutral + sign * strength * (positive - negative)",
+    "positions": [
+      0,
+      1
+    ],
+    "scenes": [
+      "cup-book",
+      "portrait"
+    ],
+    "seeds": [
+      171,
+      172
+    ],
+    "signs": [
+      1,
+      -1
+    ],
+    "row_count": 16,
+    "matched_example_count": 8,
+    "response_shape": [
+      1,
+      128,
+      16,
+      16
+    ],
+    "resolution": 256,
+    "rollout": "shared frozenneutralrollout, not eachstudentsowntrajectory",
+    "anchors": {
+      "OFF": 1,
+      "teacher": 0,
+      "reversed_teacher_edit": 4
+    }
+  },
+  "native_evaluation": {
+    "status": "passed",
+    "start_utc": "2026-11-03T22:27:48.038392+00:00",
+    "end_utc": "2026-11-03T22:31:21.440972+00:00",
+    "elapsed_campaign_seconds": 213.40259727701778,
+    "new_training_updates": 0,
+    "new_optimizer_constructions": 0,
+    "manifest_sha256": "11033f0f0222124398be4486e758ced8e1d880f2be2e4ebc09c09642d9e066c6",
+    "saved128_control": {
+      "status": "passed",
+      "matched_rows": 16,
+      "legacy_all_statistics_exact": true,
+      "legacy_max_absolute_difference": 0.0,
+      "corrected_score": 0.9783600821898651,
+      "corrected_rescore_difference": 0.0,
+      "comparison_tolerance": {
+        "relative": 1e-10,
+        "absolute": 1e-12
+      }
+    },
+    "checkpoints": [
+      {
+        "completed_training_steps": 128,
+        "metric": "matched_example_teacher_student_relative_l2_v2",
+        "teacher_student_relative_squared_error": 0.9783600821898651,
+        "scene_relative_error": {
+          "cup-book": 0.9754370532957038,
+          "portrait": 0.9812831110840264
+        },
+        "legacy_v1_mean_per_row_nmse": 0.9781120342835209,
+        "mean_signed_gain": 0.011069870586198375,
+        "mean_cosine": 0.5153256191527269,
+        "mean_orthogonal_relative_energy": 0.0003748319900024011,
+        "raw_responses": {
+          "path": "/ml2/particlesliders-working/moss_training/runs/20261103T220508Z-metric-v2-native/eval/step-000128-raw-responses.safetensors",
+          "sha256": "ae524f22b058648d7005d0e049c0e9e49600094ccdaba934532c9ffa920d0408"
+        },
+        "adapter_safetensors_sha256": "81c2ad2aa3cde64811f03ec0ab419ee6061ca562951a686d5d90ec6adbd1dd2d",
+        "full_checkpoint_training_pt_sha256": "76c8d8db3522396d2fb1419eac9a66122247b595c87c80e6aed8c40630b76ee9",
+        "loaded_adapter_leaves": 336,
+        "all_adapter_bytes_equal_before_and_after": true
+      },
+      {
+        "completed_training_steps": 960,
+        "metric": "matched_example_teacher_student_relative_l2_v2",
+        "teacher_student_relative_squared_error": 0.7300596834779127,
+        "scene_relative_error": {
+          "cup-book": 0.6961327480752805,
+          "portrait": 0.763986618880545
+        },
+        "legacy_v1_mean_per_row_nmse": 4.238309004309115,
+        "mean_signed_gain": 0.17937924234207875,
+        "mean_cosine": 0.6279569101434458,
+        "mean_orthogonal_relative_energy": 0.055188875915476346,
+        "raw_responses": {
+          "path": "/ml2/particlesliders-working/moss_training/runs/20261103T220508Z-metric-v2-native/eval/step-000960-raw-responses.safetensors",
+          "sha256": "1d0d4cc38d885a6dbbe9d9b75677113f102f1fa80edd065fd498276f31e47e4d"
+        },
+        "adapter_safetensors_sha256": "369f6faf5b23c2a3e41e36c16fc00766057b27f5ac6b1e8ff28d37db94d38c10",
+        "full_checkpoint_training_pt_sha256": "0a92498c31bd568712732b3389fc52b68909b86db8709b95302dde2ceaff0a12",
+        "loaded_adapter_leaves": 336,
+        "all_adapter_bytes_equal_before_and_after": true
+      }
+    ],
+    "relative_error_reduction_960_vs_OFF": 0.2699403165220873,
+    "relative_error_reduction_960_vs_128": 0.253792446392724,
+    "off_identity_exact": true,
+    "full_frozen_base_postcheck": {
+      "status": "passed",
+      "transformer_compute_dtype": "float32",
+      "text_encoder_compute_dtype": "bfloat16",
+      "parameter_count": 462,
+      "all_parameters_exact_BF16_roundtrip": true,
+      "buffers": {
+        "rope.bands": {
+          "policy": "exact pinned native _default_bands formula",
+          "dtype": "torch.float32"
+        }
+      },
+      "initial_checkpoint_gate": "unchanged complete strict BF16 key/shape/dtype/byte proof before promotion"
+    },
+    "owner_CPU_raw_verification": {
+      "status": "passed",
+      "checkpoints": [
+        {
+          "step": 128,
+          "reported_score": 0.9783600821898651,
+          "CPU_recomputed_score": 0.9783600821898651,
+          "difference": 0.0,
+          "raw_sha256": "ae524f22b058648d7005d0e049c0e9e49600094ccdaba934532c9ffa920d0408"
+        },
+        {
+          "step": 960,
+          "reported_score": 0.7300596834779127,
+          "CPU_recomputed_score": 0.7300596834779127,
+          "difference": 0.0,
+          "raw_sha256": "1d0d4cc38d885a6dbbe9d9b75677113f102f1fa80edd065fd498276f31e47e4d"
+        }
+      ],
+      "exact_teacher_neutral_latent_time_across_checkpoints": true,
+      "CUDA_initialized": false,
+      "new_training_updates": 0
+    },
+    "cleanup": {
+      "status": "passed",
+      "owned_processes_reaped": true,
+      "physical_leases_released": true,
+      "parent_lease_descriptors_closed": true,
+      "other_workloads_preserved": true,
+      "admission_reusable": false
+    }
+  },
+  "historical_CPU_reconstruction": {
+    "new_model_forwards": 0,
+    "new_training_updates": 0,
+    "source_result": {
+      "local_path": "/ml2/particlesliders-working/moss_training/metric-results/20261103T214650Z-teacher-student-v2/RESULT.json",
+      "sha256": "736bce3dd031ac1f50df8221d2e476300c9a18addd796b8043dd43a4b1cdaacf"
+    },
+    "method": "Reconstructed additiveSSEandeditenergy fromsavedv1float64 summaries and proven32768responseelementsperrow. Originalstatisticsunchanged. Native128control later matchedexactly.",
+    "same_budget_LR_pilots": [
+      {
+        "unit": "r0",
+        "lr": 3e-06,
+        "critic_lr": 0.001,
+        "completed_steps": 128,
+        "mean_teacher_student_relative_error": 0.9933808684273909,
+        "legacy_mean_per_row_nmse": 0.9849987026990561,
+        "scene_relative_error": {
+          "cup-book": 0.9924086208163675,
+          "portrait": 0.9943531160384145
+        }
+      },
+      {
+        "unit": "r1",
+        "lr": 1e-05,
+        "critic_lr": 0.001,
+        "completed_steps": 128,
+        "mean_teacher_student_relative_error": 0.9783600821898651,
+        "legacy_mean_per_row_nmse": 0.9781120342835209,
+        "scene_relative_error": {
+          "cup-book": 0.9754370532957037,
+          "portrait": 0.9812831110840264
+        }
+      },
+      {
+        "unit": "r2",
+        "lr": 3e-05,
+        "critic_lr": 0.001,
+        "completed_steps": 128,
+        "mean_teacher_student_relative_error": 0.9357916753560382,
+        "legacy_mean_per_row_nmse": 1.1044827602839804,
+        "scene_relative_error": {
+          "cup-book": 0.9276135688395868,
+          "portrait": 0.9439697818724898
+        }
+      }
+    ],
+    "selected_lineage": [
+      {
+        "step": 128,
+        "mean_teacher_student_relative_error": 0.9783600821898651,
+        "mean_signed_gain": 0.011069870586198375,
+        "mean_cosine": 0.5153256191527268,
+        "mean_orthogonal_relative_energy": 0.0003748319900024011,
+        "legacy_mean_per_row_nmse": 0.9781120342835209,
+        "scene_relative_error": {
+          "cup-book": 0.9754370532957037,
+          "portrait": 0.9812831110840264
+        }
+      },
+      {
+        "step": 256,
+        "mean_teacher_student_relative_error": 0.9461501139361986,
+        "mean_signed_gain": 0.02853017494883168,
+        "mean_cosine": 0.5261719536014439,
+        "mean_orthogonal_relative_energy": 0.0023694180386055175,
+        "legacy_mean_per_row_nmse": 1.1117384717700667,
+        "scene_relative_error": {
+          "cup-book": 0.9372162372743229,
+          "portrait": 0.9550839905980744
+        }
+      },
+      {
+        "step": 384,
+        "mean_teacher_student_relative_error": 0.9079240534513634,
+        "mean_signed_gain": 0.050527501522147536,
+        "mean_cosine": 0.5578590231359911,
+        "mean_orthogonal_relative_energy": 0.006320845415960521,
+        "legacy_mean_per_row_nmse": 1.40208625227754,
+        "scene_relative_error": {
+          "cup-book": 0.8917155730002395,
+          "portrait": 0.9241325339024873
+        }
+      },
+      {
+        "step": 512,
+        "mean_teacher_student_relative_error": 0.8691284545068728,
+        "mean_signed_gain": 0.07492006845993024,
+        "mean_cosine": 0.569739954296964,
+        "mean_orthogonal_relative_energy": 0.013105245280112386,
+        "legacy_mean_per_row_nmse": 1.926957891296247,
+        "scene_relative_error": {
+          "cup-book": 0.8467621308682312,
+          "portrait": 0.8914947781455145
+        }
+      },
+      {
+        "step": 640,
+        "mean_teacher_student_relative_error": 0.8284161983426436,
+        "mean_signed_gain": 0.10273736189856723,
+        "mean_cosine": 0.585066584337737,
+        "mean_orthogonal_relative_energy": 0.022839635563906516,
+        "legacy_mean_per_row_nmse": 2.611731412248786,
+        "scene_relative_error": {
+          "cup-book": 0.8006682096171666,
+          "portrait": 0.8561641870681207
+        }
+      },
+      {
+        "step": 768,
+        "mean_teacher_student_relative_error": 0.7886672913297657,
+        "mean_signed_gain": 0.13242132229310258,
+        "mean_cosine": 0.5998605024453827,
+        "mean_orthogonal_relative_energy": 0.035140318904964454,
+        "legacy_mean_per_row_nmse": 3.4003864330598756,
+        "scene_relative_error": {
+          "cup-book": 0.75739104076747,
+          "portrait": 0.8199435418920613
+        }
+      },
+      {
+        "step": 896,
+        "mean_teacher_student_relative_error": 0.7487987420147482,
+        "mean_signed_gain": 0.1638943957725463,
+        "mean_cosine": 0.6189451004326513,
+        "mean_orthogonal_relative_energy": 0.04849507322765282,
+        "legacy_mean_per_row_nmse": 4.028528678734145,
+        "scene_relative_error": {
+          "cup-book": 0.7156329053080428,
+          "portrait": 0.7819645787214534
+        }
+      }
+    ],
+    "status_3e5": "Existing128stepmetriccandidate; matchedimages/longertrainingnotyetconfirmed."
+  },
+  "training_counts": {
+    "actual_recorded_selected_lineage_steps": 985,
+    "latest_full_checkpoint_steps": 960,
+    "target_steps": 1024,
+    "target_reached": false,
+    "evaluation_adds_training_steps": false
+  },
+  "interpretation": {
+    "user_visual_preference": "960 over128 on actualmatchedrenderedcomparison",
+    "former_training_regression_interpretation": "superseded by correctedteacher/studentnormalization",
+    "limitations": [
+      "Twoscenes/twoseeds are development evidence, not broadperceptualqualityvalidation.",
+      "No960step3e-5trainingorcomparisonexistsinthiscase.",
+      "This architecture has no routedbank; itsLRsare not validated for a newbankarchitecture.",
+      "Local artifactpaths are provenance references; largeprivateweights/rawresponses/imagesarenotbundledwithdocumentation."
+    ]
+  },
+  "source_bindings": {
+    "metric_module_sha256": "961c647d88d67a1e67323f6bb08ca8070662926d13672dd460d7a7bbbfe4a277",
+    "legacy_v1_module_sha256": "0af66db08501860f9c6e0ebf677d97a5e958c1767005274f474397607b5428fb",
+    "native_runner_sha256": "77d2791f65fd7591ce8f835595255e5615a04338722481490d08498c84c6cb22",
+    "source_review": "NO INTEGRATED SOURCE BLOCKER; reviewedbeforeactualnativeattempt"
+  },
+  "receipts": {
+    "manifest.json": {
+      "local_path": "/ml2/particlesliders-working/moss_training/runs/20261103T220508Z-metric-v2-native/manifest.json",
+      "sha256": "11033f0f0222124398be4486e758ced8e1d880f2be2e4ebc09c09642d9e066c6"
+    },
+    "REVIEW_PACKET.json": {
+      "local_path": "/ml2/particlesliders-working/moss_training/runs/20261103T220508Z-metric-v2-native/REVIEW_PACKET.json",
+      "sha256": "649893e1e04d63dc49ee3228ec1c5a01d947fa37dd245d113dd3786221e56d14"
+    },
+    "eval/result.json": {
+      "local_path": "/ml2/particlesliders-working/moss_training/runs/20261103T220508Z-metric-v2-native/eval/result.json",
+      "sha256": "275ec6b29f8a23bfe60a22261d27cd44dabe6e62ef328b7f71307522c4436b18"
+    },
+    "eval/saved128-control-proof.json": {
+      "local_path": "/ml2/particlesliders-working/moss_training/runs/20261103T220508Z-metric-v2-native/eval/saved128-control-proof.json",
+      "sha256": "7a25db932924327c13476208569a84150146f93caaa57768bcc4a434431746e3"
+    },
+    "eval/post-evaluation-base-proof.json": {
+      "local_path": "/ml2/particlesliders-working/moss_training/runs/20261103T220508Z-metric-v2-native/eval/post-evaluation-base-proof.json",
+      "sha256": "296c44a12d0a975ac581f8c2d15197b6b73459c008f045de931d2a9d538d4f10"
+    },
+    "eval/supervisor.json": {
+      "local_path": "/ml2/particlesliders-working/moss_training/runs/20261103T220508Z-metric-v2-native/eval/supervisor.json",
+      "sha256": "bd756d31fe80a5c29ee65098e9383c79c23a08ba39b6f98746f647ab0a0c1c48"
+    },
+    "eval-campaign/campaign.json": {
+      "local_path": "/ml2/particlesliders-working/moss_training/runs/20261103T220508Z-metric-v2-native/eval-campaign/campaign.json",
+      "sha256": "c4a3afec7426a909c7e1fc2b5feaec910587f72b2922982836338a02ded748cb"
+    },
+    "outcome.json": {
+      "local_path": "/ml2/particlesliders-working/moss_training/runs/20261103T220508Z-metric-v2-native/outcome.json",
+      "sha256": "9bfa912984eeb445ab5509d7597a1edf776ec4db6286e4d71602f2e0826ec213"
+    },
+    "OWNER_RAW_RESPONSE_VERIFICATION.json": {
+      "local_path": "/ml2/particlesliders-working/moss_training/runs/20261103T220508Z-metric-v2-native/OWNER_RAW_RESPONSE_VERIFICATION.json",
+      "sha256": "3f07cf902d443447e0493f68a171b3726c45fdab50e6cdbc67015d6686068253"
+    }
+  }
+}

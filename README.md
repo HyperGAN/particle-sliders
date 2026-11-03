@@ -29,6 +29,7 @@ an integration path.
 | Choose the common-base architecture and check availability | [Architecture and availability](#architecture-and-availability) |
 | Use the current public shared-core API | [Use the shared core](#use-the-shared-core) |
 | Train a new slider on a supported model | [Train a slider](#train-a-slider) |
+| Validate a teacher/student metric and choose learning rates | [Common evaluation and LR-search workflow](packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md) · [MOSS metric correction](docs/moss-teacher-student-metric-20261103.md) |
 | Run the tests | [Tests](#tests) |
 | Understand the math and the evidence | [docs/math.md](docs/math.md) |
 | Find a backend guide, prompt file or experiment write-up | [docs/README.md](docs/README.md) |

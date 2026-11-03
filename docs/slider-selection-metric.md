@@ -1,5 +1,11 @@
 # One objective for selecting slider losses
 
+For continuous teacher/student response matching and learning-rate search, use
+the separate [common workflow](../packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md)
+and its [MOSS normalization case study](moss-teacher-student-metric-20261103.md).
+Response fit and perceptual usable-slider rate are different measurements; the
+MOSS result does not certify the audio selector proposed below.
+
 Proposal and implementation, 2026-09-04. Scope: LM sliders first. The
 [calibration workflow](../slider_selection/README.md) is implemented; its
 first listening pilot is complete. The initial automatic mixture failed its

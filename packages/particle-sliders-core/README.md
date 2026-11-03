@@ -38,6 +38,8 @@ flow. Core imports do not load pretrained models or initialize CUDA.
 - [PEFT-SCALING.md](PEFT-SCALING.md): opt-in exact-name scaling that preserves
   fixed companions, strict scope admission and captured checkpoint replay.
 - [CONDITIONAL-PG09-CONTRACT.md](CONDITIONAL-PG09-CONTRACT.md): strict game/resume.
+- [EVALUATION-AND-LR-SEARCH.md](EVALUATION-AND-LR-SEARCH.md): common metric
+  validation, equal-budget LR screens, checkpoint reevaluation and matched media.
 
 Software evidence covers synthetic CPU contracts, not pretrained convergence,
 accelerator fit, native image quality or acoustic rendering. Iris rendering stays
