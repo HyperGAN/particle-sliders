@@ -34,7 +34,7 @@ include = ["particle_sliders*", "concept_slider_core*"]
 "particle_sliders.textsliders.reward_preference" = ["README.md"]
 "particle_sliders.textsliders.reward_search" = ["README.md"]
 "particle_sliders.textsliders.reward_sliders" = ["README.md"]
-particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json", "pg09_continuous_profile.json", "fibo_provenance.json", "audio_closure_provenance.json", "legacy_stamp.json", "pg093_release.json", "pg094_release.json", "fibo_hndl_010_sources.json", "fibo_hndl_sources.json", "*.hndl"]
+particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json", "pg09_continuous_profile.json", "fibo_provenance.json", "audio_closure_provenance.json", "legacy_stamp.json", "pg093_release.json", "pg094_release.json", "pg094_continuous.json", "fibo_hndl_010_sources.json", "fibo_hndl_sources.json", "*.hndl"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
