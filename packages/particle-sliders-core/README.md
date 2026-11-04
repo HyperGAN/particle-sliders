@@ -48,13 +48,16 @@ flow. Core imports do not load pretrained models or initialize CUDA.
 - [CONDITIONAL-PG09-CONTRACT.md](CONDITIONAL-PG09-CONTRACT.md): strict game/resume.
 - [EVALUATION-AND-LR-SEARCH.md](EVALUATION-AND-LR-SEARCH.md): common metric
   validation, equal-budget LR screens, checkpoint reevaluation and matched media.
+- [CONTINUOUS-VECTORS.md](CONTINUOUS-VECTORS.md): a separate, exact upstream
+  source profile for declaring wide continuous vectors; CPU conformance scope.
 
 Software evidence covers synthetic CPU contracts, not pretrained convergence,
 accelerator fit, native image quality or acoustic rendering. Iris rendering stays
 disabled pending native solver parity; Krea2 is adapter-only (`particles=None`).
 Qwen/Fibo native dependencies remain in separate environments. Official PG0.9.4
-wide continuous audio states remain refused; no unofficial upstream proposal is
-included or activated. MOSS requires a freshly qualified product target on this exact modern line. Mere backend
+wide continuous audio states remain refused by its default profile. The explicit
+continuous-vector profile requires its own exact unreleased upstream source and
+fresh product qualification. MOSS requires a freshly qualified product target on this exact modern line. Mere backend
 registration does not qualify a product migration.
 
 Optional `[serialization]` adds safetensors for native adapter/cache IO;

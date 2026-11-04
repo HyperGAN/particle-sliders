@@ -24,15 +24,26 @@ from .optimizer_policy import configure_dense_profile, optimizer_diagnostics
 PG_VERSION = '0.9.4'
 PG_SOURCE_PROFILE = 'release-0.9.4'
 PG_WHEEL_SHA256 = 'ad21eeaea861cf0582fc39aa96eb3fd8ab8cf21e8e0f0179f0597a9c42eb99b6'
+PG_CONTINUOUS_SOURCE_PROFILE = 'source-801ae1e-continuous-v1'
+PG_CONTINUOUS_COMMIT = '801ae1ead8f88b88eca8f5398137e3e1bc01ad36'
+PG_CONTINUOUS_WHEEL_SHA256 = '263f8edead2f972b87d03a93780e95929c8c03d2989f3770313b88cb3699c9d0'
+_DOMAIN_PAIRS = ((PG_SOURCE_PROFILE, 'auto'), (PG_CONTINUOUS_SOURCE_PROFILE, 'continuous'))
 
 
 def _released_sources(profile=PG_SOURCE_PROFILE):
     import particlegan
-    if profile != PG_SOURCE_PROFILE:
+    if profile not in (PG_SOURCE_PROFILE, PG_CONTINUOUS_SOURCE_PROFILE):
         raise ValueError('unknown/unqualified PG0.9.4 source profile; no overlay or release alias')
-    document = json.loads(Path(__file__).with_name('pg094_release.json').read_text())
-    if (document['version'], document['wheel_sha256'], document['source_profile']) != (PG_VERSION, PG_WHEEL_SHA256, profile):
+    name = 'pg094_release.json' if profile == PG_SOURCE_PROFILE else 'pg094_continuous.json'
+    document = json.loads(Path(__file__).with_name(name).read_text())
+    if (document['version'], document['source_profile']) != (PG_VERSION, profile):
         raise RuntimeError('PG0.9.4 release manifest contradicts this engine')
+    if profile == PG_SOURCE_PROFILE and document['wheel_sha256'] != PG_WHEEL_SHA256:
+        raise RuntimeError('PG0.9.4 release manifest contradicts this engine')
+    if profile == PG_CONTINUOUS_SOURCE_PROFILE and (
+            document['source_commit'] != PG_CONTINUOUS_COMMIT or
+            document['wheel_sha256'] != PG_CONTINUOUS_WHEEL_SHA256):
+        raise RuntimeError('PG continuous-vector source manifest contradicts this engine')
     root = Path(particlegan.__file__).resolve().parent
     actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob('*.py'))}
@@ -47,11 +58,12 @@ def validate_pg09_domain(response_shape, *, response_domain,
 
     This never installs a package, applies a patch or reshapes a response.
     Callers declare native geometry and pass this explicitly versioned profile
-    into ConditionalPG09. No unqualified continuous/develop overlay is admitted.
+    into ConditionalPG09. The explicit continuous profile binds one exact
+    unreleased upstream source; it is never an alias for the official wheel.
     """
     if version('particlegan') != PG_VERSION:
         raise RuntimeError('ConditionalPG09 requires particlegan==' + PG_VERSION + ' base release')
-    if (pg_source_profile, penalty_input_domain) not in ((PG_SOURCE_PROFILE, 'auto'),):
+    if (pg_source_profile, penalty_input_domain) not in _DOMAIN_PAIRS:
         raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
     sources = _released_sources(pg_source_profile)
     shape = tuple(response_shape)
@@ -282,8 +294,8 @@ class ConditionalPG09:
                  optimizer_dense_profile='auto',
                  pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto'):
         if version('particlegan') != PG_VERSION:
-            raise RuntimeError('ConditionalPG09 requires released particlegan==' + PG_VERSION)
-        if (pg_source_profile, penalty_input_domain) not in ((PG_SOURCE_PROFILE, 'auto'),):
+            raise RuntimeError('ConditionalPG09 requires particlegan==' + PG_VERSION + ' with an exact admitted source profile')
+        if (pg_source_profile, penalty_input_domain) not in _DOMAIN_PAIRS:
             raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
         if preset not in ('bispf_optimized', 'bispf'):
             raise ValueError('only explicitly selected public BISPF presets are admitted')
