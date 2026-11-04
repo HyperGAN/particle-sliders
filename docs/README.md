@@ -14,7 +14,7 @@ prompt files, and 2-D exams.
 
 | if you need | read |
 |---|---|
-| installable shared core for product repos (`winning_formulation()`, `FormulationGame`) | [particle-sliders-core](../packages/particle-sliders-core/README.md) · [winning-formulation.md](winning-formulation.md) · [shared-core.md](shared-core.md) |
+| installable shared core for product repos | [particle-sliders-core](../packages/particle-sliders-core/README.md) · [current PG 0.9.4 compatibility](../packages/particle-sliders-core/COMPATIBILITY-PG094.md) |
 | common teacher/student evaluation and learning-rate search | [Evaluation and LR-search workflow](../packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md) · [MOSS correction and native results](moss-teacher-student-metric-20261103.md) |
 | YuE2 / Music 3 published weights, install, current train command, CPU tests | [README.md](../README.md) |
 | YuE2 math, training evidence, Music 3 / image objectives, evaluation | [math.md](math.md) |
@@ -34,21 +34,23 @@ it.
 ## Shared core
 
 `packages/particle-sliders-core` installs as `particle-sliders-core`
-(import `particle_sliders`). Product repos pin a full commit of it and
-train `winning_formulation()`: gmix architecture plus the provisional
-`particle-gmix-1600-v2` overlay until
-[ParticleGAN #38](https://github.com/255BITS/ParticleGAN/pull/38)
-crowns a full-board winner. `FormulationGame` is the shared
-feature-space D/G step; `EndpointGame` stays the bipolar teacher/predict
-path. Cap, RpGAN loss and particle VIC come from `particlegan` (develop),
-a transitive dependency. `concept-slider-core` / `concept_slider_core`
+(import `particle_sliders`). Current core 0.12.0 pins official ParticleGAN 0.9.4
+and supplies the common train/resume/evaluate/export/native-inference lifecycle.
+Product repos retain full reviewed source pins and qualify their own native
+factories. The current conditional engine calls upstream recipe, loss, penalty,
+prior and optimizer APIs. See [the exact release and profile contract](../packages/particle-sliders-core/COMPATIBILITY-PG094.md).
+
+Historical `winning_formulation()` / `FormulationGame` and `EndpointGame`
+helpers remain distinct from the modern engine. Their gmix, RpGAN and particle
+VIC recipes describe historical cohorts; they do not establish current PG
+training for published weights. `concept-slider-core` / `concept_slider_core`
 are deprecated aliases; `packages/concept-slider-core` is a retired
 pointer.
 
 | page | what it covers |
 |---|---|
-| [particle-sliders-core README](../packages/particle-sliders-core/README.md) | install pin, stamp API, product train step |
-| [winning-formulation.md](winning-formulation.md) | gmix architecture, current overlay, how to plug in the #38 winner, product follow-ups |
+| [particle-sliders-core README](../packages/particle-sliders-core/README.md) | current install pin, lifecycle API and product integration |
+| [winning-formulation.md](winning-formulation.md) | historical gmix architecture, overlay and product follow-ups |
 | [shared-core.md](shared-core.md) | core vs product split, routing and the ordinary LoRA fit, adding a product |
 
 The in-tree YuE2 / Music 3 / image trainers do not import the stamp.

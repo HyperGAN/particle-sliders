@@ -1,10 +1,11 @@
 # Modern shared optimizer and evaluation contract
 
-This source target is core0.11.0 on exact official `particlegan==0.9.3`, wheel
-`fd7ee424d4c67e1dc3cf0b9dd345222049a67e8c293c30c8a3c42d54805affec`, source
-profile `release-0.9.3`. No0.5 overlay, PG0.9.1 alias, unofficial continuous-domain
+The current source target is core0.12.0 on exact official `particlegan==0.9.4`, wheel
+`ad21eeaea861cf0582fc39aa96eb3fd8ab8cf21e8e0f0179f0597a9c42eb99b6`, source
+profile `release-0.9.4`. See [current compatibility](COMPATIBILITY-PG094.md).
+No0.5 overlay, PG0.9.1 alias, unofficial continuous-domain
 proposal, source-path injection or model download is admitted by this target.
-Earlier091/093 cohorts and artifacts remain immutable. This change is a new
+Earlier091/093 cohorts and artifacts remain immutable. The modern line uses a new
 source/numerical-policy cohort, not an old-checkpoint migration or package release.
 
 ## Gram ownership and actual dispatch
@@ -113,17 +114,18 @@ reviewed migration, not exact-resume claims.
 
 Both owners must consume the exact new wheel/source map/profile receipt and
 produce fresh installed product qualification. Old strict locks are not relaxed.
-MOSS's112-field official093 Recipe is preserved except the selected dense profile;
-its native builder/budget/render/dev-provider closure stays product-owned.
+The historical MOSS official093 recipe cohort remains on its original source.
+Adoption of this official094 line requires a fresh source/profile receipt; its
+native builder/budget/render/dev-provider closure stays product-owned.
 
 Fibo portable HNDL definitions are included from the separately authored
 network-only candidate. Use `particle-sliders-core[fibo-hndl]` in a separate
-Python>=3.11,<3.15 environment with exact HNDL0.9.0 and HyperGAN source
-`bff6de3d5162f151180d64513b662eb79fbebb2a`. `hypergan-hndl` exposes the same
+Python>=3.11,<3.15 environment with exact HNDL0.10.0 and HyperGAN source
+`5f368a3770cf5bdae0448995c9f76e29af8049f7`. `hypergan-hndl` exposes the same
 shared dependencies for other native network builders. The old optional
 readout `[hndl]` remains a distinct HNDL0.8.2 architecture/environment; do not
 co-install the incompatible extras or silently substitute readout networks.
-Fibo's new product target explicitly selects `hypergan-hndl-v1`; legacy network
+The current network target explicitly selects `hypergan-hndl-v2`; legacy network
 profiles remain distinguishable for old artifacts and are not relabeled.
 The shared Fibo factory uses this modern PG source/default Gram policy, preserving
 native EDIT geometry/references and four-step CFG1 semantics. The native model
@@ -136,10 +138,10 @@ waveform generation. No performance improvement is claimed without measurements.
 
 ## Runtime qualification limits and precision declarations
 
-Package metadata allows Python>=3.10 and Torch>=2.6,<3, matching the official PG
-requirements. Executed qualification is Python3.12.15/Torch2.14.1+cpu only; the
-Python3.10/Torch2.6 runtime floor and other version combinations are untested.
-The HNDL0.9 extras require Python>=3.11,<3.15 and are not supported on Python3.10.
+Package metadata allows Python>=3.11 and Torch>=2.6,<3. The historical numerical
+qualification used Python3.12.15/Torch2.14.1+cpu; those results do not qualify
+the Torch2.6 floor or every declared runtime combination.
+The HNDL0.10 extras require Python>=3.11,<3.15.
 No dependency installation or broader version-matrix qualification is implied.
 
 The upstream Recipe's training_precision declaration is preserved, including

@@ -1,7 +1,7 @@
-# Numerical response sessions: source proposal
+# Numerical response sessions
 
-This additive contract is included in this official-PG0.9.1 source line and
-qualified with small offline CPU fixtures. Each product still needs its own
+This contract is included in core0.12.0 / official-PG0.9.4 and qualified with
+small offline CPU fixtures. Each product still needs its own
 installed integration receipt; this does not qualify native wide audio or
 waveform rendering. Existing source cohorts retain their exact pins; this is
 not a checkpoint migration or a new GAN law.
@@ -46,22 +46,22 @@ from particle_sliders.response import ResponseBackend, ResponseCapabilities
 
 CAPS = ResponseCapabilities(
     generator_arm='routed_particle_gan',  # actual participating bank, not a dummy
-    modality='audio_ar_hidden', response_kind='native_final_ar_hidden',
-    response_domain='continuous_vector', response_shape=(1, 4096),
-    pg_version='0.9.1', pg_source_profile='alz-continuous-v1',
-    penalty_input_domain='continuous', base_precisions=('bfloat16',),
-    unavailable_reasons=(('render', 'Music3 acoustic/token sampling is unqualified'),))
+    modality='text_hidden', response_kind='native_final_hidden',
+    response_domain='continuous_vector', response_shape=(1, 32),
+    pg_version='0.9.4', pg_source_profile='release-0.9.4',
+    penalty_input_domain='auto', base_precisions=('float32',),
+    unavailable_reasons=(('render', 'This numerical backend has no media renderer'),))
 
 # validate(options) and optional preflight(options, request, staged) allocate no weights.
 # prepare(options, **staged) owns native loader, real slider, teachers/provider,
 # conditions, critic and ConditionalPG09; returns Binding(game, close, ...).
 # Pass the identical declared response/profile pair to ConditionalPG09.
-BACKEND = ResponseBackend('music3', CAPS, prepare, validate, preflight=preflight)
+BACKEND = ResponseBackend('my-response', CAPS, prepare, validate, preflight=preflight)
 ```
 
 ```toml
 [project.entry-points."particle_sliders.response_backends"]
-music3 = "music3.lifecycle:BACKEND"
+my-response = "my_product.lifecycle:BACKEND"
 ```
 
 The adapter and native model may differ in precision: `base_precisions` describes
@@ -79,7 +79,7 @@ Consumers need only the registered product and its documented local options:
 from particle_sliders.lifecycle import SessionConfig
 from particle_sliders.response import open_response
 
-config = SessionConfig('music3', 'new-reviewed-source-cohort', **local_product_options)
+config = SessionConfig('my-response', 'new-reviewed-source-cohort', **local_product_options)
 with open_response(config) as run:
     run.train(stop_after=2, on_step=report_completed_metrics)
     run.checkpoint('training.pt')
@@ -116,15 +116,16 @@ Its test fixture lives at `tests/fixtures/response_backend.py`.
 
 | Core line | Source/profile pair | Native flat continuous response |
 |---|---|---|
-| PG0.9.1 | `release` / `auto` | Width below170 only |
-| PG0.9.1 | `alz-continuous-v1` / `continuous` | Wide states admitted only when every installed PG source matches the reviewed overlay catalog |
-| PG0.9.3 | `release-0.9.3` / `auto` | Width below170 only; native Music3 4096 and YuE2 2048 refused |
+| Current core0.12.0 / PG0.9.4 | `release-0.9.4` / `auto` | Width below170 only; native Music3 4096 and YuE2 2048 refused |
+| Historical PG0.9.1 source | `release` / `auto` | Width below170 only; requires its original source pin |
+| Historical PG0.9.1 overlay source | `alz-continuous-v1` / `continuous` | Only the separately qualified historical source/overlay; refused by current core |
+| Historical core0.11.0 / PG0.9.3 | `release-0.9.3` / `auto` | Width below170 only; requires its original source pin |
 
 These gates inspect installed versions and source hashes before preparation. They
 never install/apply an overlay, mutate an environment, alias ALZ develop to an
 upstream release, change dependency ranges or upgrade an existing research cohort.
-PG0.9.3 lacks the reviewed continuous-vector input override needed for wide states.
-A supported wide0.9.3 path requires separate upstream/profile qualification; it is
+Official PG0.9.4 does not admit those wide vectors through this product gate.
+A supported wide path requires separate upstream/profile qualification; it is
 an actual native adoption blocker, not resolved by this API. Tiny32 response tests
 cannot qualify native width2048/4096 or acoustic quality. Existing PG0.9.3 research
 field/recipe parity remains evidence solely for its reviewed source/profile.
@@ -149,15 +150,15 @@ new response route, not the compatibility module, owns future common lifecycle
 adoption. Neither legacy source restoration nor generic registration means either
 product has migrated or passed qualification under this proposal.
 
-## Pending validation and handoff
+## CPU validation and product handoff
 
 Authored tests cover exact response split resume/EMA, invalid restore, cleanup,
 zero/fractional strengths and refusals, profile-aware preallocation gates,
 registry/packet isolation, native-only raw/EMA loading in a fresh process without
-training data, image defaults and explicit CLI artifact names. They have **not run**.
-Only stdlib source parsing, dependency import analysis and git whitespace checks
-are permitted in this phase. Build/install/source-free CPU qualification needs a
-parent-admitted slot on each exact PG environment; no GPU/model jobs are needed.
+training data, image defaults and explicit CLI artifact names. The suite is
+`tests/test_response_lifecycle.py`; the installed example is
+`examples/response_fixture`. Qualification applies to its recorded source and
+runtime only. It does not establish native Music3/YuE2 training or rendering.
 
 After CPU qualification, the parent routes exact proposed source/wheel hashes to
 Music3/YuE2 owners. Each owner changes its own registration, source lock, complete
@@ -169,4 +170,5 @@ actual-bank, response width, source, admission or HNDL/HyperGAN requirements.
 
 For reversible block checkpoint setup and AR adapter cleanup, see
 [CHECKPOINT-OWNERSHIP.md](CHECKPOINT-OWNERSHIP.md). This follow-up is
-a source proposal; the earlier response wheel receipts do not qualify it.
+included in the current source. Earlier response wheel receipts do not qualify
+later source changes.

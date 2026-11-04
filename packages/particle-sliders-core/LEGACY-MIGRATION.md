@@ -1,7 +1,7 @@
 Historical guide: the0.8.3/PG0.9.1 record below remains frozen context.
-This modern0.11 target uses officialPG0.9.3; fixed-arm helper behavior remains,
+The current core0.12 target uses officialPG0.9.4; fixed-arm helper behavior remains,
 while exact old identities/checkpoints require their original pins.
-See MODERN-GRAM.md for the current target.
+See [COMPATIBILITY-PG094.md](COMPATIBILITY-PG094.md) for the current target.
 
 # Legacy stamp API and the official PG0.9.1 lifecycle line
 

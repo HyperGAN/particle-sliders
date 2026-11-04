@@ -1,5 +1,23 @@
 # Conditional ParticleGAN 0.9 integration contract
 
+## Current core 0.12.0 / PG 0.9.4
+
+Use `particle_sliders.pg094.ConditionalPG094` (also exported as
+`particle_sliders.pg09.ConditionalPG09`) with
+`pg_source_profile="release-0.9.4", penalty_input_domain="auto"`.
+The exact official release, source manifest, optimizer policy and restore
+boundaries are documented in [COMPATIBILITY-PG094.md](COMPATIBILITY-PG094.md)
+and [MODERN-GRAM.md](MODERN-GRAM.md). The active source rejects the historical
+`release` and `alz-continuous-v1` profiles below and all flat continuous vectors
+of width >=170. Products must use the actual native geometry and a fresh cohort;
+changing dependency pins does not update trained weights or migrate checkpoints.
+
+## Historical PG 0.9.0 / 0.9.1 integration record
+
+The remaining record describes its original source/profile and CPU evidence.
+Its old profile arguments and overlays are not installation instructions for
+current core. Preserve the matching historical source pin when reproducing it.
+
 Historical qualification checkout (immutable; not an install requirement): `/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core`, branch `integration/pg09-conditional-core`.
 
 Implementation API:
