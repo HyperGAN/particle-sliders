@@ -562,12 +562,14 @@ def write_cache(folder, prepared, *, model_identity):
 
 
 def build_fibo_game(adapter, provider, *, response_scale, total_steps, batch_size=2, seed=7,
-                    optimizer_dense_profile='auto'):
+                    optimizer_dense_profile='auto', recipe_overrides=None):
     """Build the existing public PG game, preserving its optimized native recipe.
 
     A resource owner must separately admit any pretrained/GPU execution. This
     function neither loads a model nor schedules a process. The caller supplies
     a declared response scale; no product normalization/loss is introduced.
+    Explicit learning-rate overrides use the same validated upstream recipe
+    fields as other ConditionalPG09 products and bind the checkpoint identity.
     """
     from .pg09 import ConditionalPG09, PG_SOURCE_PROFILE
     from .field_critic import FieldCritic, seed_initialization_rng
@@ -592,4 +594,4 @@ def build_fibo_game(adapter, provider, *, response_scale, total_steps, batch_siz
         response_domain='continuous_field', response_scale=response_scale, preset='bispf_optimized',
         batch_size=batch_size, seed=seed, total_steps=total_steps,
         pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto',
-        optimizer_dense_profile=optimizer_dense_profile)
+        optimizer_dense_profile=optimizer_dense_profile, recipe_overrides=recipe_overrides)

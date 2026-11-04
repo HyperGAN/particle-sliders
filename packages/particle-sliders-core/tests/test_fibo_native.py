@@ -331,12 +331,22 @@ def test_condition_features_bind_reference_order_padding_and_raw_time():
     assert not torch.equal(base[0], base[1])
 
 
-def test_shared_builder_stays_lazy_preserves_rng_and_owns_actual_bank(tmp_path):
+@pytest.mark.parametrize('overrides,expected', [
+    (None, (.012, .018, .03)),
+    ({'lr': 1e-4, 'd_lr_mult': 2., 'prior_lr_mult': 3.}, (1e-4, 2e-4, 3e-4)),
+])
+def test_shared_builder_stays_lazy_preserves_rng_and_owns_actual_bank(tmp_path, overrides, expected):
     _, slider, backend, provider, _ = game_fixture(tmp_path)
     rng = torch.get_rng_state().clone()
-    game = build_fibo_game(backend, provider, response_scale=1., total_steps=2)
+    game = build_fibo_game(backend, provider, response_scale=1., total_steps=2,
+                           recipe_overrides=overrides)
     assert torch.equal(rng, torch.get_rng_state())
     assert not provider.cache and game.prior.z is slider.particles
     assert game._signature['resolved_penalty_domain'] == 'image'
     assert game._signature['backend']['defaults'] == DEFAULTS
+    assert game.recipe.lr == pytest.approx(expected[0])
+    assert all(g['lr'] == pytest.approx(expected[1]) for g in game.opt_d.param_groups)
+    rates = {g.get('role'): g['lr'] for g in game.opt_g.param_groups}
+    assert rates['generator'] == pytest.approx(expected[0])
+    assert rates['prior'] == pytest.approx(expected[2])
     assert not torch.cuda.is_initialized()
