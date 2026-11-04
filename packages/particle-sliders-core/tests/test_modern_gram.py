@@ -208,10 +208,14 @@ def test_authoritative_moss112_field_recipe_preserved_except_selected_dense_prof
     document = json.loads((Path(__file__).parent/'fixtures/pg093_v92_recipe.json').read_text())
     values = document['recipe']
     assert len(values) == 112 and values['optimizer_dense_profile'] == 'default'
-    recipe = Recipe(**values)
+    # This is restoration of a recorded historical recipe, not selection of
+    # defaults for a new run. New upstream releases make that distinction
+    # explicit; the pinned 0.9.4 release still accepts the complete snapshot.
+    restore = getattr(Recipe, 'from_dict', None)
+    recipe = restore(values) if restore is not None else Recipe(**values)
     resolved, _ = configure_dense_profile(recipe)
     before, after = asdict(recipe), asdict(resolved)
-    assert len(after) == 112
+    assert set(values) <= set(after)
     assert {key for key in before if before[key] != after[key]} == {'optimizer_dense_profile'}
     assert after['optimizer_dense_profile'] == GRAM_PROFILE
 
