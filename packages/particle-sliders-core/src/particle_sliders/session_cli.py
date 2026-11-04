@@ -5,12 +5,18 @@ import hashlib
 import json
 from pathlib import Path
 
-import torch
-
-from .lifecycle import SessionConfig, atomic_save, atomic_json, backend, open_session
-
 
 def main(argv=None):
+    # Keep plan/dispatch dependency-light, including installed console entrypoints.
+    from .execution.cli import should_dispatch, main as execution_main
+    if should_dispatch(argv):
+        return execution_main(argv)
+    return legacy_main(argv)
+
+
+def legacy_main(argv=None):
+    import torch
+    from .lifecycle import SessionConfig, atomic_save, atomic_json, backend, open_session
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('operation', choices=('capabilities', 'train', 'evaluate', 'render', 'infer'))
     parser.add_argument('--interface', choices=('image', 'response'), default='image')
@@ -101,6 +107,8 @@ def main(argv=None):
 
 def infer(args, parser):
     """Native-only CLI; deliberately accepts no session/training configuration."""
+    import torch
+    from .lifecycle import atomic_json, atomic_save
     from .inference import open_inference
     if args.config is not None or args.resume is not None:
         parser.error('infer accepts no training config/resume; use --artifact and --runtime')
@@ -138,4 +146,4 @@ def infer(args, parser):
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

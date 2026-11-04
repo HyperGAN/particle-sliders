@@ -1,5 +1,7 @@
 # particle-sliders-core0.11.0 — modern PG0.9.3/Gram target
 
+For the shared training command, isolated product runtimes, and local/Modal dispatch, see [TRAINING-COMMAND.md](TRAINING-COMMAND.md).
+
 Read [MODERN-GRAM.md](MODERN-GRAM.md) first for the new exact-release, optimizer-policy, split-evaluation and adoption contract. This source candidate requires officialPG0.9.3; old091/0.5 overlays and packets are not silently admitted. Current runtime qualification is recorded only in the exact candidate receipt.
 
 Model product -> particle-sliders -> HyperGAN / ParticleGAN. Products own native
