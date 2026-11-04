@@ -33,6 +33,11 @@ def command_for(request, config, artifacts, *, check=False):
                     '--checkpoint-every', str(request['output']['checkpoint_every'])]
         if request['execution'].get('resume'):
             command += ['--resume', request['execution']['resume']]
+        for key, flag in (('selection', '--selection'), ('export_format', '--export-format')):
+            if key in request['output']:
+                command += [flag, request['output'][key]]
+        if spec['capabilities'].get('device', False) and request['execution'].get('device'):
+            command += ['--device', request['execution']['device']]
         if request['execution'].get('stop_after'):
             raise ValueError('stop-after is only supported by session profiles; native recipes own their target')
     else:
@@ -172,6 +177,9 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
         target = request['execution'].get('stop_after', progress['target_steps'])
         if native.get('status') not in ('completed', 'checkpointed') or native.get('completed_steps') != target:
             raise RuntimeError('worker did not complete the requested update budget')
+        for key in ('selection', 'export_format'):
+            if key in request['output'] and spec['config_kind'] == 'native' and native.get(key) != request['output'][key]:
+                raise RuntimeError('native worker did not confirm requested ' + key)
         paths = {}
         for key in ('checkpoint', 'adapter'):
             if not isinstance(native.get(key), str):

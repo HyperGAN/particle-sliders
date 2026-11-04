@@ -226,3 +226,56 @@ def test_controller_death_stops_own_worker(product, tmp_path):
         if worker_pid:
             try:os.kill(worker_pid,signal.SIGKILL)
             except ProcessLookupError:pass
+
+
+def test_native_artifact_defaults_are_product_owned(product,tmp_path):
+    r=request_for(product,tmp_path)
+    assert 'selection' not in r['output'] and 'export_format' not in r['output']
+    for options in ({'selection':'raw'}, {'selection':'ema'}, {'export_format':'v1'}, {'export_format':'v2'}):
+        with pytest.raises(ValueError,match='override is unsupported'):
+            request_for(product,tmp_path,**options)
+
+
+def test_declared_native_artifact_flags_reach_worker(product,tmp_path):
+    from particle_sliders.execution.local import command_for
+    spec=deepcopy(product[1]);spec['capabilities'].update(selection=True,export_format=True)
+    r=resolve_request({'steps':5},base=tmp_path,profile=spec,selection='ema',export_format='v2')
+    command,_,_=command_for(r,tmp_path/'config.json',tmp_path/'out')
+    assert command[command.index('--selection')+1]=='ema'
+    assert command[command.index('--export-format')+1]=='v2'
+
+
+def test_native_device_fixed_or_explicitly_supported(product,tmp_path):
+    from particle_sliders.execution.local import command_for
+    with pytest.raises(ValueError,match='device override'):
+        request_for(product,tmp_path,device='cuda:1')
+    fixed=deepcopy(product[1]);fixed['runtime']['device']='cuda:1'
+    r=resolve_request({'steps':5},base=tmp_path,profile=fixed,device='cuda:1')
+    assert r['execution']['device']=='cuda:1'
+    with pytest.raises(ValueError,match='fixed runtime'):
+        resolve_request({'steps':5},base=tmp_path,profile=fixed,device='cuda:0')
+    flexible=deepcopy(product[1]);flexible['capabilities']['device']=True
+    r=resolve_request({'steps':5},base=tmp_path,profile=flexible,device='cuda:0')
+    command,_,_=command_for(r,tmp_path/'config.json',tmp_path/'out')
+    assert command[command.index('--device')+1]=='cuda:0'
+
+
+def test_session_device_override_is_effective(tmp_path):
+    config=dict(backend='example',cohort='new',options={'steps':5,'device':'cuda:0'})
+    r=resolve_request(config,base=tmp_path,device='cuda:1')
+    assert r['training']['options']['device']=='cuda:1'
+    assert config['options']['device']=='cuda:0'
+    r['execution']['device']='cuda:2'
+    with pytest.raises(ValueError,match='effective session'):validate_resolved(r)
+
+
+def test_native_selection_must_be_confirmed_by_worker(product,tmp_path):
+    spec=deepcopy(product[1]);spec['capabilities']['selection']=True
+    worker=tmp_path/'worker.py'
+    worker.write_text(worker.read_text().replace("p.add_argument('--checkpoint-every',type=int);", "p.add_argument('--selection');p.add_argument('--checkpoint-every',type=int);"))
+    r=resolve_request({'steps':2},base=tmp_path,profile=spec,selection='ema',output=tmp_path/'unconfirmed')
+    with pytest.raises(RuntimeError,match='confirm requested selection'):
+        execute_resolved_request(r)
+    worker.write_text(worker.read_text().replace("'checkpoint':str(cp),", "'selection':a.selection,'checkpoint':str(cp),"))
+    r=resolve_request({'steps':2},base=tmp_path,profile=spec,selection='ema',output=tmp_path/'confirmed')
+    assert execute_resolved_request(r)['native_result']['selection']=='ema'

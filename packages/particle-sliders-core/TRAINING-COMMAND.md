@@ -106,6 +106,15 @@ both artifacts must exist. It may write `progress.json` with phase/status and
 completed steps. Checkpoint directories expose a completion marker
 `checkpoints/step-*/checkpoint.json` or `manifest.json` after all state is durable.
 Native workers must handle termination and stop/reap their own descendant groups.
+Native artifact selection and export format belong to that worker by default;
+the controller does not label its output as raw, EMA, v1 or v2. Explicit
+`--selection` / `--export-format` overrides require matching boolean profile
+capabilities, are forwarded as worker arguments, and must be confirmed in the
+worker result. An unsupported override fails before launch. A fixed native
+device must match its profile; a flexible native `--device` override similarly
+requires capability `device: true` and worker argument support. Session device
+overrides update the actual `options.device` before the recipe is hashed;
+changing only execution metadata later is rejected.
 
 For shared lifecycle products replace native `command` with
 `"config_kind":"session", "interface":"image", "backend":"example"`.

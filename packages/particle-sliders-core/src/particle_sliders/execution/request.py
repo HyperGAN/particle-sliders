@@ -126,8 +126,22 @@ def validate_resolved(request):
         raise ValueError('output root must be named')
     if type(output.get('checkpoint_every')) is not int or output['checkpoint_every'] < 1:
         raise ValueError('checkpoint interval must be positive')
-    if output.get('selection') not in ('raw', 'ema') or output.get('export_format') not in ('v1', 'v2', 'both'):
-        raise ValueError('unsupported artifact selection or export format')
+    for key, choices in (('selection', ('raw', 'ema')), ('export_format', ('v1', 'v2', 'both'))):
+        if profile['config_kind'] == 'session' or key in output:
+            if output.get(key) not in choices:
+                raise ValueError('unsupported artifact selection or export format')
+            if profile['config_kind'] == 'native' and not profile['capabilities'].get(key, False):
+                raise ValueError('native profile owns ' + key + '; override is unsupported')
+    device = execution.get('device')
+    fixed = profile.get('runtime', {}).get('device') if execution['runner'] == 'local' else None
+    if device is not None and (not isinstance(device, str) or not device):
+        raise ValueError('execution device must be a nonempty string')
+    if fixed and device != fixed:
+        raise ValueError('requested device differs from selected fixed runtime profile')
+    if profile['config_kind'] == 'native' and execution['runner'] == 'local' and device and not fixed and not profile['capabilities'].get('device', False):
+        raise ValueError('native profile does not support a device override')
+    if profile['config_kind'] == 'session' and device and request['training'].get('options', {}).get('device') != device:
+        raise ValueError('execution device differs from effective session options.device')
     if 'stop_after' in execution and (type(execution['stop_after']) is not int or
             not 0 < execution['stop_after'] <= request['resolved']['target_steps']):
         raise ValueError('invalid stop-after budget')
@@ -177,6 +191,19 @@ def resolve_request(config, *, base=None, profile=None, runner=None, output=None
         raise ValueError('requested device differs from selected fixed runtime profile')
     if fixed:
         execution.setdefault('device', fixed)
+    requested_device = execution.get('device')
+    if spec['config_kind'] == 'session':
+        if not isinstance(request['training'].get('options'), dict):
+            raise ValueError('session training requires an options object')
+        options = request['training']['options']
+        if requested_device:
+            if fixed and device is None and options.get('device', fixed) != fixed:
+                raise ValueError('session options.device differs from selected fixed runtime profile')
+            options['device'] = requested_device
+        elif options.get('device'):
+            execution['device'] = options['device']
+    elif execution['runner'] == 'local' and requested_device and not fixed and not spec['capabilities'].get('device', False):
+        raise ValueError('native profile does not support a device override')
     if output is None and 'root' not in out:
         import datetime
         stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S.%fZ')
@@ -187,9 +214,13 @@ def resolve_request(config, *, base=None, profile=None, runner=None, output=None
     if type(out['checkpoint_every']) is not int or out['checkpoint_every'] < 1:
         raise ValueError('checkpoint interval must be a positive integer')
     for key, override, default in [('selection', selection, 'raw'), ('export_format', export_format, 'v1')]:
-        out[key] = override if override is not None else out.get(key, default)
-    if out['selection'] not in ('raw', 'ema') or out['export_format'] not in ('v1', 'v2', 'both'):
-        raise ValueError('unsupported artifact selection or export format')
+        explicit = override is not None or key in out
+        supported = spec['config_kind'] == 'session' or spec['capabilities'].get(key, False)
+        if explicit and not supported:
+            raise ValueError('native profile owns ' + key + '; override is unsupported')
+        if supported:
+            out[key] = override if override is not None else out.get(key, default)
+
     if resume is not None:
         execution['resume'] = str(resume) if '://' in str(resume) else str((base / str(resume)).resolve())
     if execution.get('resume') and execution['runner'] == 'local' and '://' in execution['resume']:
