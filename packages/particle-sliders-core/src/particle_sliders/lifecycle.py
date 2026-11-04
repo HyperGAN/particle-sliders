@@ -202,9 +202,11 @@ class Backend:
             raise BackendUnavailable('install the exact released ParticleGAN ' + PG_VERSION)
         if options.get('pg_version', PG_VERSION) != PG_VERSION:
             raise BackendUnavailable('requested PG version differs from exact core release ' + PG_VERSION)
-        profile = options.get('pg_source_profile', PG_SOURCE_PROFILE)
-        if profile != PG_SOURCE_PROFILE or options.get('penalty_input_domain', 'auto') != 'auto':
-            raise BackendUnavailable('this core admits only ' + PG_SOURCE_PROFILE + '/auto')
+        from .pg094 import engine_options
+        try:
+            profile = engine_options(options)['pg_source_profile']
+        except ValueError as error:
+            raise BackendUnavailable(str(error)) from error
         _released_sources(profile)
 
 

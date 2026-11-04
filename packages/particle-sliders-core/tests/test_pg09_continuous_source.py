@@ -141,9 +141,15 @@ def test_wide_native_geometry_full_bank_rates_resume_and_inference(width):
 
 
 def test_continuous_profile_never_aliases_release_or_admits_image_domain():
+    from particle_sliders.pg094 import engine_options
     installed_profile()
+    assert engine_options({}) == {'pg_source_profile': pg09.PG_SOURCE_PROFILE, 'penalty_input_domain': 'auto'}
+    candidate = {'pg_source_profile': pg09.PG_CONTINUOUS_SOURCE_PROFILE, 'penalty_input_domain': 'continuous'}
+    assert engine_options(candidate) == candidate
     for profile, domain in ((pg09.PG_SOURCE_PROFILE, 'continuous'),
                             (pg09.PG_CONTINUOUS_SOURCE_PROFILE, 'auto')):
+        with pytest.raises(ValueError, match='qualified source/domain pair'):
+            engine_options({'pg_source_profile': profile, 'penalty_input_domain': domain})
         with pytest.raises(ValueError, match='qualified pair'):
             pg09.validate_pg09_domain((1, 1024), response_domain='continuous_vector',
                 pg_source_profile=profile, penalty_input_domain=domain)
@@ -151,3 +157,21 @@ def test_continuous_profile_never_aliases_release_or_admits_image_domain():
         with pytest.raises(ValueError, match='genuine native'):
             pg09.validate_pg09_domain((1, 4, 4, 4), response_domain='continuous_field',
                 pg_source_profile=pg09.PG_CONTINUOUS_SOURCE_PROFILE, penalty_input_domain='continuous')
+
+
+def test_common_lifecycle_checks_selected_source_before_factory():
+    from particle_sliders.lifecycle import Backend, BackendUnavailable, Capabilities, SessionConfig
+    calls = []
+    def factory(options):
+        calls.append('factory')
+        raise RuntimeError('source gate passed; bounded factory sentinel')
+    backend = Backend('continuous-source-gate', Capabilities('adapter_gan', False), factory, lambda options: None)
+    options = {'pg_source_profile': pg09.PG_CONTINUOUS_SOURCE_PROFILE, 'penalty_input_domain': 'continuous'}
+    if installed_profile() == pg09.PG_CONTINUOUS_SOURCE_PROFILE:
+        with pytest.raises(RuntimeError, match='bounded factory sentinel'):
+            backend.open(SessionConfig(backend.name, 'new-explicit-vector-cohort', **options))
+        assert calls == ['factory']
+    else:
+        with pytest.raises((BackendUnavailable, RuntimeError), match='sources differ'):
+            backend.open(SessionConfig(backend.name, 'new-explicit-vector-cohort', **options))
+        assert not calls
