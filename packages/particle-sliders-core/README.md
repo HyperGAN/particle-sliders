@@ -1,8 +1,13 @@
-# particle-sliders-core0.11.0 — modern PG0.9.3/Gram target
+# particle-sliders-core 0.12.0 — official PG 0.9.4
 
-For the shared training command, isolated product runtimes, and local/Modal dispatch, see [TRAINING-COMMAND.md](TRAINING-COMMAND.md).
+For the shared training command, isolated product runtimes, and local/Modal
+dispatch, see [TRAINING-COMMAND.md](TRAINING-COMMAND.md).
 
-Read [MODERN-GRAM.md](MODERN-GRAM.md) first for the new exact-release, optimizer-policy, split-evaluation and adoption contract. This source candidate requires officialPG0.9.3; old091/0.5 overlays and packets are not silently admitted. Current runtime qualification is recorded only in the exact candidate receipt.
+Read [COMPATIBILITY-PG094.md](COMPATIBILITY-PG094.md) for the current exact-release
+and source identity, then [MODERN-GRAM.md](MODERN-GRAM.md) for optimizer policy,
+split evaluation and adoption. Public `main` includes core 0.12.0 and official
+PG 0.9.4. Old release/overlay profiles and packets require their original pins;
+current code does not migrate their checkpoints or previously trained weights.
 
 Model product -> particle-sliders -> HyperGAN / ParticleGAN. Products own native
 loading, packing, schedulers, adapter attachment and their complete factory;
@@ -12,10 +17,11 @@ GAN mathematics. HyperGAN/HNDL reporting and matched-weight network migration
 remain separate integration work; native pretrained backbones stay native.
 
 This source integration includes the reviewed image and numerical response
-lifecycles plus a narrow legacy compatibility layer. It is not a package release.
+lifecycles plus a narrow legacy compatibility layer. A source merge does not
+imply a PyPI package release or adoption by a model product.
 Install a full reviewed Git pin using `#subdirectory=packages/particle-sliders-core`
 or its exact wheel; retain that pin, source map and receipts. Dependency is exact
-`particlegan==0.9.3`, Torch>=2.6,<3 (also required by upstream), Python>=3.11 (Pillow 13 security baseline for the test extra).
+`particlegan==0.9.4`, Torch>=2.6,<3 (also required by upstream), Python>=3.11 (Pillow 13 security baseline for the test extra).
 Executed qualification uses Python3.12.15/Torch2.14.1+cpu; the declared lower
 bounds and other runtime combinations are untested. Modern HNDL extras require
 Python>=3.11,<3.15. Earlier core0.8/0.10 source pins remain immutable. See [LEGACY-MIGRATION.md](LEGACY-MIGRATION.md)
@@ -46,13 +52,15 @@ flow. Core imports do not load pretrained models or initialize CUDA.
 Software evidence covers synthetic CPU contracts, not pretrained convergence,
 accelerator fit, native image quality or acoustic rendering. Iris rendering stays
 disabled pending native solver parity; Krea2 is adapter-only (`particles=None`).
-Qwen/Fibo native dependencies remain in separate environments. Official PG0.9.1
+Qwen/Fibo native dependencies remain in separate environments. Official PG0.9.4
 wide continuous audio states remain refused; no unofficial upstream proposal is
 included or activated. MOSS requires a freshly qualified product target on this exact modern line. Mere backend
 registration does not qualify a product migration.
 
 Optional `[serialization]` adds safetensors for native adapter/cache IO;
-`[hndl]` adds the distinct optional conditional readout critic. No campaign
+`[hndl]` adds the distinct legacy HNDL 0.8.2 conditional readout critic.
+`[hypergan-hndl]` and `[fibo-hndl]` select the separate HNDL 0.10.0 / pinned
+HyperGAN network profile; do not co-install those with `[hndl]`. No campaign
 launchers or reverse product imports enter this package closure.
 
 ## Research backend namespace

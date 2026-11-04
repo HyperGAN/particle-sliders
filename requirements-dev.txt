@@ -3,7 +3,7 @@
 # still needs its own runtime (see the backend guides under docs/). Tests
 # that need the music workstation (its app package, pinned Music 3
 # Diffusers build or local campaign files) skip elsewhere.
-torch>=2.4
+torch>=2.6,<3
 numpy
 scipy
 pyyaml
@@ -13,5 +13,5 @@ matplotlib
 soundfile
 transformers
 pytest>=8
-# Shared core, editable; pulls ParticleGAN at the pinned commit.
+# Shared core, editable; pulls the exact official ParticleGAN release.
 -e ./packages/particle-sliders-core

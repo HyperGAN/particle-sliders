@@ -1,6 +1,7 @@
-# Core0.12.0: exact PG0.9.4 and HyperGAN develop compatibility candidate
+# Core 0.12.0: exact PG 0.9.4 and pinned HyperGAN compatibility
 
-This isolated source candidate pins official `particlegan==0.9.4`, source profile
+Public `main` includes core 0.12.0 since [PR 148](https://github.com/HyperGAN/particle-sliders/pull/148).
+This source pins official `particlegan==0.9.4`, source profile
 `release-0.9.4`, with an exhaustive Python source manifest bound to the official
 wheel SHA256 `ad21eeaea861cf0582fc39aa96eb3fd8ab8cf21e8e0f0179f0597a9c42eb99b6`.
 The optional `fibo-hndl` and `hypergan-hndl` extras select released HNDL0.10.0
@@ -25,7 +26,7 @@ states. Matched HNDL/Torch projections and spatial critics preserve outputs, fir
 and second derivatives; shared full/split continuation also matches exactly.
 These are synthetic CPU contracts, not native Fibo or media qualification.
 
-Install this candidate in an isolated Python>=3.11 environment. Native serialization
+Install this source in an isolated Python>=3.11 environment. Native serialization
 uses `serialization`; the modern network checks use `fibo-hndl,test` together. The
 separately supported legacy readout critic uses `hndl` (HNDL0.8.2) in a different
 environment. The two optional HNDL families cannot be co-installed. Keep native model
@@ -35,11 +36,12 @@ Continuous-domain admission is unchanged: this shared product gate refuses flat 
 of width>=170, including H3's reported1,398,528-wide response and native Music3/YuE2
 responses. Neither PG0.9.4 nor the HyperGAN builder update qualifies that domain.
 No reshape, categorical interpretation, unofficial overlay or bypass is introduced.
-No weights were downloaded and no GPU, training, publication or deployment occurred.
+The compatibility qualification used synthetic CPU updates; it did not download
+pretrained weights, train a native model, use a GPU, publish weights or deploy a product.
 
-The existing public main core0.11.0/PG0.9.3 and product core0.8.1/0.8.2/PG0.9.1
-cohorts remain on their immutable commits. Products are not automatically repinned.
-This joint qualification branch includes the separately reviewed additive
+Historical core0.11.0/PG0.9.3 and product core0.8.1/0.8.2/PG0.9.1 cohorts remain
+on their immutable commits. Products are not automatically repinned by a core
+source merge. This source includes the separately reviewed additive
 cut-point docs/probes from e86c0969b04b5a7ee6de481a8f01458cf2e2b43a and the PEFT
 scaling helper from 06ac5af9cb717c47dd10ce5d83bd9cc4258a8945. Original owner
 branches are preserved. See [cut-point boundaries](CUT-POINTS.md) and
@@ -49,7 +51,7 @@ compatibility package README stays this file; the cut-point owner's source
 README and MANIFEST additions are retained independently.
 
 
-## Lifecycle failure follow-up (separate candidate from4abc0eb)
+## Lifecycle failure follow-up (included since PR 148; replaces candidate 4abc0eb)
 
 Training restore now converts/clones an isolated EMA and stages metrics before
 any live game mutation. Global RNG is scoped across validation/application and
