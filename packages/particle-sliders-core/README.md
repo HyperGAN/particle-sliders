@@ -1,5 +1,8 @@
 # particle-sliders-core 0.12.0 — official PG 0.9.4
 
+For the shared training command, isolated product runtimes, and local/Modal
+dispatch, see [TRAINING-COMMAND.md](TRAINING-COMMAND.md).
+
 Read [COMPATIBILITY-PG094.md](COMPATIBILITY-PG094.md) for the current exact-release
 and source identity, then [MODERN-GRAM.md](MODERN-GRAM.md) for optimizer policy,
 split evaluation and adoption. Public `main` includes core 0.12.0 and official
