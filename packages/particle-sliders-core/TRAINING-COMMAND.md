@@ -153,3 +153,22 @@ Third-party runners register `particle_sliders.runners` with an object exposing
 `fetch(handle, destination)`. The worker API is
 `execute_resolved_request(request, on_checkpoint=None, on_progress=None)` and runs
 the frozen request directly without redispatching to its remote executor.
+
+
+## HyperGAN develop reporting
+
+Configure a reporting runtime once at
+`${XDG_CONFIG_HOME:-~/.config}/particle-slider/reporting.json` or through
+`PARTICLE_SLIDER_REPORTING_CONFIG`. New profile-based training commands then
+start the real pinned HyperGAN observer automatically. Per-run
+`--reporting-config FILE`, an envelope `reporting` object, or profile `reporting`
+settings can override the host default; `--no-reporting` opts out. Existing
+legacy SessionConfig dispatch is unchanged.
+
+The observer runs separately with CUDA hidden. Its pinned runtime is checked
+before the model starts, and the controller waits for readiness. Reporting
+configuration has its own recorded hash and does not alter the training recipe
+or checkpoint identity. Failures stop only the owned job; if native training
+already completed, its completed steps and artifacts remain explicit in the
+failure receipt. See [HYPERGAN-REPORTING.md](HYPERGAN-REPORTING.md) for setup,
+recorded metrics and attaching to an existing run.

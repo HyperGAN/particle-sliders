@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 
 from .request import materialize_training, validate_resolved, _target
 
@@ -21,6 +22,99 @@ def atomic_json(path, value):
     temp.write_text(json.dumps(value, indent=2, allow_nan=False) + '\n')
     os.replace(temp, path)
 
+
+
+class ReportingError(RuntimeError):
+    """The selected observer failed; retain native training state separately."""
+
+
+def _bind_worker_lifetime(parent_pid):
+    def bind():
+        if sys.platform.startswith('linux'):
+            libc = ctypes.CDLL(None, use_errno=True)
+            if libc.prctl(1, signal.SIGTERM, 0, 0, 0) != 0 or os.getppid() != parent_pid:
+                os._exit(126)
+    return bind
+
+
+def _reporter_command(request, output, *, check=False):
+    reporting = request['reporting']
+    command = [reporting['runtime_python'], str(Path(__file__).with_name('reporting.py')),
+        '--run', str(output), '--runtime-path', reporting['runtime_path'],
+        '--runtime-commit', reporting['runtime_commit'], '--runtime-sha256', reporting['runtime_sha256'],
+        '--check' if check else '--follow']
+    env = dict(os.environ, CUDA_VISIBLE_DEVICES='')
+    env.pop('PYTHONPATH', None)
+    return command, env
+
+
+def _check_reporting(request):
+    if request.get('reporting') is None:
+        return
+    command, env = _reporter_command(request, Path(request['output']['root']), check=True)
+    try:
+        result = subprocess.run(command, env=env, text=True, capture_output=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as error:
+        raise ReportingError('reporting runtime check could not complete: ' + str(error)) from error
+    if result.returncode:
+        raise ReportingError('reporting runtime check failed: ' + (result.stderr or result.stdout).strip()[-2000:])
+
+
+def _stop_reporter(child, log, *, graceful=False):
+    if child is None:
+        return
+    try:
+        if graceful:
+            try:
+                child.wait(timeout=20)
+            except subprocess.TimeoutExpired:
+                raise ReportingError('reporter did not finish after terminal training result') from None
+            if child.returncode:
+                raise ReportingError(f'reporter exited with code {child.returncode}; see reporter.log')
+        elif child.poll() is None:
+            os.killpg(child.pid, signal.SIGTERM)
+            try:
+                child.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                os.killpg(child.pid, signal.SIGKILL)
+                child.wait()
+    finally:
+        if not graceful or child.poll() is not None:
+            log.close()
+
+
+def _start_reporter(request, output):
+    if request.get('reporting') is None:
+        return None, None
+    command, env = _reporter_command(request, output)
+    log = (output / 'reporter.log').open('a')
+    child = None
+    try:
+        child = subprocess.Popen(command, env=env, stdin=subprocess.DEVNULL, stdout=log,
+            stderr=subprocess.STDOUT, text=True, start_new_session=True,
+            preexec_fn=_bind_worker_lifetime(os.getpid()))
+        marker = output / 'reporting/hypergan/reporter-state.json'
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            if child.poll() is not None:
+                raise ReportingError(f'reporter exited before ready with code {child.returncode}; see reporter.log')
+            if marker.is_file():
+                try:
+                    state = json.loads(marker.read_text())
+                except (ValueError, OSError):
+                    state = {}
+                if state.get('status') == 'ready':
+                    return child, log
+                if state.get('status') == 'failed':
+                    raise ReportingError('reporter initialization failed; see reporter.log')
+            time.sleep(.05)
+        raise ReportingError('reporter did not become ready before training; see reporter.log')
+    except BaseException:
+        if child is not None:
+            _stop_reporter(child, log)
+        else:
+            log.close()
+        raise
 
 def command_for(request, config, artifacts, *, check=False):
     spec = validate_resolved(request)
@@ -75,6 +169,7 @@ def _admit(request):
 
 def check_request(request):
     spec = _admit(request)
+    _check_reporting(request)
     if not spec['capabilities'].get('check', spec['config_kind'] == 'session'):
         raise ValueError('profile has no allocation-free check operation; use plan')
     with tempfile.TemporaryDirectory(prefix='particle-slider-check-') as root:
@@ -99,6 +194,7 @@ def _known_checkpoints(root):
 def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
     request = deepcopy(request)
     spec = _admit(request)
+    _check_reporting(request)  # Explicit reporting failures occur before GPU/output allocation.
     output = Path(request['output']['root']).resolve()
     if output.exists() and any(output.iterdir()):
         raise FileExistsError('training output must be a new empty directory: ' + str(output))
@@ -112,21 +208,15 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
                     target_steps=_target(request['training'], spec), completed_steps=0)
     atomic_json(output / 'progress.json', progress)
     child = None
+    reporter, reporter_log = None, None
+    training_result = None
     seen = set()
     try:
+        reporter, reporter_log = _start_reporter(request, output)
         parent_pid = os.getpid()
-        def bind_lifetime():
-            if sys.platform.startswith('linux'):
-                # Kill only this worker when the controller unexpectedly dies.
-                # Native wrappers remain responsible for their own child groups.
-                libc = ctypes.CDLL(None, use_errno=True)
-                if libc.prctl(1, signal.SIGTERM, 0, 0, 0) != 0:
-                    os._exit(126)
-                if os.getppid() != parent_pid:
-                    os._exit(126)
         child = subprocess.Popen(command, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                 text=True, bufsize=1, start_new_session=True, preexec_fn=bind_lifetime)
+                                 text=True, bufsize=1, start_new_session=True, preexec_fn=_bind_worker_lifetime(parent_pid))
         progress['pid'] = child.pid
         atomic_json(output / 'progress.json', progress)
         lines = queue.Queue()
@@ -139,6 +229,8 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
         stream_closed = False
         with (output / 'train.log').open('w') as stream:
             while not stream_closed or child.poll() is None:
+                if reporter is not None and reporter.poll() is not None:
+                    raise ReportingError(f'reporter exited during training with code {reporter.returncode}; see reporter.log')
                 try:
                     line = lines.get(timeout=.2)
                 except queue.Empty:
@@ -191,6 +283,7 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
                 raise RuntimeError('missing completed ' + key + ': ' + str(path))
             paths[key] = str(path.resolve())
         for checkpoint in sorted(_known_checkpoints(artifacts) - seen):
+            seen.add(checkpoint)
             if on_checkpoint:
                 on_checkpoint(str(checkpoint))
         if on_checkpoint and Path(paths['checkpoint']) not in seen:
@@ -200,8 +293,15 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
                       profile=spec['name'], qualification=spec['status'], **paths,
                       semantic_sha256=request['resolved']['semantic_sha256'],
                       runtime_sha256=request['resolved']['runtime_sha256'], native_result=native)
+        training_result = result
         atomic_json(output / 'result.json', result)
         atomic_json(output / 'progress.json', result)
+        if reporter is not None:
+            _stop_reporter(reporter, reporter_log, graceful=True)
+            result['reporting'] = dict(kind=request['reporting']['kind'], status='complete',
+                directory=str(output / 'reporting/hypergan'), config_sha256=request['resolved']['reporting_sha256'])
+            atomic_json(output / 'result.json', result)
+            atomic_json(output / 'progress.json', result)
         if on_progress:
             on_progress(deepcopy(result))
         return result
@@ -217,6 +317,27 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
         terminal = dict(status=status, error=str(error), target_steps=progress['target_steps'],
                         last_checkpoint=progress.get('last_checkpoint'),
                         worker_reaped=child is None or child.poll() is not None)
+        if training_result is not None:
+            terminal.update(training_status=training_result['status'], completed_steps=training_result['completed_steps'],
+                            checkpoint=training_result['checkpoint'], adapter=training_result['adapter'])
+        if isinstance(error, ReportingError):
+            terminal['reporting'] = dict(status='failed', kind=request['reporting']['kind'],
+                error=str(error), directory=str(output / 'reporting/hypergan'))
         atomic_json(output / 'result.json', terminal)
         atomic_json(output / 'progress.json', terminal)
+        if reporter is not None:
+            # Terminal result lets the observer flush the final journal boundary.
+            try:
+                _stop_reporter(reporter, reporter_log, graceful=True)
+            except BaseException:
+                _stop_reporter(reporter, reporter_log)
+        if isinstance(error, ReportingError):
+            # This is controller coordination status, never fabricated HG metrics.
+            marker = output / 'reporting/hypergan/reporter-state.json'
+            try:
+                state = json.loads(marker.read_text()) if marker.is_file() else {}
+            except (OSError, ValueError):
+                state = {}
+            state.update(status='failed', controller_error=str(error))
+            atomic_json(marker, state)
         raise

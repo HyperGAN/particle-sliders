@@ -3,6 +3,7 @@ from copy import deepcopy
 import hashlib
 from importlib.metadata import entry_points
 import json
+import os
 from pathlib import Path
 import re
 
@@ -92,6 +93,7 @@ def _target(training, profile):
 
 def _profile_identity(profile):
     profile = deepcopy(profile)
+    profile.pop('reporting', None)
     runtime = profile.get('runtime', {})
     for key in ('python', 'cwd', 'device'):
         runtime.pop(key, None)
@@ -145,17 +147,35 @@ def validate_resolved(request):
     if 'stop_after' in execution and (type(execution['stop_after']) is not int or
             not 0 < execution['stop_after'] <= request['resolved']['target_steps']):
         raise ValueError('invalid stop-after budget')
+    reporting = request.get('reporting')
+    if reporting is not None:
+        validate_reporting(reporting)
+        if digest(reporting) != request['resolved'].get('reporting_sha256'):
+            raise ValueError('resolved reporting configuration changed')
+    elif request['resolved'].get('reporting_sha256') is not None:
+        raise ValueError('reporting configuration is missing')
     return profile
 
 
+def validate_reporting(value):
+    if not isinstance(value, dict) or value.get('kind') != 'hypergan-develop':
+        raise ValueError('reporting kind must be hypergan-develop')
+    required = {'kind', 'runtime_python', 'runtime_path', 'runtime_commit', 'runtime_sha256'}
+    if set(value) != required or any(not isinstance(value.get(k), str) or not value[k] for k in required):
+        raise ValueError('reporting requires exact runtime_python, runtime_path, runtime_commit and runtime_sha256')
+    if re.fullmatch('[0-9a-f]{40}', value['runtime_commit']) is None or re.fullmatch('[0-9a-f]{64}', value['runtime_sha256']) is None:
+        raise ValueError('reporting requires full source commit and SHA256')
+    return value
+
+
 def resolve_request(config, *, base=None, profile=None, runner=None, output=None, resume=None,
-                    checkpoint_every=None, device=None, selection=None, export_format=None, stop_after=None, runtime_python=None):
+                    checkpoint_every=None, device=None, selection=None, export_format=None, stop_after=None, runtime_python=None, reporting=None, no_reporting=False, default_reporting=None):
     base = Path(base or '.').resolve()
     value = deepcopy(config)
     if not isinstance(value, dict):
         raise ValueError('training configuration must be an object')
     if value.get('schema') == REQUEST_SCHEMA:
-        if set(value) - {'schema', 'profile', 'training', 'execution', 'output', 'input_files'}:
+        if set(value) - {'schema', 'profile', 'training', 'execution', 'output', 'input_files', 'reporting'}:
             raise ValueError('unknown training envelope fields')
         request = value
         ref = profile or request.get('profile')
@@ -250,9 +270,29 @@ def resolve_request(config, *, base=None, profile=None, runner=None, output=None
             raise ValueError('input checksum or size differs: ' + name)
         inputs.append(dict(name=name, local_path=str(path), size=size, sha256=checksum))
     request['input_files'] = inputs
+    reporting_base = base
+    selected_reporting = reporting if reporting is not None else request.get('reporting')
+    if selected_reporting is None and 'reporting' not in request:
+        if 'reporting' in spec:
+            selected_reporting = spec['reporting']
+            reporting_base = Path(directory)
+        else:
+            selected_reporting = default_reporting() if callable(default_reporting) else default_reporting
+    if no_reporting:
+        selected_reporting = None
+    if selected_reporting is not None:
+        selected_reporting = deepcopy(validate_reporting(selected_reporting))
+        selected_reporting['runtime_path'] = str((reporting_base / selected_reporting['runtime_path']).resolve())
+        if '/' in selected_reporting['runtime_python']:
+            selected_reporting['runtime_python'] = os.path.abspath(reporting_base / os.path.expanduser(selected_reporting['runtime_python']))
+        request['reporting'] = selected_reporting
+    elif no_reporting or 'reporting' in request:
+        request['reporting'] = None
     request['resolved'] = dict(profile=spec, profile_dir=directory, config_dir=str(base), target_steps=target)
     request['resolved']['semantic_sha256'] = digest(semantic_identity(request))
     request['resolved']['runtime_sha256'] = digest(_profile_identity(spec).get('runtime', {}))
+    if selected_reporting is not None:
+        request['resolved']['reporting_sha256'] = digest(selected_reporting)
     validate_resolved(request)
     return request
 

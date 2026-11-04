@@ -2,6 +2,7 @@
 import argparse
 from importlib.metadata import entry_points
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -18,7 +19,7 @@ def should_dispatch(argv):
         return False
     if any(v in argv for v in ('--help', '-h')):
         return True
-    if any(v in argv for v in ('--profile', '--runner', '--check', '--checkpoint-every', '--device', '--runtime-python')):
+    if any(v in argv for v in ('--profile', '--runner', '--check', '--checkpoint-every', '--device', '--runtime-python', '--reporting-config', '--no-reporting')):
         return True
     try:
         i = argv.index('--config')
@@ -41,6 +42,26 @@ def runner_named(name):
     return value
 
 
+
+def _reporting_file(path):
+    path = Path(path).expanduser().resolve()
+    reporting = read_json(path)
+    if isinstance(reporting, dict):
+        for key in ('runtime_path', 'runtime_python'):
+            if isinstance(reporting.get(key), str) and (key == 'runtime_path' or '/' in reporting[key]):
+                reporting[key] = (str((path.parent / reporting[key]).resolve()) if key == 'runtime_path'
+                                  else os.path.abspath(path.parent / os.path.expanduser(reporting[key])))
+    return reporting
+
+
+def default_reporting_config():
+    explicit = os.environ.get('PARTICLE_SLIDER_REPORTING_CONFIG')
+    if explicit:
+        return _reporting_file(explicit)
+    base = Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config'))
+    path = base / 'particle-slider/reporting.json'
+    return _reporting_file(path) if path.is_file() else None
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest='operation', required=True)
@@ -54,6 +75,9 @@ def main(argv=None):
         command.add_argument('--checkpoint-every', type=int)
         command.add_argument('--device')
         command.add_argument('--runtime-python', help='existing isolated product interpreter; does not install or repin dependencies')
+        reporting = command.add_mutually_exclusive_group()
+        reporting.add_argument('--reporting-config', type=Path, help='explicit pinned HyperGAN develop reporting runtime JSON')
+        reporting.add_argument('--no-reporting', action='store_true', help='disable configured reporting for this run')
         command.add_argument('--selection', choices=('raw', 'ema'))
         command.add_argument('--export-format', choices=('v1', 'v2', 'both'))
         command.add_argument('--stop-after', type=int)
@@ -83,10 +107,12 @@ def main(argv=None):
                 result = action(handle)
         else:
             config_path = args.config.resolve()
+            reporting = _reporting_file(args.reporting_config) if args.reporting_config else None
+            default_reporting = None if args.no_reporting or args.reporting_config else default_reporting_config
             request = resolve_request(read_json(config_path), base=config_path.parent,
                 profile=args.profile, runner=args.runner, output=args.out, resume=args.resume,
                 checkpoint_every=args.checkpoint_every, device=args.device, selection=args.selection,
-                export_format=args.export_format, stop_after=args.stop_after, runtime_python=args.runtime_python)
+                export_format=args.export_format, stop_after=args.stop_after, runtime_python=args.runtime_python, reporting=reporting, no_reporting=args.no_reporting, default_reporting=default_reporting)
             if args.operation == 'plan':
                 result = request
             elif args.check:
