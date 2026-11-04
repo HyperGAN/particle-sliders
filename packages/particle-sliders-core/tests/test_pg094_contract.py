@@ -1,5 +1,6 @@
 """Explicit release/profile admission and same-version identity boundaries."""
 from copy import deepcopy
+from dataclasses import asdict
 import importlib.metadata as metadata
 
 import pytest
@@ -17,6 +18,37 @@ def test_explicit_release_manifest_and_public_alias():
     assert ConditionalPG094 is pg09.ConditionalPG09
     assert pg09._released_sources() == '2ccc05a2e2e4c9ce00187e6cd13495f0b468a6fb22644cd5f8993dd6ec80a3a8'
     assert engine_options({'pg_version': '0.9.4'}) == dict(pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto')
+
+
+def test_default_game_resolves_upstream_recipe_without_hidden_decay_or_ema(monkeypatch):
+    from particle_sliders.lifecycle import EMA
+    from particle_sliders.optimizer_policy import configure_dense_profile
+
+    calls = []
+    original = pg09.get_recipe
+
+    def resolve(name, **options):
+        calls.append((name, options))
+        return original(name, **options)
+
+    monkeypatch.setattr(pg09, 'get_recipe', resolve)
+    game = fixture()
+    assert len(calls) == 1 and calls[0][0] == 'bispf_optimized'
+    name, options = calls[0]
+    resolved, _ = configure_dense_profile(original(name, **options))
+    assert asdict(game.recipe) == asdict(resolved)
+    assert game.recipe.ema_decay == 0
+    assert EMA(game.network).values is None
+    rates = [[group['lr'] for group in optimizer.param_groups]
+             for optimizer in (game.opt_g, game.opt_d)]
+    # Inspect the scheduler at all historical phase boundaries. These are
+    # schedule queries, not optimizer updates or fabricated training steps.
+    for step in (0, 199, 200, 799, 800, 959, 960, 1024, 1600):
+        pg09.scale_learning_rates(step, game.recipe, (game.opt_g, game.opt_d),
+                                 game.base_lrs, game.prior)
+        assert [[group['lr'] for group in optimizer.param_groups]
+                for optimizer in (game.opt_g, game.opt_d)] == rates
+    assert game.completed_steps == 0 and not torch.cuda.is_initialized()
 
 
 @pytest.mark.parametrize('options', [dict(pg_version='0.9.3'), dict(pg_source_profile='release-0.9.3'), dict(pg_version='0.9.1'), dict(pg_source_profile='release'),
