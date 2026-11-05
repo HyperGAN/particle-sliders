@@ -319,7 +319,7 @@ def test_native_resume_restores_particles_ema_both_optimizers_and_all_streams(tm
     monkeypatch.setattr(YuE2Backend,'continuation',forbidden); monkeypatch.setattr(F,'mse_loss',forbidden)
     prompts=tmp_path/'p.yaml';prompts.write_text(yaml.safe_dump(dict(rows=[
         dict(neutral=f'Guitar band {i}',positive=f'Heavy metal guitar band {i}',lyrics=f'[verse]\nWe carry crate {i}') for i in range(4)])))
-    common=['--recipe','particle_bridge','--dummy','--steps','4','--prompts_file',str(prompts),
+    common=['--recipe','particle_bridge','--historical-ema','--dummy','--steps','4','--prompts_file',str(prompts),
             '--sample_seeds','1','--history_tokens','0']
     train(parse_args(common+['--save_dir',str(tmp_path/'full')]))
     train(parse_args(common+['--save_dir',str(tmp_path/'split'),'--until','2']))
