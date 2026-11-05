@@ -175,6 +175,12 @@ Freeze a search manifest before the first candidate:
   score as a veto. Every finite, source-correct candidate completes its declared
   budget; a large finite primary error is not an early-stop condition.
 
+After native update mechanics have been qualified, report endpoint generator,
+critic and bank displacement as diagnostics. A finite trajectory can return to
+its starting values, so zero net displacement must not reject an LR candidate.
+Retain the original native movement proof and the actual parameter-role, bank
+shape, optimizer-rate, finite-update and native-call checks.
+
 Use the common product keys `lr`, `d_lr_mult` and, where a real bank exists,
 `prior_lr_mult`. Adapter-only products omit the bank multiplier. Changing G with
 fixed multipliers changes D and bank too; label that as a coupled experiment.
@@ -216,11 +222,35 @@ checkpoints and report actual updates, saved steps and replay calls separately.
 If a stopped process reached 985 but its last checkpoint is 960, a restart from
 that checkpoint begins at 960, not at 985.
 
+Keep live progress and the last resumable step separate. When committing a new
+checkpoint, atomically publish its full state and actual returned update metrics
+before marking that step durably saved. Bind the saved step, source,
+configuration and rates to the checkpoint and verify its readback. Journaling
+must preserve caller RNG and make no additional native forwards. If the native
+packet omits last-update metrics, keep them in a journal envelope around the
+unchanged packet. Retain immutable attempt directories and any absolute journal
+paths. Report committed calls, replayed calls and unknown in-flight work honestly.
+
+If the target update is already committed but evaluation or export was
+interrupted, restore that target and finish those observations with zero new
+updates. Compare an existing RAW response golden only when one was actually
+published and qualified; otherwise label the response as newly measured.
+
 Use current device ownership/resource admission and one executor for each
 attempt. Stop only owned work. Preserve partial outputs and inspect failure and
 cleanup receipts before retrying; do not overwrite an old run or reuse expired
 admission. These operational checks protect a fair experiment as well as other
 workloads.
+
+An explicitly proved host-capacity interruption may use bounded continuation
+after exact owned-child termination/reaping, fresh resource admission and
+qualification of the committed prefix. Distinguish a source-proved fresh-start
+interruption from a restored checkpoint; neither permits invented update counts.
+Pure artifact audits may be rescheduled without repeating native training.
+Source, numerical, GPU, owned-process RSS-cap and unknown-attribution failures
+remain terminal for that execution and require investigation. A retried final
+confirmation uses the same frozen winner and held-out examples; its partial
+observations cannot tune or replace the winner.
 
 ## 6. Decide whether another search is justified
 
