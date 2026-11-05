@@ -1,4 +1,4 @@
-"""Conditional native-response GAN using released ParticleGAN 0.9.4 components (explicit core0.9 line).
+"""Conditional native-response GAN using released ParticleGAN 0.9.5 components (shared core0.13 line).
 
 Backends own frozen conditioning and differentiable response generation. This
 module owns the adversarial game, optimizer lifecycle, sampling and checkpoint
@@ -21,29 +21,22 @@ from particlegan import get_recipe, scale_learning_rates
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 from .optimizer_policy import configure_dense_profile, optimizer_diagnostics
 
-PG_VERSION = '0.9.4'
-PG_SOURCE_PROFILE = 'release-0.9.4'
-PG_WHEEL_SHA256 = 'ad21eeaea861cf0582fc39aa96eb3fd8ab8cf21e8e0f0179f0597a9c42eb99b6'
-PG_CONTINUOUS_SOURCE_PROFILE = 'source-801ae1e-continuous-v1'
-PG_CONTINUOUS_COMMIT = '801ae1ead8f88b88eca8f5398137e3e1bc01ad36'
-PG_CONTINUOUS_WHEEL_SHA256 = '263f8edead2f972b87d03a93780e95929c8c03d2989f3770313b88cb3699c9d0'
-_DOMAIN_PAIRS = ((PG_SOURCE_PROFILE, 'auto'), (PG_CONTINUOUS_SOURCE_PROFILE, 'continuous'))
+PG_VERSION = '0.9.5'
+PG_SOURCE_PROFILE = 'release-0.9.5'
+# Exact published wheel and immutable release-tag source identity.
+PG_WHEEL_SHA256 = 'c1c0de7a635ac1b1634ba158eed050b6f6aed993e01f9b463435430c77d846ae'
+PG_SOURCE_COMMIT = '1b8355b184b21bb7d81104ee590813c262f6df0a'
+_DOMAIN_PAIRS = ((PG_SOURCE_PROFILE, 'auto'), (PG_SOURCE_PROFILE, 'continuous'))
 
 
 def _released_sources(profile=PG_SOURCE_PROFILE):
     import particlegan
-    if profile not in (PG_SOURCE_PROFILE, PG_CONTINUOUS_SOURCE_PROFILE):
-        raise ValueError('unknown/unqualified PG0.9.4 source profile; no overlay or release alias')
-    name = 'pg094_release.json' if profile == PG_SOURCE_PROFILE else 'pg094_continuous.json'
-    document = json.loads(Path(__file__).with_name(name).read_text())
-    if (document['version'], document['source_profile']) != (PG_VERSION, profile):
-        raise RuntimeError('PG0.9.4 release manifest contradicts this engine')
-    if profile == PG_SOURCE_PROFILE and document['wheel_sha256'] != PG_WHEEL_SHA256:
-        raise RuntimeError('PG0.9.4 release manifest contradicts this engine')
-    if profile == PG_CONTINUOUS_SOURCE_PROFILE and (
-            document['source_commit'] != PG_CONTINUOUS_COMMIT or
-            document['wheel_sha256'] != PG_CONTINUOUS_WHEEL_SHA256):
-        raise RuntimeError('PG continuous-vector source manifest contradicts this engine')
+    if profile != PG_SOURCE_PROFILE:
+        raise ValueError('unknown PG0.9.5 source profile; old releases/overlays require their original environment')
+    document = json.loads(Path(__file__).with_name('pg095_release.json').read_text())
+    if (document['version'], document['source_profile'], document['source_commit'], document['wheel_sha256']) != (
+            PG_VERSION, PG_SOURCE_PROFILE, PG_SOURCE_COMMIT, PG_WHEEL_SHA256):
+        raise RuntimeError('PG0.9.5 source manifest contradicts this engine')
     root = Path(particlegan.__file__).resolve().parent
     actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob('*.py'))}
@@ -58,8 +51,8 @@ def validate_pg09_domain(response_shape, *, response_domain,
 
     This never installs a package, applies a patch or reshapes a response.
     Callers declare native geometry and pass this explicitly versioned profile
-    into ConditionalPG09. The explicit continuous profile binds one exact
-    unreleased upstream source; it is never an alias for the official wheel.
+    into ConditionalPG09. Released PG0.9.5 accepts explicit continuous vectors
+    of any width; automatic dispatch retains its shape gates.
     """
     if version('particlegan') != PG_VERSION:
         raise RuntimeError('ConditionalPG09 requires particlegan==' + PG_VERSION + ' base release')
@@ -345,7 +338,7 @@ class ConditionalPG09:
             raise ValueError('conditions tensor or lazy provider.conditions(indices) is required')
         self.response_domain, self.response_scale = response_domain, float(response_scale)
         self.batch_size, self.sigma = batch_size, float(sigma)
-        # Preserve the authoritative PG0.9.4 research recipe's declared precision.
+        # Preserve the authoritative PG0.9.5 research recipe's declared precision.
         # This native host executes FP32 leaves without GANTrainer autocast; bind
         # that separately below instead of rewriting the public recipe.
         options = dict(batch_size=batch_size, total_steps=total_steps)
@@ -389,7 +382,7 @@ class ConditionalPG09:
         self.completed_steps = 0
         self._failed = False
         self._export_loaded = False
-        self._signature = dict(pg_version=PG_VERSION, pg_release_wheel_sha256=PG_WHEEL_SHA256,
+        self._signature = dict(pg_version=PG_VERSION, pg_release_wheel_sha256=PG_WHEEL_SHA256, pg_source_commit=PG_SOURCE_COMMIT,
             pg_sources_sha256=pg_sources_sha256, implementation_sources=_implementation_sources(backend, critic, self.provider),
             pg_source_profile=pg_source_profile,
             pg_patch_sha256=None, host_training_precision='float32',
@@ -673,7 +666,7 @@ class ConditionalPG09:
             restore_thermal()
 
     def _thermal_cleanup(self):
-        """Snapshot only this device's exact PG0.9.4 process-local channel."""
+        """Snapshot only this device's exact PG0.9.5 process-local channel."""
         from particlegan.bispf import _LAST_THERMAL_SCALE
         missing = object()
         previous = _LAST_THERMAL_SCALE.get(self.device, missing)

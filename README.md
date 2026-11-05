@@ -13,7 +13,11 @@ for model-specific slider products. The intended common base covers image,
 music, audio and video models, including Anima, Krea, YuE2, MOSS and Sana.
 Integration status varies by model and source pin.
 
-**Current public source:** `main` contains core0.12.0 with the shared lifecycle,
+**Current source update:** core0.13.0 uses exact released ParticleGAN0.9.5, with
+explicit continuous-vector support and the same shared engine API. See
+[compatibility](packages/particle-sliders-core/COMPATIBILITY-PG095.md).
+
+**Previous public source:** `main` contained core0.12.0 with the shared lifecycle,
 native-only inference and exact official ParticleGAN0.9.4. Eligible dense
 DualNorm leaves use the upstream guarded Gram profile by default.
 [PR148](https://github.com/HyperGAN/particle-sliders/pull/148) merged this source;
@@ -137,7 +141,7 @@ arms: Krea2's adapter-only GAN has no routed particle bank, while routed models
 must use their actual participating bank. Iris's PG rendering route remains gated
 pending native solver parity. A hidden response is not an image or waveform.
 
-### Merged modern PG0.9.4/Gram source
+### Previous PG0.9.4/Gram source
 
 Core0.12.0 is merged on `main` with exact officialPG0.9.4 and a supported upstream
 Gram default. See [the current compatibility contract](packages/particle-sliders-core/COMPATIBILITY-PG094.md)
@@ -164,7 +168,7 @@ No existing checkpoint or result receipt is rebound to a different source pin.
 
 | Source cohort | Exact ParticleGAN dependency | Boundary |
 |---|---|---|
-| Current core0.12.0 on `main` | `particlegan==0.9.4` | Shared lifecycle, transactional restore and eligible dense Gram default; exact official release/source identity. Native/product adoption requires separate qualification. |
+| Previous core0.12.0 | `particlegan==0.9.4` | Shared lifecycle, transactional restore and eligible dense Gram default; exact official release/source identity. Native/product adoption requires separate qualification. |
 | Preserved core0.11.0 | `particlegan==0.9.3` | Previous modern source/policy cohort; old checkpoints retain that exact source pin. |
 | Preserved core0.8.3 line and reviewed core0.8.1/0.8.2 ancestors | `particlegan==0.9.1` | Shared image/numerical response lifecycle; keep each product's tested exact commit. No package release implied. |
 | Separate core0.10.0 review line | `particlegan==0.9.3` | Later research/MOSS contract; not an automatic replacement for PG0.9.1 cohorts. |

@@ -42,7 +42,7 @@ def reference(matrix):
 def test_default_is_supported_upstream_profile_and_changes_only_one_recipe_field():
     recipe = get_recipe('bispf_optimized', total_steps=5)
     resolved, declaration = configure_dense_profile(recipe)
-    assert PG_VERSION == '0.9.4' and PG_SOURCE_PROFILE == 'release-0.9.4'
+    assert PG_VERSION == '0.9.5' and PG_SOURCE_PROFILE == 'release-0.9.5'
     assert resolved.optimizer_dense_profile == GRAM_PROFILE
     before, after = asdict(recipe), asdict(resolved)
     assert {k for k in before if before[k] != after[k]} == {'optimizer_dense_profile'}
@@ -210,7 +210,7 @@ def test_authoritative_moss112_field_recipe_preserved_except_selected_dense_prof
     assert len(values) == 112 and values['optimizer_dense_profile'] == 'default'
     # This is restoration of a recorded historical recipe, not selection of
     # defaults for a new run. New upstream releases make that distinction
-    # explicit; the pinned 0.9.4 release still accepts the complete snapshot.
+    # explicit; the pinned 0.9.5 release still accepts the complete snapshot.
     restore = getattr(Recipe, 'from_dict', None)
     recipe = restore(values) if restore is not None else Recipe(**values)
     resolved, _ = configure_dense_profile(recipe)

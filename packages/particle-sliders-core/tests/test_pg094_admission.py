@@ -1,4 +1,4 @@
-"""Exact release/build identities and unchanged continuous-domain boundaries."""
+"""Exact release/build identities and preserved auto-dispatch domain boundaries."""
 from copy import deepcopy
 from importlib.metadata import version
 import json

@@ -19,13 +19,10 @@ def installed_profile():
     root = Path(particlegan.__file__).resolve().parent
     actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob('*.py'))}
-    matches = []
-    for filename in ('pg094_release.json', 'pg094_continuous.json'):
-        document = json.loads(Path(pg09.__file__).with_name(filename).read_text())
-        if actual == document['python_sources']:
-            matches.append(document['source_profile'])
-    assert len(matches) == 1, 'tests require one exact admitted source environment'
-    return matches[0]
+    document = json.loads(Path(pg09.__file__).with_name('pg095_release.json').read_text())
+    assert actual == document['python_sources']
+    return document['source_profile']
+
 
 
 @dataclass(frozen=True)
@@ -75,37 +72,24 @@ def game(width):
     return pg09.ConditionalPG09(backend, rows, Critic(width),
         particles=backend.network.particles, conditions=torch.arange(4.).reshape(4, 1),
         response_domain='continuous_vector', response_scale=1., total_steps=4, seed=0,
-        pg_source_profile=pg09.PG_CONTINUOUS_SOURCE_PROFILE, penalty_input_domain='continuous',
+        pg_source_profile=pg09.PG_SOURCE_PROFILE, penalty_input_domain='continuous',
         recipe_overrides={'lr': 1e-5, 'd_lr_mult': 3., 'prior_lr_mult': 4.})
 
 
 @pytest.mark.parametrize('width', [16, 169, 170, 1024, 2048, 4096])
-def test_source_and_domain_are_both_required_before_native_admission(width):
-    current = installed_profile()
-    for profile, domain in pg09._DOMAIN_PAIRS:
-        if current == profile:
-            if profile == pg09.PG_SOURCE_PROFILE and width >= 170:
-                with pytest.raises(ValueError, match='width >=170'):
-                    pg09.validate_pg09_domain((1, width), response_domain='continuous_vector',
-                        pg_source_profile=profile, penalty_input_domain=domain)
-            else:
-                result = pg09.validate_pg09_domain((1, width), response_domain='continuous_vector',
-                    pg_source_profile=profile, penalty_input_domain=domain)
-                assert result['resolved_penalty_domain'] == 'continuous'
-                assert result['pg_source_profile'] == current
-        else:
-            with pytest.raises(RuntimeError, match='sources differ'):
-                pg09.validate_pg09_domain((1, width), response_domain='continuous_vector',
-                    pg_source_profile=profile, penalty_input_domain=domain)
+def test_release_continuous_domain_is_explicit_and_native(width):
+    assert installed_profile() == pg09.PG_SOURCE_PROFILE
+    result = pg09.validate_pg09_domain((1, width), response_domain='continuous_vector',
+        penalty_input_domain='continuous')
+    assert result['resolved_penalty_domain'] == 'continuous'
+    if width >= 170:
+        with pytest.raises(ValueError, match='width >=170'):
+            pg09.validate_pg09_domain((1, width), response_domain='continuous_vector')
     assert not torch.cuda.is_initialized()
 
 
 @pytest.mark.parametrize('width', [170, 1024, 2048, 4096])
-def test_wide_native_geometry_full_bank_rates_resume_and_inference(width):
-    if installed_profile() != pg09.PG_CONTINUOUS_SOURCE_PROFILE:
-        with pytest.raises(RuntimeError, match='sources differ'):
-            game(width)
-        return
+def test_release_wide_bank_updates_exact_resume_and_inference(width):
     before_threads = torch.get_num_threads()
     torch.set_num_threads(1)
     try:
@@ -113,25 +97,22 @@ def test_wide_native_geometry_full_bank_rates_resume_and_inference(width):
         assert original.response_shape == (1, width)
         assert original.penalty.regularizer.input_domain == 'continuous'
         assert all(group['lr'] == pytest.approx(3e-5) for group in original.opt_d.param_groups)
-        rates = {group['role']: group['lr'] for group in original.opt_g.param_groups}
-        assert rates == pytest.approx({'generator': 1e-5, 'prior': 4e-5})
+        rates = {group['role']:group['lr'] for group in original.opt_g.param_groups}
+        assert rates == pytest.approx({'generator':1e-5, 'prior':4e-5})
         original.step()
         checkpoint = original.state_dict()
-        assert checkpoint['config']['pg_source_profile'] == pg09.PG_CONTINUOUS_SOURCE_PROFILE
         expected = original.step()
         expected_state = original.state_dict()
         restored = game(width)
         restored.load_state_dict(checkpoint)
         assert restored.step() == expected
         equal(expected_state, restored.state_dict())
-        exported = original.export_state_dict()
         inference = game(width)
-        inference.load_export_state_dict(exported)
+        inference.load_export_state_dict(original.export_state_dict())
         assert torch.equal(original.evaluate(0, seed=0), inference.evaluate(0, seed=0))
-        for key, wrong in (('pg_source_profile', pg09.PG_SOURCE_PROFILE),
-                           ('penalty_input_domain', 'auto'), ('pg_sources_sha256', '0' * 64)):
-            corrupt = deepcopy(checkpoint)
-            corrupt['config'][key] = wrong
+        for key, wrong in [('pg_source_profile', 'release-0.9.4'),
+                           ('penalty_input_domain', 'auto'), ('pg_sources_sha256', '0'*64)]:
+            corrupt = deepcopy(checkpoint); corrupt['config'][key] = wrong
             before = restored.state_dict()
             with pytest.raises(ValueError, match='mismatch'):
                 restored.load_state_dict(corrupt)
@@ -140,38 +121,25 @@ def test_wide_native_geometry_full_bank_rates_resume_and_inference(width):
         torch.set_num_threads(before_threads)
 
 
-def test_continuous_profile_never_aliases_release_or_admits_image_domain():
-    from particle_sliders.pg094 import engine_options
-    installed_profile()
-    assert engine_options({}) == {'pg_source_profile': pg09.PG_SOURCE_PROFILE, 'penalty_input_domain': 'auto'}
-    candidate = {'pg_source_profile': pg09.PG_CONTINUOUS_SOURCE_PROFILE, 'penalty_input_domain': 'continuous'}
-    assert engine_options(candidate) == candidate
-    for profile, domain in ((pg09.PG_SOURCE_PROFILE, 'continuous'),
-                            (pg09.PG_CONTINUOUS_SOURCE_PROFILE, 'auto')):
+def test_old_overlay_and_release_entrypoints_do_not_rebind():
+    from particle_sliders.pg095 import engine_options
+    from particle_sliders.pg094 import ConditionalPG094
+    assert engine_options({'penalty_input_domain': 'continuous'}) == {
+        'pg_source_profile': pg09.PG_SOURCE_PROFILE, 'penalty_input_domain': 'continuous'}
+    for old in ['release-0.9.4', 'source-801ae1e-continuous-v1']:
         with pytest.raises(ValueError, match='qualified source/domain pair'):
-            engine_options({'pg_source_profile': profile, 'penalty_input_domain': domain})
-        with pytest.raises(ValueError, match='qualified pair'):
-            pg09.validate_pg09_domain((1, 1024), response_domain='continuous_vector',
-                pg_source_profile=profile, penalty_input_domain=domain)
-    if installed_profile() == pg09.PG_CONTINUOUS_SOURCE_PROFILE:
-        with pytest.raises(ValueError, match='genuine native'):
-            pg09.validate_pg09_domain((1, 4, 4, 4), response_domain='continuous_field',
-                pg_source_profile=pg09.PG_CONTINUOUS_SOURCE_PROFILE, penalty_input_domain='continuous')
+            engine_options({'pg_source_profile': old, 'penalty_input_domain': 'continuous'})
+    with pytest.raises(RuntimeError, match='original|pinned'):
+        ConditionalPG094()
 
 
-def test_common_lifecycle_checks_selected_source_before_factory():
-    from particle_sliders.lifecycle import Backend, BackendUnavailable, Capabilities, SessionConfig
+def test_common_lifecycle_admits_declared_release_domain_before_factory():
+    from particle_sliders.lifecycle import Backend, Capabilities, SessionConfig
     calls = []
     def factory(options):
         calls.append('factory')
-        raise RuntimeError('source gate passed; bounded factory sentinel')
-    backend = Backend('continuous-source-gate', Capabilities('adapter_gan', False), factory, lambda options: None)
-    options = {'pg_source_profile': pg09.PG_CONTINUOUS_SOURCE_PROFILE, 'penalty_input_domain': 'continuous'}
-    if installed_profile() == pg09.PG_CONTINUOUS_SOURCE_PROFILE:
-        with pytest.raises(RuntimeError, match='bounded factory sentinel'):
-            backend.open(SessionConfig(backend.name, 'new-explicit-vector-cohort', **options))
-        assert calls == ['factory']
-    else:
-        with pytest.raises((BackendUnavailable, RuntimeError), match='sources differ'):
-            backend.open(SessionConfig(backend.name, 'new-explicit-vector-cohort', **options))
-        assert not calls
+        raise RuntimeError('factory sentinel')
+    backend = Backend('continuous-release-gate', Capabilities('adapter_gan', False), factory, lambda options: None)
+    with pytest.raises(RuntimeError, match='factory sentinel'):
+        backend.open(SessionConfig(backend.name, 'new095', penalty_input_domain='continuous'))
+    assert calls == ['factory']

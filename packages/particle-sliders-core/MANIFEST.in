@@ -18,3 +18,5 @@ include particle_sliders_legacy_imports.pth
 include TRAINING-COMMAND.md
 
 include HYPERGAN-REPORTING.md
+
+include COMPATIBILITY-PG095.md

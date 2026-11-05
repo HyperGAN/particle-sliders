@@ -7,17 +7,17 @@ import pytest
 import torch
 
 from particle_sliders.lifecycle import Backend, BackendUnavailable, Capabilities, SessionConfig
-from particle_sliders.pg094 import ConditionalPG094, PG_VERSION, PG_SOURCE_PROFILE, engine_options
+from particle_sliders.pg095 import ConditionalPG095, PG_VERSION, PG_SOURCE_PROFILE, engine_options
 from particle_sliders import pg09
 from test_conditional_pg09 import fixture, equal
 
 
 def test_explicit_release_manifest_and_public_alias():
-    assert PG_VERSION == '0.9.4'
-    assert PG_SOURCE_PROFILE == 'release-0.9.4'
-    assert ConditionalPG094 is pg09.ConditionalPG09
-    assert pg09._released_sources() == '2ccc05a2e2e4c9ce00187e6cd13495f0b468a6fb22644cd5f8993dd6ec80a3a8'
-    assert engine_options({'pg_version': '0.9.4'}) == dict(pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto')
+    assert PG_VERSION == '0.9.5'
+    assert PG_SOURCE_PROFILE == 'release-0.9.5'
+    assert ConditionalPG095 is pg09.ConditionalPG09
+    assert pg09._released_sources() == 'd452f7c3277be32ab40cf4b45478dcf8cfb62b994e693184e278e8e2f4c5fc26'
+    assert engine_options({'pg_version': '0.9.5'}) == dict(pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto')
 
 
 def test_default_game_resolves_upstream_recipe_without_hidden_decay_or_ema(monkeypatch):
@@ -52,7 +52,7 @@ def test_default_game_resolves_upstream_recipe_without_hidden_decay_or_ema(monke
 
 
 @pytest.mark.parametrize('options', [dict(pg_version='0.9.3'), dict(pg_source_profile='release-0.9.3'), dict(pg_version='0.9.1'), dict(pg_source_profile='release'),
-                                    dict(pg_source_profile='alz-continuous-v1'), dict(penalty_input_domain='continuous')])
+                                    dict(pg_source_profile='alz-continuous-v1'), dict(pg_version='0.9.4')])
 def test_no_version_or_overlay_fallback_before_factory(options):
     calls = []
     contract = Backend('cpu', Capabilities('adapter_gan', False),
@@ -68,7 +68,7 @@ def test_installed_wrong_version_refused_before_factory(monkeypatch):
     original = metadata.version
     monkeypatch.setattr(metadata, 'version', lambda name: '0.9.1' if name == 'particlegan' else original(name))
     contract = Backend('cpu', Capabilities('adapter_gan', False), lambda options: pytest.fail('allocated'), lambda options: None)
-    with pytest.raises(BackendUnavailable, match='0.9.4'):
+    with pytest.raises(BackendUnavailable, match='0.9.5'):
         contract.open(SessionConfig('cpu', 'new093'))
 
 
