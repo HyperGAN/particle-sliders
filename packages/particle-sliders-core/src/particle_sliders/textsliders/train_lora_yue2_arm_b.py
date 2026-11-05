@@ -46,6 +46,7 @@ def run_recipe(args, selected):
             raise ValueError('Particle bridge requires exactly 128x4 particles and particle VIC weight 1')
         if args.propose_only_c9_g4x or args.propose_only_lr_scale is not None:
             raise ValueError('Particle bridge pins the reference constant learning rates')
+        recipe['ema'] = None if args.no_ema else recipe['ema']
         recipe.update(critic=args.critic, critic_config=critic_config(args),
                       adv_batch=int(args.adv_batch), noise_decay_steps=int(args.steps))
         from particle_sliders.textsliders import particle_bridge_gan as particle_game
@@ -185,7 +186,10 @@ def _train_locked(args,rows,meta,game):
         if any(len(h[key]) != batch or any(not 0 <= i < source_count for i in h[key])
                for h in history for key in ('d_rows','g_rows')):
             raise ValueError('Invalid saved particle-bridge prompt batches')
-        ema = {k:v.to(device) for k,v in saved['ema'].items()} if saved else particle_game.initialize_ema(network)
+        if saved and args.no_ema and saved.get('ema') is not None:
+            raise ValueError('RAW-only resume cannot load EMA shadow weights')
+        ema = None if args.no_ema else ({k:v.to(device) for k,v in saved['ema'].items()}
+                                      if saved else particle_game.initialize_ema(network))
         critic.noise_decay_steps = int(recipe['noise_decay_steps'])
     elif any(len(h['rows'])!=batch or len(set(h['rows']))!=batch for h in history):
         raise ValueError('Invalid saved prompt batches')
@@ -222,7 +226,7 @@ def _train_locked(args,rows,meta,game):
         )), flush=True)
     write_json(run/'teacher-audit.json',teacher_audit)
     probe_mod=None
-    if particle and not args.no_probe and int(args.sample_seeds)>1 and int(args.history_tokens)>0:
+    if particle and not args.no_ema and not args.no_probe and int(args.sample_seeds)>1 and int(args.history_tokens)>0:
         from particle_sliders.textsliders import distribution_probe as probe_mod
     start=time.monotonic();start_step=completed;stop=False
     def request_stop(*_):
@@ -255,16 +259,18 @@ def _train_locked(args,rows,meta,game):
             sampler=sampler.state_dict(),rng=torch.get_rng_state(),
             cuda_rng=torch.cuda.get_rng_state_all() if device.type=='cuda' else [])
         if particle:
-            if any(not torch.isfinite(v).all() for v in ema.values()): raise FloatingPointError('Non-finite EMA')
-            blob['ema'] = _cpu(ema)
+            if ema is not None and any(not torch.isfinite(v).all() for v in ema.values()):
+                raise FloatingPointError('Non-finite EMA')
+            blob['ema'] = None if ema is None else _cpu(ema)
         temporary=path.with_suffix('.pt.tmp');torch.save(blob,temporary);temporary.replace(path)
         counted = [i for h in history for i in (h['d_rows']+h['g_rows'] if particle else h['rows'])]
         record=dict(metadata,step=completed,prompt_draws=len(counted),
             row_counts=dict(Counter(counted)))
         # Save the export atomically; preserve all older milestone exports.
         export=run/f'{args.name}_last.safetensors';tmp=run/f'{args.name}_pending.safetensors'
-        if particle:
+        if particle and ema is not None:
             network.save(tmp,dict(record,weights_kind='ema'),state=ema)
+        elif particle: network.save(tmp,dict(record,weights_kind='live'))
         else: network.save(tmp,record)
         tmp.replace(export);tmp.with_suffix('.json').replace(export.with_suffix('.json'))
         if particle:
@@ -276,7 +282,7 @@ def _train_locked(args,rows,meta,game):
             if not pinned.exists():
                 os.link(path,pinned)
                 os.link(export,run/f'{args.name}_step{completed}.safetensors')
-                write_json(run/f'{args.name}_step{completed}.json',dict(record,weights_kind='ema') if particle else record)
+                write_json(run/f'{args.name}_step{completed}.json',dict(record,weights_kind='ema' if ema is not None else 'live') if particle else record)
                 if particle:
                     os.link(live,run/f'{args.name}_live_step{completed}.safetensors')
                     write_json(run/f'{args.name}_live_step{completed}.json',dict(record,weights_kind='live'))
@@ -303,7 +309,7 @@ def _train_locked(args,rows,meta,game):
                 if particle: extra['sampler'] = sampler
                 metrics=game.update(backend,network,critic,g,d,current,step=step,
                     checkpointing=not args.no_checkpointing,**extra)
-                if particle: particle_game.update_ema(ema,network)
+                if particle and ema is not None: particle_game.update_ema(ema,network)
                 completed=step
                 record=dict(metrics,step=step,rows=indices,step_seconds=time.monotonic()-begin,
                     g_lr=g.param_groups[0]['lr'],d_lr=d.param_groups[0]['lr'])
@@ -337,6 +343,12 @@ def parse_args(argv=None):
     p.add_argument('--device',default='cuda:0')
     p.add_argument('--dummy',action='store_true')
     p.add_argument('--no_checkpointing',action='store_true')
+    averaging=p.add_mutually_exclusive_group()
+    averaging.add_argument('--no-ema',dest='no_ema',action='store_true',
+        help='Use RAW weights only (default); do not create EMA state or comparisons')
+    averaging.add_argument('--historical-ema',dest='no_ema',action='store_false',
+        help='Explicit particle-bridge historical reproduction only; not for new training')
+    p.set_defaults(no_ema=True)
     p.add_argument('--critic',choices=['mlp','sn_mlp','patch','mix','gmix','bottleneck','lowrank','hybrid','query','bquery'],
         default='mlp',help='Particle-bridge discriminator architecture')
     p.add_argument('--critic_patch',type=int)
@@ -354,12 +366,14 @@ def parse_args(argv=None):
     p.add_argument('--adv_batch',type=int,default=64,
         help='Particle bridge: D/G draw size per update (smaller keeps unique forwards cheap)')
     p.add_argument('--no_probe',action='store_true',
-        help='Particle bridge: skip the held-out distribution probe after EMA milestones')
+        help='Particle bridge: skip the historical EMA-only distribution probe (already disabled for RAW-only runs)')
     p.add_argument('--probe_seeds',type=int,default=32,
         help='Held-out continuation seeds per prompt template; never added to training')
     p.add_argument('--probe_listening_seeds',type=int,default=4,
         help='Seeds per template reserved for final listening and excluded from the probe')
     a=p.parse_args(argv);a.until=a.steps if a.until is None else a.until
+    if not a.no_ema and a.recipe!='particle_bridge':
+        p.error('--historical-ema applies only to the historical particle_bridge recipe')
     if a.recipe=='particle_bridge' and (a.propose_only_c9_g4x or a.propose_only_lr_scale is not None):
         p.error('Particle bridge pins the reference constant learning rates')
     critic_values=(a.critic_patch,a.critic_width,a.critic_layers,a.critic_heads,

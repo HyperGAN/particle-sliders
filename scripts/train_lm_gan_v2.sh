@@ -8,15 +8,16 @@ ARM="${ARM:-fm_capped}"
 case "$ARM" in
   baseline|fm|fm_normalized|fm_capped|decay)
     DEFAULT_PROMPTS="$ROOT/packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-gender-uni-v2.yaml"
-    DEFAULT_EMA=0 ;;
+    ;;
   *) DEFAULT_PROMPTS="$ROOT/analysis/gan_bcap/v2_20260905/fixtures/train.yaml"
-     DEFAULT_EMA=1 ;;
+     ;;
 esac
 PROMPTS="${2:-$DEFAULT_PROMPTS}"
+DEFAULT_EMA=0
 EMA_ARGS=()
 case "${USE_EMA:-$DEFAULT_EMA}" in
   0) EMA_ARGS=(--no-ema) ;;
-  1) ;;
+  1) EMA_ARGS=(--historical-ema) ;;
   *) echo 'USE_EMA must be 0 or 1' >&2; exit 2 ;;
 esac
 SOURCE="${SOURCE_STATE:-$ROOT/models/gan-bcap-repair/smoke-steps600-s7-20260904/smoke-steps600-s7-20260904_state.pt}"

@@ -96,7 +96,12 @@ def parse_args(argv=None):
     p.add_argument('--diagnostics-every',type=int,default=25)
     p.add_argument('--ema-rank',type=int,default=32)
     p.add_argument('--ema-every',type=int,default=25)
-    p.add_argument('--no-ema',action='store_true')
+    averaging=p.add_mutually_exclusive_group()
+    averaging.add_argument('--no-ema',dest='no_ema',action='store_true',
+        help='Use RAW weights only (default); do not create EMA state or exports')
+    averaging.add_argument('--historical-ema',dest='no_ema',action='store_false',
+        help='Explicit historical reproduction only; new training uses RAW weights')
+    p.set_defaults(no_ema=True)
     p.add_argument('--recipe-overrides',type=Path,help='JSON overrides, included in the exact resume signature')
     return p.parse_args(argv)
 

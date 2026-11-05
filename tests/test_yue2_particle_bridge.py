@@ -319,7 +319,7 @@ def test_native_resume_restores_particles_ema_both_optimizers_and_all_streams(tm
     monkeypatch.setattr(YuE2Backend,'continuation',forbidden); monkeypatch.setattr(F,'mse_loss',forbidden)
     prompts=tmp_path/'p.yaml';prompts.write_text(yaml.safe_dump(dict(rows=[
         dict(neutral=f'Guitar band {i}',positive=f'Heavy metal guitar band {i}',lyrics=f'[verse]\nWe carry crate {i}') for i in range(4)])))
-    common=['--recipe','particle_bridge','--dummy','--steps','4','--prompts_file',str(prompts),
+    common=['--recipe','particle_bridge','--historical-ema','--dummy','--steps','4','--prompts_file',str(prompts),
             '--sample_seeds','1','--history_tokens','0']
     train(parse_args(common+['--save_dir',str(tmp_path/'full')]))
     train(parse_args(common+['--save_dir',str(tmp_path/'split'),'--until','2']))
@@ -338,6 +338,45 @@ def test_native_resume_restores_particles_ema_both_optimizers_and_all_streams(tm
     assert _same(load_file(str(tmp_path/'full/metal-yue2-arm-b_live_last.safetensors')),a['network'])
     with pytest.raises(ValueError,match='Resume'):
         train(parse_args(['--dummy','--steps','4','--prompts_file',str(prompts),'--save_dir',str(tmp_path/'split')]))
+
+
+
+def test_default_raw_checkpoint_resume_exports_actual_network_without_ema(tmp_path, monkeypatch):
+    pytest.importorskip('yue2')
+    from safetensors.torch import load_file
+    from particle_sliders.textsliders.yue2_backend import YuE2Backend
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('RAW-only smoke must not create/update EMA, sample audio, or use MSE')
+
+    monkeypatch.setattr(pg, 'initialize_ema', forbidden)
+    monkeypatch.setattr(pg, 'update_ema', forbidden)
+    monkeypatch.setattr(YuE2Backend, 'continuation', forbidden)
+    monkeypatch.setattr(F, 'mse_loss', forbidden)
+    prompts = tmp_path / 'prompts.yaml'
+    prompts.write_text(yaml.safe_dump(dict(rows=[
+        dict(neutral=f'Guitar band {i}', positive=f'Heavy metal guitar band {i}',
+             lyrics=f'[verse]\nWe carry crate {i}') for i in range(4)])))
+    run = tmp_path / 'raw'
+    common = ['--recipe', 'particle_bridge', '--dummy', '--device', 'cpu',
+              '--steps', '2', '--prompts_file', str(prompts), '--save_dir', str(run),
+              '--sample_seeds', '1', '--history_tokens', '0', '--adv_batch', '4',
+              '--max_seq_len', '1024']
+    train(parse_args(common + ['--until', '1']))
+    first = torch.load(run / 'state.pt', map_location='cpu', weights_only=True)
+    assert first['completed'] == 1 and first['ema'] is None
+    assert first['signature']['settings']['recipe']['ema'] is None
+    train(parse_args(common))  # Strict saved signature, optimizer and stream restore.
+    state = torch.load(run / 'state.pt', map_location='cpu', weights_only=True)
+    assert state['completed'] == 2 and [h['step'] for h in state['history']] == [1, 2]
+    assert state['ema'] is None and state['signature']['settings']['recipe']['ema'] is None
+    assert any(not torch.equal(first['network'][k], v) for k, v in state['network'].items())
+    for suffix in ('last', 'live_last', 'step2', 'live_step2'):
+        path = run / f'metal-yue2-arm-b_{suffix}.safetensors'
+        assert _same(load_file(str(path)), state['network'])
+        record = json.loads(path.with_suffix('.json').read_text())
+        assert record['weights_kind'] == 'live'
+    assert not torch.cuda.is_initialized()
 
 
 def test_particle_dashboard_distinguishes_vic_and_live_gan():

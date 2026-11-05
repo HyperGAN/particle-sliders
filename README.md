@@ -344,11 +344,17 @@ CUDA_VISIBLE_DEVICES=1 .venv-yue2/bin/python \
   packages/particle-sliders-core/src/particle_sliders/textsliders/train_lora_yue2_arm_b.py \
   --recipe particle_bridge --name metal-yue2-particles \
   --prompts_file packages/particle-sliders-core/src/particle_sliders/textsliders/data/prompts-yue2-metal-arm-b.yaml \
-  --save_dir models/metal-yue2-particles --steps 1200
+  --save_dir models/metal-yue2-particles --steps 1200 --no-ema
 ```
 
 This writes `models/metal-yue2-particles/metal-yue2-particles_last.safetensors`
-(the EMA export), plus `_live_last` and per-step copies. These defaults
+with the RAW network, plus `_live_last` aliases and per-step copies. New runs
+disable EMA by default; `--no-ema` states that policy explicitly. The retained
+`gan_v2.train` research CLI and its shell launcher also default to RAW only.
+`--historical-ema` (or `USE_EMA=1` for that shell launcher) is an explicit
+historical reproduction option, not a new-run recommendation. Exact old
+checkpoints still require their original source and recipe; this does not
+relabel their EMA artifacts or qualify the legacy trainer as PG0.9.5. These defaults
 (`--critic mlp`, paired-edit normalization, continuation histories) are a later
 experiment. They replay neither the September 17 release (`particle-1200-v1`)
 nor the `particle-gmix-1600-v2` core formulation, which needs `--critic gmix`
