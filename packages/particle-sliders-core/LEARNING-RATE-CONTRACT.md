@@ -47,14 +47,29 @@ G-only screen at fixed critic rate `D` and bank rate `P`, each candidate uses
 P while holding the other absolute rates fixed. There is no universal selected
 rate for image, audio, text, routed-bank and direct-LoRA architectures.
 
-Compare candidates at equal completed updates, using held-out teacher/student
-fit and the product's actual target law. Retain additive error/energy statistics,
-per-example results, update ratios, finite-state checks, peak memory and wall
-time. GAN training loss alone does not rank checkpoints. Report failures and
-unscoreable evaluations as such, never as zero error. Extend finalists to a
-common longer budget and additional seeds; inspect matched native outputs,
-OFF identity and strength controls. Prove full-state continuation and portable
-inference before calling a candidate a qualified continuation rate.
+Rank and independently confirm candidates using only held-out raw
+teacher/student relative SSE. Cast student, teacher and neutral operands to
+FP64 before subtraction. Pool squared error and teacher-edit energy over all
+declared positions and coordinates within each example, divide within that
+example, then average examples equally. Freeze the teacher-only valid/excluded
+set across candidates: zero-energy examples have undefined relative error, and
+student failures never remove examples or become zero error.
+
+Every finite candidate completes its declared budget, even when its score
+exceeds OFF or 2. Compare equal completed updates on a common declared schedule
+horizon. Extend finalists to a common longer budget within that horizon, then
+use the independently declared held-out confirmation set. Retain additive
+error/energy statistics, per-example results, all trial outcomes, peak memory
+and wall time. GAN training loss alone does not rank checkpoints.
+
+Preservation/no-edit drift, late/weak-field scores, renders, listening, CLAP and
+other media diagnostics are optional; they cannot select, reject or delay a
+rate recommendation.
+Candidate endpoint net displacement is diagnostic after the native mechanical
+proof. Retain exact source/model/data/numerical identity, actual optimizer-rate,
+finite native-update and metric-control checks. Prove full-state continuation
+and portable raw-response replay before calling a candidate a qualified
+continuation rate.
 
 Every recommendation names exact product/core/PG/model sources, optimizer and
 precision, concept/data/evaluator identity, G/D/bank rates, comparison budget,
