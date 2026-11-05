@@ -13,6 +13,13 @@ reject an LR candidate, block a recommendation, require a larger geometry or
 trigger extra qualification work. Source/data/numerical identity, finite updates,
 actual optimizer rates and exact continuation remain correctness requirements.
 
+Disable model-weight EMA explicitly (`ema_decay=None`) for this campaign. Train,
+rank, confirm, export and infer with raw current weights. Do not add an EMA or
+checkpoint-averaging comparison. Keep the official optimizer update formula.
+An official recipe may serialize the disabled value `ema_decay=0.0` while the
+session records `None`; verify absent moving weights and raw export selection
+without rewriting that saved metadata.
+
 This is an experiment protocol, not a new core API or a change to the training
 objective. Existing products must bind their evaluator explicitly; historical
 scorers and checkpoints keep their original meaning. The
@@ -190,6 +197,13 @@ before updating. Nominal decimal labels are insufficient: `0.004 * 4.5` gives
 `0.018000000000000002`. If no common value is representable for the chosen grid,
 declare a new matched rate in a new plan; do not patch optimizer state.
 
+A G screen recommends a tested combination with fixed D and bank rates; it does
+not establish a joint optimum. To refine the critic, hold G and any bank rate
+fixed and declare a separate D screen. Refine a real bank rate the same way,
+holding the other absolute rates fixed. Retain the exact rates and scope of each
+earlier recommendation. A later refinement needs a new unused confirmation set;
+an earlier confirmation score must not guide the new choice.
+
 Rank candidates at the **same completed step**. Do not select one candidate's
 best early checkpoint against another's final checkpoint. Keep learning curves;
 a short pilot can nominate a candidate but cannot establish its long-run rate.
@@ -204,6 +218,20 @@ A predeclared halving plan may advance a fixed number of candidates at each
 equal-budget stage, then continue the selected candidate to the final budget.
 Retain each stage's ranking and actual budget; do not imply that eliminated
 candidates completed the final budget.
+
+Declare finite rate bounds and an extension budget before measuring a targeted
+extension. A bracket-edge winner calls for a justified extension within that
+budget. If the winner remains at the declared outer bound after the matched
+comparisons, report it as the best tested rate at that bound, with the optimum
+unbracketed. A prospectively frozen policy may then continue and confirm that
+candidate; it cannot claim a global optimum or retune from confirmation.
+
+A plan may retain already available equal-budget endpoints in later comparisons.
+Declare that retention before observing the new candidates. Keep each endpoint's
+actual source, initialization, teachers, numerical profile and completed budget;
+prove the comparison is compatible and do not relabel its checkpoint as a new
+producer. Complete every newly declared matched budget. Select one development
+nominee before opening a new confirmation set.
 
 ## 5. Confirm the raw response, then continue with exact state
 
@@ -242,12 +270,35 @@ cleanup receipts before retrying; do not overwrite an old run or reuse expired
 admission. These operational checks protect a fair experiment as well as other
 workloads.
 
+Record the owned GPU/allocator/RSS caps, global free-memory floors, timeout and
+inherited physical/workload leases in each execution. An attempt may run beside
+other processes when fresh actual capacity fits those declared controls. Unknown
+foreign identities or future budgets do not by themselves veto that attempt.
+Measure the owned PID's GPU usage and total device free memory throughout; stop
+only the owned attempt when a hard cap or floor fails.
+
+For host admission, current RSS is already charged to `MemAvailable`. Add known
+remaining growth from source-bound phase forecasts once, including any later
+model reload. Do not use a past RSS high-water mark as current residency, and do
+not reserve growth for a completed, reaped phase. Recheck after source capture
+and lock acquisition, before model loading. Forecasts and sampled admission are
+not a proof that all later allocations will fit; keep the original hard caps,
+live floors, exact owned cleanup and checkpoints.
+
+Execution-only changes to device headers, resource bookkeeping or documentation
+do not automatically require another model-proof matrix. Review and bind the
+narrow change, retain the qualified native mathematics and prior evidence, and
+verify actual initialization, teachers and placement for the new execution.
+Preserve the real new execution identity rather than rewriting old packets or
+claiming an unchanged hash. A changed numerical or scientific cohort still needs
+fresh qualification.
+
 An explicitly proved host-capacity interruption may use bounded continuation
 after exact owned-child termination/reaping, fresh resource admission and
 qualification of the committed prefix. Distinguish a source-proved fresh-start
 interruption from a restored checkpoint; neither permits invented update counts.
 Pure artifact audits may be rescheduled without repeating native training.
-Source, numerical, GPU, owned-process RSS-cap and unknown-attribution failures
+Source, numerical, GPU, owned-process RSS-cap and unknown-owned-attribution failures
 remain terminal for that execution and require investigation. A retried final
 confirmation uses the same frozen winner and held-out examples; its partial
 observations cannot tune or replace the winner.
