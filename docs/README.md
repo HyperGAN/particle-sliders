@@ -15,6 +15,7 @@ prompt files, and 2-D exams.
 | if you need | read |
 |---|---|
 | installable shared core for product repos | [particle-sliders-core](../packages/particle-sliders-core/README.md) · [current PG 0.9.4 compatibility](../packages/particle-sliders-core/COMPATIBILITY-PG094.md) |
+| implicit state machines and recovery boundaries | [State-machine audit, main 2026-11-06](audits/implicit-state-machines-20261106/README.md) |
 | common teacher/student evaluation and learning-rate search | [Evaluation and LR-search workflow](../packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md) · [MOSS correction and native results](moss-teacher-student-metric-20261103.md) |
 | YuE2 / Music 3 published weights, install, current train command, CPU tests | [README.md](../README.md) |
 | YuE2 math, training evidence, Music 3 / image objectives, evaluation | [math.md](math.md) |
