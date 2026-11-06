@@ -15,6 +15,7 @@ import torch.nn.functional as F
 
 from particle_sliders.adapter_activation import activation_mutation, push_activation, restore_activation
 from particle_sliders.adapter_attachment import atomic_attachment
+from particle_sliders.adapter_loading import load_adapter_states
 
 from particle_sliders.textsliders.minimax_h3_uni import apply_unused_hold
 
@@ -317,11 +318,7 @@ class AttnLoRANetwork(nn.Module):
                 f"{file} has no lora_h3-* keys. MiniMax-H3 sliders save a "
                 "custom AttnLoRANetwork, not PEFT adapter_model.safetensors."
             )
-        missing, unexpected = self.load_state_dict(state, strict=False)
-        missing_lora = [k for k in missing if str(k).startswith("lora_h3-")]
-        if missing_lora:
-            raise ValueError(f"{file} is missing LoRA keys: {missing_lora[:8]}")
-        _ = unexpected
+        load_adapter_states([(self, state, self.state_dict().keys())])
 
 
 class DummyEncoder(nn.Module):
