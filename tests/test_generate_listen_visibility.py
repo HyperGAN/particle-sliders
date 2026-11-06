@@ -73,7 +73,7 @@ class EarlyVisibilityTests(unittest.TestCase):
                 else:
                     env['CUDA_VISIBLE_DEVICES'] = visible
                 completed = subprocess.run(
-                    [sys.executable, '-I', '-c', PROBE, str(SOURCE), json.dumps(arguments)],
+                    [sys.executable, '-I', '-S', '-c', PROBE, str(SOURCE), json.dumps(arguments)],
                     env=env, text=True, capture_output=True, check=True, timeout=10,
                 )
                 self.assertEqual(json.loads(completed.stdout)['visible'], expected)
