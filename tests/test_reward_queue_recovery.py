@@ -70,3 +70,14 @@ def test_campaign_refuses_unverifiable_claims_before_polling_services(tmp_path, 
     monkeypatch.setattr(campaign.subprocess, 'check_output', lambda *a, **k: pytest.fail('must not poll services'))
     with pytest.raises(RuntimeError, match='explicit reconciliation'):
         campaign.wait_stage(tmp_path, 'screen')
+
+
+@pytest.mark.parametrize('change', [{'boot': None}, {'boot': 'corrupt'}, {'start': 'not-a-tick'}, {'extra': 'field'}])
+def test_corrupt_local_owner_is_unverified_not_proven_dead(tmp_path, change):
+    queue.add(tmp_path, 'screen', jobs())
+    job = queue.claim(tmp_path, 0)
+    malformed = dict(queue._owner(), **change)
+    with queue.connect(tmp_path) as db:
+        db.execute('UPDATE jobs SET owner=? WHERE id=?', (json.dumps(malformed, sort_keys=True), job['id']))
+    assert queue.recover_abandoned(tmp_path) == {'failed': [], 'unverified': [job['id']]}
+    assert queue.counts(tmp_path) == {'running': 1}

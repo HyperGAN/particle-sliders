@@ -1,6 +1,8 @@
 """Atomic GPU work claims; each matched seed bundle stays on one GPU."""
 import json
 import os
+import re
+import uuid
 import socket
 import sqlite3
 import time
@@ -26,8 +28,16 @@ def _owner():
 
 
 def _owner_alive(owner):
-    if not isinstance(owner, dict) or type(owner.get('pid')) is not int or owner['pid'] <= 0:
+    if (not isinstance(owner, dict) or set(owner) != {'host', 'boot', 'pid', 'start'}
+            or type(owner['pid']) is not int or owner['pid'] <= 0
+            or any(not isinstance(owner[key], str) or not owner[key] for key in ('host', 'boot', 'start'))
+            or re.fullmatch(r'[0-9]+', owner['start']) is None):
         return None  # Legacy/foreign/corrupt claims need explicit reconciliation.
+    try:
+        if str(uuid.UUID(owner['boot'])) != owner['boot']:
+            return None
+    except ValueError:
+        return None
     try:
         current = _owner()
     except OSError:
