@@ -8,6 +8,7 @@ from .acoustic_artifact import checkpoint
 from .full_flow_confirmation import verify_batch,score
 from .full_flow_composition import score as composition_score
 from .costs import report
+from .package_commit import staged_package
 
 
 def complete(home,first,replication,composition,name):
@@ -35,23 +36,24 @@ def complete(home,first,replication,composition,name):
     if not comp['passed'] or cp['candidate']!=p1['candidate'] or not read(home/'composition'/composition/'off-restoration.json')['exact']:
         raise IntegrityError('Matching fixed-energy composition evidence is incomplete or failed')
     c=p1['candidate'];checkpoint(c['path'],c['multiplier'])
-    folder=home/'confirmed'/name
-    if folder.exists():raise IntegrityError('Completed package name already exists')
+    destination=home/'confirmed'/name
+    if destination.exists():raise IntegrityError('Completed package name already exists')
     evidence=[home/'confirmation'/batch/f for batch in (first,replication) for f in ('protocol.json','manifest.json','scorecard.json','intent/preservation.json','intent/tolerances.json','audit/off-restoration.json')]
     evidence += [home/'composition'/composition/f for f in ('protocol.json','manifest.json','scorecard.json','off-restoration.json')]
     source=Path(c['path']);metadata=read(source.with_suffix('.json'));recipe=source.parent/'recipe.json'
     if not recipe.exists():raise IntegrityError('Exact training recipe is missing')
-    folder.mkdir(parents=True)
-    for file,target in ((source,folder/'reward-ce-confirmed.safetensors'),(source.with_suffix('.json'),folder/'reward-ce-confirmed.json'),(recipe,folder/'training-recipe.json')):
-        shutil.copy2(file,target)
-        if sha(file)!=sha(target):raise IntegrityError('Final adapter package copy changed')
-    for label,path in (('first-confirmation',home/'confirmation'/first),('independent-replication',home/'confirmation'/replication),('composition',home/'composition'/composition),('training-evidence',source.parent)):
-        (folder/label).symlink_to(path,target_is_directory=True)
-    result=dict(research_complete=True,scope='Frozen first-20-second CE with independently measured preservation and diversity; natural full-song completion remains unestablished',
-        adapter_sha256=c['weights_sha256'],multiplier=c['multiplier'],training_recipe_sha256=sha(recipe),first=first,replication=replication,composition=composition,
-        evidence_sha256={str(p):sha(p) for p in evidence},cost=report(Path(read(home/'game.json')['parent_home'])),production_deployment=False)
-    immutable(folder/'evidence.json',result)
-    (folder/'README.md').write_text('Confirmed ordinary reward adapter at multiplier '+str(c['multiplier'])+'.\n\nBoth fresh batches independently passed the fixed practical CE gates and whole-family uncertainty intervals, plus the declared preservation diagnostics. The separate fixed per-host-energy composition comparison passed. Exact evidence, raw audio, losses and listening players are linked in this directory.\n\nThe supported scope is the frozen first 20 seconds of generated music. Natural full-song completion remains unestablished. This research package has not been added to the production registry.\n')
+    with staged_package(destination) as folder:
+        for file,target in ((source,folder/'reward-ce-confirmed.safetensors'),(source.with_suffix('.json'),folder/'reward-ce-confirmed.json'),(recipe,folder/'training-recipe.json')):
+            shutil.copy2(file,target)
+            if sha(file)!=sha(target):raise IntegrityError('Final adapter package copy changed')
+        for label,path in (('first-confirmation',home/'confirmation'/first),('independent-replication',home/'confirmation'/replication),('composition',home/'composition'/composition),('training-evidence',source.parent)):
+            (folder/label).symlink_to(path,target_is_directory=True)
+        result=dict(research_complete=True,scope='Frozen first-20-second CE with independently measured preservation and diversity; natural full-song completion remains unestablished',
+            adapter_sha256=c['weights_sha256'],multiplier=c['multiplier'],training_recipe_sha256=sha(recipe),first=first,replication=replication,composition=composition,
+            evidence_sha256={str(p):sha(p) for p in evidence},cost=report(Path(read(home/'game.json')['parent_home'])),production_deployment=False)
+        immutable(folder/'evidence.json',result)
+        (folder/'README.md').write_text('Confirmed ordinary reward adapter at multiplier '+str(c['multiplier'])+'.\n\nBoth fresh batches independently passed the fixed practical CE gates and whole-family uncertainty intervals, plus the declared preservation diagnostics. The separate fixed per-host-energy composition comparison passed. Exact evidence, raw audio, losses and listening players are linked in this directory.\n\nThe supported scope is the frozen first 20 seconds of generated music. Natural full-song completion remains unestablished. This research package has not been added to the production registry.\n')
+    folder=destination
     Store(home).event('research_confirmed',package=str(folder),adapter_sha256=c['weights_sha256'],evidence_sha256=sha(folder/'evidence.json'))
     Store(home).status('confirmed',research_complete=True,package=str(folder),adapter_sha256=c['weights_sha256'])
     parent=Path(read(home/'game.json')['parent_home'])
