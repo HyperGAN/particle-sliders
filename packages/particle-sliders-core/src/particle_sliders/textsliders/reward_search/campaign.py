@@ -42,6 +42,10 @@ def stage(run,name,families,seeds,arms,capture=False):
 
 def wait_stage(run,name):
     while True:
+        recovered = queue.recover_abandoned(run, name)
+        if recovered['unverified']:
+            raise RuntimeError('Running render claims have unknown/foreign ownership; explicit reconciliation required: '
+                               + ', '.join(recovered['unverified']))
         count=queue.counts(run,name)
         status(run,name,bundles=count)
         if not count:raise ValueError('Empty stage '+name)
