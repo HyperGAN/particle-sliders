@@ -237,3 +237,63 @@ def test_embed_load_preserves_encoder_device_instead_of_moving_to_dit(monkeypatc
     monkeypatch.setattr(ltx, 'resolve_ltx_lora_path', lambda path: Path('complete.safetensors'))
     backend.load_trained('checkpoint')
     assert placements == [torch.device('cpu')]
+
+
+def yue_host():
+    host = nn.Module()
+    host.config = SimpleNamespace(model_type='yue2', hidden_size=3, num_hidden_layers=1,
+                                  num_attention_heads=1, num_key_value_heads=1,
+                                  head_dim=3, vocab_size=16, intermediate_size=6)
+    host.model = nn.Module()
+    layer = nn.Module()
+    layer.self_attn = nn.Module()
+    for name in ('q_proj', 'k_proj', 'v_proj', 'o_proj'):
+        setattr(layer.self_attn, name, nn.Linear(3, 3))
+    host.model.layers = nn.ModuleList([layer])
+    return host
+
+
+@pytest.mark.parametrize('kind', ['tiny', 'yue2', 'yue2-routed', 'music3'])
+def test_qualified_load_failure_after_construction_detaches_new_adapters(kind, tmp_path, monkeypatch):
+    if kind == 'tiny':
+        from particle_sliders.textsliders.tiny_llm_backend import DummyTinyCausalLM
+        from particle_sliders.textsliders.tiny_llm_particle import TinyParticleSlider
+        cls, make_host = TinyParticleSlider, DummyTinyCausalLM
+    elif kind.startswith('yue2'):
+        from particle_sliders.textsliders.yue2_backend import YuE2Slider
+        from particle_sliders.textsliders.yue2_particle_bridge import ParticleSlider
+        cls, make_host = (ParticleSlider if kind.endswith('routed') else YuE2Slider), yue_host
+    else:
+        from particle_sliders.music3_native import ParticleNetwork
+
+        class Qwen3Attention(nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.proj = nn.Linear(3, 3)
+
+        cls, make_host = ParticleNetwork, lambda: nn.Sequential(Qwen3Attention())
+    checkpoint = tmp_path / 'complete.safetensors'
+    cls(make_host()).save(checkpoint, {})
+    host = make_host()
+    next(host.parameters()).requires_grad_(False)
+    modules, state = list(host.named_modules()), copied_state(host)
+    forwards = [(module, 'forward' in vars(module), vars(module).get('forward'))
+                for module in host.modules()]
+    gradients = [(parameter, parameter.requires_grad) for parameter in host.parameters()]
+    rng = torch.get_rng_state().clone()
+    original = cls.load_state_dict
+
+    def fail(self, values, *args, **kwargs):
+        original(self, values, *args, **kwargs)
+        raise RuntimeError('final adapter loader failure')
+
+    monkeypatch.setattr(cls, 'load_state_dict', fail)
+    with pytest.raises(RuntimeError, match='final adapter loader failure'):
+        cls.load(host, checkpoint)
+    assert list(host.named_modules()) == modules
+    assert_state(host, state)
+    for module, owned, forward in forwards:
+        assert ('forward' in vars(module)) == owned
+        assert vars(module).get('forward') is forward
+    assert all(parameter.requires_grad == flag for parameter, flag in gradients)
+    assert torch.equal(torch.get_rng_state(), rng)

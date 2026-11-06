@@ -121,6 +121,7 @@ class YuE2Slider(nn.Module):
         path.with_suffix(".json").write_text(json.dumps(record, indent=2) + "\n")
 
     @classmethod
+    @atomic_attachment('model')
     def load(cls, model, path):
         with safe_open(str(path), framework="pt", device="cpu") as handle:
             record = json.loads((handle.metadata() or {}).get("conceptmod", "{}"))
