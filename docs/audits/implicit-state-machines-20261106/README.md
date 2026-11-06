@@ -15,6 +15,8 @@ Each entry identifies state carriers, states/events, guards, failure/retry behav
 | Adapters and native generation | [A01–A27](adapters.md) | Attach/patch ownership, strength/envelope scopes, exact OFF behavior, PEFT scaling baselines, shared particle banks, checkpoint loads, backend placement/freeze/eval, checkpoint recomputation, teacher caches, capture/replay hooks, stage-specific generation, condition/attention intervention. A15 is contextual admission, A16–17 cross-reference C entries, and A27 is fixture-only. |
 | Pipelines, selection and research orchestration | [O01–O35](orchestration.md) | Artifact-driven pipeline stages, listening/calibration, immutable benchmarks, durable queues, GPU leases, train/render campaigns, finalist search, distillation/package/publication, render claims, staged evaluation, confirmation and evidence archives. Includes historical derived verdicts as contextual guards. |
 
+The [fix PR tracker](fix-prs.md) links each priority finding to a separate proposed fix and records review dependencies.
+
 ## Findings to address first
 
 These are source-verified control-flow findings. They were not exercised against models, GPUs, services or live jobs.
@@ -61,6 +63,6 @@ This is a map of the main ownership boundary, not a replacement specification. C
 
 - Static source/AST sweep: **453 Python files / 96,120 lines** across installed package source, compatibility entrypoint, pipeline, selection, scripts and examples. Detailed evidence links cover **116 files**. Repeated families were grouped; the coverage file distinguishes source scanning from cited evidence.
 - [Coverage manifest](coverage.json) records paths, source hashes, line counts, parse results, linked evidence and exclusions. Every Python file in those roots parsed successfully. Source-link start lines and report links were checked locally.
-- No application imports, model loading, training, GPU allocation, services, publishing or runtime tests were performed. Application behavior is unchanged; the additions are this audit and its source manifest.
+- The baseline audit used no application imports, model loading, training, GPU allocation, services or runtime tests. Its additions are documentation and the source manifest. Subsequent fix-branch tests are recorded separately in the [fix PR tracker](fix-prs.md).
 - Archived `analysis/`/`legacy/` experiments, generated/static assets, external products/dependency internals and retired Fibo are excluded except where a compatibility interface is referenced. Fixture-only tokenizer state is explicitly separated. This is a comprehensive static inventory of the scoped app workflows, not a proof that every possible dynamic state has been discovered.
 - Historical research selection, preservation/media gates, early stopping and EMA branches are documented as existing behavior. They do not supersede the current sole RAW FP64 operand-first equal-example relative-SSE metric, fixed declared budgets, raw-weight rule or official optimizer formula.
