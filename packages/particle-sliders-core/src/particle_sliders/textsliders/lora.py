@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 from safetensors.torch import save_file
 
-from particle_sliders.adapter_activation import activation_is_entered, push_activation, restore_activation
+from particle_sliders.adapter_activation import activation_is_entered, activation_mutation, push_activation, restore_activation
 
 if TYPE_CHECKING:
     from diffusers import UNet2DConditionModel
@@ -368,7 +368,8 @@ class LoRANetwork(nn.Module):
         else:
             torch.save(state_dict, file)
     def set_lora_slider(self, scale):
-        self.lora_scale = scale
+        with activation_mutation(self):
+            self.lora_scale = scale
 
     def set_seq_gain(self, gain, mode: str = "stretch"):
         """Per-position envelope for the LoRA delta. None = uniform.
@@ -383,12 +384,13 @@ class LoRANetwork(nn.Module):
             tensor = gain.detach().float().reshape(-1).cpu()
         else:
             tensor = torch.tensor(list(gain), dtype=torch.float32)
-        self.seq_gain = tensor
-        self.seq_gain_mode = mode
-        if not activation_is_entered(self):
-            for lora in self.unet_loras:
-                lora.seq_gain = tensor
-                lora.seq_gain_mode = mode
+        with activation_mutation(self):
+            self.seq_gain = tensor
+            self.seq_gain_mode = mode
+            if not activation_is_entered(self):
+                for lora in self.unet_loras:
+                    lora.seq_gain = tensor
+                    lora.seq_gain_mode = mode
 
     def __enter__(self):
         push_activation(self, self.unet_loras, ('multiplier', 'seq_gain', 'seq_gain_mode'))

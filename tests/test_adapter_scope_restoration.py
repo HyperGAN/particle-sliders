@@ -1,5 +1,8 @@
 """CPU-only regression checks for nested effective adapter activation."""
 import importlib
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 
 import pytest
 import torch
@@ -145,3 +148,70 @@ def test_peft_failed_entry_restores_all_touched_settings():
             pytest.fail('failed entry must not execute the body')
     assert [layer.scaling for layer in host] == original
     assert network._activation_stack == []
+
+
+@pytest.mark.parametrize('kind', ['native', 'legacy', 'dora', 'h3', 'ltx-attn', 'ltx-module'])
+def test_competing_thread_cannot_enter_exit_or_reconfigure_active_adapter(kind):
+    _, network, adapters = custom_network(kind)
+    network.lora_scale = .75
+
+    def compete():
+        with pytest.raises(RuntimeError, match='owned by another'):
+            with network:
+                pytest.fail('foreign owner entered')
+        with pytest.raises(RuntimeError, match='owned by another'):
+            network.__exit__(None, None, None)
+        if hasattr(network, 'set_lora_slider'):
+            with pytest.raises(RuntimeError, match='owned by another'):
+                network.set_lora_slider(-.5)
+        if hasattr(network, 'set_seq_gain'):
+            with pytest.raises(RuntimeError, match='owned by another'):
+                network.set_seq_gain([.1])
+
+    with network:
+        previous = [adapter.multiplier for adapter in adapters]
+        with ThreadPoolExecutor(max_workers=1) as workers:
+            workers.submit(compete).result(timeout=5)
+        assert network.lora_scale == .75
+        assert [adapter.multiplier for adapter in adapters] == previous
+        with network:
+            pass  # Reentrant use by the owning thread still works.
+        assert [adapter.multiplier for adapter in adapters] == previous
+    # A later operation on a different thread may own an idle adapter.
+    with ThreadPoolExecutor(max_workers=1) as workers:
+        workers.submit(lambda: (network.__enter__(), network.__exit__(None, None, None))).result(timeout=5)
+
+
+@pytest.mark.parametrize('kind', ['native', 'ltx-module'])
+def test_competing_async_task_is_rejected_without_blocking_same_thread(kind):
+    _, network, adapters = custom_network(kind)
+    network.lora_scale = .75
+
+    async def compete():
+        with pytest.raises(RuntimeError, match='async task'):
+            with network:
+                pytest.fail('foreign task entered')
+        with pytest.raises(RuntimeError, match='async task'):
+            network.set_lora_slider(-.5)
+
+    async def run():
+        with network:
+            previous = [adapter.multiplier for adapter in adapters]
+            await asyncio.create_task(compete())
+            assert [adapter.multiplier for adapter in adapters] == previous
+            with network:
+                pass
+            assert [adapter.multiplier for adapter in adapters] == previous
+
+    asyncio.run(run())
+
+
+def test_idle_adapter_can_be_deepcopied_after_a_scope():
+    _, network, _ = custom_network('native')
+    with network:
+        pass
+    copied = deepcopy(network)
+    assert copied._activation_guard is not network._activation_guard
+    copied.set_lora_slider(-.5)
+    with copied:
+        assert all(adapter.multiplier == -.5 for adapter in copied.unet_loras)

@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from particle_sliders.adapter_activation import push_activation, restore_activation
+from particle_sliders.adapter_activation import activation_mutation, push_activation, restore_activation
 
 from particle_sliders.textsliders.minimax_h3_uni import apply_unused_hold
 
@@ -279,7 +279,8 @@ class AttnLoRANetwork(nn.Module):
                 self.add_module(lora_name, lora)
 
     def set_lora_slider(self, scale: float) -> None:
-        self.lora_scale = float(scale)
+        with activation_mutation(self):
+            self.lora_scale = float(scale)
 
     def __enter__(self):
         push_activation(self, self.loras, ('multiplier',))

@@ -57,7 +57,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from particle_sliders.adapter_activation import (
-    activation_is_entered, push_activation, restore_activation,
+    activation_is_entered, activation_mutation, push_activation, restore_activation,
 )
 
 from particle_sliders.textsliders.ltx25_uni import (
@@ -849,10 +849,11 @@ class AttnLoRANetwork(nn.Module):
             self.add_module(lora_name, lora)
 
     def set_lora_slider(self, scale: float) -> None:
-        self.lora_scale = float(scale)
-        if not activation_is_entered(self):
-            for lora in self.loras:
-                lora.multiplier = float(scale)
+        with activation_mutation(self):
+            self.lora_scale = float(scale)
+            if not activation_is_entered(self):
+                for lora in self.loras:
+                    lora.multiplier = float(scale)
 
     def __enter__(self):
         push_activation(self, self.loras, ('multiplier',))
@@ -921,10 +922,11 @@ class ModuleLoRANetwork(nn.Module):
             )
 
     def set_lora_slider(self, scale: float) -> None:
-        self.lora_scale = float(scale)
-        if not activation_is_entered(self):
-            for lora in self.loras:
-                lora.multiplier = float(scale)
+        with activation_mutation(self):
+            self.lora_scale = float(scale)
+            if not activation_is_entered(self):
+                for lora in self.loras:
+                    lora.multiplier = float(scale)
 
     def __enter__(self):
         push_activation(self, self.loras, ('multiplier',))
@@ -980,9 +982,10 @@ class PeftLoRANetwork:
         apply_continuous_lora_scale(self.transformer, float(scale))
 
     def set_lora_slider(self, scale: float) -> None:
-        self.lora_scale = float(scale)
-        if not activation_is_entered(self):
-            self._apply_scale(self.lora_scale)
+        with activation_mutation(self):
+            self.lora_scale = float(scale)
+            if not activation_is_entered(self):
+                self._apply_scale(self.lora_scale)
 
     def __enter__(self):
         push_activation(self, self.transformer.modules(), ('scaling', 'lora_scale', 'multiplier'))
@@ -1046,9 +1049,10 @@ class _EmbedPeftLoRANetwork:
                 apply_continuous_lora_scale(mod, float(scale))
 
     def set_lora_slider(self, scale: float) -> None:
-        self.lora_scale = float(scale)
-        if not activation_is_entered(self):
-            self._apply_scale(self.lora_scale)
+        with activation_mutation(self):
+            self.lora_scale = float(scale)
+            if not activation_is_entered(self):
+                self._apply_scale(self.lora_scale)
 
     def __enter__(self):
         modules = (module for root in (self.encoder, self.connectors) if root is not None
