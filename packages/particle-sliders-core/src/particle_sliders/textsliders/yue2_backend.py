@@ -18,6 +18,8 @@ from torch.utils.checkpoint import checkpoint
 from safetensors import safe_open
 from safetensors.torch import load_file, save_file
 
+from particle_sliders.weight_policy import raw_checkpoint_admission
+
 from particle_sliders.textsliders.lora import LoRAModule
 
 DEFAULT_MODEL = "m-a-p/YuE2-3B"
@@ -119,6 +121,7 @@ class YuE2Slider(nn.Module):
         path.with_suffix(".json").write_text(json.dumps(record, indent=2) + "\n")
 
     @classmethod
+    @raw_checkpoint_admission
     def load(cls, model, path):
         with safe_open(str(path), framework="pt", device="cpu") as handle:
             record = json.loads((handle.metadata() or {}).get("conceptmod", "{}"))

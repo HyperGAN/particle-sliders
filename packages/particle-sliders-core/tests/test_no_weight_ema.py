@@ -81,7 +81,7 @@ def test_live_recipes_are_raw_and_named_historical_stamp_is_retained():
 
 @pytest.mark.parametrize('module,needs_host', [
     ('tiny_llm_particle', True), ('bonsai_gguf_particle', False),
-    ('music3_particle_bridge', True), ('yue2_particle_bridge', True),
+    ('music3_particle_bridge', True), ('yue2_particle_bridge', True), ('yue2_backend', True),
 ])
 def test_particle_loaders_reject_averaged_metadata_before_host_allocation(tmp_path, module, needs_host):
     import importlib
@@ -89,7 +89,8 @@ def test_particle_loaders_reject_averaged_metadata_before_host_allocation(tmp_pa
     from safetensors.torch import save_file
     loaded = importlib.import_module('particle_sliders.textsliders.' + module)
     name = {'tiny_llm_particle': 'TinyParticleSlider', 'bonsai_gguf_particle': 'BonsaiParticleHead',
-            'music3_particle_bridge': 'ParticleNetwork', 'yue2_particle_bridge': 'ParticleSlider'}[module]
+            'music3_particle_bridge': 'ParticleNetwork', 'yue2_particle_bridge': 'ParticleSlider',
+            'yue2_backend': 'YuE2Slider'}[module]
     path = tmp_path / (module + '.safetensors')
     save_file({'weight': torch.ones(1)}, path, metadata={'conceptmod': json.dumps({'weights_kind': 'ema'})})
     arguments = (None, path) if needs_host else (path,)
@@ -129,3 +130,49 @@ def test_generic_checkpoint_rejects_averaged_artifact_provenance(tmp_path, prove
     if provenance_source == 'sidecar':
         assert json.loads(path.with_suffix('.json').read_text()) == record
     assert path.exists()
+
+
+@pytest.mark.parametrize('call_style', ['positional', 'keyword'])
+@pytest.mark.parametrize('provenance_source', ['sidecar', 'embedded'])
+def test_raw_admission_precedes_host_inspection_and_preserves_wrapped_signature(tmp_path, call_style, provenance_source):
+    from functools import wraps
+    from inspect import signature
+    import json
+    from safetensors.torch import save_file
+    from particle_sliders.weight_policy import raw_checkpoint_admission
+    path = tmp_path / 'adapter.safetensors'
+    events = []
+
+    def inspect_host(loader):
+        @wraps(loader)
+        def inspected(cls, model, path):
+            events.append('host snapshot')
+            return loader(cls, model, path)
+        return inspected
+
+    class Loader:
+        @classmethod
+        @raw_checkpoint_admission
+        @inspect_host
+        def load(cls, model, path):
+            events.append('loader')
+            return model, path
+
+    assert tuple(signature(Loader.load).parameters) == ('model', 'path')
+    record = {'weights_kind': 'ema'}
+    metadata = {'conceptmod': json.dumps(record)} if provenance_source == 'embedded' else None
+    save_file({'weight': torch.ones(1)}, path, metadata=metadata)
+    if provenance_source == 'sidecar':
+        path.with_suffix('.json').write_text(json.dumps(record))
+    with pytest.raises(ValueError, match='Averaged adapter'):
+        if call_style == 'keyword':
+            Loader.load(model=None, path=path)
+        else:
+            Loader.load(None, path)
+    assert events == []
+
+    if provenance_source == 'sidecar':
+        path.with_suffix('.json').write_text(json.dumps({'weights_kind': 'raw'}))
+    save_file({'weight': torch.ones(1)}, path, metadata={'conceptmod': json.dumps({'weights_kind': 'raw'})})
+    assert Loader.load(None, path) == (None, path)
+    assert events == ['host snapshot', 'loader']

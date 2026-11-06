@@ -47,3 +47,22 @@ def require_raw_checkpoint(path):
         require_raw_provenance(metadata)
         if metadata.get('conceptmod'):
             require_raw_provenance(json.loads(metadata['conceptmod']))
+
+
+def raw_checkpoint_admission(loader):
+    """Validate provenance before an inner wrapper can inspect a native host.
+
+    Place this outside attachment transaction decorators and inside classmethod.
+    Preserve the loader signature for wrappers that bind host/path arguments.
+    """
+    from functools import wraps
+    from inspect import signature
+    parameters = signature(loader)
+
+    @wraps(loader)
+    def admitted(*args, **kwargs):
+        bound = parameters.bind(*args, **kwargs)
+        require_raw_checkpoint(bound.arguments['path'])
+        return loader(*args, **kwargs)
+
+    return admitted

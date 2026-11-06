@@ -21,6 +21,8 @@ from pathlib import Path
 import torch
 from torch import nn
 
+from particle_sliders.weight_policy import raw_checkpoint_admission
+
 from particle_sliders.textsliders import particle_bridge_gan as shared
 from particle_sliders.textsliders.tiny_llm_backend import (
     ATTN_CLASS_NAMES,
@@ -180,6 +182,7 @@ class TinyParticleSlider(nn.Module):
         path.with_suffix(".json").write_text(json.dumps(record, indent=2) + "\n")
 
     @classmethod
+    @raw_checkpoint_admission
     def load(cls, model, path):
         from safetensors import safe_open
         from safetensors.torch import load_file

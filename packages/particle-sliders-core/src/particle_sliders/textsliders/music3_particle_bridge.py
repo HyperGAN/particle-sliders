@@ -15,6 +15,8 @@ from torch import nn
 from safetensors.torch import load_file, save_file
 import yaml
 
+from particle_sliders.weight_policy import raw_checkpoint_admission
+
 from particle_sliders.textsliders import particle_bridge_gan as shared
 from particle_sliders.textsliders.lora import LoRANetwork
 from particle_sliders.textsliders.slider_targets import lm_faithful_plus_neu
@@ -279,6 +281,7 @@ class ParticleNetwork(nn.Module):
         path.with_suffix(".json").write_text(json.dumps(record, indent=2) + "\n")
 
     @classmethod
+    @raw_checkpoint_admission
     def load(cls, lm, path):
         from safetensors import safe_open
 

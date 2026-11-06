@@ -8,6 +8,8 @@ from torch import nn
 from safetensors import safe_open
 from safetensors.torch import load_file, save_file
 
+from particle_sliders.weight_policy import raw_checkpoint_admission
+
 from particle_sliders.textsliders import particle_bridge_gan as shared
 from particle_sliders.textsliders.yue2_arm_b import load_prompts, RECIPE as OLD_RECIPE
 from particle_sliders.textsliders.yue2_backend import (
@@ -96,6 +98,7 @@ class ParticleSlider(YuE2Slider):
         path.with_suffix('.json').write_text(json.dumps(record, indent=2) + '\n')
 
     @classmethod
+    @raw_checkpoint_admission
     def load(cls, model, path):
         with safe_open(str(path), framework='pt', device='cpu') as f:
             record = json.loads((f.metadata() or {}).get('conceptmod', '{}'))
