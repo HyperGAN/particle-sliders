@@ -214,6 +214,26 @@ def test_diagnostics_do_not_change_updates_and_limits_are_real():
     assert any(p.grad is not None and p.grad.norm() > 0 for p in two.network.adapter.parameters())
 
 
+def test_partial_update_refuses_retry_and_full_checkpoint(monkeypatch, tmp_path):
+    from particle_sliders.textsliders.gan_v2 import state
+    engine = make_engine(0)
+    sampler = state.RowSampler(3, 2, 7)
+    before = [p.detach().clone() for p in engine.critic.parameters()]
+    def fail_generator():
+        raise RuntimeError('injected G optimizer failure')
+    with monkeypatch.context() as patch:
+        patch.setattr(engine.g_optimizer, 'step', fail_generator)
+        with pytest.raises(RuntimeError, match='injected G optimizer failure'):
+            engine.update([0, 1])
+    assert engine.completed == 0
+    assert any(not torch.equal(p, old) for p, old in zip(engine.critic.parameters(), before))
+    with pytest.raises(RuntimeError, match='failed training update'):
+        engine.update([0, 1])
+    with pytest.raises(RuntimeError, match='failed training update'):
+        state.save(tmp_path / 'state.pt', engine, sampler, None, {}, [])
+    assert not (tmp_path / 'state.pt').exists()
+
+
 def test_versioned_resume_restores_annealing_sampler_optimizers_and_ema(tmp_path):
     from particle_sliders.textsliders.gan_v2 import state
     a,b=make_engine(1),make_engine(1)

@@ -32,6 +32,35 @@ class Toy(nn.Module):
         return self.bridge(x, self.particles)
 
 
+def test_partial_update_latches_legacy_optimizer_pair_and_restores_flags(monkeypatch, tmp_path):
+    from particle_sliders.textsliders import lm_gan_state
+    torch.manual_seed(23)
+    network = Toy().double()
+    x = torch.randn(4, 3, dtype=torch.float64)
+    targets = torch.randn(4, 3, dtype=torch.float64)
+    critic, g, d = pg.build_game(network, targets)
+    critic.double()
+    sampler = pg.BridgeSampler(4, 7)
+    before = [p.detach().clone() for p in critic.parameters()]
+    flags = [p.requires_grad for p in critic.parameters()]
+    def call():
+        return pg.update(network, critic, g, d, targets, lambda i, phase: network(x[i:i+1]),
+                         sampler=sampler, step=1)
+    def fail_generator():
+        raise RuntimeError('injected G optimizer failure')
+    with monkeypatch.context() as patch:
+        patch.setattr(g, 'step', fail_generator)
+        with pytest.raises(RuntimeError, match='injected G optimizer failure'):
+            call()
+    assert any(not torch.equal(p, old) for p, old in zip(critic.parameters(), before))
+    assert [p.requires_grad for p in critic.parameters()] == flags
+    with pytest.raises(RuntimeError, match='failed training update'):
+        call()
+    with pytest.raises(RuntimeError, match='failed training update'):
+        lm_gan_state.save(tmp_path / 'state.pt', run_signature={}, modules={'network': network},
+                          optimizers={'g': g, 'd': d}, history=[])
+
+
 def test_routing_matches_explicit_reference_and_has_no_batch_dependency():
     torch.manual_seed(4); net = Toy().double(); x = torch.randn(5, 3, dtype=torch.float64)
     q = net.bridge.router(x)

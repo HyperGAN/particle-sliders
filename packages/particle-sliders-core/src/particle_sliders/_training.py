@@ -4,6 +4,37 @@ from contextlib import contextmanager
 import torch
 
 
+_FAILED_UPDATE = '_particle_sliders_failed_update'
+
+
+def require_healthy_update(*owners):
+    """A failed update may have changed weights before its counter committed."""
+    if any(getattr(owner, _FAILED_UPDATE, False) for owner in owners):
+        raise RuntimeError('failed training update; restore a full checkpoint or recreate the game')
+
+
+def clear_update_failure(*owners):
+    """Only a successful full-state restore may re-enable existing owners."""
+    for owner in owners:
+        setattr(owner, _FAILED_UPDATE, False)
+
+
+@contextmanager
+def guard_training_update(*owners):
+    """Latch any interrupted D/G update, including optimizer/hook failures.
+
+    This does not roll back weights or change update mathematics. Optimizers
+    carry the latch for historical function-based games with no game object.
+    """
+    require_healthy_update(*owners)
+    try:
+        yield
+    except BaseException:
+        for owner in owners:
+            setattr(owner, _FAILED_UPDATE, True)
+        raise
+
+
 @contextmanager
 def preserve_parameter_flags(module):
     """Restore caller-declared trainability after a temporary GAN phase freeze."""

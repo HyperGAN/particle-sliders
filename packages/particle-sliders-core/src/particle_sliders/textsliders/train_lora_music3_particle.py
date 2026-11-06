@@ -214,6 +214,8 @@ def _train_locked(args, rows, meta, recipe):
         )
 
     def save():
+        from particle_sliders._training import require_healthy_update
+        require_healthy_update(g, d)
         if any(
             not torch.isfinite(value).all()
             for value in [*network.state_dict().values(), *critic.state_dict().values()]

@@ -14,7 +14,7 @@ from typing import Any, Callable, Iterable, Sequence
 import torch
 from torch import nn
 
-from ._training import preserve_parameter_flags
+from ._training import preserve_parameter_flags, guard_training_update, require_healthy_update
 
 
 def _paired_bank(rank: int, seed: int) -> dict[str, torch.Tensor]:
@@ -102,7 +102,12 @@ class FormulationGame:
         self.edit_rms = float(getattr(self.critic, "edit_rms", 1.0))
 
     def step(self, index: int, features: torch.Tensor) -> dict[str, float]:
-        with preserve_parameter_flags(self.critic):
+        require_healthy_update(self, self.opt_g, self.opt_d)
+        if index < 1:
+            raise ValueError("steps are numbered starting at 1")
+        if features.ndim != 2 or features.shape[1] != self.rank:
+            raise ValueError(f"features must be [batch, {self.rank}]")
+        with guard_training_update(self, self.opt_g, self.opt_d), preserve_parameter_flags(self.critic):
             return self._step(index, features)
 
     def _step(self, index: int, features: torch.Tensor) -> dict[str, float]:

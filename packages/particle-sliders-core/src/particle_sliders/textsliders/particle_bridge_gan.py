@@ -768,6 +768,12 @@ def build_game(network, targets, *, critic=None, critic_config=None, neutrals=No
 
 
 def update(network, critic, g, d, targets, predict, *, sampler, step):
+    from particle_sliders._training import guard_training_update, preserve_parameter_flags
+    with guard_training_update(g, d), preserve_parameter_flags(critic):
+        return _update(network, critic, g, d, targets, predict, sampler=sampler, step=step)
+
+
+def _update(network, critic, g, d, targets, predict, *, sampler, step):
     """predict(row, phase) returns normalized G output, retaining its graph.
 
     Repeated deterministic rows are forwarded once per phase; their independent

@@ -251,6 +251,8 @@ def _train_locked(args,rows,meta,game):
             seed=args.seed,model_id=args.model_id,dummy=args.dummy,stride=args.save_every,
             critic_scale=critic.target_std.detach())
     def save():
+        from particle_sliders._training import require_healthy_update
+        require_healthy_update(g, d)
         if any(not torch.isfinite(v).all() for v in [*network.state_dict().values(),*critic.state_dict().values()]):
             raise FloatingPointError('Non-finite checkpoint')
         blob=dict(signature=signature,prepared=fixed,completed=completed,history=history,

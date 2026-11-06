@@ -75,6 +75,28 @@ def assert_equal(a, b):
         assert a == b
 
 
+def test_partial_update_latches_checkpoint_and_retry_until_full_restore(monkeypatch):
+    game, predict = fixture()
+    saved = game.state_dict()
+    critic_before = deepcopy(game.critic.state_dict())
+    flags = [p.requires_grad for p in game.critic.parameters()]
+    def fail_generator():
+        raise RuntimeError('injected G optimizer failure')
+    with monkeypatch.context() as patch:
+        patch.setattr(game.opt_g, 'step', fail_generator)
+        with pytest.raises(RuntimeError, match='injected G optimizer failure'):
+            game.step(1, predict)
+    assert game.completed_steps == 0
+    assert any(not torch.equal(value, critic_before[key]) for key, value in game.critic.state_dict().items())
+    assert [p.requires_grad for p in game.critic.parameters()] == flags
+    with pytest.raises(RuntimeError, match='failed training update'):
+        game.state_dict()
+    with pytest.raises(RuntimeError, match='failed training update'):
+        game.step(1, predict)
+    game.load_state_dict(saved)
+    assert game.step(1, predict)['step'] == 1
+
+
 def test_public_recipe_ownership_and_updates():
     game, predict = fixture()
     assert isinstance(game.opt_d, BISPFCriticAdam)
@@ -293,10 +315,15 @@ def test_frozen_critic_parameters_and_phase_flags_survive_success_and_failure():
 
 def test_reject_mismatch_before_update():
     game, predict = fixture()
+    before = game.state_dict()
     with pytest.raises(ValueError, match="contiguous"):
         game.step(2, predict)
+    assert_equal(before, game.state_dict())
     with pytest.raises(ValueError, match="predict"):
         game.step(1, lambda i, phase: torch.ones(3))
+    with pytest.raises(RuntimeError, match='failed training update'):
+        game.state_dict()
+    game.load_state_dict(before)
     other, _ = fixture(g_lr=.001)
     with pytest.raises(ValueError, match="incompatible"):
         other.load_state_dict(game.state_dict())
