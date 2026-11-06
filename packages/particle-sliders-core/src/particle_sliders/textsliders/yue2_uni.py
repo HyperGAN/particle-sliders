@@ -105,6 +105,13 @@ def student(backend, row, checkpointing):
 
 
 def update(backend, network, critic, g_optimizer, d_optimizer, rows, *, checkpointing=True):
+    from particle_sliders._training import guard_training_update, preserve_parameter_flags
+    with guard_training_update(g_optimizer, d_optimizer), preserve_parameter_flags(critic):
+        return _update(backend, network, critic, g_optimizer, d_optimizer, rows,
+                       checkpointing=checkpointing)
+
+
+def _update(backend, network, critic, g_optimizer, d_optimizer, rows, *, checkpointing=True):
     # Keep +1 active through checkpoint recomputation during backward.
     with network.scaled(1):
         critic.requires_grad_(True)

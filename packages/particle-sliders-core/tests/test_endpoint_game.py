@@ -117,6 +117,27 @@ def test_full_microbatch_and_resume():
     assert all(torch.equal(value, a.adapter.state_dict()[key]) for key, value in expected.items())
 
 
+def test_partial_update_latches_checkpoint_and_retry_until_full_restore(monkeypatch):
+    game, predict, target = setup()
+    state = copy.deepcopy(game.state_dict())
+    adapter = copy.deepcopy(game.adapter.state_dict())
+    critic = copy.deepcopy(game.critic.state_dict())
+    def fail_generator():
+        raise RuntimeError('injected G optimizer failure')
+    with monkeypatch.context() as patch:
+        patch.setattr(game.g, 'step', fail_generator)
+        with pytest.raises(RuntimeError, match='injected G optimizer failure'):
+            game.update(predict, target, 1)
+    assert any(not torch.equal(value, critic[key]) for key, value in game.critic.state_dict().items())
+    with pytest.raises(RuntimeError, match='failed training update'):
+        game.state_dict()
+    with pytest.raises(RuntimeError, match='failed training update'):
+        game.update(predict, target, 1)
+    game.load_state_dict(state)
+    game.adapter.load_state_dict(adapter)
+    assert game.update(predict, target, 1)['step'] == 1
+
+
 def test_cover_and_pole_are_operative_and_sum_endpoints():
     a, pa, ta = setup(cover_weight=0., pole_weight=0.)
     b, pb, tb = setup(cover_weight=1., pole_weight=1.)

@@ -72,6 +72,14 @@ class GANEngine:
         self.completed = completed
 
     def update(self, indices):
+        from particle_sliders._training import guard_training_update, preserve_parameter_flags, require_healthy_update
+        require_healthy_update(self, self.g_optimizer, self.d_optimizer)
+        if not indices or len(set(indices)) != len(indices):
+            raise ValueError("Minibatches need distinct rows")
+        with guard_training_update(self, self.g_optimizer, self.d_optimizer), preserve_parameter_flags(self.critic):
+            return self._update(indices)
+
+    def _update(self, indices):
         if not indices or len(set(indices)) != len(indices):
             raise ValueError("Minibatches need distinct rows")
         recipe, critic = self.recipe, self.critic

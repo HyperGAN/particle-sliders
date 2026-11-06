@@ -59,6 +59,8 @@ class RowSampler:
 
 
 def save(path,engine,sampler,ema,run_signature,history):
+    from particle_sliders._training import require_healthy_update
+    require_healthy_update(engine, engine.g_optimizer, engine.d_optimizer)
     path=Path(path)
     blob=dict(schema='music-gan-v2-1',signature=run_signature,completed=engine.completed,
         network=cpu(engine.network.state_dict()),critic=cpu(engine.critic.state_dict()),
@@ -86,6 +88,8 @@ def restore(path,engine,sampler,ema,run_signature):
     if blob['cuda_rng']:
         if len(blob['cuda_rng'])!=torch.cuda.device_count():raise ValueError('Visible GPU topology changed')
         torch.cuda.set_rng_state_all(blob['cuda_rng'])
+    from particle_sliders._training import clear_update_failure
+    clear_update_failure(engine, engine.g_optimizer, engine.d_optimizer)
     return blob['history']
 
 
@@ -106,6 +110,8 @@ def initialize_from_legacy(path,engine,*,reuse_critic):
     if blob['cuda_rng'] and torch.cuda.is_available():
         if len(blob['cuda_rng'])!=torch.cuda.device_count():raise ValueError('Visible GPU topology changed')
         torch.cuda.set_rng_state_all(blob['cuda_rng'])
+    from particle_sliders._training import clear_update_failure
+    clear_update_failure(engine, engine.g_optimizer, engine.d_optimizer)
     return dict(path=str(Path(path).resolve()),sha256=sha(path),completed=engine.completed,
                 critic_and_optimizer='restored' if reuse_critic else 'new topology, initialized explicitly',
                 generator_optimizer='restored',legacy_signature_digest=digest(blob['signature']))

@@ -170,6 +170,8 @@ def train(args):
             until=args.until, elapsed_sec=time.monotonic()-started, start_step=start_step,
             gpu=os.getenv("CUDA_VISIBLE_DEVICES"), **extra))
     def save():
+        from particle_sliders._training import require_healthy_update
+        require_healthy_update(g, d)
         if not all(torch.isfinite(p).all() for p in [*network.state_dict().values(), *critic.state_dict().values()]):
             raise FloatingPointError("Non-finite checkpoint")
         blob = dict(signature=signature, prepared=fixed, completed=completed, history=history,

@@ -50,6 +50,17 @@ def build_game(network, real_plus, *, lr):
 
 def update(network, critic, g, d, real_plus, predict, *, step, total_steps,
            checkpointing=True):
+    from particle_sliders._training import guard_training_update, preserve_parameter_flags, require_healthy_update
+    require_healthy_update(g, d)
+    if not 1 <= step <= total_steps or len(real_plus) == 0:
+        raise ValueError('Invalid update budget or empty batch')
+    with guard_training_update(g, d), preserve_parameter_flags(critic):
+        return _update(network, critic, g, d, real_plus, predict, step=step,
+                       total_steps=total_steps, checkpointing=checkpointing)
+
+
+def _update(network, critic, g, d, real_plus, predict, *, step, total_steps,
+            checkpointing=True):
     """One D then one G update; predict(row, scale, checkpointing) returns delta.
 
     Keep the scale context through backward, including native checkpoint

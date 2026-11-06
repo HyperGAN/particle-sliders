@@ -39,6 +39,8 @@ def _cpu(value):
 
 
 def save(path, *, run_signature, modules, optimizers, history):
+    from particle_sliders._training import require_healthy_update
+    require_healthy_update(*(opt for opt in optimizers.values() if opt is not None))
     path = Path(path)
     state = dict(schema=1, signature=run_signature, completed_updates=len(history),
                  modules={name: _cpu(module.state_dict()) for name, module in modules.items() if module is not None},
@@ -71,4 +73,6 @@ def restore(path, *, run_signature, modules, optimizers):
         if len(state["cuda_rng"]) != torch.cuda.device_count():
             raise ValueError("Resume requires the same number of visible CUDA devices")
         torch.cuda.set_rng_state_all(state["cuda_rng"])
+    from particle_sliders._training import clear_update_failure
+    clear_update_failure(*(opt for opt in optimizers.values() if opt is not None))
     return history

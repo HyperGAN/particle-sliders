@@ -19,6 +19,22 @@ def test_formulation_game_dummy_steps_finite():
     assert history[-1]["step"] == 3.0
 
 
+def test_partial_update_cannot_continue_even_when_caller_reuses_index(monkeypatch):
+    stamp = winning_formulation()
+    game = FormulationGame(stamp, stamp.as_dict(), seed=7, device='cpu')
+    features = dummy_features(game.rank, 4, 7)(1)
+    before = [p.detach().clone() for p in game.critic.parameters()]
+    def fail_generator():
+        raise KeyboardInterrupt('injected interrupt after D update')
+    with monkeypatch.context() as patch:
+        patch.setattr(game.opt_g, 'step', fail_generator)
+        with pytest.raises(KeyboardInterrupt, match='injected interrupt'):
+            game.step(1, features)
+    assert any(not torch.equal(p, old) for p, old in zip(game.critic.parameters(), before))
+    with pytest.raises(RuntimeError, match='failed training update'):
+        game.step(1, features)
+
+
 def test_frozen_critic_parameters_and_phase_flags_survive_success_and_failure():
     stamp = winning_formulation()
     declared = stamp.as_dict()

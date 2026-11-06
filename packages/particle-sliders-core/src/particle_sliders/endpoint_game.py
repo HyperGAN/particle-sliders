@@ -9,7 +9,8 @@ import torch.nn.functional as F
 
 from .reference import rp_d_loss, rp_g_loss
 from .teachers import lm_faithful_guard_e
-from ._training import preserve_parameter_flags
+from ._training import (preserve_parameter_flags, guard_training_update,
+                        require_healthy_update, clear_update_failure)
 
 
 def teacher_poles(recipe, positive, negative, neutral, *, leak_dir=None, slider_dir=None):
@@ -63,7 +64,10 @@ class EndpointGame:
         checkpoint recomputation). A context manager per sign avoids retaining
         two transformer graphs at once.
         """
-        with preserve_parameter_flags(self.critic):
+        require_healthy_update(self, self.g, self.d)
+        if step < 1:
+            raise ValueError("Updates start at one")
+        with guard_training_update(self, self.g, self.d), preserve_parameter_flags(self.critic):
             return self._update(predict, targets, step, prefetch)
 
     def _update(self, predict, targets, step, prefetch=None):
@@ -120,6 +124,7 @@ class EndpointGame:
             vic=0., noise_min=0., noise_max=0., d_rows=rows["d"], g_rows=rows["g"])
 
     def state_dict(self):
+        require_healthy_update(self, self.g, self.d)
         return dict(recipe=self.recipe.to_dict(), count=self.count,
             critic=self.critic.state_dict(), g=self.g.state_dict(), d=self.d.state_dict(),
             generators={k: v.get_state() for k, v in self.generators.items()})
@@ -132,3 +137,4 @@ class EndpointGame:
         self.d.load_state_dict(state["d"])
         for key, value in state["generators"].items():
             self.generators[key].set_state(value.cpu())
+        clear_update_failure(self, self.g, self.d)

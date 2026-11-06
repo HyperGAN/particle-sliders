@@ -64,6 +64,28 @@ def reference(network, critic, g, d, real):
     return float(gloss.detach()), float(dloss.detach())
 
 
+def test_partial_update_latches_legacy_optimizer_pair(monkeypatch):
+    torch.manual_seed(10)
+    network = Student(3)
+    real = torch.tensor([[.2, .4, -.1], [.3, .5, -.2]])
+    critic, g, d = game.build_game(network, real, lr=.005)
+    before = [p.detach().clone() for p in critic.parameters()]
+    flags = [p.requires_grad for p in critic.parameters()]
+    def call():
+        return game.update(network, critic, g, d, real,
+            lambda i, scale, checkpointing: network.delta(scale)[None], step=1, total_steps=5)
+    def fail_generator():
+        raise RuntimeError('injected G optimizer failure')
+    with monkeypatch.context() as patch:
+        patch.setattr(g, 'step', fail_generator)
+        with pytest.raises(RuntimeError, match='injected G optimizer failure'):
+            call()
+    assert any(not torch.equal(p, old) for p, old in zip(critic.parameters(), before))
+    assert [p.requires_grad for p in critic.parameters()] == flags
+    with pytest.raises(RuntimeError, match='failed training update'):
+        call()
+
+
 @pytest.mark.parametrize('gain', [.01, .8])
 def test_complete_update_matches_independent_equations(gain):
     torch.manual_seed(10)

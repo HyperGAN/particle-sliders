@@ -13,7 +13,8 @@ import torch
 from torch import nn
 from particlegan import get_recipe
 
-from ._training import preserve_parameter_flags, require_connected_response
+from ._training import (preserve_parameter_flags, require_connected_response,
+                        guard_training_update, require_healthy_update, clear_update_failure)
 from .optimizer_policy import configure_dense_profile
 
 UPSTREAM_COMMIT = "b5d2372f2739d7579ab66d6dba6e220d2eb776d9"
@@ -121,9 +122,10 @@ class BISPFGame:
                     self.model_cuda_rng = torch.cuda.get_rng_state(self.device)
 
     def step(self, index, predict):
+        require_healthy_update(self, self.opt_g, self.opt_d)
         if type(index) is not int or index != self.completed_steps + 1 or index > self.recipe.total_steps:
             raise ValueError("updates must be contiguous; resume from completed_steps + 1")
-        with self._model_stream(), preserve_parameter_flags(self.critic):
+        with guard_training_update(self, self.opt_g, self.opt_d), self._model_stream(), preserve_parameter_flags(self.critic):
             return self._step(index, predict)
 
     def _step(self, index, predict):
@@ -180,6 +182,7 @@ class BISPFGame:
                     sigma=self.sigma, targets_sha256=_digest(self.targets))
 
     def state_dict(self):
+        require_healthy_update(self, self.opt_g, self.opt_d)
         # Upstream's record serializes EMA residual but recomputes thermal scale
         # approximately on load. Preserve its exact current scale separately,
         # needed by the critic hook before the next penalty recomputes it.
@@ -210,3 +213,4 @@ class BISPFGame:
         self.model_cpu_rng = state["model_cpu_rng"].cpu()
         self.model_cuda_rng = state["model_cuda_rng"]
         self.completed_steps = state["completed_steps"]
+        clear_update_failure(self, self.opt_g, self.opt_d)
