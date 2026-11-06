@@ -182,6 +182,7 @@ class TinyParticleSlider(nn.Module):
         path.with_suffix(".json").write_text(json.dumps(record, indent=2) + "\n")
 
     @classmethod
+    @atomic_attachment('model')
     def load(cls, model, path):
         from safetensors import safe_open
         from safetensors.torch import load_file

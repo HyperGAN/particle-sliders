@@ -318,6 +318,7 @@ class ParticleNetwork(nn.Module):
         return schema
 
     @classmethod
+    @atomic_attachment('lm')
     def load(cls, lm, path):
         from safetensors import safe_open
         from safetensors.torch import load_file

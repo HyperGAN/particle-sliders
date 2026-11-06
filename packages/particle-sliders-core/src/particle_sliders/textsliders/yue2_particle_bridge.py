@@ -90,6 +90,7 @@ class ParticleSlider(YuE2Slider):
         path.with_suffix('.json').write_text(json.dumps(record, indent=2) + '\n')
 
     @classmethod
+    @atomic_attachment('model')
     def load(cls, model, path):
         with safe_open(str(path), framework='pt', device='cpu') as f:
             record = json.loads((f.metadata() or {}).get('conceptmod', '{}'))
