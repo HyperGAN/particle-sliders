@@ -126,15 +126,32 @@ class EndpointGame:
             vic=0., noise_min=0., noise_max=0., d_rows=rows["d"], g_rows=rows["g"])
 
     def state_dict(self):
+        """Return a complete schema-2 game packet, including adapter weights."""
         require_healthy_update(self, self.g, self.d)
         from ._restore_training import require_healthy_restore
         require_healthy_restore(self, self.g, self.d)
-        return dict(recipe=self.recipe.to_dict(), count=self.count,
-            critic=self.critic.state_dict(), g=self.g.state_dict(), d=self.d.state_dict(),
+        return dict(schema=2, recipe=self.recipe.to_dict(), count=self.count,
+            adapter=self.adapter.state_dict(), critic=self.critic.state_dict(),
+            g=self.g.state_dict(), d=self.d.state_dict(),
             generators={k: v.get_state() for k, v in self.generators.items()})
 
-    def load_state_dict(self, state):
+    def load_state_dict(self, state, *, adapter_state=None):
+        """Restore all owned training state before admitting another update.
+
+        Historical unschematized packets omitted adapter weights. Supply their
+        separately saved weights explicitly as ``adapter_state=...``; existing
+        live weights cannot establish recovery from an interrupted update.
+        """
         from ._restore_training import restore_training_state, validate_resume_rng
+        if type(state.get('schema')) is int and state['schema'] == 2:
+            if adapter_state is not None:
+                raise ValueError('Complete Endpoint checkpoint already includes adapter weights')
+            adapter_state = state['adapter']
+        elif 'schema' not in state and 'adapter' not in state:
+            if adapter_state is None:
+                raise ValueError('Legacy Endpoint checkpoint requires explicit adapter_state weights')
+        else:
+            raise ValueError('Unsupported Endpoint checkpoint schema')
         if state["recipe"] != self.recipe.to_dict() or state["count"] != self.count:
             raise ValueError("Game identity changed")
         if set(state['generators']) != set(self.generators):
@@ -143,6 +160,7 @@ class EndpointGame:
             validate_resume_rng(value)
         with restore_training_state(modules=(self.adapter, self.critic), optimizers=(self.g, self.d),
                                     stateful=self.generators.values(), owners=(self,)):
+            self.adapter.load_state_dict(adapter_state, strict=True)
             self.critic.load_state_dict(state["critic"])
             self.g.load_state_dict(state["g"])
             self.d.load_state_dict(state["d"])

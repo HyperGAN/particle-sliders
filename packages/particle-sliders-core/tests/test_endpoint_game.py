@@ -101,6 +101,21 @@ def setup(microbatch=1, frozen_critic=False, **changes):
     return game, predict, target
 
 
+def equal(a, b):
+    if torch.is_tensor(a):
+        assert torch.equal(a, b)
+    elif isinstance(a, dict):
+        assert a.keys() == b.keys()
+        for key in a:
+            equal(a[key], b[key])
+    elif isinstance(a, (list, tuple)):
+        assert len(a) == len(b)
+        for left, right in zip(a, b):
+            equal(left, right)
+    else:
+        assert a == b
+
+
 def test_full_microbatch_and_resume():
     a, pa, ta = setup(1)
     b, pb, tb = setup(8)
@@ -109,33 +124,115 @@ def test_full_microbatch_and_resume():
     for module_a, module_b in ((a.adapter, b.adapter), (a.critic, b.critic)):
         for x, y in zip(module_a.parameters(), module_b.parameters()):
             torch.testing.assert_close(x, y, rtol=1e-9, atol=1e-12)
-    saved = copy.deepcopy(a.state_dict()), copy.deepcopy(a.adapter.state_dict())
+    saved = copy.deepcopy(a.state_dict())
+    assert saved['schema'] == 2
     result = a.update(pa, ta, 2)
-    expected = copy.deepcopy(a.adapter.state_dict())
-    a.load_state_dict(saved[0]); a.adapter.load_state_dict(saved[1])
+    expected = copy.deepcopy(a.state_dict())
+    a.load_state_dict(saved)
     assert a.update(pa, ta, 2) == result
-    assert all(torch.equal(value, a.adapter.state_dict()[key]) for key, value in expected.items())
+    equal(a.state_dict(), expected)
 
 
 def test_partial_update_latches_checkpoint_and_retry_until_full_restore(monkeypatch):
     game, predict, target = setup()
     state = copy.deepcopy(game.state_dict())
-    adapter = copy.deepcopy(game.adapter.state_dict())
-    critic = copy.deepcopy(game.critic.state_dict())
+    control, control_predict, control_target = setup()
+    original = game.g.step
     def fail_generator():
+        original()
         raise RuntimeError('injected G optimizer failure')
     with monkeypatch.context() as patch:
         patch.setattr(game.g, 'step', fail_generator)
         with pytest.raises(RuntimeError, match='injected G optimizer failure'):
             game.update(predict, target, 1)
-    assert any(not torch.equal(value, critic[key]) for key, value in game.critic.state_dict().items())
+    for name in ('adapter', 'critic'):
+        assert any(not torch.equal(value, state[name][key])
+                   for key, value in getattr(game, name).state_dict().items())
     with pytest.raises(RuntimeError, match='failed training update'):
         game.state_dict()
     with pytest.raises(RuntimeError, match='failed training update'):
         game.update(predict, target, 1)
     game.load_state_dict(state)
-    game.adapter.load_state_dict(adapter)
-    assert game.update(predict, target, 1)['step'] == 1
+    equal(game.state_dict(), state)
+    assert game.update(predict, target, 1) == control.update(control_predict, control_target, 1)
+    equal(game.state_dict(), control.state_dict())
+
+
+def test_late_adapter_load_failure_restores_dirty_state_and_keeps_update_latch(monkeypatch):
+    game, predict, target = setup()
+    packet = copy.deepcopy(game.state_dict())
+    original = game.g.step
+    def fail_generator():
+        original()
+        raise RuntimeError('interrupted after G mutation')
+    with monkeypatch.context() as patch:
+        patch.setattr(game.g, 'step', fail_generator)
+        with pytest.raises(RuntimeError, match='interrupted after G mutation'):
+            game.update(predict, target, 1)
+    def capture():
+        return copy.deepcopy(dict(adapter=game.adapter.state_dict(), critic=game.critic.state_dict(),
+            g=game.g.state_dict(), d=game.d.state_dict(),
+            generators={name: value.get_state() for name, value in game.generators.items()}))
+    dirty = capture()
+    calls = []
+    def fail_once(module, incompatible):
+        calls.append(True)
+        if len(calls) == 1:
+            equal(module.state_dict(), packet['adapter'])  # Hook runs after actual weight mutation.
+            raise RuntimeError('late adapter restore hook')
+    handle = game.adapter.register_load_state_dict_post_hook(fail_once)
+    try:
+        with pytest.raises(RuntimeError, match='late adapter restore hook'):
+            game.load_state_dict(packet)
+    finally:
+        handle.remove()
+    assert len(calls) == 2
+    equal(capture(), dirty)
+    with pytest.raises(RuntimeError, match='failed training update'):
+        game.update(predict, target, 1)
+    with pytest.raises(RuntimeError, match='failed training update'):
+        game.state_dict()
+    game.load_state_dict(packet)
+    equal(game.state_dict(), packet)
+
+
+@pytest.mark.parametrize('failure', ['_particle_sliders_failed_update', '_particle_sliders_failed_restore'])
+def test_legacy_packet_requires_explicit_adapter_before_clearing_failure(failure):
+    source, predict, target = setup()
+    source.update(predict, target, 1)
+    packet = copy.deepcopy(source.state_dict())
+    adapter = packet.pop('adapter')
+    packet.pop('schema')
+    receiver, _, _ = setup()
+    before = copy.deepcopy(receiver.adapter.state_dict())
+    for owner in (receiver, receiver.g, receiver.d):
+        setattr(owner, failure, True)
+    with pytest.raises(ValueError, match='explicit adapter_state'):
+        receiver.load_state_dict(packet)
+    equal(receiver.adapter.state_dict(), before)
+    assert all(getattr(owner, failure) for owner in (receiver, receiver.g, receiver.d))
+    receiver.load_state_dict(packet, adapter_state=adapter)
+    equal(receiver.state_dict(), source.state_dict())
+    # The supplied historical packet is preserved for its original consumers.
+    assert 'adapter' not in packet and 'schema' not in packet
+
+
+@pytest.mark.parametrize('schema', [None, 1, 3, 2.0])
+def test_incomplete_or_unsupported_schema_refuses_before_live_loading(schema, monkeypatch):
+    game, _, _ = setup()
+    packet = copy.deepcopy(game.state_dict())
+    packet['schema'] = schema
+    monkeypatch.setattr(game.adapter, 'load_state_dict', lambda *a, **k: pytest.fail('live adapter load'))
+    with pytest.raises(ValueError, match='Unsupported Endpoint checkpoint schema'):
+        game.load_state_dict(packet, adapter_state=packet['adapter'])
+
+
+def test_complete_packet_refuses_ambiguous_external_adapter_before_loading(monkeypatch):
+    game, _, _ = setup()
+    packet = copy.deepcopy(game.state_dict())
+    monkeypatch.setattr(game.adapter, 'load_state_dict', lambda *a, **k: pytest.fail('live adapter load'))
+    with pytest.raises(ValueError, match='already includes adapter'):
+        game.load_state_dict(packet, adapter_state=packet['adapter'])
 
 
 def test_cover_and_pole_are_operative_and_sum_endpoints():
@@ -164,19 +261,6 @@ def test_late_restore_failure_rolls_back_critic_optimizers_and_generators(monkey
     with pytest.raises(RuntimeError, match='late endpoint optimizer restore'):
         target.load_state_dict(packet)
     assert len(calls) == 2
-    def equal(a, b):
-        if torch.is_tensor(a):
-            assert torch.equal(a, b)
-        elif isinstance(a, dict):
-            assert a.keys() == b.keys()
-            for key in a:
-                equal(a[key], b[key])
-        elif isinstance(a, (list, tuple)):
-            assert len(a) == len(b)
-            for left, right in zip(a, b):
-                equal(left, right)
-        else:
-            assert a == b
     equal(target.state_dict(), before)
 
 

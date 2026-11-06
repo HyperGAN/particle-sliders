@@ -54,6 +54,14 @@ CLI must be migrated or explicitly closed by its owner; a package dependency
 alone is insufficient. Research toys remain in
 [HyperGAN/conceptmod](https://github.com/HyperGAN/conceptmod).
 
+`EndpointGame.state_dict()` now emits a complete schema-2 training packet with
+adapter weights. Loading an older unschematized game packet requires its
+separately saved weights explicitly:
+`game.load_state_dict(old_packet, adapter_state=saved_adapter_weights)`.
+The loader restores the adapter, critic, optimizers and random streams together
+before allowing another update. An old game packet alone cannot recover an
+interrupted generator update; keep the original packet and adapter artifact.
+
 New image consumers use the [versioned image session lifecycle](../packages/particle-sliders-core/IMAGE-LIFECYCLE.md), which owns factory preparation, stepping, EMA, checkpoint/export, response/native rendering dispatch and cleanup. Historical root exports retain their named objectives; they are not the recommended image lifecycle.
 
 [HyperGAN run-rendering and HANDL network-definition seams](hypergan-interface-seams.md) are handed off separately; current custom definitions are inventoried and have not been silently rewritten.
