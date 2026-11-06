@@ -180,6 +180,57 @@ def test_thermal_state_and_initial_moments_survive_resume():
     assert other.prior.z is other.network.particles
 
 
+def test_late_restore_failure_rolls_back_exact_game_and_thermal_runtime(monkeypatch):
+    from particlegan.bispf import _LAST_THERMAL_SCALE
+    source, predict = fixture()
+    source.step(1, predict)
+    source.step(2, predict)
+    packet = source.state_dict()
+    target, target_predict = fixture(seed=99)
+    target.step(1, target_predict)
+    target.opt_d.record._thermal_scale = .123
+    before = target.state_dict()
+    previous_channel = _LAST_THERMAL_SCALE.get(target.device)
+    rng = torch.get_rng_state().clone()
+    original, calls = target.opt_d.load_state_dict, []
+    def fail_once(state):
+        original(state)
+        calls.append(True)
+        if len(calls) == 1:
+            torch.rand(3)
+            raise RuntimeError('late BISPF optimizer restore')
+    monkeypatch.setattr(target.opt_d, 'load_state_dict', fail_once)
+    with pytest.raises(RuntimeError, match='late BISPF optimizer restore'):
+        target.load_state_dict(packet)
+    assert len(calls) == 2
+    assert_equal(target.state_dict(), before)
+    assert _LAST_THERMAL_SCALE.get(target.device) == previous_channel
+    assert torch.equal(torch.get_rng_state(), rng)
+
+
+def test_failed_restore_rollback_blocks_game_until_valid_recovery():
+    source, _ = fixture()
+    target, predict = fixture(seed=99)
+    packet = source.state_dict()
+    marker = RuntimeError('persistent BISPF load hook')
+    def fail(module, incompatible):
+        raise marker
+    handle = target.network.register_load_state_dict_post_hook(fail)
+    try:
+        with pytest.raises(RuntimeError) as caught:
+            target.load_state_dict(packet)
+        assert caught.value is marker
+        assert any('rollback failed' in note for note in marker.__notes__)
+        with pytest.raises(RuntimeError, match='failed training restore rollback'):
+            target.step(1, predict)
+        with pytest.raises(RuntimeError, match='failed training restore rollback'):
+            target.state_dict()
+    finally:
+        handle.remove()
+    target.load_state_dict(packet)
+    assert target.step(1, predict)['step'] == 1
+
+
 def test_nonreentrant_model_checkpoint_replay_keeps_adapter_scale():
     from torch.utils.checkpoint import checkpoint
     game, predict = fixture()

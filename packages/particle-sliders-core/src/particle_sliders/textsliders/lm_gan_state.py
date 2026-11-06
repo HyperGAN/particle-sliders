@@ -41,6 +41,8 @@ def _cpu(value):
 def save(path, *, run_signature, modules, optimizers, history):
     from particle_sliders._training import require_healthy_update
     require_healthy_update(*(opt for opt in optimizers.values() if opt is not None))
+    from particle_sliders._restore_training import require_healthy_restore
+    require_healthy_restore(*(opt for opt in optimizers.values() if opt is not None))
     path = Path(path)
     state = dict(schema=1, signature=run_signature, completed_updates=len(history),
                  modules={name: _cpu(module.state_dict()) for name, module in modules.items() if module is not None},
@@ -53,6 +55,7 @@ def save(path, *, run_signature, modules, optimizers, history):
 
 
 def restore(path, *, run_signature, modules, optimizers):
+    from particle_sliders._restore_training import restore_training_state, validate_resume_rng
     state = torch.load(path, map_location="cpu", weights_only=True)
     if state.get("schema") != 1 or state["signature"] != run_signature:
         raise ValueError("Resume state has different training settings, prompts or source code")
@@ -63,16 +66,16 @@ def restore(path, *, run_signature, modules, optimizers):
     history = state["history"]
     if [row["step"] for row in history] != list(range(1, state["completed_updates"] + 1)):
         raise ValueError("Resume history is not a continuous sequence of completed updates")
-    for name in expected_modules:
-        modules[name].load_state_dict(state["modules"][name], strict=True)
-    for name in expected_optimizers:
-        optimizers[name].load_state_dict(state["optimizers"][name])
-    random.setstate(state["python_rng"])
-    torch.set_rng_state(state["torch_rng"])
-    if state["cuda_rng"]:
-        if len(state["cuda_rng"]) != torch.cuda.device_count():
-            raise ValueError("Resume requires the same number of visible CUDA devices")
-        torch.cuda.set_rng_state_all(state["cuda_rng"])
+    validate_resume_rng(state['torch_rng'], state['python_rng'], state['cuda_rng'])
+    with restore_training_state(modules=modules.values(), optimizers=optimizers.values()):
+        for name in expected_modules:
+            modules[name].load_state_dict(state["modules"][name], strict=True)
+        for name in expected_optimizers:
+            optimizers[name].load_state_dict(state["optimizers"][name])
+        random.setstate(state["python_rng"])
+        torch.set_rng_state(state["torch_rng"])
+        if state["cuda_rng"]:
+            torch.cuda.set_rng_state_all(state["cuda_rng"])
     from particle_sliders._training import clear_update_failure
     clear_update_failure(*(opt for opt in optimizers.values() if opt is not None))
     return history

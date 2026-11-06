@@ -61,6 +61,8 @@ class RowSampler:
 def save(path,engine,sampler,ema,run_signature,history):
     from particle_sliders._training import require_healthy_update
     require_healthy_update(engine, engine.g_optimizer, engine.d_optimizer)
+    from particle_sliders._restore_training import require_healthy_restore
+    require_healthy_restore(engine, engine.g_optimizer, engine.d_optimizer)
     path=Path(path)
     blob=dict(schema='music-gan-v2-1',signature=run_signature,completed=engine.completed,
         network=cpu(engine.network.state_dict()),critic=cpu(engine.critic.state_dict()),
@@ -73,21 +75,25 @@ def save(path,engine,sampler,ema,run_signature,history):
 
 
 def restore(path,engine,sampler,ema,run_signature):
+    from particle_sliders._restore_training import restore_training_state, validate_resume_rng
     blob=torch.load(path,map_location='cpu',weights_only=True)
     if blob.get('schema')!='music-gan-v2-1' or blob['signature']!=run_signature:
         raise ValueError('Resume configuration, fixtures, model, or source code changed')
     if bool(blob['ema'] is not None)!=bool(ema is not None):raise ValueError('EMA topology changed')
     if blob['history'] and blob['history'][-1]['step']!=blob['completed']:raise ValueError('History/state mismatch')
-    engine.network.load_state_dict(blob['network'],strict=True)
-    engine.critic.load_state_dict(blob['critic'],strict=True)
-    engine.g_optimizer.load_state_dict(blob['g_optimizer'])
-    engine.d_optimizer.load_state_dict(blob['d_optimizer'])
-    engine.completed=blob['completed'];sampler.load_state_dict(blob['sampler'])
-    if ema is not None:ema.load_state_dict(blob['ema'])
-    random.setstate(blob['python_rng']);torch.set_rng_state(blob['torch_rng'])
-    if blob['cuda_rng']:
-        if len(blob['cuda_rng'])!=torch.cuda.device_count():raise ValueError('Visible GPU topology changed')
-        torch.cuda.set_rng_state_all(blob['cuda_rng'])
+    validate_resume_rng(blob['torch_rng'], blob['python_rng'], blob['cuda_rng'])
+    with restore_training_state(modules=(engine.network, engine.critic),
+            optimizers=(engine.g_optimizer, engine.d_optimizer), stateful=(sampler, ema),
+            attributes=((engine, 'completed'),), owners=(engine,)):
+        engine.network.load_state_dict(blob['network'],strict=True)
+        engine.critic.load_state_dict(blob['critic'],strict=True)
+        engine.g_optimizer.load_state_dict(blob['g_optimizer'])
+        engine.d_optimizer.load_state_dict(blob['d_optimizer'])
+        engine.completed=blob['completed'];sampler.load_state_dict(blob['sampler'])
+        if ema is not None:ema.load_state_dict(blob['ema'])
+        random.setstate(blob['python_rng']);torch.set_rng_state(blob['torch_rng'])
+        if blob['cuda_rng']:
+            torch.cuda.set_rng_state_all(blob['cuda_rng'])
     from particle_sliders._training import clear_update_failure
     clear_update_failure(engine, engine.g_optimizer, engine.d_optimizer)
     return blob['history']
@@ -95,23 +101,28 @@ def restore(path,engine,sampler,ema,run_signature):
 
 def initialize_from_legacy(path,engine,*,reuse_critic):
     """Explicit migration, never masquerading as an unchanged old experiment."""
+    from particle_sliders._restore_training import restore_training_state, validate_resume_rng
     blob=torch.load(path,map_location='cpu',weights_only=True)
     if blob.get('schema')!=1:raise ValueError('Not a legacy full GAN state')
     for name,expected in blob['signature']['sources'].items():
         if sha(Path(__file__).parent.parent/name)!=expected:raise ValueError(f'Legacy source changed: {name}')
-    engine.network.load_state_dict(blob['modules']['lora'],strict=True)
-    engine.g_optimizer.load_state_dict(blob['optimizers']['lora'])
-    if reuse_critic:
-        engine.critic.load_state_dict(blob['modules']['critic'],strict=True)
-        engine.d_optimizer.load_state_dict(blob['optimizers']['critic'])
-    engine.completed=blob['completed_updates']
-    # Restore source RNG only after all newly initialized components exist.
-    random.setstate(blob['python_rng']);torch.set_rng_state(blob['torch_rng'])
-    if blob['cuda_rng'] and torch.cuda.is_available():
-        if len(blob['cuda_rng'])!=torch.cuda.device_count():raise ValueError('Visible GPU topology changed')
-        torch.cuda.set_rng_state_all(blob['cuda_rng'])
+    receipt = dict(path=str(Path(path).resolve()),sha256=sha(path),completed=blob['completed_updates'],
+        critic_and_optimizer='restored' if reuse_critic else 'new topology, initialized explicitly',
+        generator_optimizer='restored',legacy_signature_digest=digest(blob['signature']))
+    validate_resume_rng(blob['torch_rng'], blob['python_rng'], blob['cuda_rng'])
+    with restore_training_state(modules=(engine.network, engine.critic),
+            optimizers=(engine.g_optimizer, engine.d_optimizer),
+            attributes=((engine, 'completed'),), owners=(engine,)):
+        engine.network.load_state_dict(blob['modules']['lora'],strict=True)
+        engine.g_optimizer.load_state_dict(blob['optimizers']['lora'])
+        if reuse_critic:
+            engine.critic.load_state_dict(blob['modules']['critic'],strict=True)
+            engine.d_optimizer.load_state_dict(blob['optimizers']['critic'])
+        engine.completed=blob['completed_updates']
+        # Restore source RNG only after all newly initialized components exist.
+        random.setstate(blob['python_rng']);torch.set_rng_state(blob['torch_rng'])
+        if blob['cuda_rng']:
+            torch.cuda.set_rng_state_all(blob['cuda_rng'])
     from particle_sliders._training import clear_update_failure
     clear_update_failure(engine, engine.g_optimizer, engine.d_optimizer)
-    return dict(path=str(Path(path).resolve()),sha256=sha(path),completed=engine.completed,
-                critic_and_optimizer='restored' if reuse_critic else 'new topology, initialized explicitly',
-                generator_optimizer='restored',legacy_signature_digest=digest(blob['signature']))
+    return receipt

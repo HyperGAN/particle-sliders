@@ -123,6 +123,8 @@ class BISPFGame:
 
     def step(self, index, predict):
         require_healthy_update(self, self.opt_g, self.opt_d)
+        from ._restore_training import require_healthy_restore
+        require_healthy_restore(self, self.opt_g, self.opt_d)
         if type(index) is not int or index != self.completed_steps + 1 or index > self.recipe.total_steps:
             raise ValueError("updates must be contiguous; resume from completed_steps + 1")
         with guard_training_update(self, self.opt_g, self.opt_d), self._model_stream(), preserve_parameter_flags(self.critic):
@@ -183,6 +185,8 @@ class BISPFGame:
 
     def state_dict(self):
         require_healthy_update(self, self.opt_g, self.opt_d)
+        from ._restore_training import require_healthy_restore
+        require_healthy_restore(self, self.opt_g, self.opt_d)
         # Upstream's record serializes EMA residual but recomputes thermal scale
         # approximately on load. Preserve its exact current scale separately,
         # needed by the critic hook before the next penalty recomputes it.
@@ -195,6 +199,7 @@ class BISPFGame:
             model_cpu_rng=self.model_cpu_rng, model_cuda_rng=self.model_cuda_rng))
 
     def load_state_dict(self, state):
+        from ._restore_training import restore_training_state, validate_resume_rng
         if state.get("schema") != 1 or state.get("config") != self._config():
             raise ValueError("incompatible BISPF checkpoint: upstream, recipe, sigma or targets differ")
         if type(state["completed_steps"]) is not int or state["completed_steps"] < 0:
@@ -202,15 +207,26 @@ class BISPFGame:
         thermal = state["thermal_scale"]
         if not math.isfinite(thermal) or not 0 < thermal <= 1:
             raise ValueError("invalid BISPF thermal scale")
-        self.network.load_state_dict(state["network"], strict=True)
-        self.critic.load_state_dict(state["critic"], strict=True)
-        self.prior.load_state_dict(state["prior"], strict=True)
-        self.opt_g.load_state_dict(deepcopy(state["g_optimizer"]))
-        self.opt_d.load_state_dict(deepcopy(state["d_optimizer"]))
-        self.opt_d.record._thermal_scale = thermal
-        for name, gen in self.streams.items():
-            gen.set_state(state["streams"][name].cpu())
-        self.model_cpu_rng = state["model_cpu_rng"].cpu()
-        self.model_cuda_rng = state["model_cuda_rng"]
-        self.completed_steps = state["completed_steps"]
+        validate_resume_rng(state['model_cpu_rng'])
+        if self.device.type == 'cuda':
+            torch.Generator(device=self.device).set_state(state['model_cuda_rng'])
+        elif state['model_cuda_rng'] is not None:
+            raise ValueError('CUDA checkpoint cannot silently resume on CPU')
+        for name in self.streams:
+            validate_resume_rng(state['streams'][name])
+        with restore_training_state(modules=(self.network, self.critic, self.prior),
+                optimizers=(self.opt_g, self.opt_d), stateful=self.streams.values(), owners=(self,),
+                attributes=((self, 'completed_steps'), (self, 'model_cpu_rng'), (self, 'model_cuda_rng'),
+                            (self.opt_d.record, '_thermal_scale'))):
+            self.network.load_state_dict(state["network"], strict=True)
+            self.critic.load_state_dict(state["critic"], strict=True)
+            self.prior.load_state_dict(state["prior"], strict=True)
+            self.opt_g.load_state_dict(deepcopy(state["g_optimizer"]))
+            self.opt_d.load_state_dict(deepcopy(state["d_optimizer"]))
+            self.opt_d.record._thermal_scale = thermal
+            for name, gen in self.streams.items():
+                gen.set_state(state["streams"][name].cpu())
+            self.model_cpu_rng = state["model_cpu_rng"].cpu()
+            self.model_cuda_rng = state["model_cuda_rng"]
+            self.completed_steps = state["completed_steps"]
         clear_update_failure(self, self.opt_g, self.opt_d)
