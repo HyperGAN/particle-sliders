@@ -74,6 +74,8 @@ class GANEngine:
     def update(self, indices):
         from particle_sliders._training import guard_training_update, preserve_parameter_flags, require_healthy_update
         require_healthy_update(self, self.g_optimizer, self.d_optimizer)
+        from particle_sliders._restore_training import require_healthy_restore
+        require_healthy_restore(self, self.g_optimizer, self.d_optimizer)
         if not indices or len(set(indices)) != len(indices):
             raise ValueError("Minibatches need distinct rows")
         with guard_training_update(self, self.g_optimizer, self.d_optimizer), preserve_parameter_flags(self.critic):

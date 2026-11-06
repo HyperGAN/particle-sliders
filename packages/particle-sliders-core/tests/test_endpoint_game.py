@@ -148,6 +148,38 @@ def test_cover_and_pole_are_operative_and_sum_endpoints():
     assert x["d_rows"] != x["g_rows"]
 
 
+def test_late_restore_failure_rolls_back_critic_optimizers_and_generators(monkeypatch):
+    source, predict, targets = setup()
+    source.update(predict, targets, 1)
+    packet = copy.deepcopy(source.state_dict())
+    target, _, _ = setup()
+    before = copy.deepcopy(target.state_dict())
+    original, calls = target.d.load_state_dict, []
+    def fail_once(state):
+        original(state)
+        calls.append(True)
+        if len(calls) == 1:
+            raise RuntimeError('late endpoint optimizer restore')
+    monkeypatch.setattr(target.d, 'load_state_dict', fail_once)
+    with pytest.raises(RuntimeError, match='late endpoint optimizer restore'):
+        target.load_state_dict(packet)
+    assert len(calls) == 2
+    def equal(a, b):
+        if torch.is_tensor(a):
+            assert torch.equal(a, b)
+        elif isinstance(a, dict):
+            assert a.keys() == b.keys()
+            for key in a:
+                equal(a[key], b[key])
+        elif isinstance(a, (list, tuple)):
+            assert len(a) == len(b)
+            for left, right in zip(a, b):
+                equal(left, right)
+        else:
+            assert a == b
+    equal(target.state_dict(), before)
+
+
 def test_frozen_critic_parameters_and_phase_flags_survive_success_and_failure():
     game, predict, targets = setup(frozen_critic=True)
     frozen = game.critic[0].weight

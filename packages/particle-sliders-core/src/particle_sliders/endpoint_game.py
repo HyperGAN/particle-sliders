@@ -65,6 +65,8 @@ class EndpointGame:
         two transformer graphs at once.
         """
         require_healthy_update(self, self.g, self.d)
+        from ._restore_training import require_healthy_restore
+        require_healthy_restore(self, self.g, self.d)
         if step < 1:
             raise ValueError("Updates start at one")
         with guard_training_update(self, self.g, self.d), preserve_parameter_flags(self.critic):
@@ -125,16 +127,25 @@ class EndpointGame:
 
     def state_dict(self):
         require_healthy_update(self, self.g, self.d)
+        from ._restore_training import require_healthy_restore
+        require_healthy_restore(self, self.g, self.d)
         return dict(recipe=self.recipe.to_dict(), count=self.count,
             critic=self.critic.state_dict(), g=self.g.state_dict(), d=self.d.state_dict(),
             generators={k: v.get_state() for k, v in self.generators.items()})
 
     def load_state_dict(self, state):
+        from ._restore_training import restore_training_state, validate_resume_rng
         if state["recipe"] != self.recipe.to_dict() or state["count"] != self.count:
             raise ValueError("Game identity changed")
-        self.critic.load_state_dict(state["critic"])
-        self.g.load_state_dict(state["g"])
-        self.d.load_state_dict(state["d"])
-        for key, value in state["generators"].items():
-            self.generators[key].set_state(value.cpu())
+        if set(state['generators']) != set(self.generators):
+            raise ValueError('Game random-stream topology changed')
+        for value in state['generators'].values():
+            validate_resume_rng(value)
+        with restore_training_state(modules=(self.adapter, self.critic), optimizers=(self.g, self.d),
+                                    stateful=self.generators.values(), owners=(self,)):
+            self.critic.load_state_dict(state["critic"])
+            self.g.load_state_dict(state["g"])
+            self.d.load_state_dict(state["d"])
+            for key, value in state["generators"].items():
+                self.generators[key].set_state(value.cpu())
         clear_update_failure(self, self.g, self.d)
