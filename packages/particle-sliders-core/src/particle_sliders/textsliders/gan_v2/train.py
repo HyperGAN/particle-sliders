@@ -62,6 +62,7 @@ def export(run,engine,ema,*,rank,alpha,metadata,prompts,run_signature):
     tensors={k:v.detach().cpu().contiguous() for k,v in engine.network.state_dict().items()}
     save_file(tensors,str(path));write_json(path.with_suffix('.json'),base)
     outputs={'live':str(path)}
+    write_json(run/'latest.json',dict(step=step,checkpoints=outputs))
     return outputs
 
 

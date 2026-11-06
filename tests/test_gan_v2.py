@@ -189,6 +189,38 @@ def make_engine(diagnostics):
     return GANEngine(network,d,forward,rows,recipe)
 
 
+
+def test_raw_export_refreshes_latest_receipt_and_matches_current_weights(tmp_path):
+    import json
+    from safetensors.torch import load_file
+    from particle_sliders.textsliders.gan_v2 import train
+    engine = make_engine(0)
+    run = tmp_path / 'raw-run'
+    run.mkdir()
+    previous_path = None
+    for step in (1, 2):
+        engine.update([0, 1])
+        before = deepcopy(engine.network.state_dict())
+        outputs = train.export(run, engine, None, rank=3, alpha=3., metadata={},
+                               prompts=tmp_path / 'prompts.json', run_signature={'test': 'raw-export'})
+        expected_path = run / f'raw-run_step{step}.safetensors'
+        assert outputs == {'live': str(expected_path)}
+        assert json.loads((run / 'latest.json').read_text()) == {
+            'step': step, 'checkpoints': {'live': str(expected_path)}}
+        loaded = load_file(str(expected_path))
+        assert loaded.keys() == before.keys()
+        for key, value in before.items():
+            assert torch.equal(loaded[key], value)
+            assert torch.equal(engine.network.state_dict()[key], value)
+        metadata = json.loads(expected_path.with_suffix('.json').read_text())
+        assert metadata['weights_kind'] == 'raw' and metadata['ema'] is None
+        assert metadata['steps'] == step
+        if previous_path is not None:
+            assert previous_path.exists() and previous_path != expected_path
+        previous_path = expected_path
+    assert not list(run.glob('*ema*'))
+
+
 def test_diagnostics_do_not_change_updates_and_limits_are_real():
     one, two = make_engine(0), make_engine(1)
     a, b = one.update([0,1,2]), two.update([0,1,2])
