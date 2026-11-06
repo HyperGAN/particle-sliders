@@ -302,6 +302,9 @@ def generate(args: argparse.Namespace) -> list[Path]:
     if not weights.exists():
         raise FileNotFoundError(weights)
     meta = _sidecar(weights)
+    from particle_sliders.weight_policy import require_raw_checkpoint, require_raw_provenance
+    require_raw_checkpoint(weights)
+    require_raw_provenance(meta)
     # Sidecar-driven defaults; CLI flags are overrides only.
     if args.kind is None:
         args.kind = "lm" if str(meta.get("kind") or "") == "language_model" else "transformer"

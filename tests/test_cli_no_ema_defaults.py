@@ -28,7 +28,8 @@ class NoEMACLI(unittest.TestCase):
         required = ['--prompts', 'unused.yaml', '--run-dir', 'unused']
         self.assertTrue(gan_args(required).no_ema)
         self.assertTrue(gan_args(required + ['--no-ema']).no_ema)
-        self.assertFalse(gan_args(required + ['--historical-ema']).no_ema)
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            gan_args(required + ['--historical-ema'])
 
     def test_averaging_flags_are_exclusive(self):
         for parser, required in [(gan_args, ['--prompts', 'unused', '--run-dir', 'unused']),
@@ -42,10 +43,10 @@ class NoEMACLI(unittest.TestCase):
         current = yue_args(required)
         self.assertTrue(current.no_ema)
         self.assertIsNone(run_recipe(current, yue2_particle_bridge)['ema'])
-        historical = yue_args(required + ['--historical-ema'])
-        self.assertFalse(historical.no_ema)
-        self.assertEqual(run_recipe(historical, yue2_particle_bridge)['ema'], .995)
-        self.assertEqual(yue2_particle_bridge.RECIPE['ema'], .995)
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            yue_args(required + ['--historical-ema'])
+        self.assertIsNone(yue2_particle_bridge.RECIPE['ema'])
+        self.assertEqual(yue2_particle_bridge.HISTORICAL_RECIPE['ema'], .995)
 
     def test_historical_flag_cannot_enable_unrelated_recipe(self):
         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
@@ -72,11 +73,10 @@ class NoEMACLI(unittest.TestCase):
                 self.assertIn('--no-ema', args)
                 self.assertNotIn('--historical-ema', args)
 
-    def test_shell_historical_mode_requires_explicit_optin(self):
+    def test_shell_historical_mode_is_rejected(self):
         result = self.wrapper(arm='repaired', use_ema='1')
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('--historical-ema', json.loads(result.stdout))
-        self.assertNotIn('--no-ema', json.loads(result.stdout))
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('Weight EMA is disabled', result.stderr)
         self.assertEqual(self.wrapper(arm='repaired', use_ema='invalid').returncode, 2)
 
     def test_current_shared_factory_defaults_stay_raw(self):

@@ -1,7 +1,7 @@
 # Public image lifecycle, version 1
 
 Use `particle_sliders.lifecycle` for new image integrations. It owns preparation
-through a registered product factory, updates, EMA, resume, export, evaluation,
+through a registered product factory, updates, raw weights, resume, export, evaluation,
 native rendering dispatch and cleanup. Callers supply a local configuration;
 they do not construct a slider, response adapter, provider, critic or optimizer.
 `ConditionalPG09` still owns the actual GAN mathematics, private random streams,
@@ -28,14 +28,14 @@ rows = [dict(neutral='a red cup', positive='a shiny red cup'),
         dict(neutral='a blue bowl', positive='a shiny blue bowl')]
 config = SessionConfig('iris', 'my-new-cpu-cohort', dummy=True, rows=rows,
     steps=4, height=16, width=16, trajectory_steps=4, records_per_pair=2,
-    ema_decay=.9)
+    ema_decay=None)
 # For Qwen use backend='qwen', height=32, width=32 in its own environment.
 with open_session(config) as session:
     session.train(stop_after=2)
     session.checkpoint('new-run/training.pt')
 with open_session(config, resume='new-run/training.pt') as session:
     session.train()  # continues to the ORIGINAL fixed four-update budget
-    session.export('new-run/adapter.pt', selection='ema')
+    session.export('new-run/adapter.pt', selection='raw')
 with open_session(config, artifact='new-run/adapter.pt', operation='evaluate') as session:
     response = session.evaluate(index=0, seed=11, strength=.5)
 ```
@@ -130,8 +130,9 @@ checkpoint settings. The factory owns native packing, conditioning, decoder,
 scheduler, base identity and genuine formulation differences.
 
 `session.step()` and `train(stop_after=..., on_step=...)` use the common scale
-context through backward. EMA includes actual network ownership, so the same
-particle parameter is averaged exactly once. Training failures close the
+context through backward. Weight EMA is disabled for adapters, critics and
+particle banks. Every export and inference path uses raw current weights.
+Upstream scalar optimizer statistics are unchanged. Training failures close the
 session; recover by opening a fresh session and loading a qualified checkpoint.
 Observation restores global RNG and adapter modes/buffers and does not consume
 training streams. Native factories preserve their sampler state.
@@ -139,20 +140,20 @@ training streams. Native factories preserve their sampler state.
 ## Checkpoints, artifacts and errors
 
 Training packet schema `particle-sliders-image-session-v1-training` contains
-full PG state, EMA configuration/values and last metrics. Inference schema
-`particle-sliders-image-session-v1-inference` contains the selected raw/EMA
+full PG state, a disabled EMA envelope (`decay=None`, `values=None`) and last metrics. Inference schema
+`particle-sliders-image-session-v1-inference` contains the raw current
 adapter export and cannot resume training. Both include a manifest binding
 configuration/cohort, capabilities, factory/lifecycle bytes and the PG source,
 backend, model, conditioning, architecture and recipe signature, plus a SHA256
 content checksum. These checksums detect corruption; they are not signatures.
 Packets use `torch.load(weights_only=True)` and same-filesystem atomic replace.
-Invalid metadata, EMA, sampler or optimizer state is rejected before mutation.
+Invalid metadata, nonempty EMA state, sampler or optimizer state is rejected before mutation.
 Inference loading intentionally requires the same prepared configuration and
 frozen cache; independent new-prompt rendering then uses the native callback.
 A compact inference-only loader without preparation is outside this first slice.
 
 Existing product envelopes keep their original entrypoints and schema. Their
-writers reuse shared stepping/EMA/atomic-save facilities. Existing cdf/f797
+writers reuse shared raw stepping and atomic-save facilities. Existing cdf/f797
 runs, active environments and result receipts remain unchanged. New pins are
 new source cohorts; even when an old schema is retained, source checks may reject
 old packets. No automatic migration or rebinding is provided. The new CLI rejects
@@ -177,7 +178,8 @@ particle-slider evaluate --config config.json --artifact continuation/adapter.pt
 ```
 
 Training writes full state, inference artifact, metrics and a manifest with file
-hashes. Use a new output directory to preserve existing receipts. `--selection
-ema` requires configured EMA. Render uses `--native render.json`, whose keys are
+hashes. Use a new output directory to preserve existing receipts. `--selection raw` is the only supported selection. `ema_decay` must be `None`;
+EMA-bearing checkpoints and averaged inference artifacts require their archived
+implementation. Existing averaged artifacts are never relabelled as raw. Render uses `--native render.json`, whose keys are
 the local backend arguments above; reference images are local paths. No command
 implicitly enables downloads, patches a dependency or schedules GPU work.

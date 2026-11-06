@@ -98,6 +98,9 @@ class InferenceSpec:
             raise ValueError('native inference backend name is required')
         if not isinstance(value['configuration'], dict) or type(value['response']) is not bool:
             raise ValueError('native configuration and response capability are required')
+        from .weight_policy import require_no_weight_ema
+        for key in ('ema', 'ema_decay'):
+            require_no_weight_ema(value['configuration'].get(key))
         if not isinstance(value['identity'], dict) or value['identity'].get('schema') != IDENTITY_V1:
             raise ValueError('unsupported native identity version')
         if set(value['factory_sources']) != {'prepare', 'validate', 'preflight'}:
@@ -176,6 +179,8 @@ def inference_backend(name):
 def export_inference(session, path=None, *, selection='raw', specification=None):
     """Export selected adapter values without embedding game/config/data state."""
     session._open()
+    from .weight_policy import require_raw_selection
+    require_raw_selection(selection)
     session.capabilities.check('export')
     if session.inference_only:
         raise UnsupportedOperation('re-export native inference through its original artifact receipt')
@@ -184,11 +189,9 @@ def export_inference(session, path=None, *, selection='raw', specification=None)
         raise UnsupportedOperation('the product must provide a native-only InferenceSpec before v2 export')
     if spec.as_dict()['backend'] != session.config.backend:
         raise ValueError('native inference specification backend differs')
-    if selection not in ('raw', 'ema') or selection == 'ema' and session.ema.values is None:
-        raise ValueError('select raw or a configured EMA')
     # Also refuses failed/incomplete PG updates, while leaving training identity intact.
     state = session.game.export_state_dict()
-    values = session.ema.values if selection == 'ema' else state['network']
+    values = state['network']
     _validate_module(session.game.network, values)
     schema = _json({key: (list(value.shape), str(value.dtype)) for key, value in values.items()})
     if spec.identity['network_schema'] != schema:
@@ -214,8 +217,8 @@ def _validate_packet(packet):
     try:
         if not isinstance(packet, dict) or set(packet) != expected or packet['schema'] != INFERENCE_V2:
             raise CheckpointError('expected native inference v2; legacy v1 artifacts require their original loader')
-        if packet['selection'] not in ('raw', 'ema'):
-            raise CheckpointError('unknown raw/EMA inference selection')
+        if packet['selection'] != 'raw':
+            raise CheckpointError('Only raw inference is supported; averaged artifacts require their archived loader')
         origin = packet['origin']
         if (not isinstance(origin, dict) or set(origin) != {'cohort', 'training_manifest_sha256', 'completed_steps',
                                                          'generator_arm', 'pg_version'}
@@ -258,6 +261,9 @@ def open_inference(artifact, *, options=None, backend=None, operation='render', 
     if operation == 'response' and not descriptor['response']:
         raise UnsupportedOperation('native response evaluation is unavailable')
     options = _json(options or {})
+    from .weight_policy import require_no_weight_ema
+    for key in ('ema', 'ema_decay'):
+        require_no_weight_ema(options.get(key))
     capabilities = native_backend.describe(spec.configuration)
     output_type = output_type or next(iter(capabilities.render_outputs), None)
     capabilities.check(operation, strength=strength, references=references,

@@ -6,7 +6,7 @@ states served by the fork's ``llama-server --embedding --pooling last``.
 The game itself is NOT reimplemented here: ``shared`` is the exact YuE2
 module ``particle_sliders.textsliders.particle_bridge_gan`` (same Rp logistic
 on the paired error, same noise anneal, same lazy b_cap, same particle
-VIC, same EMA decay).
+VIC, raw current weights).
 
 DRIFT (honest, documented in docs/bonsai-gguf-slider.md): a GGUF is
 inference-only frozen ternary — there is no gradient path through the
@@ -58,7 +58,7 @@ RECIPE = dict(
     noise_start=1.0,
     noise_floor=shared.REFERENCE["noise_floor"],
     noise_decay_steps=shared.REFERENCE["noise_decay_steps"],
-    ema=shared.REFERENCE["ema"],
+    ema=None,
     adv_batch=shared.REFERENCE["batch_size"],
     schedule="constant",
     prompt_policy="independent_D_G_with_replacement",
@@ -126,6 +126,8 @@ class BonsaiParticleHead(nn.Module):
             self.multiplier = previous
 
     def save(self, path, metadata):
+        from particle_sliders.weight_policy import require_raw_provenance
+        require_raw_provenance(metadata)
         from safetensors.torch import save_file
 
         path = Path(path)
@@ -151,6 +153,8 @@ class BonsaiParticleHead(nn.Module):
 
         with safe_open(str(path), framework="pt", device="cpu") as handle:
             record = json.loads((handle.metadata() or {}).get("conceptmod", "{}"))
+        from particle_sliders.weight_policy import require_raw_provenance
+        require_raw_provenance(record)
         required = dict(format=FORMAT, rank=8, alpha=8.0, hidden=HIDDEN,
                         particles=128, particle_dim=4,
                         bridge_width=48, router_width=16)

@@ -48,7 +48,7 @@ def source_hashes():
 
 
 def train(args):
-    recipe = dict(game.RECIPE)
+    recipe = dict(game.RECIPE, ema=None)
     if getattr(args, "critic", None):
         recipe["critic"] = args.critic
     if getattr(args, "critic_patch", None) is not None:
@@ -107,6 +107,8 @@ def _train_locked(args, rows, meta, recipe):
     saved = (
         torch.load(path, map_location="cpu", weights_only=True, mmap=True) if path.exists() else None
     )
+    if saved and saved.get("ema") is not None:
+        raise ValueError("EMA checkpoint requires its archived implementation; use a new raw source cohort")
     if saved and saved["signature"]["settings"] != settings:
         raise ValueError("Resume recipe, prompts, model settings, or source differs")
     if not saved and (run / "manifest.json").exists():
@@ -146,11 +148,6 @@ def _train_locked(args, rows, meta, recipe):
         for key in ("d_rows", "g_rows")
     ):
         raise ValueError("Invalid saved particle-bridge prompt batches")
-    ema = (
-        {key: value.to(device) for key, value in saved["ema"].items()}
-        if saved
-        else particle_game.initialize_ema(network)
-    )
     metadata = dict(
         backend="music3",
         recipe=recipe["name"],
@@ -221,8 +218,6 @@ def _train_locked(args, rows, meta, recipe):
             for value in [*network.state_dict().values(), *critic.state_dict().values()]
         ):
             raise FloatingPointError("Non-finite checkpoint")
-        if any(not torch.isfinite(value).all() for value in ema.values()):
-            raise FloatingPointError("Non-finite EMA")
         blob = dict(
             signature=signature,
             prepared=fixed,
@@ -233,7 +228,7 @@ def _train_locked(args, rows, meta, recipe):
             g_optimizer=_cpu(g.state_dict()),
             d_optimizer=_cpu(d.state_dict()),
             sampler=sampler.state_dict(),
-            ema=_cpu(ema),
+            ema=None,
             rng=torch.get_rng_state(),
             cuda_rng=torch.cuda.get_rng_state_all() if device.type == "cuda" else [],
         )
@@ -244,7 +239,7 @@ def _train_locked(args, rows, meta, recipe):
         record = dict(metadata, step=completed, prompt_draws=len(counted), row_counts=dict(Counter(counted)))
         export = run / f"{args.name}_last.safetensors"
         tmp = run / f"{args.name}_pending.safetensors"
-        network.save(tmp, dict(record, weights_kind="ema"), state=ema)
+        network.save(tmp, dict(record, weights_kind="raw"))
         tmp.replace(export)
         tmp.with_suffix(".json").replace(export.with_suffix(".json"))
         live = run / f"{args.name}_live_last.safetensors"
@@ -256,7 +251,7 @@ def _train_locked(args, rows, meta, recipe):
             if not pinned.exists():
                 os.link(path, pinned)
                 os.link(export, run / f"{args.name}_step{completed}.safetensors")
-                write_json(run / f"{args.name}_step{completed}.json", dict(record, weights_kind="ema"))
+                write_json(run / f"{args.name}_step{completed}.json", dict(record, weights_kind="raw"))
                 os.link(live, run / f"{args.name}_live_step{completed}.safetensors")
                 write_json(run / f"{args.name}_live_step{completed}.json", dict(record, weights_kind="live"))
         status(
@@ -295,7 +290,6 @@ def _train_locked(args, rows, meta, recipe):
                     step=step,
                     checkpointing=not args.no_checkpointing,
                 )
-                particle_game.update_ema(ema, network)
                 completed = step
                 record = dict(
                     metrics,

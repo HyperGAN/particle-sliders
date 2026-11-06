@@ -136,22 +136,9 @@ def test_effective_distance_is_factor_gauge_invariant():
     assert one == pytest.approx(two, rel=1e-5)
 
 
-def test_effective_ema_preserves_identical_adapters_with_opposite_factor_signs():
-    torch.manual_seed(46)
-    b, a = nn.Parameter(torch.randn(7,3)), nn.Parameter(torch.randn(3,9))
-    m = SimpleNamespace(lora_name='test', lora_up=SimpleNamespace(weight=b),
-                        lora_down=SimpleNamespace(weight=a), scale=2.)
-    net = SimpleNamespace(unet_loras=[m])
-    ema = EffectiveEMA(rank=4, decay=.5)
-    ema.update(net, 0)
-    with torch.no_grad(): b.neg_(); a.neg_()
-    ema.update(net, 1)
-    state = ema.inference_state()
-    torch.testing.assert_close(state['test.lora_up.weight'] @ state['test.lora_down.weight'], 2*b@a, atol=1e-5, rtol=1e-5)
-    restored = EffectiveEMA(rank=4, decay=.5)
-    restored.load_state_dict(ema.state_dict())
-    assert restored.step == 1
-    assert restored.last_error < 1e-6
+def test_effective_weight_ema_cannot_be_enabled():
+    with pytest.raises(ValueError, match='Weight EMA is disabled'):
+        EffectiveEMA(rank=4, decay=.5)
 
 
 def test_compression_reports_true_discarded_error():
@@ -234,28 +221,55 @@ def test_partial_update_refuses_retry_and_full_checkpoint(monkeypatch, tmp_path)
     assert not (tmp_path / 'state.pt').exists()
 
 
-def test_versioned_resume_restores_annealing_sampler_optimizers_and_ema(tmp_path):
+def test_versioned_resume_restores_raw_annealing_sampler_and_optimizers(tmp_path):
     from particle_sliders.textsliders.gan_v2 import state
     a,b=make_engine(1),make_engine(1)
     sa,sb=state.RowSampler(3,2,91),state.RowSampler(3,2,91)
-    ea,eb=EffectiveEMA(rank=4),EffectiveEMA(rank=4)
-    ea.update(a.network,0);eb.update(b.network,0)
+    ea=eb=None
     history_a=[];history_b=[]
     for _ in range(4):
-        history_a.append(a.update(sa.next()));ea.update(a.network,a.completed)
+        history_a.append(a.update(sa.next()))
     for _ in range(2):
-        history_b.append(b.update(sb.next()));eb.update(b.network,b.completed)
+        history_b.append(b.update(sb.next()))
     signature={'fixed_schedule':dict(origin=0,horizon=10),'test':1}
     path=tmp_path/'state.pt';state.save(path,b,sb,eb,signature,history_b)
-    c=make_engine(1);sc=state.RowSampler(3,2,91);ec=EffectiveEMA(rank=4)
+    c=make_engine(1);sc=state.RowSampler(3,2,91);ec=None
     history_c=state.restore(path,c,sc,ec,signature)
     for _ in range(2):
-        history_c.append(c.update(sc.next()));ec.update(c.network,c.completed)
+        history_c.append(c.update(sc.next()))
     assert history_a==history_c
     for key,value in a.network.state_dict().items():torch.testing.assert_close(value,c.network.state_dict()[key],atol=0,rtol=0)
-    for key,value in ea.inference_state().items():torch.testing.assert_close(value,ec.inference_state()[key],atol=0,rtol=0)
+    assert torch.load(path, weights_only=True)['ema'] is None
     with pytest.raises(ValueError,match='configuration'):
         state.restore(path,c,sc,ec,dict(signature,fixed_schedule=dict(origin=0,horizon=20)))
+
+
+
+def test_averaged_resume_rejected_before_live_load_preserves_update_quarantine(tmp_path, monkeypatch):
+    from particle_sliders._training import guard_training_update, require_healthy_update
+    from particle_sliders.textsliders.gan_v2 import state
+    source, target = make_engine(0), make_engine(0)
+    source_sampler, target_sampler = state.RowSampler(3, 2, 1), state.RowSampler(3, 2, 2)
+    path = tmp_path / 'state.pt'
+    signature = {'test': 'raw-only'}
+    state.save(path, source, source_sampler, None, signature, [])
+    packet = torch.load(path, weights_only=True)
+    packet['ema'] = {'decay': .995, 'values': {}}
+    torch.save(packet, path)
+    owners = target, target.g_optimizer, target.d_optimizer
+    with pytest.raises(RuntimeError, match='interrupted update'):
+        with guard_training_update(*owners):
+            raise RuntimeError('interrupted update')
+    monkeypatch.setattr(target.network, 'load_state_dict',
+                        lambda *args, **kwargs: pytest.fail('live load before raw admission'))
+    with pytest.raises(ValueError, match='EMA checkpoint requires its archived implementation'):
+        state.restore(path, target, target_sampler, None, signature)
+    with pytest.raises(RuntimeError, match='failed training update'):
+        require_healthy_update(*owners)
+    with pytest.raises(RuntimeError, match='failed training update'):
+        state.save(tmp_path / 'rejected.pt', target, target_sampler, None, signature, [])
+    assert not (tmp_path / 'rejected.pt').exists()
+    assert torch.load(path, weights_only=True)['ema'] == packet['ema']
 
 
 def test_sampler_does_not_drop_the_last_partial_batch():

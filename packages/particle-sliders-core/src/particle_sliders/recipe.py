@@ -26,7 +26,7 @@ class SliderRecipe:
     d_lr: float = 9e-4
     beta1: float = 0.0
     beta2: float = 0.999
-    ema: float = 0.995
+    ema: float | None = None
 
     @classmethod
     def from_dict(cls, value):
@@ -54,12 +54,14 @@ class SliderRecipe:
             raise ValueError("batch must be a positive integer")
         if isinstance(self.grad_every, bool) or not isinstance(self.grad_every, int) or self.grad_every < 1:
             raise ValueError("grad_every must be a positive integer")
-        for name in ("cover_weight", "pole_weight", "grad_coeff", "grad_kappa", "g_lr", "d_lr", "beta1", "beta2", "ema"):
+        for name in ("cover_weight", "pole_weight", "grad_coeff", "grad_kappa", "g_lr", "d_lr", "beta1", "beta2"):
             value = getattr(self, name)
             if isinstance(value, bool) or not math.isfinite(value) or value < 0:
                 raise ValueError(f"{name} must be finite and nonnegative")
-        if not 0 <= self.beta1 < 1 or not 0 <= self.beta2 < 1 or not 0 <= self.ema < 1:
-            raise ValueError("Invalid optimizer/EMA coefficients")
+        from .weight_policy import require_no_weight_ema
+        require_no_weight_ema(self.ema)
+        if not 0 <= self.beta1 < 1 or not 0 <= self.beta2 < 1:
+            raise ValueError("Invalid optimizer coefficients")
         if not self.g_lr or not self.d_lr:
             raise ValueError("Learning rates must be positive")
         self.regularizer()

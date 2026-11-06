@@ -111,10 +111,10 @@ def test_legacy_module_command(tmp_path):
     assert results[0].stdout.replace('conceptmod', 'particle_sliders') == results[1].stdout
 
 
-def test_all_27_lazy_root_exports_survive_star_import(tmp_path):
+def test_all_lazy_root_exports_survive_star_import(tmp_path):
     run_python(tmp_path, '''
         import particle_sliders
-        assert len(particle_sliders.__all__) == 27
+        assert len(particle_sliders.__all__) == 28
         namespace = {}
         exec('from particle_sliders import *', namespace)
         assert set(particle_sliders.__all__) <= namespace.keys()

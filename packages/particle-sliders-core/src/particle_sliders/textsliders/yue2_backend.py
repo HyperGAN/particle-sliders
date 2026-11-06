@@ -127,6 +127,8 @@ class YuE2Slider(nn.Module):
             return ParticleSlider.load(model, path)
         if record.get("format") != FORMAT:
             raise ValueError("Not a native YuE2 composition-slider checkpoint")
+        from particle_sliders.weight_policy import require_raw_provenance
+        require_raw_provenance(record)
         sound_only(json.dumps(record, ensure_ascii=False))
         if record.get("dummy"):
             raise ValueError("Dummy checkpoints cannot be used for song generation")

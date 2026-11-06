@@ -17,7 +17,7 @@ DEFAULT_EMA=0
 EMA_ARGS=()
 case "${USE_EMA:-$DEFAULT_EMA}" in
   0) EMA_ARGS=(--no-ema) ;;
-  1) EMA_ARGS=(--historical-ema) ;;
+  1) echo 'Weight EMA is disabled; USE_EMA must be 0' >&2; exit 2 ;;
   *) echo 'USE_EMA must be 0 or 1' >&2; exit 2 ;;
 esac
 SOURCE="${SOURCE_STATE:-$ROOT/models/gan-bcap-repair/smoke-steps600-s7-20260904/smoke-steps600-s7-20260904_state.pt}"

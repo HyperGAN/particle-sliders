@@ -2,7 +2,7 @@
 
 Faithful reconstruction of the 100-Gaussians recipe (ParticlePrior,
 Fourier-2 MLP critic, relativistic-pair logistic GAN, one-sided ``b_cap``,
-VICReg on particles, EMA G+particles, Adam β1=0, delayed cosine LR) plus
+VICReg on particles, raw G+particle weights, Adam β1=0, delayed cosine LR) plus
 the Music-LM extras that have a 2-D analogue (span samples, end-margin,
 optional *normalized* feature matching).
 
@@ -261,19 +261,9 @@ class Fourier2MLP(nn.Module):
 
 
 class EMA:
-    """Exponential moving average of a parameter list."""
-
-    def __init__(self, params: list[torch.Tensor], decay: float = 0.995):
-        self.decay = float(decay)
-        self.shadow = [p.detach().clone() for p in params]
-
-    def update(self, params: list[torch.Tensor]) -> None:
-        for s, p in zip(self.shadow, params):
-            s.mul_(self.decay).add_(p.detach(), alpha=1.0 - self.decay)
-
-    def copy_to(self, params: list[torch.Tensor]) -> None:
-        for s, p in zip(self.shadow, params):
-            p.data.copy_(s)
+    """Historical import name; prospective parameter averaging is disabled."""
+    def __init__(self, params, decay=0.995):
+        raise ValueError('Weight EMA is disabled; use raw current weights')
 
 
 @dataclass
@@ -304,12 +294,16 @@ class AdvConfig:
     particle_l2: float = 0.02
     cover_weight: float = 1.5
     d_steps: int = 1
-    ema: float = 0.995
+    ema: float | None = None
     delay: int = 80
     min_lr_ratio: float = 0.05
     critic_hidden: int = 64
     critic_n_rand: int = 16
     seed: int = 0
+
+    def __post_init__(self):
+        from particle_sliders.weight_policy import require_no_weight_ema
+        require_no_weight_ema(self.ema)
 
 
 def toy_lr_triplet(cfg: "AdvConfig") -> tuple[float, float, float]:

@@ -1,4 +1,4 @@
-"""Gradient accounting, functional LoRA step limits, and effective-weight EMA."""
+"""Gradient accounting and functional LoRA step limits; weight EMA is disabled."""
 from __future__ import annotations
 
 import math
@@ -179,58 +179,6 @@ def compress_factors(b, a, rank):
 
 
 class EffectiveEMA:
-    """EMA of effective delta weights, approximated with a recorded rank budget.
-
-    It averages BA, not B and A independently. Updates may be thinned in time;
-    decay is raised to the number of intervening optimizer updates. Between
-    observations it assumes the newest state represents that interval.
-    """
+    """Historical import name; prospective effective-weight averaging is disabled."""
     def __init__(self, *, rank=32, decay=.995):
-        if rank <= 0 or not 0 <= decay < 1:
-            raise ValueError("Invalid EMA settings")
-        self.rank, self.decay = rank, decay
-        self.factors, self.step, self.last_error = {}, None, None
-
-    @torch.no_grad()
-    def update(self, network, step):
-        if self.step is not None and step <= self.step:
-            raise ValueError("EMA observations must advance")
-        rate = 0. if self.step is None else self.decay ** (step - self.step)
-        discarded = total = 0.
-        for m in network.unet_loras:
-            b = m.lora_up.weight.detach().cpu().float() * float(m.scale)
-            a = m.lora_down.weight.detach().cpu().float()
-            if m.lora_name in self.factors:
-                old_b, old_a = self.factors[m.lora_name]
-                b = torch.cat([math.sqrt(rate) * old_b, math.sqrt(1 - rate) * b], 1)
-                a = torch.cat([math.sqrt(rate) * old_a, math.sqrt(1 - rate) * a], 0)
-            b, a, errors = compress_factors(b, a, self.rank)
-            self.factors[m.lora_name] = (b, a)
-            discarded += errors["discarded_squared_norm"]
-            total += errors["total_squared_norm"]
-        self.step = step
-        self.last_error = math.sqrt(discarded / max(total, 1e-30))
-
-    def state_dict(self):
-        return dict(rank=self.rank, decay=self.decay, step=self.step,
-                    factors=self.factors, last_error=self.last_error)
-
-    def load_state_dict(self, state):
-        if (state["rank"], state["decay"]) != (self.rank, self.decay):
-            raise ValueError("EMA configuration changed")
-        self.factors, self.step, self.last_error = state["factors"], state["step"], state["last_error"]
-
-    def inference_state(self):
-        output = {}
-        for name, (b, a) in self.factors.items():
-            # Uniform exported rank, with zero padding for narrow matrices.
-            left = F_pad(b, (0, self.rank - b.shape[1]))
-            right = F_pad(a, (0, 0, 0, self.rank - a.shape[0]))
-            output[f"{name}.lora_up.weight"] = left.contiguous()
-            output[f"{name}.lora_down.weight"] = right.contiguous()
-            output[f"{name}.alpha"] = torch.tensor(float(self.rank))
-        return output
-
-
-def F_pad(value, padding):
-    return torch.nn.functional.pad(value, padding)
+        raise ValueError('Weight EMA is disabled; use raw current weights')

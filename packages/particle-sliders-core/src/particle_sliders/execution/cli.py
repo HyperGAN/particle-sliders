@@ -78,7 +78,7 @@ def main(argv=None):
         reporting = command.add_mutually_exclusive_group()
         reporting.add_argument('--reporting-config', type=Path, help='explicit pinned HyperGAN develop reporting runtime JSON')
         reporting.add_argument('--no-reporting', action='store_true', help='disable configured reporting for this run')
-        command.add_argument('--selection', choices=('raw', 'ema'))
+        command.add_argument('--selection', choices=('raw',))
         command.add_argument('--export-format', choices=('v1', 'v2', 'both'))
         command.add_argument('--stop-after', type=int)
         command.add_argument('--check', action='store_true', help='run product validation without training')

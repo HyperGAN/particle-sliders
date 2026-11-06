@@ -59,6 +59,8 @@ class RowSampler:
 
 
 def save(path,engine,sampler,ema,run_signature,history):
+    if ema is not None:
+        raise ValueError('Weight EMA is disabled')
     from particle_sliders._training import require_healthy_update
     require_healthy_update(engine, engine.g_optimizer, engine.d_optimizer)
     from particle_sliders._restore_training import require_healthy_restore
@@ -75,8 +77,12 @@ def save(path,engine,sampler,ema,run_signature,history):
 
 
 def restore(path,engine,sampler,ema,run_signature):
+    if ema is not None:
+        raise ValueError('Weight EMA is disabled')
     from particle_sliders._restore_training import restore_training_state, validate_resume_rng
     blob=torch.load(path,map_location='cpu',weights_only=True)
+    if blob.get('ema') is not None:
+        raise ValueError('EMA checkpoint requires its archived implementation; no implicit raw migration')
     if blob.get('schema')!='music-gan-v2-1' or blob['signature']!=run_signature:
         raise ValueError('Resume configuration, fixtures, model, or source code changed')
     if bool(blob['ema'] is not None)!=bool(ema is not None):raise ValueError('EMA topology changed')

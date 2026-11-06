@@ -12,29 +12,17 @@ from particle_sliders.lifecycle import CheckpointError, native_cleanup, _restore
 from test_image_lifecycle import cpu_only, equal, seal, session
 
 
-def test_ema_transfer_failure_precedes_game_mutation_and_preserves_rng(monkeypatch):
+def test_ema_packet_rejection_precedes_game_mutation_and_preserves_rng(monkeypatch):
     source, target = session(), session()
     source.train(stop_after=2)
     target.train(stop_after=1)
     packet = source.checkpoint()
     before, rng = target.checkpoint(), torch.get_rng_state().clone()
-    bad_value = next(iter(packet['payload']['ema']['values'].values()))
-    original_to = torch.Tensor.to
-    calls = []
-    original_load = target.game.load_state_dict
-    def load(state):
-        calls.append('game mutation')
-        return original_load(state)
-    def transfer(value, *args, **kwargs):
-        if value is bad_value:
-            torch.rand(3)  # A failing native transfer/hook must not leak RNG.
-            raise RuntimeError('EMA native transfer failed')
-        return original_to(value, *args, **kwargs)
-    monkeypatch.setattr(target.game, 'load_state_dict', load)
-    monkeypatch.setattr(torch.Tensor, 'to', transfer)
+    packet['payload']['ema'] = {'decay': .9, 'values': source.game.network.state_dict()}
+    seal(packet)
+    monkeypatch.setattr(target.game, '_apply_state_dict', lambda state: pytest.fail('game mutation'))
     with pytest.raises(CheckpointError, match='EMA'):
         target.restore(packet)
-    assert calls == []
     equal(before, target.checkpoint())
     assert torch.equal(rng, torch.get_rng_state())
 
@@ -179,21 +167,14 @@ def test_update_cleanup_error_does_not_mask_original_native_failure():
     assert target.closed
 
 
-def test_prepared_ema_is_owned_and_detached_from_input_packet():
+def test_disabled_ema_envelope_has_no_owned_shadow_tensors():
     source, target = session(), session()
     source.train(stop_after=2)
     packet = source.checkpoint()
-    for value in packet['payload']['ema']['values'].values():
-        if value.is_floating_point():
-            value.requires_grad_(True)
-    seal(packet)
     target.restore(packet)
-    assert all(not value.requires_grad for value in target.ema.values.values())
-    saved = deepcopy(target.ema.state_dict())
-    with torch.no_grad():
-        for value in packet['payload']['ema']['values'].values():
-            value.zero_()
-    equal(saved, target.ema.state_dict())
+    assert target.ema.values is None
+    assert packet['payload']['ema'] == {'decay': None, 'values': None}
+    assert target.ema.state_dict() == packet['payload']['ema']
 
 
 def test_observation_restore_error_keeps_primary_and_attempts_modes_and_buffers():

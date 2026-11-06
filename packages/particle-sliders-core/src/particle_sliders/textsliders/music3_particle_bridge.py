@@ -30,7 +30,7 @@ from particle_sliders.textsliders.train_lm_slider_music3 import (
 from particle_sliders.textsliders.yue2_backend import sound_only
 
 FORMAT = "conceptmod-music3-routed-particle-lm-v1"
-RECIPE = dict(
+HISTORICAL_RECIPE = dict(
     name="anneal-routed-particle-error-music3-v1",
     generator_objective="paired_error_rpgan_plus_particle_vic",
     parts=128,
@@ -75,6 +75,9 @@ RECIPE = dict(
     merge_to_trainer=False,
     yue2_reference="anneal-routed-particle-error-yue2-v1",
 )
+
+# New executions use a distinct raw configuration; historical fields stay inspectable.
+RECIPE = dict(HISTORICAL_RECIPE, ema=None)
 
 
 def load_prompts(path):
@@ -257,8 +260,14 @@ class ParticleNetwork(nn.Module):
             target_replace=TARGET_REPLACE,
             prefix="lora_te",
         )
+        from particle_sliders.weight_policy import require_raw_provenance
+        require_raw_provenance(record)
         payload = json.dumps(record, sort_keys=True, ensure_ascii=False)
         sound_only(payload)
+        if state is not None:
+            current = self.state_dict()
+            if set(state) != set(current) or any(not torch.equal(value.detach().cpu(), current[key].detach().cpu()) for key, value in state.items()):
+                raise ValueError('Only raw current network weights may be exported')
         state = self.state_dict() if state is None else state
         if any(not torch.isfinite(v).all() for v in state.values()):
             raise ValueError("Invalid particle-slider export")
@@ -276,6 +285,8 @@ class ParticleNetwork(nn.Module):
         with safe_open(str(path), framework="pt", device="cpu") as handle:
             record = json.loads((handle.metadata() or {}).get("conceptmod", "{}"))
         sound_only(json.dumps(record, ensure_ascii=False))
+        from particle_sliders.weight_policy import require_raw_provenance
+        require_raw_provenance(record)
         required = dict(
             format=FORMAT, rank=8, alpha=8.0, particles=128, particle_dim=4, bridge_width=48, router_width=16
         )

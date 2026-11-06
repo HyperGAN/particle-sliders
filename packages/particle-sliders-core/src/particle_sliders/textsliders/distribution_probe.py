@@ -418,12 +418,12 @@ def ensure_bank(path, backend, templates, training_rows, *, max_seq_len, history
 @torch.no_grad()
 def probe_checkpoint(run, backend, network, templates, training_rows, *, step, state=None,
                      max_seq_len, history_tokens, probe_per_template, listening_per_template,
-                     seed, model_id, dummy, stride, critic_scale=None, weights_kind='ema'):
-    """Evaluate one EMA milestone and append ``probe.jsonl``. Idempotent per step."""
+                     seed, model_id, dummy, stride, critic_scale=None, weights_kind='raw'):
+    """Measure current raw weights; archived EMA analysis stays read-only."""
+    if weights_kind not in ('raw', 'live') or state is not None:
+        raise ValueError('EMA probes and alternate weight states are disabled; load an audited raw artifact first')
     run = Path(run)
     step = int(step)
-    if weights_kind not in ('ema', 'live'):
-        raise ValueError('weights_kind must be ema or live')
     if step < 1 or not needs_probe(run, step, weights_kind):
         summary = build_summary(
             load_probe_jsonl(run / 'probe.jsonl'), stride=stride,
@@ -466,22 +466,8 @@ def probe_checkpoint(run, backend, network, templates, training_rows, *, step, s
 
 
 def sweep_milestones(run, backend, network, templates, training_rows, *, state_of, **kwargs):
-    """Evaluate saved ``*_stepN.safetensors`` files that do not yet have probe records.
-
-    ``state_of(path)`` returns the weight dict. Intended for a later sequential
-    sweep when the training GPU is free. Does not train the classifier.
-    """
-    pending = []
-    for step, path in milestone_steps(run):
-        if needs_probe(run, step, kwargs.get('weights_kind', 'ema')):
-            pending.append((step, path))
-    for step, path in pending:
-        probe_checkpoint(
-            run, backend, network, templates, training_rows,
-            step=step, state=state_of(path), **kwargs)
-    return build_summary(
-        load_probe_jsonl(Path(run) / 'probe.jsonl'), stride=kwargs['stride'],
-        training_finite=_training_finite(run))
+    """Refuse historical EMA execution; saved summary readers stay available."""
+    raise ValueError('Historical EMA milestone execution is disabled; use its archived implementation')
 
 
 def stopping_status(grouped, *, stride, training_finite=True):
@@ -560,34 +546,8 @@ def main(argv=None):
     parser.add_argument('--probe_seeds', type=int, default=32)
     parser.add_argument('--probe_listening_seeds', type=int, default=4)
     parser.add_argument('--stride', type=int, default=100)
-    args = parser.parse_args(argv)
-    from safetensors.torch import load_file
-    from particle_sliders.textsliders.yue2_arm_b import load_prompts
-    from particle_sliders.textsliders.yue2_backend import YuE2Backend
-    from particle_sliders.textsliders.yue2_particle_bridge import ParticleSlider
-
-    prepared_path = args.save_dir / 'prepared.pt'
-    if not prepared_path.exists():
-        raise SystemExit(f'Missing training bank {prepared_path}')
-    templates, _meta = load_prompts(args.prompts_file)
-    training_rows = torch.load(prepared_path, map_location='cpu', weights_only=True)['prepared']
-    backend = YuE2Backend(args.model_id, device=args.device, dummy=args.dummy)
-    network = ParticleSlider(backend.model)
-    device = next(network.parameters()).device
-
-    def state_of(path):
-        return {key: value.to(device) for key, value in load_file(str(path), device='cpu').items()}
-
-    summary = sweep_milestones(
-        args.save_dir, backend, network, templates, training_rows, state_of=state_of,
-        max_seq_len=args.max_seq_len, history_tokens=args.history_tokens,
-        probe_per_template=args.probe_seeds, listening_per_template=args.probe_listening_seeds,
-        seed=args.seed, model_id=args.model_id, dummy=args.dummy, stride=args.stride,
-        weights_kind='ema')
-    print(json.dumps(dict(
-        probe='sweep_done', best_step=summary['best_step'],
-        stopping=summary['stopping']['status'], evaluator='not_trained')))
-    return 0
+    parser.parse_args(argv)
+    raise ValueError('Historical EMA sweep is disabled; archived summaries remain readable')
 
 
 def _score_bank(backend, network, rows, fixtures, *, step, weights_kind):

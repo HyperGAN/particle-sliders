@@ -22,7 +22,7 @@ def dashboard_html(recipe='unipolar_gan'):
             'Global L2 norm before the optimizer update; no gradient clipping.')
     elif recipe == 'particle_bridge':
         document = document.replace('The generator trains +1 only, using the adversarial loss averaged across four shuffled prompt rows.',
-            'The generator trains +1 with the paired-error GAN and particle VIC. D and G use separate batches of 64 prompt/noise pairs. All branches use routed particles. Listening weights use EMA 0.995; curves show live training.')
+            'The generator trains +1 with the paired-error GAN and particle VIC. D and G use separate batches of 64 prompt/noise pairs. All branches use routed particles. Listening exports use raw current weights; curves show live training.')
         document = document.replace('Global L2 norm before per-element clipping at 1.',
             'Global L2 norm before the optimizer update; no gradient clipping.')
         document = document.replace('mean softplus(D(real) − D(fake))</code>',
@@ -34,7 +34,7 @@ def dashboard_html(recipe='unipolar_gan'):
         document = document.replace('No ending, pole-MSE, feature-matching, lyric-hold or other auxiliary losses.',
             'VIC acts only on the particle cloud. No ending, pole-MSE, feature-matching or lyric-hold loss.')
         document = document.replace("note:'The entire objective is the unipolar GAN loss.',series:[['g_adv','GAN (+1)','#8bbfff']]",
-            "note:'Live G total = paired-error GAN + particle VIC. EMA is used only for exported listening weights.',series:[['loss','G total','#eeeeee'],['g_adv','GAN','#8bbfff'],['particle_vic','Particle VIC','#78dfc0']]")
+            "note:'Live G total = paired-error GAN + particle VIC. Exports use raw current weights; weight EMA is disabled.',series:[['loss','G total','#eeeeee'],['g_adv','GAN','#8bbfff'],['particle_vic','Particle VIC','#78dfc0']]")
         document = document.replace("  let points = [], data = null", """  specs.push(
     {title:'Particle gradients',note:'GAN-only cloud gradient is measured before adding VIC; total includes VIC.',series:[['particle_gan_grad_norm','GAN only','#8bbfff'],['particle_grad_norm','With VIC','#cba8ff']]},
     {title:'Critic noise',note:'Geometric noise schedule; this is not learning-rate decay.',series:[['noise_std','Noise standard deviation','#78dfc0']]}

@@ -341,14 +341,14 @@ def _same(a,b):
     return a==b
 
 
-def test_native_resume_restores_particles_ema_both_optimizers_and_all_streams(tmp_path,monkeypatch):
+def test_native_resume_restores_raw_particles_both_optimizers_and_all_streams(tmp_path,monkeypatch):
     pytest.importorskip('yue2')
     from particle_sliders.textsliders.yue2_backend import YuE2Backend
     def forbidden(*a,**k): raise AssertionError('No audio sampling or MSE')
     monkeypatch.setattr(YuE2Backend,'continuation',forbidden); monkeypatch.setattr(F,'mse_loss',forbidden)
     prompts=tmp_path/'p.yaml';prompts.write_text(yaml.safe_dump(dict(rows=[
         dict(neutral=f'Guitar band {i}',positive=f'Heavy metal guitar band {i}',lyrics=f'[verse]\nWe carry crate {i}') for i in range(4)])))
-    common=['--recipe','particle_bridge','--historical-ema','--dummy','--steps','4','--prompts_file',str(prompts),
+    common=['--recipe','particle_bridge','--no-ema','--dummy','--device','cpu','--steps','4','--prompts_file',str(prompts),
             '--sample_seeds','1','--history_tokens','0']
     train(parse_args(common+['--save_dir',str(tmp_path/'full')]))
     train(parse_args(common+['--save_dir',str(tmp_path/'split'),'--until','2']))
@@ -358,12 +358,12 @@ def test_native_resume_restores_particles_ema_both_optimizers_and_all_streams(tm
         assert _same(a[key],b[key]),key
     assert [g['lr'] for g in a['g_optimizer']['param_groups']]==[.0006,.006]
     assert a['d_optimizer']['param_groups'][0]['lr']==.0009
-    assert not torch.equal(a['ema']['particles'],a['network']['particles'])
+    assert a['ema'] is None
     assert all(h['loss']==h['g_adv']+h['particle_vic'] for h in a['history'])
     assert all(h['d_rows']!=h['g_rows'] for h in a['history'])
     assert a['history'][-1]['particle_gan_grad_norm'] > 0
     from safetensors.torch import load_file
-    assert _same(load_file(str(tmp_path/'full/metal-yue2-arm-b_last.safetensors')),a['ema'])
+    assert _same(load_file(str(tmp_path/'full/metal-yue2-arm-b_last.safetensors')),a['network'])
     assert _same(load_file(str(tmp_path/'full/metal-yue2-arm-b_live_last.safetensors')),a['network'])
     with pytest.raises(ValueError,match='Resume'):
         train(parse_args(['--dummy','--steps','4','--prompts_file',str(prompts),'--save_dir',str(tmp_path/'split')]))
@@ -404,7 +404,7 @@ def test_default_raw_checkpoint_resume_exports_actual_network_without_ema(tmp_pa
         path = run / f'metal-yue2-arm-b_{suffix}.safetensors'
         assert _same(load_file(str(path)), state['network'])
         record = json.loads(path.with_suffix('.json').read_text())
-        assert record['weights_kind'] == 'live'
+        assert record['weights_kind'] == ('live' if suffix.startswith('live') else 'raw')
     assert not torch.cuda.is_initialized()
 
 

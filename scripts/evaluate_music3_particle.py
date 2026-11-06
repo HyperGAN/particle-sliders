@@ -106,7 +106,7 @@ def page(output: Path, row_map: dict[int, dict], seeds, label: str, critic: str,
         "a{color:#a9d7ff}.muted{color:#a8bacb}</style>"
         f"<p><a href=\"../\">← critic sweep</a></p>"
         f"<h1>Music 3 · {label_e} · {critic_e} samples</h1>"
-        f"<p class=\"muted\">Routed particle bridge · EMA @ 1800 · transformer critic={critic_e}. "
+        f"<p class=\"muted\">Routed particle bridge · raw weights @ 1800 · transformer critic={critic_e}. "
         f"0 = Off · 1 = {label_e}. Matched held-out prompts.</p>"
         f'<p><a href="{html.escape(weights_name)}">Download slider</a>'
         f' · <a href="{html.escape(sidecar)}">Training details</a></p>'

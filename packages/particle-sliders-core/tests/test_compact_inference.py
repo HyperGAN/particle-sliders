@@ -42,32 +42,28 @@ def plugin(tmp_path):
 @pytest.fixture
 def exported(tmp_path, plugin):
     config = SessionConfig('compact-fixture', 'new-compact-v2', model_file=str(tmp_path / 'model.pt'),
-                           training_file=str(tmp_path / 'training.pt'), ema_decay=.9)
+                           training_file=str(tmp_path / 'training.pt'), ema_decay=None)
     with plugin.TRAINING.open(config) as session:
         session.train(stop_after=2)
         before = session.checkpoint()
         raw = session.export_inference(tmp_path / 'raw.pt')
-        ema = session.export_inference(tmp_path / 'ema.pt', selection='ema')
+        with pytest.raises(ValueError, match='raw'):
+            session.export_inference(selection='ema')
         assert before['sha256'] == session.checkpoint()['sha256']
         raw_expected = session.game.backend.response(strength=.5).detach()
-        weights = deepcopy(session.game.network.state_dict())
-        session.game.network.load_state_dict(session.ema.values)
-        ema_expected = session.game.backend.response(strength=.5).detach()
-        session.game.network.load_state_dict(weights)
-    return raw, ema, raw_expected, ema_expected
+    return raw, raw_expected
 
 
 def test_export_has_no_training_payload_and_resume_remains_separate(tmp_path, plugin, exported):
-    raw, ema, _, _ = exported
-    assert raw['schema'] == ema['schema'] == INFERENCE_V2
-    assert raw['selection'] == 'raw' and ema['selection'] == 'ema'
-    text = json.dumps({key: value for key, value in ema.items() if key != 'network'})
+    raw, _ = exported
+    assert raw['schema'] == INFERENCE_V2
+    assert raw['selection'] == 'raw'
+    text = json.dumps({key: value for key, value in raw.items() if key != 'network'})
     for forbidden in ('training_file', 'training.pt', 'rows_sha256', 'game_signature', 'optimizer', 'critic', 'recipe'):
         assert forbidden not in text
-    assert not torch.equal(raw['network']['weights.0'], ema['network']['weights.0'])
     with pytest.raises(CheckpointError, match='version'):
-        read_packet(tmp_path / 'ema.pt')
-    with open_inference(tmp_path / 'ema.pt', options={'model_file': str(tmp_path / 'model.pt')},
+        read_packet(tmp_path / 'raw.pt')
+    with open_inference(tmp_path / 'raw.pt', options={'model_file': str(tmp_path / 'model.pt')},
                         backend=plugin.INFERENCE) as inference:
         with pytest.raises(UnsupportedOperation, match='resume'):
             inference.train()
@@ -75,9 +71,9 @@ def test_export_has_no_training_payload_and_resume_remains_separate(tmp_path, pl
 
 
 def test_fresh_installed_plugin_without_training_data(tmp_path, plugin, exported):
-    raw, ema, raw_expected, ema_expected = exported
+    raw, raw_expected = exported
     (tmp_path / 'training.pt').unlink()
-    torch.save({'raw': raw_expected, 'ema': ema_expected}, tmp_path / 'expected.pt')
+    torch.save({'raw': raw_expected}, tmp_path / 'expected.pt')
     # A tiny installed wheel-style plugin with both entry-point groups. Source
     # code is copied into the isolated child installation, not imported from tests.
     installed = tmp_path / 'installed'
@@ -111,7 +107,7 @@ torch.optim.Optimizer.__init__ = forbidden
 compact_fixture.TRAINING.prepare.__code__ = forbidden.__code__
 expected = torch.load(root / 'expected.pt', weights_only=True)
 before = torch.get_rng_state().clone()
-for selection in ('raw', 'ema'):
+for selection in ('raw',):
     with open_inference(root / (selection + '.pt'), options={'model_file': str(root / 'model.pt')}) as session:
         assert session.selection == selection
         assert torch.equal(session.render(strength=.5), expected[selection])
@@ -123,12 +119,12 @@ assert torch.equal(before, torch.get_rng_state())
 assert not torch.cuda.is_initialized()
 from particle_sliders.session_cli import main
 (root / 'local.json').write_text(json.dumps({'model_file': str(root / 'model.pt')}))
-main(['infer', '--artifact', str(root / 'ema.pt'), '--runtime', str(root / 'local.json'),
+main(['infer', '--artifact', str(root / 'raw.pt'), '--runtime', str(root / 'local.json'),
       '--mode', 'response', '--strength', '.5', '--out', str(root / 'response.pt')])
 result = torch.load(root / 'response.pt', weights_only=True)
-assert result['selection'] == 'ema' and torch.equal(result['value'], expected['ema'])
+assert result['selection'] == 'raw' and torch.equal(result['value'], expected['raw'])
 assert (root / 'response.pt.json').is_file()
-print('fresh native-only raw/EMA inference without training data passed')
+print('fresh native-only raw inference without training data passed')
 '''
     paths = [str(installed), str(Path(particle_sliders.__file__).parent.parent), str(Path(particlegan.__file__).parent.parent)]
     environment = os.environ.copy()
@@ -138,14 +134,14 @@ print('fresh native-only raw/EMA inference without training data passed')
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-@pytest.mark.parametrize('damage', ['checksum', 'model', 'architecture', 'protocol', 'source', 'tensor', 'selection'])
+@pytest.mark.parametrize('damage', ['checksum', 'model', 'architecture', 'protocol', 'source', 'tensor', 'selection', 'ema'])
 def test_invalid_inference_is_atomic_and_cleans_up(tmp_path, plugin, exported, damage):
     packet = deepcopy(exported[0])
     closed_before = len(plugin.CLOSED)
     if damage == 'checksum':
         packet['sha256'] = 'wrong'
-    elif damage == 'selection':
-        packet['selection'] = 'unknown'
+    elif damage in ('selection', 'ema'):
+        packet['selection'] = 'ema' if damage == 'ema' else 'unknown'
     elif damage == 'source':
         packet['specification']['factory_sources']['prepare'] = 'wrong'
     elif damage == 'tensor':
@@ -181,3 +177,12 @@ def test_tensor_schema_failure_closes_without_applying_values(tmp_path, plugin, 
     with pytest.raises(ValueError):
         open_inference(packet, options={'model_file': str(tmp_path / 'model.pt')}, backend=plugin.INFERENCE)
     assert len(plugin.CLOSED) == before + 1
+
+
+@pytest.mark.parametrize('key', ['ema', 'ema_decay'])
+def test_native_only_runtime_cannot_enable_ema_before_prepare(tmp_path, plugin, exported, key):
+    before = len(plugin.CLOSED)
+    with pytest.raises(ValueError, match='EMA'):
+        open_inference(exported[0], options={'model_file': str(tmp_path / 'model.pt'), key: .9},
+                       backend=plugin.INFERENCE)
+    assert len(plugin.CLOSED) == before

@@ -4,8 +4,7 @@ Transfers YuE2's working recipe ``anneal-routed-particle-error-yue2-v1``
 (``--recipe particle_bridge``) onto Qwen3-0.6B last-hidden states. The game
 itself is NOT reimplemented here: ``shared`` is the exact YuE2 module
 ``particle_sliders.textsliders.particle_bridge_gan`` (same Rp logistic on the
-paired error, same noise anneal, same lazy b_cap, same particle VIC, same
-EMA decay). Only the host differs: ``TinyAttention`` q/k/v/o instead of
+paired error, same noise anneal, same lazy b_cap, same particle VIC, raw current weights). Only the host differs: ``TinyAttention`` q/k/v/o instead of
 YuE2 AR attention, and a last-caption-token readout instead of YuE2's
 prefix-boundary token (see MATCH vs DRIFT in docs/tiny-llm-slider.md).
 
@@ -51,7 +50,7 @@ RECIPE = dict(
     noise_start=1.0,
     noise_floor=shared.REFERENCE["noise_floor"],
     noise_decay_steps=shared.REFERENCE["noise_decay_steps"],
-    ema=shared.REFERENCE["ema"],
+    ema=None,
     adv_batch=shared.REFERENCE["batch_size"],
     schedule="constant",
     prompt_policy="independent_D_G_with_replacement",
@@ -160,6 +159,8 @@ class TinyParticleSlider(nn.Module):
                 adapter.multiplier = value
 
     def save(self, path, metadata):
+        from particle_sliders.weight_policy import require_raw_provenance
+        require_raw_provenance(metadata)
         from safetensors.torch import save_file
 
         path = Path(path)
@@ -185,6 +186,8 @@ class TinyParticleSlider(nn.Module):
 
         with safe_open(str(path), framework="pt", device="cpu") as handle:
             record = json.loads((handle.metadata() or {}).get("conceptmod", "{}"))
+        from particle_sliders.weight_policy import require_raw_provenance
+        require_raw_provenance(record)
         required = dict(format=FORMAT, rank=8, alpha=8.0, particles=128,
                         particle_dim=4, bridge_width=48, router_width=16)
         if any(record.get(k) != v for k, v in required.items()):

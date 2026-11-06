@@ -263,6 +263,8 @@ def _min_ar_frames(duration: float) -> int:
 
 
 def _attach_lm_slider(pipe: Any, weights: Path, device: torch.device) -> LoRANetwork:
+    from particle_sliders.weight_policy import require_raw_checkpoint
+    require_raw_checkpoint(weights)
     from safetensors.torch import load_file
 
     network = LoRANetwork(

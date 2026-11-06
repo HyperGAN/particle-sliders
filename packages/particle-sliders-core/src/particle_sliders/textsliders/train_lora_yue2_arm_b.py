@@ -33,6 +33,8 @@ def source_hashes():
 
 def run_recipe(args, selected):
     """Pin an explicit LR-only experiment without mutating either recipe."""
+    if not args.no_ema:
+        raise ValueError('Weight EMA is disabled; use raw current weights')
     recipe = dict(selected.RECIPE)
     particle = args.recipe == 'particle_bridge'
     for key in ('end_weight', 'pole_weight', 'cover_weight', 'fm_weight',
@@ -46,7 +48,7 @@ def run_recipe(args, selected):
             raise ValueError('Particle bridge requires exactly 128x4 particles and particle VIC weight 1')
         if args.propose_only_c9_g4x or args.propose_only_lr_scale is not None:
             raise ValueError('Particle bridge pins the reference constant learning rates')
-        recipe['ema'] = None if args.no_ema else recipe['ema']
+        recipe['ema'] = None
         recipe.update(critic=args.critic, critic_config=critic_config(args),
                       adv_batch=int(args.adv_batch), noise_decay_steps=int(args.steps))
         from particle_sliders.textsliders import particle_bridge_gan as particle_game
@@ -94,6 +96,8 @@ def apply_run_lrs(g, d, recipe):
 
 
 def train(args):
+    if not args.no_ema:
+        raise ValueError('Weight EMA is disabled; use raw current weights')
     selected = game
     if args.recipe == 'gan_plus_neu':
         from particle_sliders.textsliders import yue2_gan_plus_neu as selected
@@ -131,6 +135,8 @@ def _train_locked(args,rows,meta,game):
         settings['history_tokens'] = int(args.history_tokens)
         settings['adv_batch'] = int(args.adv_batch)
     saved=torch.load(path,map_location='cpu',weights_only=True,mmap=True) if path.exists() else None
+    if saved and saved.get('ema') is not None:
+        raise ValueError('EMA checkpoint requires its archived implementation; no implicit raw migration')
     if saved and saved['signature']['settings']!=settings:
         raise ValueError('Resume recipe, prompts, model settings, or source differs')
     if not saved and (run/'manifest.json').exists():
@@ -186,10 +192,6 @@ def _train_locked(args,rows,meta,game):
         if any(len(h[key]) != batch or any(not 0 <= i < source_count for i in h[key])
                for h in history for key in ('d_rows','g_rows')):
             raise ValueError('Invalid saved particle-bridge prompt batches')
-        if saved and args.no_ema and saved.get('ema') is not None:
-            raise ValueError('RAW-only resume cannot load EMA shadow weights')
-        ema = None if args.no_ema else ({k:v.to(device) for k,v in saved['ema'].items()}
-                                      if saved else particle_game.initialize_ema(network))
         critic.noise_decay_steps = int(recipe['noise_decay_steps'])
     elif any(len(h['rows'])!=batch or len(set(h['rows']))!=batch for h in history):
         raise ValueError('Invalid saved prompt batches')
@@ -225,9 +227,6 @@ def _train_locked(args,rows,meta,game):
             noise_floor=teacher_audit['normalization']['noise_floor'],
         )), flush=True)
     write_json(run/'teacher-audit.json',teacher_audit)
-    probe_mod=None
-    if particle and not args.no_ema and not args.no_probe and int(args.sample_seeds)>1 and int(args.history_tokens)>0:
-        from particle_sliders.textsliders import distribution_probe as probe_mod
     start=time.monotonic();start_step=completed;stop=False
     def request_stop(*_):
         nonlocal stop
@@ -236,20 +235,6 @@ def _train_locked(args,rows,meta,game):
     def status(phase,**extra):
         write_json(run/'status.json',dict(status=phase,completed=completed,total=args.steps,until=args.until,
             elapsed_sec=time.monotonic()-start,start_step=start_step,gpu=os.getenv('CUDA_VISIBLE_DEVICES'),**extra))
-    def run_probe():
-        if probe_mod is None or not completed:
-            return
-        if completed%args.save_every!=0 and completed!=args.until:
-            return
-        if not probe_mod.needs_probe(run, completed):
-            return
-        status('probing',probe_step=completed)
-        probe_mod.probe_checkpoint(
-            run,backend,network,rows,fixed,step=completed,state=ema,
-            max_seq_len=args.max_seq_len,history_tokens=args.history_tokens,
-            probe_per_template=args.probe_seeds,listening_per_template=args.probe_listening_seeds,
-            seed=args.seed,model_id=args.model_id,dummy=args.dummy,stride=args.save_every,
-            critic_scale=critic.target_std.detach())
     def save():
         from particle_sliders._training import require_healthy_update
         require_healthy_update(g, d)
@@ -261,18 +246,14 @@ def _train_locked(args,rows,meta,game):
             sampler=sampler.state_dict(),rng=torch.get_rng_state(),
             cuda_rng=torch.cuda.get_rng_state_all() if device.type=='cuda' else [])
         if particle:
-            if ema is not None and any(not torch.isfinite(v).all() for v in ema.values()):
-                raise FloatingPointError('Non-finite EMA')
-            blob['ema'] = None if ema is None else _cpu(ema)
+            blob['ema'] = None
         temporary=path.with_suffix('.pt.tmp');torch.save(blob,temporary);temporary.replace(path)
         counted = [i for h in history for i in (h['d_rows']+h['g_rows'] if particle else h['rows'])]
         record=dict(metadata,step=completed,prompt_draws=len(counted),
             row_counts=dict(Counter(counted)))
         # Save the export atomically; preserve all older milestone exports.
         export=run/f'{args.name}_last.safetensors';tmp=run/f'{args.name}_pending.safetensors'
-        if particle and ema is not None:
-            network.save(tmp,dict(record,weights_kind='ema'),state=ema)
-        elif particle: network.save(tmp,dict(record,weights_kind='live'))
+        if particle: network.save(tmp,dict(record,weights_kind='raw'))
         else: network.save(tmp,record)
         tmp.replace(export);tmp.with_suffix('.json').replace(export.with_suffix('.json'))
         if particle:
@@ -284,15 +265,13 @@ def _train_locked(args,rows,meta,game):
             if not pinned.exists():
                 os.link(path,pinned)
                 os.link(export,run/f'{args.name}_step{completed}.safetensors')
-                write_json(run/f'{args.name}_step{completed}.json',dict(record,weights_kind='ema' if ema is not None else 'live') if particle else record)
+                write_json(run/f'{args.name}_step{completed}.json',dict(record,weights_kind='raw') if particle else record)
                 if particle:
                     os.link(live,run/f'{args.name}_live_step{completed}.safetensors')
                     write_json(run/f'{args.name}_live_step{completed}.json',dict(record,weights_kind='live'))
-        run_probe()
         status('paused' if stop else 'complete' if completed>=args.steps else 'checkpoint_ready' if completed>=args.until else 'training',
                prompt_draws=record['prompt_draws'],row_counts=record['row_counts'])
     try:
-        run_probe()
         if completed>=args.until:
             status('complete' if completed>=args.steps else 'checkpoint_ready');return
         if not saved:save()
@@ -311,7 +290,6 @@ def _train_locked(args,rows,meta,game):
                 if particle: extra['sampler'] = sampler
                 metrics=game.update(backend,network,critic,g,d,current,step=step,
                     checkpointing=not args.no_checkpointing,**extra)
-                if particle and ema is not None: particle_game.update_ema(ema,network)
                 completed=step
                 record=dict(metrics,step=step,rows=indices,step_seconds=time.monotonic()-begin,
                     g_lr=g.param_groups[0]['lr'],d_lr=d.param_groups[0]['lr'])
@@ -349,7 +327,7 @@ def parse_args(argv=None):
     averaging.add_argument('--no-ema',dest='no_ema',action='store_true',
         help='Use RAW weights only (default); do not create EMA state or comparisons')
     averaging.add_argument('--historical-ema',dest='no_ema',action='store_false',
-        help='Explicit particle-bridge historical reproduction only; not for new training')
+        help='Rejected compatibility flag: weight EMA is disabled')
     p.set_defaults(no_ema=True)
     p.add_argument('--critic',choices=['mlp','sn_mlp','patch','mix','gmix','bottleneck','lowrank','hybrid','query','bquery'],
         default='mlp',help='Particle-bridge discriminator architecture')
@@ -374,8 +352,8 @@ def parse_args(argv=None):
     p.add_argument('--probe_listening_seeds',type=int,default=4,
         help='Seeds per template reserved for final listening and excluded from the probe')
     a=p.parse_args(argv);a.until=a.steps if a.until is None else a.until
-    if not a.no_ema and a.recipe!='particle_bridge':
-        p.error('--historical-ema applies only to the historical particle_bridge recipe')
+    if not a.no_ema:
+        p.error('Weight EMA is disabled; --historical-ema cannot enable new averaging')
     if a.recipe=='particle_bridge' and (a.propose_only_c9_g4x or a.propose_only_lr_scale is not None):
         p.error('Particle bridge pins the reference constant learning rates')
     critic_values=(a.critic_patch,a.critic_width,a.critic_layers,a.critic_heads,

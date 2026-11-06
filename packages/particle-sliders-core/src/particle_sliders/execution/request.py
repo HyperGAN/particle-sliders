@@ -110,6 +110,10 @@ def validate_resolved(request):
     if request.get('schema') != REQUEST_SCHEMA or not isinstance(request.get('resolved'), dict):
         raise ValueError('expected resolved training request')
     profile = validate_profile(request['resolved']['profile'])
+    if profile['config_kind'] == 'session':
+        from ..weight_policy import require_no_weight_ema
+        for key in ('ema', 'ema_decay'):
+            require_no_weight_ema(request['training'].get('options', {}).get(key))
     if profile['name'] != request.get('profile'):
         raise ValueError('profile identity differs from resolved request')
     if digest(semantic_identity(request)) != request['resolved'].get('semantic_sha256'):
@@ -128,7 +132,7 @@ def validate_resolved(request):
         raise ValueError('output root must be named')
     if type(output.get('checkpoint_every')) is not int or output['checkpoint_every'] < 1:
         raise ValueError('checkpoint interval must be positive')
-    for key, choices in (('selection', ('raw', 'ema')), ('export_format', ('v1', 'v2', 'both'))):
+    for key, choices in (('selection', ('raw',)), ('export_format', ('v1', 'v2', 'both'))):
         if profile['config_kind'] == 'session' or key in output:
             if output.get(key) not in choices:
                 raise ValueError('unsupported artifact selection or export format')

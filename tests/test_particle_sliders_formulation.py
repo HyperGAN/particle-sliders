@@ -13,6 +13,7 @@ from particle_sliders.formulation import (
     CURRENT_FORMULATION_PROVISIONAL,
     RESEARCH_EXAM_IS_PROPOSE_ONLY,
     particle_gmix_1600_v2,
+    particle_gmix_1600_raw,
     winning_formulation,
 )
 
@@ -36,14 +37,15 @@ def _v2_spec():
 def test_winning_stamp_matches_v2_spec():
     spec = _v2_spec()
     stamp = winning_formulation()
-    assert CURRENT_FORMULATION is particle_gmix_1600_v2
+    assert CURRENT_FORMULATION is particle_gmix_1600_raw
     assert CURRENT_FORMULATION_PROVISIONAL is True
     assert stamp.formulation_provisional is True
     assert stamp.architecture_id == "gmix"
-    assert stamp.formulation_id == "particle-gmix-1600-v2"
+    assert stamp.formulation_id == "particle-gmix-1600-v2-raw"
     assert set(stamp.spec) == set(spec) - {"propose_only"}
     for key, value in stamp.spec.items():
-        assert value == spec[key], key
+        assert value == (None if key == "ema" else spec[key]), key
+    assert particle_gmix_1600_v2().parameters["ema"] == spec["ema"] == .995
     for key in ARCHITECTURE_SPEC_KEYS:
         assert key not in stamp.formulation.parameters
         assert stamp.spec[key] == stamp.architecture[key]

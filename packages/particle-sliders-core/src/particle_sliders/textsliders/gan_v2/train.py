@@ -21,7 +21,6 @@ from ..lora import LoRANetwork
 from .critic import SpanCritic, pad_sequences
 from .data import ROOT, prepare_rows, StudentForward, fixture_manifest, sha, validate_prompts
 from .engine import GANEngine, Recipe
-from .optimization import EffectiveEMA
 from . import state
 
 
@@ -49,9 +48,11 @@ def arm_settings(name,*,origin,horizon,diagnostics_every):
 
 
 def export(run,engine,ema,*,rank,alpha,metadata,prompts,run_signature):
+    if ema is not None:
+        raise ValueError('Weight EMA is disabled; averaged exports are unsupported')
     from safetensors.torch import save_file
     step=engine.completed
-    base=dict(steps=step,rank=rank,alpha=alpha,kind='language_model',target_replace=['Qwen3Attention'],
+    base=dict(weights_kind='raw',ema=None,steps=step,rank=rank,alpha=alpha,kind='language_model',target_replace=['Qwen3Attention'],
         prefix='lora_te',delimiter='-',train_method='full',unit_scale=1.,
         plus_label=metadata.get('plus_label','On'),minus_label=metadata.get('minus_label','Off'),
         prompts_file=str(Path(prompts).resolve()),recommended_range=[0.,1.],
@@ -61,15 +62,6 @@ def export(run,engine,ema,*,rank,alpha,metadata,prompts,run_signature):
     tensors={k:v.detach().cpu().contiguous() for k,v in engine.network.state_dict().items()}
     save_file(tensors,str(path));write_json(path.with_suffix('.json'),base)
     outputs={'live':str(path)}
-    if ema is not None:
-        if ema.step!=step:ema.update(engine.network,step)
-        averaged=run/f'{run.name}_ema_step{step}.safetensors'
-        save_file(ema.inference_state(),str(averaged))
-        sidecar=dict(base,rank=ema.rank,alpha=float(ema.rank),
-                     effective_ema=dict(decay=ema.decay,rank=ema.rank,last_compression_relative_error=ema.last_error,
-                         interpretation='EMA of effective delta weights, periodically observed and rank-compressed; validate audio separately.'))
-        write_json(averaged.with_suffix('.json'),sidecar);outputs['ema']=str(averaged)
-    write_json(run/'latest.json',dict(step=step,checkpoints=outputs))
     return outputs
 
 
@@ -100,13 +92,18 @@ def parse_args(argv=None):
     averaging.add_argument('--no-ema',dest='no_ema',action='store_true',
         help='Use RAW weights only (default); do not create EMA state or exports')
     averaging.add_argument('--historical-ema',dest='no_ema',action='store_false',
-        help='Explicit historical reproduction only; new training uses RAW weights')
+        help='Rejected compatibility flag: weight EMA is disabled')
     p.set_defaults(no_ema=True)
     p.add_argument('--recipe-overrides',type=Path,help='JSON overrides, included in the exact resume signature')
-    return p.parse_args(argv)
+    args = p.parse_args(argv)
+    if not args.no_ema:
+        p.error('Weight EMA is disabled; --historical-ema cannot enable new averaging')
+    return args
 
 
 def train(args):
+    if not args.no_ema:
+        raise ValueError('Weight EMA is disabled; use raw current weights')
     if not torch.cuda.is_available():raise RuntimeError('Use the assigned physical GPU via CUDA_VISIBLE_DEVICES=1')
     if min(args.rank,args.batch,args.save_every,args.ema_every)<1:raise ValueError('Invalid positive training setting')
     torch.set_num_threads(4);torch.manual_seed(args.seed);random.seed(args.seed)
@@ -137,7 +134,7 @@ def train(args):
     del calibration,mask
     engine=GANEngine(network,critic,StudentForward(lm,network,device),prepared,recipe)
     sampler=state.RowSampler(len(prepared),args.batch,args.seed)
-    ema=None if args.no_ema else EffectiveEMA(rank=args.ema_rank)
+    ema=None
     source=None
     if args.source_state:
         source=state.initialize_from_legacy(args.source_state,engine,reuse_critic=not critic_config['conditioned'])
@@ -146,14 +143,13 @@ def train(args):
     identity={'path':str(args.model_dir.resolve()),'files':{str(p.relative_to(args.model_dir)):
         {'size':p.stat().st_size,'mtime_ns':p.stat().st_mtime_ns} for p in sorted((args.model_dir/'language_model').glob('*.safetensors'))}}
     run_signature=state.signature(recipe,critic_config,fixture_manifest(prepared),rank=args.rank,alpha=float(args.rank),
-        ema_config=None if ema is None else dict(rank=args.ema_rank,decay=ema.decay,every=args.ema_every),
+        ema_config=None,
         model_identity=identity,source=source)
     # Batch/sampler and frame geometry must also be immutable on resume.
     run_signature['data']={'batch':args.batch,'seed':args.seed,'frames':args.frames,'policy_stride':args.policy_stride,
         'history_seeds':args.history_seeds,'prompts_sha256':sha(args.prompts)}
     history=state.restore(args.resume,engine,sampler,ema,run_signature) if args.resume else []
     if args.until<=engine.completed:raise ValueError('Requested endpoint must advance the loaded state')
-    if ema is not None and ema.step is None:ema.update(network,engine.completed)
     write_json(run/'manifest.json',run_signature)
     provenance=run/'provenance';provenance.mkdir(exist_ok=True)
     for path,expected in run_signature['sources'].items():
@@ -185,7 +181,6 @@ def train(args):
         with log.open('w') as handle:
             while engine.completed<args.until and not stop_requested:
                 row=engine.update(sampler.next());history.append(row)
-                if ema is not None and engine.completed%args.ema_every==0:ema.update(network,engine.completed)
                 handle.write(json.dumps(row,allow_nan=False)+'\n');handle.flush()
                 print(f"Update {engine.completed}: loss={sum(row['losses'].values()):.5f} "
                       f"FM grad factor={row['fm_gradient']['factor']:.3f} "
