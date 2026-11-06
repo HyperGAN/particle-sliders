@@ -13,7 +13,7 @@
     "music3_native.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-21/task-2/shared/packages/particle-sliders-core/src/particle_sliders/music3_native.py",
       "original_sha256": "bbdd408259475b6d2a16158eaa283d302f22f6d8e7a64c44aad35d8a1e943819",
-      "packaged_sha256": "c98838fc0e08d9e5a7ac605363c2a9d1a4ff4c76bb9a94ae39b15e8ed866c832"
+      "packaged_sha256": "b95a6063a504b5096d42c8de6f5c6d3268e7525b5b441dc96b51a993f0221c48"
     },
     "native_lora.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-21/task-2/shared/packages/particle-sliders-core/src/particle_sliders/native_lora.py",
