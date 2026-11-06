@@ -25,6 +25,7 @@ import torch
 from torch import nn
 
 from .reference import RoutedMLP
+from .adapter_attachment import atomic_attachment
 
 
 def attention_targets(model):
@@ -72,6 +73,7 @@ class RoutedProjection(nn.Module):
 
 class ParticleSlider(nn.Module):
     """One real shared 128x4 bank, attached after complete target validation."""
+    @atomic_attachment('model')
     def __init__(self, model):
         super().__init__()
         targets = attention_targets(model)

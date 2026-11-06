@@ -18,6 +18,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from particle_sliders.adapter_attachment import atomic_attachment
+
 IMG_SIZE = 256
 LATENT_SIZE = 32  # 256 / 8 (f8 VAE)
 LATENT_CH = 4
@@ -309,6 +311,7 @@ def _module_by_path(root: nn.Module, path: str) -> tuple[nn.Module, str]:
     return parent, parts[-1]
 
 
+@atomic_attachment('root')
 def attach_supra_lora(
     root: nn.Module,
     rank: int,

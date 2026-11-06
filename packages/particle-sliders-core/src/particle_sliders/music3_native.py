@@ -14,6 +14,7 @@ import torch
 from torch import nn
 
 from .native_lora import LoRAModule, LoRANetwork, lora_target_plan
+from .adapter_attachment import atomic_attachment
 from .reference import RoutedMLP
 
 DEFAULT_MODEL = Path("/ml2/music/models/MiniMax-Music3")
@@ -187,6 +188,7 @@ class _TinyLM(nn.Module):
 class ParticleNetwork(nn.Module):
     """Music 3 LM LoRA with a shared routed particle cloud between down and up."""
 
+    @atomic_attachment('lm')
     def __init__(self, lm, rank=8, alpha=8.0):
         super().__init__()
         if rank != 8 or float(alpha) != 8.0:

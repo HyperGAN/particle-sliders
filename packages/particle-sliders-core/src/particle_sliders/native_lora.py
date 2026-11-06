@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 
 from .adapter_activation import activation_is_entered, activation_mutation, push_activation, restore_activation
+from .adapter_attachment import atomic_attachment
 
 if TYPE_CHECKING:
     from diffusers import UNet2DConditionModel
@@ -261,6 +262,7 @@ class LoRAModule(nn.Module):
 
 
 class LoRANetwork(nn.Module):
+    @atomic_attachment('unet')
     def __init__(
         self,
         unet: "UNet2DConditionModel",

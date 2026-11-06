@@ -13,6 +13,7 @@ import torch.nn as nn
 from safetensors.torch import save_file
 
 from particle_sliders.adapter_activation import activation_is_entered, activation_mutation, push_activation, restore_activation
+from particle_sliders.adapter_attachment import atomic_attachment
 
 if TYPE_CHECKING:
     from diffusers import UNet2DConditionModel
@@ -195,6 +196,7 @@ class LoRAModule(nn.Module):
 
 
 class LoRANetwork(nn.Module):
+    @atomic_attachment('unet')
     def __init__(
         self,
         unet: "UNet2DConditionModel",
