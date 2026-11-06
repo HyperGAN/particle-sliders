@@ -89,8 +89,11 @@ def eval_command(candidate: dict, run: Path, output: Path) -> list[str]:
 
 
 def run_batch(root: Path, jobs: list[tuple[dict,int]], steps: int, phase: str):
+    if len({gpu for _, gpu in jobs}) != len(jobs):
+        raise ValueError('A training batch needs distinct GPUs')
     processes = []
-    for candidate, gpu in jobs:
+    # All multi-GPU users of these leases acquire in canonical order.
+    for candidate, gpu in sorted(jobs, key=lambda job: job[1]):
         run = root/'runs'/candidate['name']; run.mkdir(parents=True, exist_ok=True)
         if completed(run) >= steps:
             continue
@@ -125,7 +128,8 @@ def render_finalists(root: Path, finalists: list[dict], gpus: list[int]):
     for offset in range(0, len(finalists), len(gpus)):
         processes = []
         try:
-            for candidate, gpu in zip(finalists[offset:offset + len(gpus)], gpus):
+            batch = list(zip(finalists[offset:offset + len(gpus)], gpus))
+            for candidate, gpu in sorted(batch, key=lambda job: job[1]):
                 output = root/'listens'/candidate['name']
                 status = output/'status.json'
                 if status.exists() and json.loads(status.read_text()).get('stage') == 'Training and matched rendering complete':

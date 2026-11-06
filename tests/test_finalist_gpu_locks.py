@@ -79,3 +79,51 @@ def test_invalid_gpu_lists_refused_before_launch(tmp_path, monkeypatch, gpus):
     with pytest.raises(ValueError, match='distinct GPUs'):
         search.render_finalists(tmp_path, [{'name': '0'}], gpus)
     assert events == []
+
+
+@pytest.mark.parametrize('mode', ['train', 'render'])
+def test_concurrent_controllers_with_reversed_gpu_lists_do_not_deadlock(tmp_path, mode):
+    import multiprocessing
+    import time
+    context = multiprocessing.get_context('fork')
+    barrier, results = context.Barrier(2), context.Queue()
+
+    def controller(index, gpus):
+        native_flock = fcntl.flock
+        acquisitions = []
+        def flock(fd, flags):
+            if not acquisitions:
+                barrier.wait(timeout=3)
+            native_flock(fd, flags)
+            acquisitions.append(fd)
+            if len(acquisitions) == 1:
+                time.sleep(.1)  # Both old-order controllers can hold their first lease.
+        search.fcntl.flock = flock
+        search.ROOT = tmp_path / 'repo'
+        search.environment = lambda gpu: {}
+        class Done:
+            def wait(self, timeout=None): return 0
+            def poll(self): return 0
+        search.subprocess.Popen = lambda *args, **kwargs: Done()
+        candidates = [{'name': str(i), 'critic': 'mlp'} for i in range(2)]
+        try:
+            if mode == 'render':
+                search.render_finalists(tmp_path / str(index), candidates, gpus)
+            else:
+                search.run_batch(tmp_path / str(index), list(zip(candidates, gpus)), 1, 'fixture')
+            results.put(None)
+        except BaseException as exc:
+            results.put(repr(exc))
+
+    children = [context.Process(target=controller, args=(i, gpus)) for i, gpus in enumerate(([7, 8], [8, 7]))]
+    try:
+        for child in children: child.start()
+        for child in children: child.join(timeout=5)
+        assert all(not child.is_alive() and child.exitcode == 0 for child in children)
+        assert [results.get(timeout=1) for _ in children] == [None, None]
+    finally:
+        for child in children:
+            if child.is_alive(): child.terminate()
+            child.join(timeout=2)
+        results.close()
+    assert_leases_released(tmp_path, [7, 8])
