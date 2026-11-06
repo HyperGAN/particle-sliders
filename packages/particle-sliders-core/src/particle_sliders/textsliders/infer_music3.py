@@ -147,6 +147,9 @@ def infer(args: argparse.Namespace) -> list[Path]:
     if not weights.exists():
         raise FileNotFoundError(weights)
     meta = _sidecar_meta(weights)
+    from particle_sliders.weight_policy import require_raw_checkpoint, require_raw_provenance
+    require_raw_checkpoint(weights)
+    require_raw_provenance(meta)
     rank = int(args.rank if args.rank is not None else meta.get("rank", 4))
     alpha = float(args.alpha if args.alpha is not None else meta.get("alpha", 1.0))
     prompt, lyrics = args.prompt, args.lyrics

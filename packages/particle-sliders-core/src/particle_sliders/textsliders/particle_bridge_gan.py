@@ -845,14 +845,8 @@ def _identity_context():
 
 
 def initialize_ema(network):
-    return {k: value.detach().clone() for k, value in network.state_dict().items()}
+    raise ValueError('Weight EMA is disabled; use raw current weights')
 
 
-@torch.no_grad()
 def update_ema(ema, network):
-    parameters = set(dict(network.named_parameters()))
-    for name, value in network.state_dict().items():
-        if name in parameters:
-            ema[name].lerp_(value, 1. - REFERENCE['ema'])
-        else:
-            ema[name].copy_(value)
+    raise ValueError('Weight EMA is disabled; use raw current weights')

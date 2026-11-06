@@ -18,6 +18,8 @@ from torch.utils.checkpoint import checkpoint
 from safetensors import safe_open
 from safetensors.torch import load_file, save_file
 
+from particle_sliders.weight_policy import raw_checkpoint_admission
+
 from particle_sliders.textsliders.lora import LoRAModule
 from particle_sliders.adapter_attachment import atomic_attachment
 
@@ -121,6 +123,7 @@ class YuE2Slider(nn.Module):
         path.with_suffix(".json").write_text(json.dumps(record, indent=2) + "\n")
 
     @classmethod
+    @raw_checkpoint_admission
     @atomic_attachment('model')
     def load(cls, model, path):
         with safe_open(str(path), framework="pt", device="cpu") as handle:
@@ -130,6 +133,8 @@ class YuE2Slider(nn.Module):
             return ParticleSlider.load(model, path)
         if record.get("format") != FORMAT:
             raise ValueError("Not a native YuE2 composition-slider checkpoint")
+        from particle_sliders.weight_policy import require_raw_provenance
+        require_raw_provenance(record)
         sound_only(json.dumps(record, ensure_ascii=False))
         if record.get("dummy"):
             raise ValueError("Dummy checkpoints cannot be used for song generation")

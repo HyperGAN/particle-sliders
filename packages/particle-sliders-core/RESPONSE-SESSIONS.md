@@ -84,8 +84,8 @@ with open_response(config) as run:
     run.train(stop_after=2, on_step=report_completed_metrics)
     run.checkpoint('training.pt')
     response = run.evaluate(index=0, strength=.5, seed=7)
-    run.export('adapter.pt', selection='ema')              # v1: matching session
-    run.export_inference('adapter-v2.pt', selection='ema') # product InferenceSpec
+    run.export('adapter.pt', selection='raw')              # v1: matching session
+    run.export_inference('adapter-v2.pt', selection='raw') # product InferenceSpec
 with open_response(config, resume='training.pt') as run:
     run.train()
 ```
@@ -106,7 +106,7 @@ supplies its `InferenceSpec` on Binding. Its native-only factory builds base and
 adapter only, without teacher rows/cache, data, game, critic or optimizer.
 `local-native.json` is that product's documented runtime input, never a training
 configuration. Missing support fails before CLI updates/output creation. A response
-artifact carries raw/EMA and origin receipts, never a waveform qualification claim.
+artifact carries raw and origin receipts, never a waveform qualification claim.
 The standalone `examples/response_fixture` plugin and its source-free commands document
 the same
 complete factory seams without native dependencies or a pretrained model.
@@ -154,7 +154,7 @@ product has migrated or passed qualification under this proposal.
 
 Authored tests cover exact response split resume/EMA, invalid restore, cleanup,
 zero/fractional strengths and refusals, profile-aware preallocation gates,
-registry/packet isolation, native-only raw/EMA loading in a fresh process without
+registry/packet isolation, native-only raw loading in a fresh process without
 training data, image defaults and explicit CLI artifact names. The suite is
 `tests/test_response_lifecycle.py`; the installed example is
 `examples/response_fixture`. Qualification applies to its recorded source and

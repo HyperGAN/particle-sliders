@@ -69,7 +69,7 @@ def page(output,rows,seeds,recipe='unipolar_gan',include_canary=False,label='Met
     detail = 'Trained with the +/0 conditional GAN.' if recipe == 'gan_plus_neu' else 'Trained only at +1.'
     if recipe == 'particle_bridge':
         title = 'YuE2 metal · Routed particle bridge'
-        detail = 'Paired-error GAN with routed particles and particle VIC; EMA weights. Trained at +1.'
+        detail = 'Paired-error GAN with routed particles and particle VIC; raw current weights. Trained at +1.'
     title=title.replace('YuE2 metal',f'YuE2 {label}')
     display={'off':'Off','half':'Half','metal':label,'metal-caption':f'{label} caption','minus-canary':'−1 canary'}
     cards=[]

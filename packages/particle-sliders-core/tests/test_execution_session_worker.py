@@ -13,7 +13,7 @@ from test_compact_inference import plugin
 def test_periodic_session_and_exact_resume(tmp_path, plugin, monkeypatch):
     monkeypatch.setattr(lifecycle,'backend',lambda name:plugin.TRAINING)
     config=SessionConfig('compact-fixture','periodic-new-source-cohort',
-        model_file=str(tmp_path/'model.pt'), training_file=str(tmp_path/'training.pt'),steps=4,ema_decay=.9)
+        model_file=str(tmp_path/'model.pt'), training_file=str(tmp_path/'training.pt'),steps=4,ema_decay=None)
     configfile=tmp_path/'config.json';configfile.write_text(json.dumps(config.as_dict()))
     first=tmp_path/'first'
     main(['--config',str(configfile),'--output',str(first),'--checkpoint-every','1','--stop-after','2'])

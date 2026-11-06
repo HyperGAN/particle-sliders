@@ -18,18 +18,18 @@ from test_compact_inference import plugin  # shared local staged fixture
 def test_explicit_cli_formats(tmp_path, plugin, monkeypatch, format, names):
     monkeypatch.setattr(lifecycle, 'backend', lambda name: plugin.TRAINING)
     config = SessionConfig('compact-fixture', 'cli-new-source-cohort',
-        model_file=str(tmp_path / 'model.pt'), training_file=str(tmp_path / 'training.pt'), ema_decay=.9)
+        model_file=str(tmp_path / 'model.pt'), training_file=str(tmp_path / 'training.pt'), ema_decay=None)
     path = tmp_path / 'config.json'
     path.write_text(json.dumps(config.as_dict()))
     output = tmp_path / 'run'
     main(['train', '--config', str(path), '--out', str(output), '--stop-after', '2',
-          '--export-format', format, '--selection', 'ema'])
+          '--export-format', format, '--selection', 'raw'])
     assert {p.name for p in output.glob('adapter*.pt')} == names
     manifest = json.loads((output / 'manifest.json').read_text())
     assert set(manifest['files']) == names | {'training.pt', 'metrics.jsonl'}
     if format != 'v1':
         artifact = torch.load(output / 'adapter-v2.pt', weights_only=True)
-        assert artifact['schema'] == INFERENCE_V2 and artifact['selection'] == 'ema'
+        assert artifact['schema'] == INFERENCE_V2 and artifact['selection'] == 'raw'
 
 
 def test_missing_v2_spec_fails_before_update_or_output(tmp_path, plugin, monkeypatch):

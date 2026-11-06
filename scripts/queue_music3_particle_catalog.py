@@ -60,7 +60,7 @@ def slider_page_html(label: str) -> str:
         "a{color:#a9d7ff}</style>"
         f"<p><a href=\"../\">← catalog</a></p>"
         f"<h1>Music 3 · {label} · particle bridge</h1>"
-        f"<p>0 = Off · 1 = {label}. Paired-error GAN with routed particles and particle VIC; EMA weights. Trained at +1.</p>"
+        f"<p>0 = Off · 1 = {label}. Paired-error GAN with routed particles and particle VIC; raw current weights. Trained at +1.</p>"
         "<p id=\"status\">Waiting for training status…</p>"
         f"{body}"
     )

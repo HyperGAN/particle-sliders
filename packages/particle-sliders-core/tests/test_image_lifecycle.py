@@ -53,7 +53,7 @@ def session(particles=True, render=True):
         closed = []
         def draw(**kwargs):
             return game.backend.generated(game.rows[0]).clone()
-        result = SliderSession(SessionConfig('cpu', 'new-v1', ema_decay=.9),
+        result = SliderSession(SessionConfig('cpu', 'new-v1', ema_decay=None),
             Capabilities('routed_particle_gan' if particles else 'adapter_gan', render,
                          strength_min=None, strength_max=None),
             Binding(game, lambda: closed.append(True), draw if render else None))
@@ -82,7 +82,7 @@ def seal(packet):
 
 
 @pytest.mark.parametrize('particles', [True, False])
-def test_exact_resume_ema_and_observation(tmp_path, particles):
+def test_exact_resume_raw_and_observation(tmp_path, particles):
     full, split, resumed = session(particles), session(particles), session(particles)
     before_rng = torch.get_rng_state().clone()
     full.train()
@@ -112,7 +112,7 @@ def test_invalid_restore_is_atomic(damage):
     if damage == 'checksum':
         packet['sha256'] = 'invalid'
     elif damage == 'ema':
-        next(iter(packet['payload']['ema']['values'].values())).fill_(float('nan'))
+        packet['payload']['ema']['values'] = {'weight': torch.ones(2)}
     elif damage == 'sampler':
         packet['payload']['game']['row_cursors']['g'] = 999
     elif damage == 'optimizer':
@@ -133,14 +133,15 @@ def test_export_selection_is_inference_only_and_does_not_change_training(tmp_pat
     trained.train(stop_after=2)
     before = trained.checkpoint()
     raw = trained.export(selection='raw')
-    ema = trained.export(tmp_path / 'adapter.pt', selection='ema')
+    with pytest.raises(ValueError, match='raw'):
+        trained.export(selection='ema')
+    trained.export(tmp_path / 'adapter.pt')
     equal(before, trained.checkpoint())
-    assert any(not torch.equal(raw['payload']['adapter']['network'][key], value)
-               for key, value in ema['payload']['adapter']['network'].items())
+    assert trained.ema.values is None
     loaded = session()
     loaded.load_inference(read_packet(tmp_path / 'adapter.pt'))
-    equal(loaded.game.network.state_dict(), trained.ema.values)
-    for action in (lambda: loaded.restore(ema), loaded.step, loaded.train, loaded.checkpoint):
+    equal(loaded.game.network.state_dict(), raw['payload']['adapter']['network'])
+    for action in (lambda: loaded.restore(raw), loaded.step, loaded.train, loaded.checkpoint):
         with pytest.raises(UnsupportedOperation, match='inference-loaded'):
             action()
     assert not loaded.closed and loaded.cleanup_calls == []

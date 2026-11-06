@@ -25,7 +25,7 @@ exactly), not in-attention LoRA.
 
 Game numbers are read from ``particle_bridge_gan.REFERENCE``, never copied:
 G/D/particle LR 0.0006/0.0009/0.006, Adam betas (0, 0.999), constant,
-128x4 cloud, VIC coeff 1, lazy b_cap every 4th update x4, EMA 0.995, noise
+128x4 cloud, VIC coeff 1, lazy b_cap every 4th update x4, raw current weights, noise
 anneal 0.03 over 8000 (never compressed to the step budget). No output MSE,
 FM, ending, hold, or anchor. Unipolar (+ vs raw positive); the
 ``unconditional`` prompt row is an unscored canary. Propose-only: does not
@@ -266,7 +266,6 @@ def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) ->
         network = BonsaiParticleHead()
     critic, g, d = build_game(backend, network, fixed)
     sampler = shared.BridgeSampler(len(rows), int(args.seed))
-    ema = shared.initialize_ema(network)
 
     history = []
     for update_index in range(int(args.steps)):
@@ -275,7 +274,6 @@ def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) ->
             backend, network, critic, g, d, fixed,
             sampler=sampler, step=step,
         )
-        shared.update_ema(ema, network)
         rec = dict(metrics, step=step)
         history.append(rec)
         if step == 1 or step % 10 == 0 or step == int(args.steps):
@@ -318,7 +316,9 @@ def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) ->
         "particle_lr": ref["particle_lr"],
         "optimizer_betas": list(ref["betas"]),
         "schedule": "constant",
-        "ema": ref["ema"],
+        "ema": None,
+        "ema_decay": None,
+        "weights_kind": "raw",
         "vic_coeff": ref["vic_coeff"],
         "cap_coeff": ref["cap_coeff"],
         "cap_kappa": ref["cap_kappa"],
@@ -337,7 +337,7 @@ def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) ->
     save_dir.mkdir(parents=True, exist_ok=True)
     sidecar_path = save_dir / f"{args.name}_last.json"
     record = dict(sidecar, step=int(args.steps))
-    _save_state_as(network, ema, save_dir / f"{args.name}_last.safetensors", record)
+    network.save(save_dir / f"{args.name}_last.safetensors", record)
     network.save(save_dir / f"{args.name}_live_last.safetensors",
                  dict(record, weights_kind="live"))
     report_records: list[dict] = []
@@ -353,26 +353,6 @@ def train(args: argparse.Namespace, backend: BonsaiGGUFBackend | None = None) ->
     return sidecar
 
 
-def _save_state_as(network, state, path, record) -> None:
-    """Export EMA weights through the same format/validation as live saves."""
-    from safetensors.torch import save_file
-
-    if set(state) != set(network.state_dict()):
-        raise ValueError("EMA state does not match the particle network")
-    if any(not torch.isfinite(v).all() for v in state.values()):
-        raise ValueError("Non-finite EMA weights")
-    stamped = dict(
-        record, format=FORMAT, rank=network.rank, alpha=network.alpha,
-        hidden=HIDDEN, particles=128, particle_dim=4,
-        bridge_width=48, router_width=16,
-    )
-    save_file(
-        {k: v.detach().float().cpu().contiguous() for k, v in state.items()},
-        str(path), metadata={"conceptmod": json.dumps(stamped, sort_keys=True)},
-    )
-    Path(str(path)).with_suffix(".json").write_text(json.dumps(stamped, indent=2) + "\n")
-
-
 def main(argv: list[str] | None = None) -> dict:
     args = parse_args(argv)
     return train(args)
@@ -381,10 +361,14 @@ def main(argv: list[str] | None = None) -> dict:
 def _flatten_config(config: dict) -> dict:
     """Map the YAML card onto CLI names.
 
-    Game numbers (LRs, cloud, VIC, noise, EMA) are pinned in
+    Game numbers (LRs, cloud, VIC, noise) are pinned in
     ``particle_bridge_gan.REFERENCE`` and are NOT configurable here; the
     card only carries identity + budget + prompts.
     """
+    from particle_sliders.weight_policy import require_no_weight_ema
+    for section in (config, config.get('train') or {}, config.get('game') or {}):
+        for key in ('ema', 'ema_decay'):
+            require_no_weight_ema(section.get(key))
     flat: dict = {}
     # Identity (repo/file) is pinned in code, never configurable.
     train_cfg = config.get("train") or {}

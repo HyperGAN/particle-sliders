@@ -55,6 +55,9 @@ class FormulationGame:
         critic_targets: torch.Tensor | None = None,
         critic_neutrals: torch.Tensor | None = None,
     ):
+        from .weight_policy import require_no_weight_ema
+        require_no_weight_ema(declared.get("ema"))
+        require_no_weight_ema(stamp.spec.get("ema"))
         torch.manual_seed(int(seed))
         self.stamp = stamp
         self.declared = dict(declared)

@@ -62,6 +62,6 @@ The loader restores the adapter, critic, optimizers and random streams together
 before allowing another update. An old game packet alone cannot recover an
 interrupted generator update; keep the original packet and adapter artifact.
 
-New image consumers use the [versioned image session lifecycle](../packages/particle-sliders-core/IMAGE-LIFECYCLE.md), which owns factory preparation, stepping, EMA, checkpoint/export, response/native rendering dispatch and cleanup. Historical root exports retain their named objectives; they are not the recommended image lifecycle.
+New image consumers use the [versioned image session lifecycle](../packages/particle-sliders-core/IMAGE-LIFECYCLE.md), which owns factory preparation, stepping, raw checkpoints and exports, response/native rendering dispatch and cleanup. Historical root exports retain their named objectives; they are not the recommended image lifecycle.
 
 [HyperGAN run-rendering and HANDL network-definition seams](hypergan-interface-seams.md) are handed off separately; current custom definitions are inventoried and have not been silently rewritten.

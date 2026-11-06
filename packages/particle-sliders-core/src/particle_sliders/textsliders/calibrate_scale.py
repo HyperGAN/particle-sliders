@@ -474,6 +474,9 @@ def attach_lora(
     meta: dict[str, Any],
     device: torch.device,
 ) -> LoRANetwork:
+    from particle_sliders.weight_policy import require_raw_checkpoint, require_raw_provenance
+    require_raw_checkpoint(weights)
+    require_raw_provenance(meta)
     rank = int(meta.get("rank", 8))
     alpha = float(meta.get("alpha", 8.0))
     replace = list(meta.get("target_replace") or DEFAULT_REPLACE)

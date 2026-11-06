@@ -9,7 +9,7 @@ Native base models and model libraries remain local product dependencies.
 from particle_sliders.inference import open_inference
 
 # After installing one reviewed product and its native dependencies:
-with open_inference("ema.pt", options={"model_dir": "/local/model"},
+with open_inference("raw.pt", options={"model_dir": "/local/model"},
                     operation="response") as session:
     response = session.response(strength=0.5, seed=7)
     print(session.selection, session.manifest["origin"])
@@ -21,9 +21,9 @@ Default output is the first declared native format (a latent-only fixture needs
 no PIL override). Unsupported rendering fails before allocation. No generic
 solver substitutes for native image/audio sampling.
 
-CLI: `particle-slider infer --artifact ema.pt --runtime local.json --mode
+CLI: `particle-slider infer --artifact raw.pt --runtime local.json --mode
 response --native request.json --out response.pt`. This accepts no training
-configuration, resume packet, teacher cache or dataset. It saves a raw/EMA and
+configuration, resume packet, teacher cache or dataset. It saves the raw selection and
 origin receipt beside the output.
 
 ## Factory contract
@@ -46,11 +46,11 @@ During training the product creates a descriptor using
 `INFERENCE_BACKEND.specification(native_backend, model_identity=verified_model,
 protocol="product-native-v1", configuration=architecture_options)` and places
 it in `Binding.inference`. The descriptor contains no training/cache identity.
-`session.export_inference("ema.pt", selection="ema")` validates that descriptor
+`session.export_inference("raw.pt", selection="raw")` validates that descriptor
 against the actual trained native adapter. Source/model/architecture/protocol,
 factory hashes and every tensor schema are validated on native loading before
 state mutation. Artifacts retain cohort, training-manifest digest, PG version,
-completed steps and raw/EMA selection as receipts, without requiring training
+completed steps and raw selection as receipts, without requiring training
 resources. Loading a v2 export cannot train, checkpoint or resume.
 
 Legacy v1 export/load remains explicit and still rebuilds the training game.

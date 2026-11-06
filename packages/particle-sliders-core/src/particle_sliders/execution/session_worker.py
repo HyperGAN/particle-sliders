@@ -24,7 +24,7 @@ def main(argv=None):
     parser.add_argument('--resume', type=Path)
     parser.add_argument('--stop-after', type=int)
     parser.add_argument('--checkpoint-every', type=int, default=32)
-    parser.add_argument('--selection', choices=('raw', 'ema'), default='raw')
+    parser.add_argument('--selection', choices=('raw',), default='raw')
     parser.add_argument('--export-format', choices=('v1', 'v2', 'both'), default='v1')
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args(argv)
@@ -50,8 +50,6 @@ def main(argv=None):
             from particle_sliders.inference import InferenceSpec
             if not isinstance(session.binding.inference, InferenceSpec):
                 raise ValueError('v2 export requires native InferenceSpec before training')
-        if args.selection == 'ema' and session.ema.decay is None:
-            raise ValueError('EMA selection requires configured EMA')
         args.output.mkdir(parents=True, exist_ok=True)
         target = args.stop_after or session.game.recipe.total_steps
         final_checkpoint = None

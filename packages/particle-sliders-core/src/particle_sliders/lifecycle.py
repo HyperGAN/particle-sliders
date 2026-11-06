@@ -18,6 +18,7 @@ from typing import Callable
 import torch
 
 from .pg09 import ConditionalPG09, PG_SOURCE_PROFILE, _hash, _validate_module
+from .weight_policy import require_no_weight_ema, require_raw_selection
 
 API = 'particle-sliders-image-session-v1'
 TRAINING = API + '-training'
@@ -50,6 +51,9 @@ class SessionConfig:
     def __init__(self, backend, cohort, **options):
         if not isinstance(backend, str) or not backend or not isinstance(cohort, str) or not cohort:
             raise ValueError('backend and a nonempty new cohort name are required')
+        require_no_weight_ema(options.get('ema_decay'))
+        require_no_weight_ema(options.get('ema'))
+        options.setdefault('ema_decay', None)
         encoded = json.dumps(options, sort_keys=True, allow_nan=False)
         object.__setattr__(self, 'backend', backend)
         object.__setattr__(self, 'cohort', cohort)
@@ -167,9 +171,7 @@ class Backend:
                 raise ValueError(key + ' has an invalid lifecycle budget')
         if options.get('batch', 2) > 512 or options.get('seed', 7) >= 2**63 - 100:
             raise ValueError('batch or seed exceeds the public PG budget')
-        decay = options.get('ema_decay')
-        if decay is not None and (not math.isfinite(decay) or not 0 <= decay < 1):
-            raise ValueError('EMA decay must be in [0,1)')
+        require_no_weight_ema(options.get('ema_decay'))
         try:
             self.validate(options)  # No weight/device allocation in these hooks.
             if self.preflight is not None:
@@ -462,46 +464,38 @@ def _check_packet(packet):
 
 
 class EMA:
-    """EMA of the actual network, including particles exactly once via ownership."""
+    """Disabled compatibility envelope for raw-only session checkpoint schemas."""
     def __init__(self, network, decay=None):
-        if decay is not None and (not math.isfinite(decay) or not 0 <= decay < 1):
-            raise ValueError('EMA decay must be in [0,1), or None')
-        self.decay = decay
-        self.values = deepcopy(network.state_dict()) if decay is not None else None
+        require_no_weight_ema(decay)
+        self.decay, self.values = None, None
 
-    @torch.no_grad()
     def update(self, network):
+        require_no_weight_ema(self.decay)
         if self.values is not None:
-            for key, value in network.state_dict().items():
-                if value.is_floating_point():
-                    self.values[key].lerp_(value, 1 - self.decay)
-                else:
-                    self.values[key].copy_(value)
+            raise CheckpointError('Weight EMA shadows are unsupported')
 
     def validate(self, network, state):
-        if not isinstance(state, dict) or set(state) != {'decay', 'values'} or state['decay'] != self.decay:
-            raise CheckpointError('EMA configuration differs')
-        if self.decay is None:
-            if state['values'] is not None:
-                raise CheckpointError('unexpected EMA values')
-        else:
-            _validate_module(network, state['values'])
+        if not isinstance(state, dict) or set(state) != {'decay', 'values'} or state['decay'] is not None or state['values'] is not None:
+            raise CheckpointError('Weight EMA checkpoint is incompatible; preserve it with its archived implementation')
 
     def state_dict(self):
-        return deepcopy(dict(decay=self.decay, values=self.values))
+        self.update(None)
+        return dict(decay=None, values=None)
 
     def load_state_dict(self, network, state):
         self.validate(network, state)
-        self.values = (None if self.decay is None else
-                       {key: value.to(network.state_dict()[key]).detach().clone() for key, value in state['values'].items()})
+        self.decay, self.values = None, None
 
 
 def advance(game, *, ema=None):
     """One PG update with scale captured through backward; preserve native math."""
+    if ema is not None:
+        # Refuse an enabled/foreign averaging object before an optimizer update.
+        if not isinstance(ema, EMA):
+            raise ValueError('Weight EMA is disabled')
+        ema.update(None)
     with game.network.scaled(1.):
         metrics = game.step()
-    if ema is not None:
-        ema.update(game.network)
     return metrics
 
 
@@ -662,10 +656,8 @@ class SliderSession:
                     raise CheckpointError('metrics step differs from checkpoint')
                 _hash(metrics)
                 prepared_metrics = deepcopy(metrics)
-                # Validate AND perform tensor conversion/allocation on an isolated
-                # EMA before PG can mutate the live game. Never clone a backend.
-                # Loading replaces values after complete conversion; copying just
-                # the container avoids cloning the old EMA that will be discarded.
+                # Validate the disabled historical envelope before PG mutates
+                # the live game. Averaged checkpoints are never silently migrated.
                 prepared_ema = copy(self.ema)
                 try:
                     prepared_ema.load_state_dict(self.game.network, payload['ema'])
@@ -710,11 +702,8 @@ class SliderSession:
     def export(self, path=None, *, selection='raw'):
         self._open()
         self.capabilities.check('export')
-        if selection not in ('raw', 'ema') or selection == 'ema' and self.ema.values is None:
-            raise ValueError('select raw or a configured EMA')
+        require_raw_selection(selection)
         state = self.game.export_state_dict()
-        if selection == 'ema':
-            state['network'] = deepcopy(self.ema.values)
         result = self._packet(self.inference_schema, dict(adapter=state, selection=selection))
         if path is not None:
             atomic_save(path, result)
@@ -729,8 +718,8 @@ class SliderSession:
         payload = self._validate(packet, self.inference_schema)
         if not isinstance(payload, dict) or set(payload) != {'selection', 'adapter'}:
             raise CheckpointError('invalid inference packet fields')
-        if payload['selection'] not in ('raw', 'ema'):
-            raise CheckpointError('unknown inference selection')
+        if payload['selection'] != 'raw':
+            raise CheckpointError('Only raw inference is supported; averaged artifacts require their archived loader')
         try:
             self.game.load_export_state_dict(payload['adapter'])
         except (ValueError, KeyError, TypeError) as exc:

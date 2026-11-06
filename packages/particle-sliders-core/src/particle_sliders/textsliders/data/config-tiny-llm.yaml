@@ -26,7 +26,8 @@ game:
   cap_coeff: 1.0
   cap_kappa: 1.0
   cap_every: 4
-  ema: 0.995
+  ema: null
+  ema_decay: null
   noise_floor: 0.03
   noise_decay_steps: 8000
 network:

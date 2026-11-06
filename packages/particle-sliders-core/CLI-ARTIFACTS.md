@@ -2,7 +2,7 @@
 
 `particle-slider train --config local.json --out new-run` retains the existing
 v1 `adapter.pt` default. Use `--export-format v2` for native-only `adapter-v2.pt`,
-or `--export-format both` for both. `--selection raw|ema` applies to each export.
+or `--export-format both` for both. `--selection raw` applies to each export.
 The product factory must supply its native-only `InferenceSpec` before training
 starts when v2 is requested. Missing support fails before an update/output write.
 The receipt hashes the actual selected files. `training.pt` remains the full,

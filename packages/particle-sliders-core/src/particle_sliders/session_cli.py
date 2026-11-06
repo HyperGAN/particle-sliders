@@ -29,7 +29,7 @@ def legacy_main(argv=None):
     parser.add_argument('--stop-after', type=int)
     parser.add_argument('--export-format', choices=('v1', 'v2', 'both'), default='v1',
                         help='train exports: v1 adapter.pt, v2 native-only adapter-v2.pt, or both')
-    parser.add_argument('--selection', choices=('raw', 'ema'), default='raw')
+    parser.add_argument('--selection', choices=('raw',), default='raw')
     parser.add_argument('--row', type=int, default=0)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--strength', type=float, default=1.)

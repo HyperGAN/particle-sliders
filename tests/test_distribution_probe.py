@@ -234,47 +234,29 @@ def test_probe_flags_are_particle_only():
         parse_args(['--save_dir', 'unused', '--probe_seeds', '8'])
 
 
-def test_training_writes_one_ema_probe_and_keeps_it_out_of_the_training_bank(tmp_path):
+def test_default_training_never_creates_an_ema_probe(tmp_path):
     pytest.importorskip('yue2')
     prompts = tmp_path / 'p.yaml'
     prompts.write_text(yaml.safe_dump(dict(rows=[
-        dict(neutral='English. BPM 112. One adult female lead vocalist. Guitar band clear vocal.',
-             positive='English. BPM 112. One adult female lead vocalist. Saturated high-gain guitars.',
-             lyrics='[verse]\nWe carry crate 0'),
-        dict(neutral='English. BPM 148. One adult male lead vocalist. Guitar band clear vocal.',
-             positive='English. BPM 148. One adult male lead vocalist. Saturated high-gain guitars.',
-             lyrics='[verse]\nWe carry crate 1'),
-    ])))
+        dict(neutral=f'Guitar band {i}', positive=f'Saturated guitar band {i}', lyrics=f'We carry crate {i}')
+        for i in range(2)])))
     save = tmp_path / 'run'
-    common = [
-        '--recipe', 'particle_bridge', '--dummy', '--name', 'probe-test', '--steps', '1',
+    train(parse_args([
+        '--recipe', 'particle_bridge', '--dummy', '--device', 'cpu', '--name', 'probe-test', '--steps', '1',
         '--save_every', '1', '--prompts_file', str(prompts), '--save_dir', str(save),
-        '--sample_seeds', '2', '--history_tokens', '2', '--probe_seeds', '1',
-        '--probe_listening_seeds', '1',
-    ]
-    train(parse_args(common))
-    training = torch.load(save / 'prepared.pt', map_location='cpu', weights_only=True)['prepared']
-    bank = torch.load(save / 'prepared-eval.pt', map_location='cpu', weights_only=True)
-    train_seeds = {int(row['sample_seed']) for row in training}
-    eval_seeds = {int(row['sample_seed']) for row in bank['prepared']}
-    listen_seeds = {int(row['sample_seed']) for row in bank['listening']}
-    assert len(training) == 4
-    assert len(bank['prepared']) == 2
-    assert train_seeds.isdisjoint(eval_seeds)
-    assert train_seeds.isdisjoint(listen_seeds)
-    assert eval_seeds.isdisjoint(listen_seeds)
-    fixtures = torch.load(save / 'probe-fixtures.pt', map_location='cpu', weights_only=True)
-    assert tuple(fixtures['projections'].shape) == (probe.PROJECTION_COUNT, training[0]['neutral'].reshape(-1).numel())
-    lines = [json.loads(line) for line in (save / 'probe.jsonl').read_text().splitlines()]
-    assert [row['strength'] for row in lines] == [0.25, 0.5, 1.0]
-    assert all(row['weights_kind'] == 'ema' and row['evaluator_auc'] is None for row in lines)
-    assert all(row['evaluator_status'] == 'not_trained' and row['examples'] == 2 for row in lines)
-    full = lines[-1]
-    assert 'female' in full['subgroups']['vocal'] and 'male' in full['subgroups']['vocal']
-    summary = json.loads((save / 'probe-summary.json').read_text())
-    assert summary['best_step'] == 1
-    assert summary['stopping']['status'] == 'collecting'
-    assert summary['stopping']['finished'] is False
-    text = (save / 'probe.jsonl').read_text()
-    train(parse_args(common))
-    assert (save / 'probe.jsonl').read_text() == text
+        '--sample_seeds', '2', '--history_tokens', '2', '--probe_seeds', '1', '--adv_batch', '2',
+        '--probe_listening_seeds', '1']))
+    assert torch.load(save / 'state.pt', weights_only=True)['ema'] is None
+    for name in ('prepared-eval.pt', 'probe-fixtures.pt', 'probe.jsonl', 'probe-summary.json'):
+        assert not (save / name).exists()
+
+
+def test_ema_probe_execution_is_refused_before_model_access():
+    kwargs = dict(step=1, max_seq_len=1024, history_tokens=32, probe_per_template=2,
+                  listening_per_template=1, seed=7, model_id='unused', dummy=True, stride=1)
+    with pytest.raises(ValueError, match='EMA probes'):
+        probe.probe_checkpoint('unused', None, None, [], [], weights_kind='ema', **kwargs)
+    with pytest.raises(ValueError, match='EMA probes'):
+        probe.probe_checkpoint('unused', None, None, [], [], state={}, **kwargs)
+    with pytest.raises(ValueError, match='EMA sweep'):
+        probe.main(['--save_dir', 'unused', '--prompts_file', 'unused'])

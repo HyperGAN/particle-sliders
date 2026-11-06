@@ -333,6 +333,7 @@ _GMIX_ARCHITECTURE = _freeze({
     **_ARCHITECTURE_SPEC,
 })
 _GMIX_1600 = FormulationParameters(GMIX_1600_FORMULATION_ID, _GMIX_1600_PARAMETERS)
+_GMIX_1600_RAW = FormulationParameters("particle-gmix-1600-v2-raw", {**_GMIX_1600_PARAMETERS, "ema": None})
 
 
 def gmix_architecture():
@@ -352,6 +353,11 @@ def particle_gmix_1600_v2():
     architecture. Replaced when ParticleGAN #38 crowns a full-board winner.
     """
     return _GMIX_1600
+
+
+def particle_gmix_1600_raw():
+    """Raw-only derivative; the named historical v2 record remains unchanged."""
+    return _GMIX_1600_RAW
 
 
 def locked_shared_recipe():
@@ -392,6 +398,12 @@ def particlegan_get_recipe(name="gan", *, optimizer_dense_profile="auto", **over
     Explicit default retains the original upstream solver; auto changes only the
     dense profile where supported. Returned Recipe owns all optimizer builders.
     """
+    from .weight_policy import require_no_weight_ema
+    decay = overrides.get("ema_decay")
+    if decay != 0.0 or isinstance(decay, bool):
+        require_no_weight_ema(decay)
+    if decay is None:
+        overrides.pop("ema_decay", None)
     from particlegan import get_recipe
     from .optimizer_policy import configure_dense_profile
 
@@ -406,8 +418,8 @@ def particlegan_get_recipe(name="gan", *, optimizer_dense_profile="auto", **over
 # CURRENT_FORMULATION_ID, and its parameters must not restate gmix architecture
 # keys. Products keep calling winning_formulation().
 # ---------------------------------------------------------------------------
-CURRENT_FORMULATION_ID = GMIX_1600_FORMULATION_ID
-CURRENT_FORMULATION = particle_gmix_1600_v2
+CURRENT_FORMULATION_ID = "particle-gmix-1600-v2-raw"
+CURRENT_FORMULATION = particle_gmix_1600_raw
 CURRENT_FORMULATION_PROVISIONAL = True
 
 _OVERLAY = CURRENT_FORMULATION()

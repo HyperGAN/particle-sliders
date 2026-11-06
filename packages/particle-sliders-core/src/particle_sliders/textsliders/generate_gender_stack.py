@@ -45,6 +45,9 @@ from particle_sliders.textsliders.lora import LoRANetwork  # noqa: E402
 def _wrap_sidecar(pipe, device, weights: Path, fallback_kind: str) -> tuple[LoRANetwork, dict]:
     """Build a network for one weights file, all params from its sidecar JSON."""
     meta = _sidecar(weights)
+    from particle_sliders.weight_policy import require_raw_checkpoint, require_raw_provenance
+    require_raw_checkpoint(weights)
+    require_raw_provenance(meta)
     kind = str(meta.get("kind") or fallback_kind)
     if kind == "language_model":
         host = pipe.language_model
@@ -69,6 +72,8 @@ def _wrap_sidecar(pipe, device, weights: Path, fallback_kind: str) -> tuple[LoRA
 
 
 def _wrap(host, replace, prefix, rank, alpha, device, weights: Path, train_method="full", delimiter="-") -> LoRANetwork:
+    from particle_sliders.weight_policy import require_raw_checkpoint
+    require_raw_checkpoint(weights)
     network = LoRANetwork(
         host,
         rank=rank,

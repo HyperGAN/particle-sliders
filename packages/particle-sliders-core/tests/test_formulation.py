@@ -17,6 +17,7 @@ from particle_sliders import (
 )
 from particle_sliders.formulation import (
     CURRENT_FORMULATION,
+    particle_gmix_1600_raw,
     CURRENT_FORMULATION_ID,
     CURRENT_FORMULATION_PROVISIONAL,
     WINNER_GATE,
@@ -26,12 +27,12 @@ from particle_sliders.formulation import (
 
 def test_package_exports_the_stamp_and_regularizer():
     stamp = winning_formulation()
-    assert stamp.formulation is particle_gmix_1600_v2()
+    assert stamp.formulation is particle_gmix_1600_raw()
     assert gmix_recipe() == gmix_architecture()
     assert stamp.architecture == gmix_architecture()
-    assert CURRENT_FORMULATION is particle_gmix_1600_v2
+    assert CURRENT_FORMULATION is particle_gmix_1600_raw
     assert stamp.architecture_id == stamp.id == "gmix"
-    assert stamp.formulation_id == CURRENT_FORMULATION_ID == "particle-gmix-1600-v2"
+    assert stamp.formulation_id == CURRENT_FORMULATION_ID == "particle-gmix-1600-v2-raw"
     assert stamp.family == "particle-gmix"
     assert stamp.formulation_provisional is True
     assert CURRENT_FORMULATION_PROVISIONAL is True

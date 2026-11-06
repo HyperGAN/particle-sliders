@@ -41,10 +41,10 @@ def vector(tmp_path, monkeypatch):
 
 def config(tmp_path):
     return SessionConfig('vector-fixture', 'new-response-source-cohort',
-        model_file=str(tmp_path / 'base.txt'), training_file=str(tmp_path / 'rows.txt'), ema_decay=.9)
+        model_file=str(tmp_path / 'base.txt'), training_file=str(tmp_path / 'rows.txt'), ema_decay=None)
 
 
-def test_shared_response_resume_ema_and_observation(tmp_path, vector):
+def test_shared_response_resume_raw_and_observation(tmp_path, vector):
     options = config(tmp_path)
     with response.open_response(options) as full, response.open_response(options) as split:
         full.train()
@@ -173,7 +173,7 @@ def test_response_native_only_fresh_process_without_training_data(tmp_path, vect
     with response.open_response(config(tmp_path)) as session:
         session.train(stop_after=2)
         expected = {}
-        for selection in ('raw', 'ema'):
+        for selection in ('raw',):
             packet = session.export_inference(tmp_path / (selection + '.pt'), selection=selection)
             InferenceSpec(packet['specification'])
             with open_inference(packet, options={'model_file': str(tmp_path / 'base.txt')},
@@ -208,13 +208,13 @@ AudioResponseCritic.__init__ = forbidden
 torch.optim.Optimizer.__init__ = forbidden
 vector_fixture.TRAINING.prepare.__code__ = forbidden.__code__
 expected = torch.load(root / 'expected.pt', weights_only=True)
-for selection in ('raw', 'ema'):
+for selection in ('raw',):
     with open_inference(root / (selection + '.pt'), options={'model_file': str(root / 'base.txt')},
                         operation='response') as session:
         assert session.selection == selection
         assert torch.equal(session.response(strength=.5), expected[selection])
 assert not torch.cuda.is_initialized()
-print('fresh native-only vector raw/EMA response passed')
+print('fresh native-only vector raw response passed')
 '''
     paths = [str(installed), str(Path(particle_sliders.__file__).parent.parent), str(Path(particlegan.__file__).parent.parent)]
     env = dict(os.environ, CUDA_VISIBLE_DEVICES='', HF_HUB_OFFLINE='1', OMP_NUM_THREADS='1', MKL_NUM_THREADS='1', PYTHONPATH='')

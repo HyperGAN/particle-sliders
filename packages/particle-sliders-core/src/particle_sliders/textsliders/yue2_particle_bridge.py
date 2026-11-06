@@ -9,6 +9,7 @@ from safetensors import safe_open
 from safetensors.torch import load_file, save_file
 
 from particle_sliders.adapter_attachment import atomic_attachment
+from particle_sliders.weight_policy import raw_checkpoint_admission
 
 from particle_sliders.textsliders import particle_bridge_gan as shared
 from particle_sliders.textsliders.yue2_arm_b import load_prompts, RECIPE as OLD_RECIPE
@@ -17,7 +18,7 @@ from particle_sliders.textsliders.yue2_backend import (
 )
 
 FORMAT = 'conceptmod-yue2-routed-particle-ar-v1'
-RECIPE = dict(OLD_RECIPE, name='anneal-routed-particle-error-yue2-v1',
+HISTORICAL_RECIPE = dict(OLD_RECIPE, name='anneal-routed-particle-error-yue2-v1',
     generator_objective='paired_error_rpgan_plus_particle_vic',
     parts=128, particle_dim=4, vicreg_weight=1., g_lr=.0006, d_lr=.0009,
     particle_lr=.006, g_optimizer='Adam', g_weight_decay=0., grad_clip_value=None,
@@ -35,6 +36,9 @@ RECIPE = dict(OLD_RECIPE, name='anneal-routed-particle-error-yue2-v1',
     model_glue_reference='df70ccb2ca8f532bdcc07a343fd12bec77362523',
     config_sha256='1ef39a623505691b8710cd37cb768452cd79f6666d109614af297e9d270d88bb',
     propose_only=True, merge_to_trainer=False)
+
+# Preserve the historical template without enabling moving weights in new runs.
+RECIPE = dict(HISTORICAL_RECIPE, ema=None)
 
 
 class ParticleProjection(_Adapter):
@@ -81,7 +85,13 @@ class ParticleSlider(YuE2Slider):
             architecture=self.architecture, targets=self.target_names,
             particles=128, particle_dim=4, bridge_width=48, router_width=16,
             upstream_revision=UPSTREAM_REVISION)
+        from particle_sliders.weight_policy import require_raw_provenance
+        require_raw_provenance(record)
         payload = json.dumps(record, sort_keys=True, ensure_ascii=False); sound_only(payload)
+        if state is not None:
+            current = self.state_dict()
+            if set(state) != set(current) or any(not torch.equal(value.detach().cpu(), current[key].detach().cpu()) for key, value in state.items()):
+                raise ValueError('Only raw current network weights may be exported')
         state = self.state_dict() if state is None else state
         if state.keys() != self.state_dict().keys() or any(not torch.isfinite(v).all() for v in state.values()):
             raise ValueError('Invalid particle-slider export')
@@ -90,11 +100,14 @@ class ParticleSlider(YuE2Slider):
         path.with_suffix('.json').write_text(json.dumps(record, indent=2) + '\n')
 
     @classmethod
+    @raw_checkpoint_admission
     @atomic_attachment('model')
     def load(cls, model, path):
         with safe_open(str(path), framework='pt', device='cpu') as f:
             record = json.loads((f.metadata() or {}).get('conceptmod', '{}'))
         sound_only(json.dumps(record, ensure_ascii=False))
+        from particle_sliders.weight_policy import require_raw_provenance
+        require_raw_provenance(record)
         required = dict(format=FORMAT, rank=8, alpha=8., particles=128, particle_dim=4,
                         bridge_width=48, router_width=16)
         if any(record.get(k) != v for k, v in required.items()) or record.get('dummy'):

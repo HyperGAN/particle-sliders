@@ -66,7 +66,8 @@ def test_game_is_the_shared_yue2_module_not_a_copy():
     assert RECIPE["d_lr"] == ref["d_lr"] == 0.0009
     assert RECIPE["particle_lr"] == ref["particle_lr"] == 0.006
     assert tuple(RECIPE["optimizer_betas"]) == tuple(ref["betas"]) == (0.0, 0.999)
-    assert RECIPE["ema"] == ref["ema"] == 0.995
+    assert RECIPE["ema"] is None
+    assert ref["ema"] == 0.995  # historical reference remains unchanged
     assert RECIPE["vicreg_weight"] == ref["vic_coeff"] == 1.0
     assert RECIPE["penalty_lazy_k"] == ref["cap_every"] == 4
     assert RECIPE["noise_floor"] == ref["noise_floor"] == 0.03
@@ -194,7 +195,7 @@ def test_dummy_train_runs_shared_game_with_no_mse(tmp_path):
     assert sidecar["propose_only"] is True
     assert sidecar["unipolar"] is True
     ref = yue2_game.REFERENCE
-    for key in ("g_lr", "d_lr", "particle_lr", "ema", "vic_coeff",
+    for key in ("g_lr", "d_lr", "particle_lr", "vic_coeff",
                 "cap_coeff", "cap_kappa", "cap_every",
                 "noise_floor", "noise_decay_steps"):
         assert sidecar[key] == ref[key], key
@@ -214,9 +215,16 @@ def test_dummy_train_runs_shared_game_with_no_mse(tmp_path):
         assert rec["noise_std"] == pytest.approx(
             yue2_game.noise_std(rec["step"]))
     assert history[0]["noise_std"] == pytest.approx(yue2_game.noise_std(1))
-    # EMA + live exports exist; report pins scale-0 exactness post-train.
+    # Raw last + compatibility live exports exist; report pins scale-0 exactness.
     assert (tmp_path / "tiny-game_last.safetensors").is_file()
     assert (tmp_path / "tiny-game_live_last.safetensors").is_file()
+    from safetensors.torch import load_file
+    current = load_file(tmp_path / "tiny-game_live_last.safetensors")
+    exported = load_file(tmp_path / "tiny-game_last.safetensors")
+    assert sidecar["ema"] is None and sidecar["ema_decay"] is None
+    assert sidecar["weights_kind"] == "raw"
+    assert current.keys() == exported.keys()
+    assert all(torch.equal(value, exported[key]) for key, value in current.items())
     report = json.loads((tmp_path / "report" / "hidden_delta.json").read_text())
     assert len(report) == 4
     by_scale = {}
@@ -344,7 +352,7 @@ def test_yaml_rows_and_config_card_match_shared_reference():
     assert cfg["train"]["recipe"] == "particle_bridge"
     assert cfg["game"]["module"] == "particle_sliders.textsliders.particle_bridge_gan"
     ref = yue2_game.REFERENCE
-    for key in ("g_lr", "d_lr", "particle_lr", "ema", "vic_coeff",
+    for key in ("g_lr", "d_lr", "particle_lr", "vic_coeff",
                 "cap_coeff", "cap_kappa", "cap_every",
                 "noise_floor", "noise_decay_steps"):
         assert cfg["game"][key] == ref[key], key

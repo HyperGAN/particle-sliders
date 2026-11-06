@@ -143,6 +143,6 @@ def response_backend(name):
 
 
 def open_response(config, *, resume=None, artifact=None, operation='train', **request):
-    """Shared preparation, step/EMA, exact resume, observation and cleanup."""
+    """Shared preparation, raw updates, exact resume, observation and cleanup."""
     return _open_registered(config, resume=resume, artifact=artifact, operation=operation,
         request=request, resolve=response_backend, training_schema=TRAINING, inference_schema=INFERENCE)
