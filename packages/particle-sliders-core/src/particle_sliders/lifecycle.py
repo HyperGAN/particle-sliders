@@ -248,7 +248,7 @@ def _seed_observation(seed, devices):
 
 
 @contextmanager
-def _network_observation(network, seed, *, devices, observation=None):
+def _network_observation(network, seed, *, devices, observation=None, restore_failed=None):
     """Preserve every registered adapter buffer, including nonpersistent ones.
 
     Buffer references/registrations are retained independently of state_dict,
@@ -284,18 +284,30 @@ def _network_observation(network, seed, *, devices, observation=None):
         with torch.random.fork_rng(devices=devices), torch.no_grad():
             _seed_observation(seed, devices)
             network.eval()
-            with observation() if observation else nullcontext():
-                yield
+            body_error = None
+            try:
+                with observation() if observation else nullcontext():
+                    try:
+                        yield
+                    except BaseException as exc:
+                        body_error = exc
+                        raise
+            except BaseException as exc:
+                # A product context enter/exit failure may leave native state
+                # partially changed; an ordinary body failure is restored below.
+                if exc is not body_error and restore_failed is not None:
+                    restore_failed()
+                raise
     except BaseException as exc:
         primary = exc
         raise
     finally:
         _restore_all([restore_buffers, lambda: network.load_state_dict(state, strict=True), restore_buffers,
             *(lambda module=module, training=training: setattr(module, 'training', training)
-              for module, training in modes)], primary=primary)
+              for module, training in modes)], primary=primary, on_failure=restore_failed)
 
 
-def _restore_all(actions, *, primary=None):
+def _restore_all(actions, *, primary=None, on_failure=None):
     """Attempt every action; preserve only the explicitly supplied operation error.
 
     Ambient exceptions may belong to an unrelated caller's ``except`` block.
@@ -308,6 +320,8 @@ def _restore_all(actions, *, primary=None):
         except BaseException as exc:
             failures.append(exc)
     if failures:
+        if on_failure is not None:
+            on_failure()
         if primary is not None:
             for failure in failures:
                 primary.add_note('native restoration failed: ' + type(failure).__name__ + ': ' + str(failure))
@@ -522,6 +536,7 @@ class SliderSession:
             raise ValueError('backend implementation contradicts its declared capabilities')
         self.ema = EMA(self.game.network, config.options.get('ema_decay'))
         self.closed = False
+        self._cleanup_failed = False
         self.inference_only = False
         self.last_metrics = None
         self._evaluation_rows = dict(binding.evaluation_rows or {})
@@ -554,6 +569,11 @@ class SliderSession:
     def _open(self):
         if self.closed:
             raise LifecycleError('session is closed')
+        if self._cleanup_failed:
+            raise LifecycleError('session requires cleanup after a failed restoration or close')
+
+    def _restoration_failed(self):
+        self._cleanup_failed = True
 
     def _training(self):
         self._open()
@@ -715,7 +735,8 @@ class SliderSession:
         self._open()
         network = self.game.network
         devices = _rng_devices(network, self.game.device, self.config.options, request)
-        with _network_observation(network, seed, devices=devices, observation=self.binding.observation):
+        with _network_observation(network, seed, devices=devices, observation=self.binding.observation,
+                                  restore_failed=self._restoration_failed):
             yield
 
     def evaluate(self, index=0, *, seed=0, strength=1., split='train'):
@@ -753,6 +774,7 @@ class SliderSession:
 
     def close(self):
         if not self.closed:
+            self._cleanup_failed = True
             self.binding.close()
             self.closed = True
 
