@@ -22,6 +22,7 @@ from .pg09 import ConditionalPG09, PG_SOURCE_PROFILE, _hash, _validate_module
 API = 'particle-sliders-image-session-v1'
 TRAINING = API + '-training'
 INFERENCE = API + '-inference'
+_RESTORATION_FAILED = '_particle_sliders_restoration_failed'
 
 
 class LifecycleError(RuntimeError):
@@ -295,9 +296,12 @@ def _network_observation(network, seed, *, devices, observation=None, restore_fa
             except BaseException as exc:
                 # A product context enter/exit failure may leave native state
                 # partially changed; an ordinary body failure is restored below.
-                if exc is not body_error and restore_failed is not None:
+                if (exc is not body_error or getattr(exc, _RESTORATION_FAILED, False)) and restore_failed is not None:
                     restore_failed()
                 raise
+            finally:
+                if getattr(body_error, _RESTORATION_FAILED, False) and restore_failed is not None:
+                    restore_failed()
     except BaseException as exc:
         primary = exc
         raise
@@ -320,6 +324,9 @@ def _restore_all(actions, *, primary=None, on_failure=None):
         except BaseException as exc:
             failures.append(exc)
     if failures:
+        # A product context can retain the body exception as the primary error.
+        # Propagate restoration failure explicitly, rather than parsing notes.
+        setattr(primary if primary is not None else failures[0], _RESTORATION_FAILED, True)
         if on_failure is not None:
             on_failure()
         if primary is not None:

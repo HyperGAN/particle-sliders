@@ -105,3 +105,34 @@ def test_native_context_exit_failure_quarantines_but_body_error_alone_does_not(k
     with pytest.raises(LifecycleError, match='requires cleanup'):
         session.render()
     session.close()
+
+
+@pytest.mark.parametrize('kind', ['training', 'inference'])
+@pytest.mark.parametrize('suppress', [False, True])
+def test_native_cleanup_failure_with_preserved_body_exception_still_quarantines(kind, suppress):
+    from particle_sliders.lifecycle import _restore_all
+    session, _ = make_session(kind)
+    primary = RuntimeError('original body failure')
+    @contextmanager
+    def observation():
+        try:
+            yield
+        except BaseException as error:
+            def fail():
+                raise RuntimeError('native cleanup failed')
+            _restore_all([fail], primary=error)
+            if not suppress:
+                raise
+    session.binding.observation = observation
+    if suppress:
+        with session._observation(0):
+            raise primary
+    else:
+        with pytest.raises(RuntimeError) as caught:
+            with session._observation(0):
+                raise primary
+        assert caught.value is primary
+    assert any('native cleanup failed' in note for note in primary.__notes__)
+    with pytest.raises(LifecycleError, match='requires cleanup'):
+        session.render()
+    session.close()
