@@ -13,6 +13,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from particle_sliders.adapter_activation import activation_mutation, push_activation, restore_activation
+
 from particle_sliders.textsliders.minimax_h3_uni import apply_unused_hold
 
 DEFAULT_MODEL = "MiniMaxAI/MiniMax-H3"
@@ -277,16 +279,21 @@ class AttnLoRANetwork(nn.Module):
                 self.add_module(lora_name, lora)
 
     def set_lora_slider(self, scale: float) -> None:
-        self.lora_scale = float(scale)
+        with activation_mutation(self):
+            self.lora_scale = float(scale)
 
     def __enter__(self):
-        for lora in self.loras:
-            lora.multiplier = 1.0 * self.lora_scale
+        push_activation(self, self.loras, ('multiplier',))
+        try:
+            for lora in self.loras:
+                lora.multiplier = 1.0 * self.lora_scale
+        except BaseException:
+            restore_activation(self)
+            raise
         return self
 
     def __exit__(self, *exc):
-        for lora in self.loras:
-            lora.multiplier = 0.0
+        restore_activation(self)
         return False
 
     def save_weights(self, file: str, dtype=None) -> None:
