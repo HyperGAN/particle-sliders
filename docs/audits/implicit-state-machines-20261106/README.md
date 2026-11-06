@@ -15,7 +15,7 @@ Each entry identifies state carriers, states/events, guards, failure/retry behav
 | Adapters and native generation | [A01–A27](adapters.md) | Attach/patch ownership, strength/envelope scopes, exact OFF behavior, PEFT scaling baselines, shared particle banks, checkpoint loads, backend placement/freeze/eval, checkpoint recomputation, teacher caches, capture/replay hooks, stage-specific generation, condition/attention intervention. A15 is contextual admission, A16–17 cross-reference C entries, and A27 is fixture-only. |
 | Pipelines, selection and research orchestration | [O01–O35](orchestration.md) | Artifact-driven pipeline stages, listening/calibration, immutable benchmarks, durable queues, GPU leases, train/render campaigns, finalist search, distillation/package/publication, render claims, staged evaluation, confirmation and evidence archives. Includes historical derived verdicts as contextual guards. |
 
-The [fix PR tracker](fix-prs.md) links each priority finding to a separate proposed fix and records review dependencies.
+The [fix PR tracker](fix-prs.md) links each priority finding to its reviewed fix and records validation, review findings and merge commits.
 
 ## Findings to address first
 
