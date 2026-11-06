@@ -8,6 +8,8 @@ from torch import nn
 from safetensors import safe_open
 from safetensors.torch import load_file, save_file
 
+from particle_sliders.adapter_attachment import atomic_attachment
+
 from particle_sliders.textsliders import particle_bridge_gan as shared
 from particle_sliders.textsliders.yue2_arm_b import load_prompts, RECIPE as OLD_RECIPE
 from particle_sliders.textsliders.yue2_backend import (
@@ -52,6 +54,7 @@ class ParticleProjection(_Adapter):
 
 
 class ParticleSlider(YuE2Slider):
+    @atomic_attachment('model')
     def __init__(self, model, rank=8, alpha=8.):
         nn.Module.__init__(self)
         if rank != 8 or alpha != 8.:

@@ -19,6 +19,7 @@ from safetensors import safe_open
 from safetensors.torch import load_file, save_file
 
 from particle_sliders.textsliders.lora import LoRAModule
+from particle_sliders.adapter_attachment import atomic_attachment
 
 DEFAULT_MODEL = "m-a-p/YuE2-3B"
 DEFAULT_VAE = "m-a-p/YuE2-Vae"
@@ -74,6 +75,7 @@ class _Adapter(LoRAModule):
 
 
 class YuE2Slider(nn.Module):
+    @atomic_attachment('model')
     def __init__(self, model, rank=8, alpha=8.0):
         super().__init__()
         if rank < 1 or not math.isfinite(alpha) or alpha <= 0:

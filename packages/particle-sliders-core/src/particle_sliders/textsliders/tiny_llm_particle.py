@@ -22,6 +22,8 @@ from pathlib import Path
 import torch
 from torch import nn
 
+from particle_sliders.adapter_attachment import atomic_attachment
+
 from particle_sliders.textsliders import particle_bridge_gan as shared
 from particle_sliders.textsliders.tiny_llm_backend import (
     ATTN_CLASS_NAMES,
@@ -123,6 +125,7 @@ class TinyParticleProjection(nn.Module):
 class TinyParticleSlider(nn.Module):
     """Wrap attention ``q/k/v/o`` Linears only, sharing one 128x4 cloud."""
 
+    @atomic_attachment('model')
     def __init__(self, model: nn.Module, rank: int = 8, alpha: float = 8.0) -> None:
         super().__init__()
         if int(rank) != 8 or float(alpha) != 8.0:

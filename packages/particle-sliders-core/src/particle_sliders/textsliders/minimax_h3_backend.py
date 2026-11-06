@@ -14,6 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from particle_sliders.adapter_activation import activation_mutation, push_activation, restore_activation
+from particle_sliders.adapter_attachment import atomic_attachment
 
 from particle_sliders.textsliders.minimax_h3_uni import apply_unused_hold
 
@@ -254,6 +255,7 @@ class _AttnLoRA(nn.Module):
 class AttnLoRANetwork(nn.Module):
     """Wrap ``MiniMaxH3Attention`` ``to_q/to_k/to_v/to_out.0`` only. Skip AdaLN."""
 
+    @atomic_attachment('transformer')
     def __init__(
         self,
         transformer: nn.Module,

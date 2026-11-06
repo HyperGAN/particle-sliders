@@ -59,6 +59,7 @@ import torch.nn.functional as F
 from particle_sliders.adapter_activation import (
     activation_is_entered, activation_mutation, push_activation, restore_activation,
 )
+from particle_sliders.adapter_attachment import atomic_attachment
 
 from particle_sliders.textsliders.ltx25_uni import (
     DEFAULT_RECIPE,
@@ -825,6 +826,7 @@ class _AttnLoRA(nn.Module):
 class AttnLoRANetwork(nn.Module):
     """Wrap video ``attn1`` / ``attn2`` ``to_q/k/v/to_out.0`` only."""
 
+    @atomic_attachment('transformer')
     def __init__(
         self,
         transformer: nn.Module,
@@ -897,6 +899,7 @@ class AttnLoRANetwork(nn.Module):
 class ModuleLoRANetwork(nn.Module):
     """LoRA on an explicit list of Linear hosts (TE last-N + video connectors)."""
 
+    @atomic_attachment('hosts')
     def __init__(
         self,
         hosts: Sequence[tuple[str, nn.Linear]],

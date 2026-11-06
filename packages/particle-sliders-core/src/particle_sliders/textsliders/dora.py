@@ -15,6 +15,7 @@ import torch.nn.functional as F
 from safetensors.torch import save_file
 
 from particle_sliders.adapter_activation import push_activation, restore_activation
+from particle_sliders.adapter_attachment import atomic_attachment
 
 if TYPE_CHECKING:
     from diffusers import UNet2DConditionModel
@@ -169,6 +170,7 @@ class DoRAModule(nn.Module):
 
 
 class DoRANetwork(nn.Module):
+    @atomic_attachment('unet')
     def __init__(
         self,
         unet: UNet2DConditionModel,

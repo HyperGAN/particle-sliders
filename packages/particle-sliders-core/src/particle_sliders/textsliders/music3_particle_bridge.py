@@ -15,6 +15,8 @@ from torch import nn
 from safetensors.torch import load_file, save_file
 import yaml
 
+from particle_sliders.adapter_attachment import atomic_attachment
+
 from particle_sliders.textsliders import particle_bridge_gan as shared
 from particle_sliders.textsliders.lora import LoRANetwork
 from particle_sliders.textsliders.slider_targets import lm_faithful_plus_neu
@@ -173,6 +175,7 @@ class _TinyLM(nn.Module):
 class ParticleNetwork(nn.Module):
     """Music 3 LM LoRA with a shared routed particle cloud between down and up."""
 
+    @atomic_attachment('lm')
     def __init__(self, lm, rank=8, alpha=8.0):
         super().__init__()
         if rank != 8 or float(alpha) != 8.0:
