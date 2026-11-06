@@ -89,8 +89,11 @@ def eval_command(candidate: dict, run: Path, output: Path) -> list[str]:
 
 
 def run_batch(root: Path, jobs: list[tuple[dict,int]], steps: int, phase: str):
+    if len({gpu for _, gpu in jobs}) != len(jobs):
+        raise ValueError('A training batch needs distinct GPUs')
     processes = []
-    for candidate, gpu in jobs:
+    # All multi-GPU users of these leases acquire in canonical order.
+    for candidate, gpu in sorted(jobs, key=lambda job: job[1]):
         run = root/'runs'/candidate['name']; run.mkdir(parents=True, exist_ok=True)
         if completed(run) >= steps:
             continue
@@ -118,22 +121,59 @@ def train_phase(root: Path, candidates: list[dict], steps: int, gpus: list[int],
 
 
 def render_finalists(root: Path, finalists: list[dict], gpus: list[int]):
-    processes = []
-    for index,candidate in enumerate(finalists):
-        gpu = gpus[index % len(gpus)]
-        output = root/'listens'/candidate['name']
-        status = output/'status.json'
-        if status.exists() and json.loads(status.read_text()).get('stage') == 'Training and matched rendering complete':
-            continue
-        lock = (ROOT.parent/f'.music-gpu-{gpu}.lock').open('a'); fcntl.flock(lock, fcntl.LOCK_EX)
-        log_path=root/'logs'/f"{candidate['name']}-render.log"; handle=log_path.open('a')
-        process=subprocess.Popen(eval_command(candidate,root/'runs'/candidate['name'],output),
-            cwd=ROOT,env=environment(gpu),stdout=handle,stderr=subprocess.STDOUT,
-            pass_fds=(lock.fileno(),))
-        processes.append((candidate,gpu,process,handle,lock))
-    for candidate,gpu,process,handle,lock in processes:
-        code=process.wait();handle.close();lock.close()
-        if code:raise RuntimeError(f"render {candidate['name']} on GPU {gpu} exited {code}")
+    if not gpus or len(set(gpus)) != len(gpus):
+        raise ValueError('Rendering needs a nonempty list of distinct GPUs')
+    # A lease stays owned by the parent until its child is reaped. Never
+    # acquire a second lease for that GPU while the first descriptor is open.
+    for offset in range(0, len(finalists), len(gpus)):
+        processes = []
+        try:
+            batch = list(zip(finalists[offset:offset + len(gpus)], gpus))
+            for candidate, gpu in sorted(batch, key=lambda job: job[1]):
+                output = root/'listens'/candidate['name']
+                status = output/'status.json'
+                if status.exists() and json.loads(status.read_text()).get('stage') == 'Training and matched rendering complete':
+                    continue
+                lock = (ROOT.parent/f'.music-gpu-{gpu}.lock').open('a')
+                handle = None
+                try:
+                    fcntl.flock(lock, fcntl.LOCK_EX)
+                    log_path = root/'logs'/f"{candidate['name']}-render.log"
+                    log_path.parent.mkdir(parents=True, exist_ok=True)
+                    handle = log_path.open('a')
+                    process = subprocess.Popen(eval_command(candidate,root/'runs'/candidate['name'],output),
+                        cwd=ROOT,env=environment(gpu),stdout=handle,stderr=subprocess.STDOUT,
+                        pass_fds=(lock.fileno(),))
+                except BaseException:
+                    if handle is not None:
+                        handle.close()
+                    lock.close()
+                    raise
+                processes.append((candidate,gpu,process,handle,lock))
+            failures = []
+            for candidate,gpu,process,handle,lock in processes:
+                code = process.wait()
+                handle.close()
+                lock.close()
+                if code:
+                    failures.append(f"render {candidate['name']} on GPU {gpu} exited {code}")
+            if failures:
+                raise RuntimeError('; '.join(failures))
+        finally:
+            # Only processes created by this invocation are touched. Keep
+            # their inherited lock FDs leased until termination and reap.
+            for _,_,process,handle,lock in processes:
+                try:
+                    if process.poll() is None:
+                        process.terminate()
+                        try:
+                            process.wait(timeout=10)
+                        except subprocess.TimeoutExpired:
+                            process.kill()
+                            process.wait()
+                finally:
+                    handle.close()
+                    lock.close()
 
 
 def provisional_board(root: Path, candidates: list[dict]):

@@ -10,6 +10,8 @@ import time
 from .core import Store, read, write, immutable, digest, sha, locked, IntegrityError
 from .ff_evaluate import evaluate
 
+from .attempt_commit import commit_decision, decision_committed
+
 REQUIRED=('hypothesis','failure_mechanism','method','parent_checkpoint','changed_variables','budget','sources')
 
 
@@ -88,9 +90,8 @@ def execute(home,folder,recipe,evaluator=evaluate):
         immutable(folder/'training-selection.json',selection)
         decision=dict(advance=False,decision='rejected_training_selection',run_id=None,
                       next_action='try_next_registered_attempt',reason='Off won the predeclared training objective')
-        immutable(folder/'decision.json',decision);write(folder/'status.json',dict(state='decided',**decision))
         from .ff_artifacts import archive_selection
-        archive_selection(home,folder.name)
+        commit_decision(folder, decision, lambda: archive_selection(home,folder.name))
         store.event('attempt_decided',attempt_id=folder.name,**decision)
         return 'rejected'
     if recipe.get('checkpoint') and Path(recipe['checkpoint']).exists():
@@ -99,16 +100,16 @@ def execute(home,folder,recipe,evaluator=evaluate):
             if not target.exists():shutil.copy2(path,target)
             if sha(target)!=sha(path):raise IntegrityError('Attempt adapter archive differs from evaluated weights')
     kwargs={'max_new_clips':recipe['budget'].get('new_clips',16)} if evaluator is evaluate else {}
-    card=evaluator(home,recipe['checkpoint'],recipe.get('multiplier',1.),'auto',folder.name,**kwargs)
+    card=(read(folder/'scorecard.json') if (folder/'scorecard.json').exists() else
+          evaluator(home,recipe['checkpoint'],recipe.get('multiplier',1.),'auto',folder.name,**kwargs))
     if card['decision'] in ('engineering_failure','incomplete'):
         write(folder/'status.json',dict(state='engineering_failure',run_id=card['run_id']))
         return 'engineering_failure'
     immutable(folder/'scorecard.json',card)
     decision=dict(advance=card['advance'],decision=card['decision'],run_id=card['run_id'],
                   next_action='freeze_fresh_confirmation_protocol' if card['advance'] and card['stage']==16 else 'try_next_registered_attempt')
-    immutable(folder/'decision.json',decision);write(folder/'status.json',dict(state='decided',**decision))
     from .ff_artifacts import archive
-    archive(home,folder.name)
+    commit_decision(folder, decision, lambda: archive(home,folder.name))
     store.event('attempt_decided',attempt_id=folder.name,**decision)
     return 'confirmation_required' if card['advance'] and card['stage']==16 else 'budget_exhausted' if card['decision']=='attempt_budget_exhausted' else 'rejected'
 
@@ -121,7 +122,7 @@ def search(home,resume=True,evaluator=evaluate):
             if (store.home/'STOP').exists():
                 store.status('user_stopped',research_complete=False);return dict(state='user_stopped',completed=completed)
             folders=sorted((store.home/'attempts').glob('attempt-*'),key=lambda p:read(p/'status.json')['created_unix'] if 'created_unix' in read(p/'status.json') else p.stat().st_ctime)
-            pending=[p for p in folders if not (p/'decision.json').exists()]
+            pending=[p for p in folders if not decision_committed(p)]
             if not pending:
                 store.event('method_selection_required',completed_attempts=len(folders))
                 store.status('method_selection_required',research_complete=False,completed_attempts=len(folders),

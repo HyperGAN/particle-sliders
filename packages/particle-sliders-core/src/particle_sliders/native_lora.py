@@ -12,6 +12,9 @@ from typing import TYPE_CHECKING, Optional, List, Type, Set, Literal
 import torch
 import torch.nn as nn
 
+from .adapter_activation import activation_is_entered, activation_mutation, push_activation, restore_activation
+from .adapter_attachment import atomic_attachment
+
 if TYPE_CHECKING:
     from diffusers import UNet2DConditionModel
 
@@ -259,6 +262,7 @@ class LoRAModule(nn.Module):
 
 
 class LoRANetwork(nn.Module):
+    @atomic_attachment('unet')
     def __init__(
         self,
         unet: "UNet2DConditionModel",
@@ -368,7 +372,8 @@ class LoRANetwork(nn.Module):
         else:
             torch.save(state_dict, file)
     def set_lora_slider(self, scale):
-        self.lora_scale = scale
+        with activation_mutation(self):
+            self.lora_scale = scale
 
     def set_seq_gain(self, gain, mode: str = "stretch"):
         """Per-position envelope for the LoRA delta. None = uniform.
@@ -383,22 +388,28 @@ class LoRANetwork(nn.Module):
             tensor = gain.detach().float().reshape(-1).cpu()
         else:
             tensor = torch.tensor(list(gain), dtype=torch.float32)
-        self.seq_gain = tensor
-        self.seq_gain_mode = mode
-        for lora in self.unet_loras:
-            lora.seq_gain = tensor
-            lora.seq_gain_mode = mode
+        with activation_mutation(self):
+            self.seq_gain = tensor
+            self.seq_gain_mode = mode
+            if not activation_is_entered(self):
+                for lora in self.unet_loras:
+                    lora.seq_gain = tensor
+                    lora.seq_gain_mode = mode
 
     def __enter__(self):
-        for lora in self.unet_loras:
-            lora.multiplier = 1.0 * self.lora_scale
-            lora.seq_gain = self.seq_gain
-            lora.seq_gain_mode = getattr(self, "seq_gain_mode", "stretch")
+        push_activation(self, self.unet_loras, ('multiplier', 'seq_gain', 'seq_gain_mode'))
+        try:
+            for lora in self.unet_loras:
+                lora.multiplier = 1.0 * self.lora_scale
+                lora.seq_gain = self.seq_gain
+                lora.seq_gain_mode = getattr(self, "seq_gain_mode", "stretch")
+        except BaseException:
+            restore_activation(self)
+            raise
+        return self
 
     def __exit__(self, exc_type, exc_value, tb):
-        for lora in self.unet_loras:
-            lora.multiplier = 0
-            lora.seq_gain = None
+        restore_activation(self)
 
 
 def _is_lora_delta_layer(module) -> bool:

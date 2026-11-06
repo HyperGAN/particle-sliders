@@ -13,17 +13,17 @@
     "music3_native.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-21/task-2/shared/packages/particle-sliders-core/src/particle_sliders/music3_native.py",
       "original_sha256": "bbdd408259475b6d2a16158eaa283d302f22f6d8e7a64c44aad35d8a1e943819",
-      "packaged_sha256": "bbdd408259475b6d2a16158eaa283d302f22f6d8e7a64c44aad35d8a1e943819"
+      "packaged_sha256": "b95a6063a504b5096d42c8de6f5c6d3268e7525b5b441dc96b51a993f0221c48"
     },
     "native_lora.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-21/task-2/shared/packages/particle-sliders-core/src/particle_sliders/native_lora.py",
       "original_sha256": "9cb43b8b03148e11c9b957e81ed3897a965f2a21c69d440c6aaafee452aa6018",
-      "packaged_sha256": "9cb43b8b03148e11c9b957e81ed3897a965f2a21c69d440c6aaafee452aa6018"
+      "packaged_sha256": "f514f827b74744ec2705d30589eb862a2ba15c1d49b847830c50dffc0b465fb4"
     },
     "yue2_native.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-17/task-12/venv-pg091/lib/python3.11/site-packages/particle_sliders/yue2_native.py",
       "original_sha256": "b28b9db5358df02a1f9d65e07b4aa7537fab9e8d1ff416a03c8e353513b9c2b3",
-      "packaged_sha256": "b28b9db5358df02a1f9d65e07b4aa7537fab9e8d1ff416a03c8e353513b9c2b3"
+      "packaged_sha256": "bda86739ec7f1da2f206aad9cce9516e4d34b2704d551d5776426dfa4b0f434f"
     },
     "pg09_audio_cli.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-17/task-12/venv-pg091/lib/python3.11/site-packages/particle_sliders/pg09_audio_cli.py",

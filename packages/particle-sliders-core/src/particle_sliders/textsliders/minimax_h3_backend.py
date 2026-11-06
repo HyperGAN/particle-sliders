@@ -13,6 +13,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from particle_sliders.adapter_activation import activation_mutation, push_activation, restore_activation
+from particle_sliders.adapter_attachment import atomic_attachment
+from particle_sliders.adapter_loading import load_adapter_states
+
 from particle_sliders.textsliders.minimax_h3_uni import apply_unused_hold
 
 DEFAULT_MODEL = "MiniMaxAI/MiniMax-H3"
@@ -252,6 +256,7 @@ class _AttnLoRA(nn.Module):
 class AttnLoRANetwork(nn.Module):
     """Wrap ``MiniMaxH3Attention`` ``to_q/to_k/to_v/to_out.0`` only. Skip AdaLN."""
 
+    @atomic_attachment('transformer')
     def __init__(
         self,
         transformer: nn.Module,
@@ -277,16 +282,21 @@ class AttnLoRANetwork(nn.Module):
                 self.add_module(lora_name, lora)
 
     def set_lora_slider(self, scale: float) -> None:
-        self.lora_scale = float(scale)
+        with activation_mutation(self):
+            self.lora_scale = float(scale)
 
     def __enter__(self):
-        for lora in self.loras:
-            lora.multiplier = 1.0 * self.lora_scale
+        push_activation(self, self.loras, ('multiplier',))
+        try:
+            for lora in self.loras:
+                lora.multiplier = 1.0 * self.lora_scale
+        except BaseException:
+            restore_activation(self)
+            raise
         return self
 
     def __exit__(self, *exc):
-        for lora in self.loras:
-            lora.multiplier = 0.0
+        restore_activation(self)
         return False
 
     def save_weights(self, file: str, dtype=None) -> None:
@@ -308,11 +318,7 @@ class AttnLoRANetwork(nn.Module):
                 f"{file} has no lora_h3-* keys. MiniMax-H3 sliders save a "
                 "custom AttnLoRANetwork, not PEFT adapter_model.safetensors."
             )
-        missing, unexpected = self.load_state_dict(state, strict=False)
-        missing_lora = [k for k in missing if str(k).startswith("lora_h3-")]
-        if missing_lora:
-            raise ValueError(f"{file} is missing LoRA keys: {missing_lora[:8]}")
-        _ = unexpected
+        load_adapter_states([(self, state, self.state_dict().keys())])
 
 
 class DummyEncoder(nn.Module):

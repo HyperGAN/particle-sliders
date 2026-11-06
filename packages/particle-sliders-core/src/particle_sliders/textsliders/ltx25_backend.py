@@ -56,6 +56,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from particle_sliders.adapter_activation import (
+    activation_is_entered, activation_mutation, push_activation, restore_activation,
+)
+from particle_sliders.adapter_attachment import atomic_attachment, attachment_transaction
+from particle_sliders.adapter_loading import load_adapter_states, optional_peft
+
 from particle_sliders.textsliders.ltx25_uni import (
     DEFAULT_RECIPE,
     DEFAULT_TE_LAST_N,
@@ -821,6 +827,7 @@ class _AttnLoRA(nn.Module):
 class AttnLoRANetwork(nn.Module):
     """Wrap video ``attn1`` / ``attn2`` ``to_q/k/v/to_out.0`` only."""
 
+    @atomic_attachment('transformer')
     def __init__(
         self,
         transformer: nn.Module,
@@ -845,18 +852,24 @@ class AttnLoRANetwork(nn.Module):
             self.add_module(lora_name, lora)
 
     def set_lora_slider(self, scale: float) -> None:
-        self.lora_scale = float(scale)
-        for lora in self.loras:
-            lora.multiplier = float(scale)
+        with activation_mutation(self):
+            self.lora_scale = float(scale)
+            if not activation_is_entered(self):
+                for lora in self.loras:
+                    lora.multiplier = float(scale)
 
     def __enter__(self):
-        for lora in self.loras:
-            lora.multiplier = 1.0 * self.lora_scale
+        push_activation(self, self.loras, ('multiplier',))
+        try:
+            for lora in self.loras:
+                lora.multiplier = 1.0 * self.lora_scale
+        except BaseException:
+            restore_activation(self)
+            raise
         return self
 
     def __exit__(self, *exc):
-        for lora in self.loras:
-            lora.multiplier = 0.0
+        restore_activation(self)
         return False
 
     def save_weights(self, file: str, dtype=None) -> None:
@@ -877,16 +890,13 @@ class AttnLoRANetwork(nn.Module):
                 f"{file} has no lora_ltx-* keys. LTX-2.5 sliders save a "
                 "custom AttnLoRANetwork (or PEFT adapter with lora_ltx sidecar)."
             )
-        missing, unexpected = self.load_state_dict(state, strict=False)
-        missing_lora = [k for k in missing if str(k).startswith("lora_ltx-")]
-        if missing_lora:
-            raise ValueError(f"{file} is missing LoRA keys: {missing_lora[:8]}")
-        _ = unexpected
+        load_adapter_states([(self, state, self.state_dict().keys())])
 
 
 class ModuleLoRANetwork(nn.Module):
     """LoRA on an explicit list of Linear hosts (TE last-N + video connectors)."""
 
+    @atomic_attachment('hosts')
     def __init__(
         self,
         hosts: Sequence[tuple[str, nn.Linear]],
@@ -912,18 +922,24 @@ class ModuleLoRANetwork(nn.Module):
             )
 
     def set_lora_slider(self, scale: float) -> None:
-        self.lora_scale = float(scale)
-        for lora in self.loras:
-            lora.multiplier = float(scale)
+        with activation_mutation(self):
+            self.lora_scale = float(scale)
+            if not activation_is_entered(self):
+                for lora in self.loras:
+                    lora.multiplier = float(scale)
 
     def __enter__(self):
-        for lora in self.loras:
-            lora.multiplier = 1.0 * self.lora_scale
+        push_activation(self, self.loras, ('multiplier',))
+        try:
+            for lora in self.loras:
+                lora.multiplier = 1.0 * self.lora_scale
+        except BaseException:
+            restore_activation(self)
+            raise
         return self
 
     def __exit__(self, *exc):
-        for lora in self.loras:
-            lora.multiplier = 0.0
+        restore_activation(self)
         return False
 
     def save_weights(self, file: str, dtype=None) -> None:
@@ -944,11 +960,7 @@ class ModuleLoRANetwork(nn.Module):
                 f"{file} has no lora_ltx-* keys. LTX-2.5 embed-match sliders "
                 "save ModuleLoRANetwork weights (te.* / conn.* hosts)."
             )
-        missing, unexpected = self.load_state_dict(state, strict=False)
-        missing_lora = [k for k in missing if str(k).startswith("lora_ltx-")]
-        if missing_lora:
-            raise ValueError(f"{file} is missing LoRA keys: {missing_lora[:8]}")
-        _ = unexpected
+        load_adapter_states([(self, state, self.state_dict().keys())])
 
 
 class PeftLoRANetwork:
@@ -966,15 +978,22 @@ class PeftLoRANetwork:
         apply_continuous_lora_scale(self.transformer, float(scale))
 
     def set_lora_slider(self, scale: float) -> None:
-        self.lora_scale = float(scale)
-        self._apply_scale(self.lora_scale)
+        with activation_mutation(self):
+            self.lora_scale = float(scale)
+            if not activation_is_entered(self):
+                self._apply_scale(self.lora_scale)
 
     def __enter__(self):
-        self._apply_scale(self.lora_scale)
+        push_activation(self, self.transformer.modules(), ('scaling', 'lora_scale', 'multiplier'))
+        try:
+            self._apply_scale(self.lora_scale)
+        except BaseException:
+            restore_activation(self)
+            raise
         return self
 
     def __exit__(self, *exc):
-        self._apply_scale(0.0)
+        restore_activation(self)
         return False
 
     def parameters(self):
@@ -998,8 +1017,7 @@ class PeftLoRANetwork:
         from safetensors.torch import load_file
 
         state = load_file(file)
-        missing, unexpected = self.transformer.load_state_dict(state, strict=False)
-        _ = missing, unexpected
+        load_adapter_states([(self.transformer, state, self.state_dict().keys())])
 
 
 class _EmbedPeftLoRANetwork:
@@ -1026,15 +1044,24 @@ class _EmbedPeftLoRANetwork:
                 apply_continuous_lora_scale(mod, float(scale))
 
     def set_lora_slider(self, scale: float) -> None:
-        self.lora_scale = float(scale)
-        self._apply_scale(self.lora_scale)
+        with activation_mutation(self):
+            self.lora_scale = float(scale)
+            if not activation_is_entered(self):
+                self._apply_scale(self.lora_scale)
 
     def __enter__(self):
-        self._apply_scale(self.lora_scale)
+        modules = (module for root in (self.encoder, self.connectors) if root is not None
+                   for module in root.modules())
+        push_activation(self, modules, ('scaling', 'lora_scale', 'multiplier'))
+        try:
+            self._apply_scale(self.lora_scale)
+        except BaseException:
+            restore_activation(self)
+            raise
         return self
 
     def __exit__(self, *exc):
-        self._apply_scale(0.0)
+        restore_activation(self)
         return False
 
     def parameters(self):
@@ -1067,12 +1094,19 @@ class _EmbedPeftLoRANetwork:
         from safetensors.torch import load_file
 
         state = load_file(file)
+        if not isinstance(state, dict) or any(not key.startswith(('te.', 'conn.')) for key in state):
+            raise ValueError('embed adapter checkpoint must contain only te./conn. keys')
         te_state = {k[3:]: v for k, v in state.items() if k.startswith("te.")}
         conn_state = {k[5:]: v for k, v in state.items() if k.startswith("conn.")}
-        if self.encoder is not None and te_state:
-            self.encoder.load_state_dict(te_state, strict=False)
-        if self.connectors is not None and conn_state:
-            self.connectors.load_state_dict(conn_state, strict=False)
+        entries = []
+        for module, subset in ((self.encoder, te_state), (self.connectors, conn_state)):
+            if module is None:
+                if subset:
+                    raise ValueError('checkpoint contains an unattached embed adapter')
+            else:
+                keys = [key for key in module.state_dict() if 'lora_' in key]
+                entries.append((module, subset, keys))
+        load_adapter_states(entries)
 
 
 class DummyTEAttention(nn.Module):
@@ -1246,9 +1280,11 @@ class LTX25Backend:
         else:
             self.network = self._attach_lora(self.transformer)
 
+    @atomic_attachment('transformer')
     def _attach_lora(self, transformer: nn.Module):
         targets = video_attn_lora_targets(transformer)
-        if not targets:
+        peft = optional_peft() if targets else None
+        if not targets or peft is None:
             # Host class names still LTX2Attention; collect via walk.
             network = AttnLoRANetwork(
                 transformer,
@@ -1261,46 +1297,40 @@ class LTX25Backend:
             if host_dtype is not None:
                 network.to(dtype=host_dtype)
             return network
-        try:
-            from peft import LoraConfig, get_peft_model
-
-            config = LoraConfig(
-                r=self.lora_rank,
-                lora_alpha=int(self.lora_alpha),
-                target_modules=targets,
-                bias="none",
-            )
-            wrapped = get_peft_model(transformer, config)
-            _init_peft_lora_up(wrapped, std=self.lora_up_init_std)
-            wrapped.to(self.device)
-            self.transformer = wrapped
-            if self.pipe is not None:
-                self.pipe.transformer = wrapped
-            self._peft = True
-            return PeftLoRANetwork(wrapped, self.lora_rank, self.lora_alpha)
-        except Exception:
-            network = AttnLoRANetwork(
-                transformer,
-                rank=self.lora_rank,
-                alpha=self.lora_alpha,
-                up_init_std=self.lora_up_init_std,
-            )
-            network.to(self.device)
-            host_dtype = _module_param_dtype(transformer)
-            if host_dtype is not None:
-                network.to(dtype=host_dtype)
-            return network
+        LoraConfig, get_peft_model = peft
+        config = LoraConfig(
+            r=self.lora_rank,
+            lora_alpha=int(self.lora_alpha),
+            target_modules=targets,
+            bias="none",
+        )
+        wrapped = get_peft_model(transformer, config)
+        _init_peft_lora_up(wrapped, std=self.lora_up_init_std)
+        wrapped.to(self.device)
+        network = PeftLoRANetwork(wrapped, self.lora_rank, self.lora_alpha)
+        # Publish only after every fallible construction/placement step succeeds.
+        self.transformer = wrapped
+        if self.pipe is not None:
+            self.pipe.transformer = wrapped
+        self._peft = True
+        return network
 
     def _attach_embed_lora(self):
         """LoRA on TE last-N attn + video connectors. DiT stays frozen."""
+        roots = [module for module in (self.encoder, self.connectors) if module is not None]
+        with attachment_transaction(roots):
+            return self._attach_embed_lora_impl()
+
+    def _attach_embed_lora_impl(self):
         hosts = embed_lora_hosts(
             self.encoder, self.connectors, last_n=self.te_last_n,
         )
         te_targets = te_last_n_attn_targets(self.encoder, last_n=self.te_last_n)
         conn_targets = video_connector_lora_targets(self.connectors)
-        try:
-            from peft import LoraConfig, get_peft_model
-
+        peft = optional_peft() if te_targets or conn_targets else None
+        if peft is not None:
+            LoraConfig, get_peft_model = peft
+            wrapped_te, wrapped_conn = self.encoder, self.connectors
             if te_targets:
                 te_cfg = LoraConfig(
                     r=self.lora_rank,
@@ -1311,9 +1341,6 @@ class LTX25Backend:
                 wrapped_te = get_peft_model(self.encoder, te_cfg)
                 _init_peft_lora_up(wrapped_te, std=self.lora_up_init_std)
                 wrapped_te.to(self.encoder_device)
-                self.encoder = wrapped_te
-                if self.pipe is not None:
-                    self.pipe.text_encoder = wrapped_te
             if conn_targets:
                 conn_cfg = LoraConfig(
                     r=self.lora_rank,
@@ -1324,22 +1351,19 @@ class LTX25Backend:
                 wrapped_conn = get_peft_model(self.connectors, conn_cfg)
                 _init_peft_lora_up(wrapped_conn, std=self.lora_up_init_std)
                 wrapped_conn.to(self.encoder_device)
-                self.connectors = wrapped_conn
-                if self.pipe is not None:
-                    self.pipe.connectors = wrapped_conn
-            if te_targets or conn_targets:
-                self._peft = True
-                # PeftLoRANetwork.set_adapter_scale writes LoraLayer.scaling
-                # on whichever module it is given. Scale both via a thin
-                # wrapper that applies the same slider to TE + connectors.
-                return _EmbedPeftLoRANetwork(
-                    self.encoder if te_targets else None,
-                    self.connectors if conn_targets else None,
-                    self.lora_rank,
-                    self.lora_alpha,
-                )
-        except Exception:
-            pass
+            network = _EmbedPeftLoRANetwork(
+                wrapped_te if te_targets else None,
+                wrapped_conn if conn_targets else None,
+                self.lora_rank,
+                self.lora_alpha,
+            )
+            # A failed connector wrap must not publish a half-wrapped TE.
+            self.encoder, self.connectors = wrapped_te, wrapped_conn
+            if self.pipe is not None:
+                self.pipe.text_encoder = wrapped_te
+                self.pipe.connectors = wrapped_conn
+            self._peft = True
+            return network
         network = ModuleLoRANetwork(
             hosts,
             rank=self.lora_rank,
@@ -1620,7 +1644,7 @@ class LTX25Backend:
         resolved = resolve_ltx_lora_path(path)
         self.network.load_weights(str(resolved))
         if hasattr(self.network, "to"):
-            self.network.to(self.device)
+            self.network.to(self.encoder_device if self.embed_recipe else self.device)
         return str(resolved)
 
     def generate_t2v(

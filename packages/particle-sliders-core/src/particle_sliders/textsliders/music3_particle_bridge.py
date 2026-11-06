@@ -15,6 +15,8 @@ from torch import nn
 from safetensors.torch import load_file, save_file
 import yaml
 
+from particle_sliders.adapter_attachment import atomic_attachment
+from particle_sliders.adapter_loading import load_adapter_states
 from particle_sliders.weight_policy import raw_checkpoint_admission
 
 from particle_sliders.textsliders import particle_bridge_gan as shared
@@ -178,6 +180,7 @@ class _TinyLM(nn.Module):
 class ParticleNetwork(nn.Module):
     """Music 3 LM LoRA with a shared routed particle cloud between down and up."""
 
+    @atomic_attachment('lm')
     def __init__(self, lm, rank=8, alpha=8.0):
         super().__init__()
         if rank != 8 or float(alpha) != 8.0:
@@ -282,6 +285,7 @@ class ParticleNetwork(nn.Module):
 
     @classmethod
     @raw_checkpoint_admission
+    @atomic_attachment('lm')
     def load(cls, lm, path):
         from safetensors import safe_open
 
@@ -297,7 +301,7 @@ class ParticleNetwork(nn.Module):
             raise ValueError("Incompatible Music 3 routed-particle checkpoint")
         network = cls(lm)
         state = load_file(str(path), device="cpu")
-        network.load_state_dict(state, strict=True)
+        load_adapter_states([(network, state, network.state_dict().keys())])
         return network, record
 
 

@@ -310,6 +310,7 @@ class InferenceSession:
         self.binding, self.capabilities = binding, capabilities
         self._receipt = {key: deepcopy(value) for key, value in packet.items() if key != 'network'}
         self.closed = False
+        self._cleanup_failed = False
         self._output_type = output_type
         self._preflight = preflight
         self._rng_devices = tuple(rng_devices)
@@ -322,16 +323,26 @@ class InferenceSession:
     def manifest(self):
         return deepcopy(self._receipt)
 
-    @contextmanager
-    def _observation(self, seed, request=None):
+    def _open(self):
         if self.closed:
             raise LifecycleError('inference session is closed')
+        if self._cleanup_failed:
+            raise LifecycleError('inference session requires cleanup after a failed restoration or close')
+
+    def _restoration_failed(self):
+        self._cleanup_failed = True
+
+    @contextmanager
+    def _observation(self, seed, request=None):
+        self._open()
         network = self.binding.network
         devices = sorted(set(self._rng_devices) | set(_rng_devices(network, request)))
-        with _network_observation(network, seed, devices=devices, observation=self.binding.observation):
+        with _network_observation(network, seed, devices=devices, observation=self.binding.observation,
+                                  restore_failed=self._restoration_failed):
             yield
 
     def render(self, *, strength=1., seed=0, images=None, output_type=None, **native):
+        self._open()
         output_type = output_type or self._output_type
         self.capabilities.check('render', strength=strength, references=bool(images),
                                 output_type=output_type)
@@ -340,6 +351,7 @@ class InferenceSession:
             return self.binding.render(strength=strength, seed=seed, images=images, output_type=output_type, **native)
 
     def response(self, *, strength=1., seed=0, **native):
+        self._open()
         self.capabilities.check('response', strength=strength)
         if self.binding.response is None:
             raise UnsupportedOperation('native response callback is unavailable')
@@ -354,12 +366,12 @@ class InferenceSession:
 
     def close(self):
         if not self.closed:
+            self._cleanup_failed = True
             self.binding.close()
             self.closed = True
 
     def __enter__(self):
-        if self.closed:
-            raise LifecycleError('inference session is closed')
+        self._open()
         return self
 
     def __exit__(self, exc_type, exc, traceback):

@@ -8,7 +8,7 @@ import pytest
 import torch
 from torch import nn
 
-from particle_sliders.lifecycle import CheckpointError, native_cleanup, _restore_all
+from particle_sliders.lifecycle import CheckpointError, LifecycleError, native_cleanup, _restore_all
 from test_image_lifecycle import cpu_only, equal, seal, session
 
 
@@ -180,7 +180,7 @@ def test_disabled_ema_envelope_has_no_owned_shadow_tensors():
 def test_observation_restore_error_keeps_primary_and_attempts_modes_and_buffers():
     target = session()
     target.game.network.register_buffer('temporary_counter', torch.tensor(3.), persistent=False)
-    before = target.checkpoint()
+    before = deepcopy(target.game.state_dict())
     mode = target.game.network.training
     primary, cleanup = RuntimeError('render operation failed'), RuntimeError('observation load hook failed')
     def render(**kwargs):
@@ -198,9 +198,13 @@ def test_observation_restore_error_keeps_primary_and_attempts_modes_and_buffers(
         assert any('observation load hook' in note for note in primary.__notes__)
     finally:
         handle.remove()
-    equal(before, target.checkpoint())
+    equal(before, target.game.state_dict())
     assert target.game.network.training == mode
     assert target.game.network.temporary_counter == 3
+    with pytest.raises(LifecycleError, match='requires cleanup'):
+        target.checkpoint()
+    target.close()
+    assert target.closed
 
 
 def inference_session():
