@@ -30,7 +30,7 @@ def make_server(session_dir: Path, bind: str, port: int, features_path: Path | N
                   (json.loads(line) for line in responses.read_text().splitlines() if line)}
         if set(latest) != set(private["trials"]) or digest(latest) == last_fit[0]:
             return
-        last_fit[0] = digest(latest)
+        requested_fit = digest(latest)
         try:
             from . import model as M
             labels, audit = read_labels(session_dir, responses)
@@ -43,6 +43,9 @@ def make_server(session_dir: Path, bind: str, port: int, features_path: Path | N
         except (ValueError, FileNotFoundError) as exc:
             status = {"state": "needs_more_evidence", "message": str(exc)}
         write_json(session_dir / "calibration-status.json", status)
+        if status["state"] == "exploratory_fit_complete":
+            # Failed fits/publications remain retryable with identical answers.
+            last_fit[0] = requested_fit
 
     class Handler(SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
