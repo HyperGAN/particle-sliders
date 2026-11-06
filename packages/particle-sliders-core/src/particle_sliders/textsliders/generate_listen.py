@@ -32,6 +32,9 @@ def _early_visible_device(argv: list[str]) -> str:
     the exact opposite of what the caller asked for, and a very quiet failure
     when that GPU is busy. --device indexes the visible list (as the load error
     already claims it does); it does not override it.
+
+    An explicit empty or -1 visibility mask disables CUDA and takes precedence
+    over --device too. Only an unset mask gets the physical-device default.
     """
     requested = None
     for i, arg in enumerate(argv):
@@ -42,8 +45,10 @@ def _early_visible_device(argv: list[str]) -> str:
             requested = arg.split("=", 1)[1]
             break
     visible = os.environ.get("CUDA_VISIBLE_DEVICES")
-    if visible is None or not visible.strip():
+    if visible is None:
         return requested if requested is not None else "0"
+    if not visible.strip() or visible.strip() == "-1":
+        return visible
     devices = [d for d in visible.split(",") if d.strip()]
     if requested is None:
         return devices[0]
