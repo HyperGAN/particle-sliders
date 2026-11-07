@@ -5,12 +5,10 @@ import pytest
 from torch import nn
 
 
-def test_legacy_and_modern_extras_keep_exact_separate_dependencies():
+def test_shared_extra_keeps_its_supported_pin_without_product_extras():
     declared = requires('particle-sliders-core')
     assert any('hndl==0.8.2' in item and 'extra == "hndl"' in item for item in declared)
-    assert any('hndl==0.10.0' in item and 'extra == "hypergan-hndl"' in item for item in declared)
-    assert any('5f368a3770cf5bdae0448995c9f76e29af8049f7' in item
-               and 'extra == "hypergan-hndl"' in item for item in declared)
+    assert not any('fibo-hndl' in item or 'hypergan-hndl' in item for item in declared)
 
 
 def test_legacy_readout_loudly_refuses_modern_hndl_environment():

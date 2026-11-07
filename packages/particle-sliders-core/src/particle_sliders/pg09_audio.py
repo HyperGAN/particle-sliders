@@ -1,9 +1,8 @@
 """Native AR last-state bindings for the single shared ConditionalPG09 game.
 
 No loaders, losses, optimizers, token generation or audio decoding run here.
-Released PG0.9 admits these responses only below width170. Wider native AR
-states require the shared core's exact reviewed explicit-continuous source
-profile. No projection, truncation, field reshape or objective fallback.
+Native continuous-vector responses declare their supported domain explicitly.
+No projection, truncation, field reshape or objective fallback is applied.
 """
 from dataclasses import dataclass, replace
 
@@ -176,27 +175,8 @@ class ARLastHiddenResponseAdapter:
                     audio_render_qualified=False, quality_qualified=False)
 
 
-class YuE2ARResponseAdapter(ARLastHiddenResponseAdapter):
-    family = 'yue2_native_ar'
-
-    def __init__(self, backend, slider, **kwargs):
-        self.backend = backend
-        super().__init__(backend.model, slider, **kwargs)
-
-    def _hidden(self, ids):
-        # Native product selects the genuine final AR state, never logits/NAR.
-        return self.backend.hidden(list(ids), checkpointing=False)[:, -1]
 
 
-class Music3ARResponseAdapter(ARLastHiddenResponseAdapter):
-    family = 'music3_native_qwen3_ar'
-
-    def _hidden(self, ids):
-        device = next(self.model.parameters()).device
-        tokens = torch.tensor([ids], device=device, dtype=torch.long)
-        # Unpadded token rows: the final index is the native last-real-token read.
-        return self.model.model(input_ids=tokens, attention_mask=torch.ones_like(tokens),
-                                use_cache=False).last_hidden_state[:, -1]
 
 
 def audio_conditions(prepared_rows):

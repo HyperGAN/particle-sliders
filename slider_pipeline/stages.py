@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import datetime as dt
+import hashlib
 import json
 import math
 import statistics as st
@@ -18,6 +19,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from . import features
 from .features import ln_delta, scan_folder
 from .gates import IDENT_KEYS, LadderCell, VariantData, evaluate_variant, intended_proj, offaxis_steps
 from .spec import REPO_ROOT, SCORED_FEATURES, SweepSpec, VariantSpec
@@ -194,34 +196,74 @@ def render_stage(spec: SweepSpec, gpu: int = 0, only: list[str] | None = None,
 
 # --------------------------------------------------------------- score
 
+FEATURE_CACHE_SCHEMA = 2
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _measurement_identity() -> dict:
+    # Bind extraction and cell/delta construction, plus the numerical runtime.
+    # Threshold-only changes in gates.py do not change measurements.
+    return {
+        "source_sha256": {
+            "cells": _sha256_file(Path(__file__)),
+            "features": _sha256_file(Path(features.__file__)),
+            "instrument": _sha256_file(Path(features.bm.__file__)),
+        },
+        "numpy": features.np.__version__,
+        "python": sys.version,
+        "scored_features": list(SCORED_FEATURES),
+    }
+
+
+def _audio_fingerprint(folder: Path) -> dict[str, str]:
+    return {p.name: _sha256_file(p) for p in sorted(folder.glob("*.wav"))}
+
+
 def _folder_to_cells(folder: Path, expect_duration: float) -> dict[float, LadderCell]:
     folder = Path(folder)
     cache_path = folder / ".pipeline_features.json"
-    fingerprint = {p.name: p.stat().st_mtime_ns for p in sorted(folder.glob("*.wav"))}
-    if cache_path.exists():
+    fingerprint = _audio_fingerprint(folder)
+    try:
+        measurement = _measurement_identity()
+    except OSError:
+        measurement = None  # Unavailable source identity disables the optimization.
+    if measurement is not None and cache_path.exists():
         try:
             cached = json.loads(cache_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            cached = None
-        if cached and cached.get("fingerprint") == fingerprint \
-                and cached.get("expect_duration") == expect_duration:
-            return {float(s): LadderCell(deltas=c["deltas"], feats=c["feats"], ident=c["ident"])
-                    for s, c in cached["cells"].items()}
+            if cached.get("schema") == FEATURE_CACHE_SCHEMA \
+                    and cached.get("fingerprint") == fingerprint \
+                    and cached.get("measurement") == measurement \
+                    and cached.get("expect_duration") == expect_duration:
+                return {float(s): LadderCell(deltas=c["deltas"], feats=c["feats"], ident=c["ident"])
+                        for s, c in cached["cells"].items()}
+        except (OSError, ValueError, TypeError, KeyError, AttributeError):
+            pass  # Missing, old or corrupt caches are measured again.
     clips = scan_folder(folder, expect_duration=expect_duration)
     zero = clips[0.0]
     cells: dict[float, LadderCell] = {}
     for scale, clip in clips.items():
         deltas = {f: ln_delta(f, clip.feats[f], zero.feats[f]) for f in SCORED_FEATURES}
         cells[scale] = LadderCell(deltas=deltas, feats=dict(clip.feats), ident=clip.ident)
+    if _audio_fingerprint(folder) != fingerprint:
+        raise RuntimeError(f"{folder}: audio changed during measurement; refusing to cache or adopt mixed inputs")
     payload = {
+        "schema": FEATURE_CACHE_SCHEMA, "measurement": measurement,
         "fingerprint": fingerprint, "expect_duration": expect_duration,
         "cells": {str(s): {"deltas": c.deltas, "feats": c.feats, "ident": c.ident}
                   for s, c in cells.items()},
     }
-    try:
-        cache_path.write_text(json.dumps(payload), encoding="utf-8")
-    except OSError:
-        pass  # cache is an optimization; measurement correctness never depends on it
+    if measurement is not None:
+        try:
+            cache_path.write_text(json.dumps(payload), encoding="utf-8")
+        except OSError:
+            pass  # cache is an optimization; measurement correctness never depends on it
     return cells
 
 
@@ -229,9 +271,9 @@ def warm_cache(folders: list[Path], expect_duration: float, jobs: int | None = N
     """Populate per-folder feature caches in parallel (folder-level Pool).
 
     Scanning is ~10 s/folder single-threaded and embarrassingly parallel; the
-    caches are mtime-keyed, so re-scoring after a gate-threshold change is
-    seconds. Correctness never depends on this — serial scans produce the
-    identical caches."""
+    caches bind audio content and measurement code, so re-scoring after a
+    gate-threshold change is seconds. Correctness never depends on this —
+    serial scans produce the identical caches."""
     import multiprocessing as mp
 
     todo = [f for f in folders if f.exists()]

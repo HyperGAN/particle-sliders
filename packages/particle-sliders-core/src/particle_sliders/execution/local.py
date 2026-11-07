@@ -191,6 +191,42 @@ def _known_checkpoints(root):
     return result
 
 
+def _read_worker_output(stream, events):
+    """Publish one terminal event even when reading or decoding output fails."""
+    error = None
+    try:
+        for line in stream:
+            events.put((line, None))
+    except BaseException as failure:
+        error = failure
+    finally:
+        try:
+            stream.close()
+        except BaseException as failure:
+            if error is None:
+                error = failure
+        finally:
+            events.put((None, error))
+
+
+def _reap_worker(child):
+    if child.poll() is None:
+        try:
+            os.killpg(child.pid, signal.SIGINT)
+        except ProcessLookupError:
+            pass  # The owned worker may exit between poll and signal.
+        try:
+            child.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(child.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            child.wait()
+    else:
+        child.wait()
+
+
 def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
     request = deepcopy(request)
     spec = _admit(request)
@@ -220,11 +256,7 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
         progress['pid'] = child.pid
         atomic_json(output / 'progress.json', progress)
         lines = queue.Queue()
-        def reader():
-            for line in child.stdout:
-                lines.put(line)
-            lines.put(None)
-        thread = threading.Thread(target=reader, daemon=True)
+        thread = threading.Thread(target=_read_worker_output, args=(child.stdout, lines), daemon=True)
         thread.start()
         stream_closed = False
         with (output / 'train.log').open('w') as stream:
@@ -232,9 +264,11 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
                 if reporter is not None and reporter.poll() is not None:
                     raise ReportingError(f'reporter exited during training with code {reporter.returncode}; see reporter.log')
                 try:
-                    line = lines.get(timeout=.2)
+                    line, read_error = lines.get(timeout=.2)
                 except queue.Empty:
-                    line = ''
+                    line, read_error = '', None
+                if read_error is not None:
+                    raise RuntimeError('training worker output reader failed: ' + str(read_error)) from read_error
                 if line is None:
                     stream_closed = True
                 elif line:
@@ -307,13 +341,8 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
         return result
     except BaseException as error:
         status = 'cancelled' if isinstance(error, KeyboardInterrupt) else 'failed'
-        if child is not None and child.poll() is None:
-            os.killpg(child.pid, signal.SIGINT)
-            try:
-                child.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                os.killpg(child.pid, signal.SIGKILL)
-                child.wait()
+        if child is not None:
+            _reap_worker(child)
         terminal = dict(status=status, error=str(error), target_steps=progress['target_steps'],
                         last_checkpoint=progress.get('last_checkpoint'),
                         worker_reaped=child is None or child.poll() is not None)
