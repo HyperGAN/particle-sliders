@@ -15,6 +15,8 @@ def test_rebuild_removes_stale_product_files_and_aliases(tmp_path):
     (stale / 'particle_sliders/textsliders').mkdir(parents=True)
     (stale / 'particle_sliders/native_lora.py').write_text('# old allowed output\n')
     (stale / 'particle_sliders/music3_native.py').symlink_to('native_lora.py')
+    (stale / 'particle_sliders/rogue_product').symlink_to(
+        copy / 'src/particle_sliders/textsliders', target_is_directory=True)
     (stale / 'particle_sliders/textsliders/leak.py').write_text('raise RuntimeError("stale product")\n')
     (stale / 'particle_sliders_legacy_imports.pth').write_text('import conceptmod\n')
     wheels = tmp_path / 'wheels'
@@ -26,4 +28,5 @@ def test_rebuild_removes_stale_product_files_and_aliases(tmp_path):
         assert 'particle_sliders/native_lora.py' in names
         assert 'particle_sliders/music3_native.py' not in names
         assert not any(name.startswith('particle_sliders/textsliders/') for name in names)
+        assert not any(name.startswith('particle_sliders/rogue_product/') for name in names)
         assert 'particle_sliders_legacy_imports.pth' not in names

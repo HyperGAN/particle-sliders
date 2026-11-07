@@ -31,5 +31,5 @@ class CoreBuildPy(build_py):
         root = Path(self.build_lib)
         if root.exists():
             for path in root.rglob('*'):
-                if path.is_file() and path.absolute() not in outputs:
+                if (path.is_file() or path.is_symlink()) and path.absolute() not in outputs:
                     path.unlink()
