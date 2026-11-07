@@ -437,9 +437,12 @@ def apply_continuous_lora_scale(module, scale: float) -> int:
         scaling = getattr(child, "scaling", None)
         if is_lora and isinstance(scaling, dict) and scaling:
             base = getattr(child, "_krea_base_scaling", None)
-            if not isinstance(base, dict) or any(key not in base for key in scaling):
-                child._krea_base_scaling = {k: float(v) for k, v in scaling.items()}
-                base = child._krea_base_scaling
+            if not isinstance(base, dict):
+                base = {}
+                child._krea_base_scaling = base
+            # Existing entries may already be scaled. Only a newly attached
+            # adapter supplies a new canonical baseline; never recapture peers.
+            base.update({key: float(value) for key, value in scaling.items() if key not in base})
             for key in scaling:
                 scaling[key] = base[key] * scale
             updated += 1
