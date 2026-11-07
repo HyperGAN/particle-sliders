@@ -351,3 +351,54 @@ def test_actual_lowest_raw_sse_wins_with_failed_alignment_boundary_media_and_nat
     assert winner['diagnostics']['matched_media_review']['error']
     assert winner['status'] == 'confirmed_raw_metric'
     assert audit(tmp_path)['verified_evaluations'] > 0
+
+
+@pytest.mark.parametrize('wrong', [0., .12345])
+def test_actual_absolute_optimizer_base_rate_must_match_candidate(tmp_path, wrong):
+    run = Run(config(), tmp_path)
+    parameters = run.initial[0]
+    active = run.backend.open(run.config['backend_options'], parameters, 7, 'test')
+    groups = active.optimizer_groups()
+    groups[0]['base_lr'] = wrong
+    active.optimizer_groups = lambda: groups
+    with pytest.raises(ValueError, match='base rate'):
+        run.verify(active, parameters)
+    active.close()
+
+
+def test_external_media_drift_is_nonblocking_but_primary_evidence_remains_strict(tmp_path):
+    run, report = execute(tmp_path / 'run')
+    nominee = report['nominations'][0]
+    media = tmp_path / 'synthetic-diagnostic.txt'
+    media.write_text('CPU diagnostic fixture; not native media evidence')
+    review = dict(run=report['run'], cohorts={nominee['cohort']: dict(reviewer='CPU synthetic test',
+        evidence_sha256=digest(nominee['evidence']), matched_controls=['off', 'teacher', 'strength_ladder'],
+        media_artifacts=[dict(path=str(media), sha256=file_hash(media))], approved=True,
+        notes='Synthetic optional attestation only')})
+    resumed = Run(config(), run.root)
+    with resumed.lock():
+        refreshed = resumed.execute(review)
+    assert refreshed['nominations'][0]['diagnostics']['matched_media_review']['approved']
+    assert audit(run.root)['diagnostics']['external_media_discrepancies'] == []
+    media.write_text('Changed optional diagnostic bytes')
+    result = audit(run.root)
+    assert result['verified_evaluations'] > 0
+    assert len(result['diagnostics']['external_media_discrepancies']) == 1
+    assert read_json(run.root / 'results.json')['nominations'][0]['status'] == 'confirmed_raw_metric'
+    progress = read_json(run.root / 'progress.json')
+    row = next(iter(progress['trials'].values()))
+    primary = run.root / next(iter(row['evaluations'].values())) / 'responses.bin'
+    primary.write_bytes(primary.read_bytes()[:-8])
+    with pytest.raises(ValueError, match='checksum'):
+        audit(run.root)
+
+
+def test_denominator_threshold_defaults_to_zero_and_refuses_any_epsilon(tmp_path):
+    value = config()
+    value.pop('min_edit_energy')
+    run = Run(value, tmp_path)
+    assert run.config['min_edit_energy'] == 0.
+    assert plan(value)['metric'] == run.expected['metric']
+    value['min_edit_energy'] = 1e-300
+    with pytest.raises(ValueError, match='zero'):
+        plan(value)

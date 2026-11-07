@@ -66,7 +66,16 @@ def ambient_rng():
     return h.hexdigest()
 
 
+def config_snapshot(config):
+    if not isinstance(config, dict):
+        raise ValueError('search config must be an object')
+    value = json.loads(canonical(config))
+    value.setdefault('min_edit_energy', 0.)
+    return value
+
+
 def validated(config, *, allow_native=False):
+    config = config_snapshot(config)
     if set(config) != {'schema', 'backend', 'backend_options', 'fixed', 'space', 'search', 'resources', 'selection', 'min_edit_energy'} or config['schema'] != SCHEMA:
         raise ValueError('unsupported/incomplete search config fields')
     # Refuse weight averaging before resolving/importing any product backend.
@@ -129,7 +138,7 @@ def ordered_rows(values, space):
 
 class Run:
     def __init__(self, config, directory, *, allow_native=False):
-        self.config, self.root = json.loads(canonical(config)), Path(directory)
+        self.config, self.root = config_snapshot(config), Path(directory)
         config = self.config
         self.backend, self.cap, self.space, self.initial = validated(config, allow_native=allow_native)
         self.root.mkdir(parents=True, exist_ok=True)
@@ -196,6 +205,9 @@ class Run:
                     or any(type(g[k]) not in (int, float) or not math.isfinite(g[k]) or g[k] < 0
                            for k in ('base_lr', 'lr')) for g in groups)):
             raise ValueError('actual participating optimizer group rates/ownership are incomplete')
+        absolute_rates = {p.role: parameters[p.name] for p in self.cap.parameters if p.role.endswith('_lr')}
+        if any(group['base_lr'] != absolute_rates[group['role']] for group in groups):
+            raise ValueError('actual optimizer base rate differs from its advertised absolute candidate rate')
         if canonical(active.frozen_identity()) != canonical(self.expected['capabilities']['identity']):
             raise ValueError('actual teacher/model/precision/schedule/data/coordinates differ')
 
@@ -528,6 +540,9 @@ def audit(directory):
         raise ValueError('historical search schema/cohort is incompatible; retain its original implementation')
     require_raw_selection(manifest['config']['selection'])
     require_no_weight_ema(manifest['config']['backend_options']['ema_decay'])
+    if tuple(manifest['capabilities']['selections']) != ('raw',):
+        raise ValueError('only raw search capabilities can be audited')
+    external_media_discrepancies = []
     count = 0
     for row in progress['trials'].values():
         for checkpoint in row['checkpoints'].values():
@@ -632,7 +647,14 @@ def audit(directory):
                     raise ValueError('missing finalist complete-grid evidence')
             boundary = space.boundaries(parameters)
             diagnostics = nomination_diagnostics(best, confirmation, heldout, boundary, cap)
-            diagnostics['matched_media_review'] = media_diagnostic(results.get('media_review'), digest(manifest), nominee['cohort'], evidence)
+            observed_media = media_diagnostic(results.get('media_review'), digest(manifest), nominee['cohort'], evidence)
+            recorded_media = nominee['diagnostics'].get('matched_media_review')
+            if observed_media != recorded_media:
+                external_media_discrepancies.append(dict(candidate=nominee['candidate'], cohort=nominee['cohort'],
+                    recorded=recorded_media, observed=observed_media))
+            # External media is mutable diagnostic material, not RAW evidence.
+            # Keep the original observation without making its later drift a veto.
+            diagnostics['matched_media_review'] = recorded_media
             if not all(progress['trials'][t]['replay'] for t in trial_ids):
                 raise ValueError('missing exact replay for finalist')
             if nominee['diagnostics'] != diagnostics or nominee['boundary_parameters'] != boundary or nominee['status'] != 'confirmed_raw_metric':
@@ -643,4 +665,5 @@ def audit(directory):
         if results['overall_nomination'] != expected_overall:
             raise ValueError('overall nomination differs from ranked cohort finalists')
     return dict(run=digest(manifest), verified_evaluations=count, verified_trials=len(progress['trials']),
+                diagnostics=dict(external_media_discrepancies=external_media_discrepancies),
                 status='raw metrics, full checkpoints and exports verified; media/OFF/boundary are diagnostics only')

@@ -31,7 +31,7 @@ Neutral and teacher identities are frozen across candidates and seeds.
 
 Each FP64 coordinate term enters an exact streaming integer superaccumulator,
 rounded once per example statistic. Chunk boundaries cannot affect the score.
-There is no denominator epsilon: `min_edit_energy` must be zero. Zero/nonfinite
+There is no denominator epsilon: `min_edit_energy` defaults to zero and must stay zero. Zero/nonfinite
 pooled teacher energy or nonfinite primary SSE/ratio makes the example
 unscoreable and refuses that run. A zero-edit position is valid when its whole
 example has positive pooled energy.
@@ -48,7 +48,9 @@ exact replay evidence exist; it is not a quality or generalization claim. It
 does not require an error below one, positive signed gain, every scene improving,
 an interior optimum, native-model evidence, trained OFF, or media approval.
 Those measurements/limits are diagnostics only. Optional invalid media
-attestations are recorded as diagnostic errors and cannot veto the score.
+attestations are recorded as diagnostic errors and cannot veto the score. Later
+external media drift is reported by the offline auditor as a nonblocking
+diagnostic discrepancy; all retained RAW evidence remains strictly checked.
 Overflow in preservation energy or signed-gain diagnostics becomes `null` and
 cannot veto an otherwise finite primary score. Optional algebraic controls can
 be computed with `metric.algebraic_controls`; they are not native OFF evidence
@@ -107,7 +109,8 @@ A regularizer that can be disabled declares an objective cohort, and any changed
 parameter architecture declares an architecture cohort.
 
 `open` returns the `Trial` protocol. It must own its runtime and close resources,
-report actual effective values and real optimizer rates/parameter counts,
+report actual effective values and real optimizer rates/parameter counts (each
+role's base rate must equal its advertised absolute candidate rate),
 complete exactly one update per `step`, and save/restore full raw weights,
 optimizers, streams, RNG, native state, horizon, and completed counters. Observation
 and raw export must preserve all training/native/RNG/mode state. The runner checks
