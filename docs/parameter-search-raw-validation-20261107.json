@@ -1,0 +1,109 @@
+{
+  "base_core_commit": "3ca4230fb7c57e582da134dfe574e1753937079f",
+  "base_core_pr": 191,
+  "ema_decay": null,
+  "environment": {
+    "build_isolation": false,
+    "cpu_threads": 1,
+    "cuda_visible_devices": "",
+    "pretrained_model_or_gpu_jobs": false,
+    "python": "3.11.17 (main, Oct  1 2026, 20:17:42) [GCC 14.3.0]",
+    "versions": {
+      "particlegan": "0.9.5",
+      "pytest": "9.1.1",
+      "setuptools": "84.0.0",
+      "torch": "2.14.1+cu130"
+    }
+  },
+  "fixtures": {
+    "coupled": {
+      "audit": {
+        "diagnostics": {
+          "external_media_discrepancies": []
+        },
+        "run": "605abce47adf0d8e8db11b463fef49491323936ccb724d0beab80d8d3aa2deec",
+        "status": "raw metrics, full checkpoints and exports verified; media/OFF/boundary are diagnostics only",
+        "verified_evaluations": 42,
+        "verified_trials": 32
+      },
+      "completed_update_calls": 240,
+      "config_sha256": "cb8e7d6eb16a4c67521b9309a2d32c4f35678ad3c4e81b9b8b945c834e24c3af",
+      "idempotent_additional_update_calls": 0,
+      "independent_finalists": 2,
+      "local_evidence": "/ml2/particlesliders-working/search-raw-qualification-final-20261107/coupled",
+      "manifest_sha256": "fa40712a24e6d298f2048104915a925705c9e852576ae5e0192e874ee050ea2d",
+      "overall_nomination": {
+        "basis": "lowest exact RAW relative SSE among cohort finalists at the same frozen target/grid/metric/budget/seeds",
+        "candidate": "4508b362eafa6369",
+        "cohort": "f255d53a975f2501",
+        "status": "confirmed_raw_metric"
+      },
+      "physical_update_calls": 240,
+      "retained_files": 325,
+      "retained_files_digest": "06bb36d43ab720d4c3d1ea88875cc92d3f32d2235125f2814a1ffa20c5bec6f2",
+      "trials": 32
+    },
+    "vector": {
+      "audit": {
+        "diagnostics": {
+          "external_media_discrepancies": []
+        },
+        "run": "aea08d74c41d541dbc4008a4a8aa81ace88f5f1d36bc53daaec37cfea4304549",
+        "status": "raw metrics, full checkpoints and exports verified; media/OFF/boundary are diagnostics only",
+        "verified_evaluations": 44,
+        "verified_trials": 32
+      },
+      "completed_update_calls": 256,
+      "config_sha256": "2ca6433a0b2fd8effbee90182ee85374ed4c00e78f7ebf47f8406f5944f435e5",
+      "idempotent_additional_update_calls": 0,
+      "independent_finalists": 2,
+      "local_evidence": "/ml2/particlesliders-working/search-raw-qualification-final-20261107/vector",
+      "manifest_sha256": "4f22c72ab5aaf4675d6980a6d759efa8d144506be86ab5486b2de5753491aff3",
+      "overall_nomination": {
+        "basis": "lowest exact RAW relative SSE among cohort finalists at the same frozen target/grid/metric/budget/seeds",
+        "candidate": "fcb034fa0d069cd2",
+        "cohort": "77ddb5e247a305ce",
+        "status": "confirmed_raw_metric"
+      },
+      "physical_update_calls": 256,
+      "retained_files": 339,
+      "retained_files_digest": "86f8ca02cccedb0654a70e56f2cede9a8afd4f5b62e634be61b26bedc5edff6c",
+      "trials": 32
+    }
+  },
+  "historical_search_source_preserved": "98b2c0b235f041f5e3a1fee0147a9c629ceff8b1",
+  "metric": "raw-fp64-operand-first-pooled-per-example-relative-sse-v2",
+  "qualification_limits": [
+    "Synthetic Python quadratic-game fixtures are not native ParticleGAN optimizer validation or media quality evidence.",
+    "Real small CPU lifecycle bridge checks released ParticleGAN 0.9.5 raw observation/export/exact replay; no pretrained products were loaded.",
+    "No media/native/OFF/boundary/scene-feasibility diagnostics were required to approve a score.",
+    "All historical receipts remain a separate cohort and were not replayed.",
+    "Local build used recorded setuptools with --no-build-isolation; declared build-dependency minimum is not newly qualified."
+  ],
+  "schema": "particle-sliders-raw-search-cpu-qualification-v1",
+  "search_schema": "particle-sliders-raw-parameter-search-v2",
+  "source_commit": "e6bc93e59ca90d2a7838896c3a3d6ecd5d77a65e",
+  "tests": {
+    "full_command": "python -m pytest -c pytest.ini -q",
+    "full_installed_core": "627 passed, 23 skipped",
+    "independent_focused": "73 passed",
+    "independent_review": "approved e6bc93e59ca90d2a7838896c3a3d6ecd5d77a65e; 100 ExactSum-vs-Fraction probes; independent media drift/rate binding/primary tamper probes passed"
+  },
+  "weight_selection": "raw",
+  "weight_shadows_allocated": false,
+  "wheel": {
+    "filename": "particle_sliders_core-0.14.0-py3-none-any.whl",
+    "installed_from_wheel": true,
+    "product_modules_excluded": true,
+    "search_source_sha256": {
+      "__init__.py": "9c40a87896ad0aeabbd46ce4426b8adae935bcf3cdbfb6d79428d95635f919f2",
+      "__main__.py": "d753e3707b1b71499f73d4884e8369e800dfd25463129c66a502775bd959e715",
+      "backend.py": "40a8611ca54727db64a3a9409c9fa87ba2d6a7e50b50aecf98b25aabf586a770",
+      "fixture.py": "3c7ef21c0544771f041d80af4298872c64d86798aeb82bf62064b16716bbe627",
+      "metric.py": "4086641cc339c3b1c358a33cfda49b0f0370cb7192aa07177c20a9b6427c5135",
+      "runner.py": "dd2533c8da24c982ab837d327fbbe20a224054d4006876ba865a3b7f3b184b01",
+      "space.py": "a3a26082abc04a910dd87f52f7f59c80c10c3191e39e9ec19ff549fa4c3944a0"
+    },
+    "sha256": "8631cdadbf76852e98cc56bc6986b947e5f66d228f279bc1c1fafcb30ce7a343"
+  }
+}

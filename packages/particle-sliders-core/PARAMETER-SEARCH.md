@@ -124,3 +124,13 @@ actual effective parameters/groups, initial state, native state, and full raw
 coordinate chunks using the session observation transaction. This bridge has a
 real small CPU lifecycle regression against released ParticleGAN; native product
 backends remain individually unqualified until their own installed tests pass.
+
+## Qualification of this raw-only cohort
+
+The installed shared wheel passed 627 tests with 23 explicit skips. Independent
+focused review passed 73 search/lifecycle tests and exact-summation reference
+probes. Both full CPU CLI examples completed plan/run/offline audit and repeated
+execution with zero extra updates. The new source, wheel and artifact digests
+are recorded in [`docs/parameter-search-raw-validation-20261107.json`](../../docs/parameter-search-raw-validation-20261107.json). These results qualify shared
+CPU orchestration and arithmetic; pretrained/native/media behavior stays
+unqualified. Historical receipts under `legacy/` describe a separate old cohort.
