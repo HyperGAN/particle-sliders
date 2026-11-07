@@ -384,12 +384,16 @@ class LoRANetwork(nn.Module):
         (transformer chunks). mode='prefix' takes the first S values
         (LM tokens, including a full-prefix refresh).
         """
+        if mode not in ('stretch', 'prefix'):
+            raise ValueError("Sequence gain mode must be 'stretch' or 'prefix'")
         if gain is None:
             tensor = None
         elif torch.is_tensor(gain):
             tensor = gain.detach().float().reshape(-1).cpu()
         else:
             tensor = torch.tensor(list(gain), dtype=torch.float32)
+        if tensor is not None and (tensor.numel() == 0 or not torch.isfinite(tensor).all()):
+            raise ValueError('Sequence gain must be non-empty and finite in FP32')
         with activation_mutation(self):
             self.seq_gain = tensor
             self.seq_gain_mode = mode
