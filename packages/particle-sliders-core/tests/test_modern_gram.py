@@ -220,35 +220,6 @@ def test_authoritative_moss112_field_recipe_preserved_except_selected_dense_prof
     assert after['optimizer_dense_profile'] == GRAM_PROFILE
 
 
-def test_modern_fibo_hndl_factory_uses_gram_and_preserves_exact_resume(tmp_path):
-    pytest.importorskip("hndl")
-    pytest.importorskip("hypergan.hndl_networks")
-    import hashlib
-    from particle_sliders.fibo_native import (
-        FiboParticleSlider, FiboEditResponseAdapter, FiboCachedRows, write_cache, build_fibo_game,
-    )
-    from particle_sliders.fibo_hndl import PROFILE, HNDLFieldCritic
-    from test_fibo_native import Pipeline, IDENTITY, references
-    def construct(folder):
-        pipeline = Pipeline()
-        slider = FiboParticleSlider(pipeline.transformer, network_profile=PROFILE)
-        adapter = FiboEditResponseAdapter(pipeline, slider, model_identity=IDENTITY)
-        prepared = adapter.capture_pair('keep jacket', 'make jacket red', references())
-        write_cache(folder, prepared, model_identity=IDENTITY)
-        digest = hashlib.sha256((folder/'index.json').read_bytes()).hexdigest()
-        provider = FiboCachedRows(folder, index_sha256=digest, model_identity=IDENTITY)
-        return build_fibo_game(adapter, provider, response_scale=.1, total_steps=3)
-    full, split = construct(tmp_path/'full'), construct(tmp_path/'split')
-    assert isinstance(full.critic, HNDLFieldCritic)
-    assert full.recipe.optimizer_dense_profile == GRAM_PROFILE
-    for _ in range(3):full.step()
-    split.step();packet = deepcopy(split.state_dict())
-    resumed = construct(tmp_path/'resumed');resumed.load_state_dict(packet)
-    resumed.step();resumed.step()
-    equal(full.state_dict(), resumed.state_dict())
-    assert full.optimizer_diagnostics['generator']['aggregate']['calls'] > 0
-    assert full.optimizer_diagnostics['critic']['aggregate']['calls'] > 0
-    assert not torch.cuda.is_initialized()
 
 
 @pytest.mark.parametrize('selector,expected', [('auto', GRAM_PROFILE),

@@ -1,5 +1,16 @@
 # Backend dependency contract and migration inventory
 
+**Core 0.14 boundary:** the installed wheel and strict editable install contain
+only generic shared modules. Music3's native implementation moves to its product;
+other native implementations listed below are historical source inventory and
+migration input, not shipped 0.14 bindings. Existing product source pins stay
+unchanged until each product adopts a reviewed new cohort. See the
+[boundary contract](../packages/particle-sliders-core/SHARED-CORE-BOUNDARY.md).
+
+The implementation/status tables below record earlier cohorts. Their named
+native classes do not describe the 0.14 installed API. Weight EMA is forbidden
+for all prospective work; old evidence keeps its original protocol identity.
+
 The architecture applies to every model family:
 
 ```
@@ -17,7 +28,7 @@ conditioning, packing, schedulers/decoders, native qualification and product
 configuration. They register/inject thin factories and native callbacks into
 particle-sliders; core does not import products to construct their pipelines.
 Particle-sliders owns shared configuration/capability contracts, loading
-orchestration, training-step lifecycle, EMA, checkpoints, export/evaluation/
+orchestration, training-step lifecycle, raw-only weight policy, checkpoints, export/evaluation/
 inference dispatch and errors. GAN objectives, optimizers, penalties and prior
 laws come from upstream ParticleGAN; optional HyperGAN observations remain
 observations. New products must not copy GAN implementations.
@@ -115,7 +126,7 @@ then run each product's conformance and native qualification separately.
    qualification status. Extract repeated lifecycle logic into particle-sliders,
    with native callbacks/factories pointing from product into core.
 3. Register only a complete factory. CPU-test exact resume/RNG, atomic invalid
-   restore, EMA/export/load, supported strengths, failure cleanup and rendering
+   restore, raw export/load, supported strengths, failure cleanup and rendering
    gates using installed wheels outside source trees.
 4. New source pins mean new cohorts unless an explicit migration is reviewed.
    Native model/GPU resource and quality qualification remain separate gates.

@@ -1,0 +1,7 @@
+[pytest]
+pythonpath =
+    .
+    packages/particle-sliders-core/src
+testpaths =
+    tests
+    packages/particle-sliders-core/tests
