@@ -7,10 +7,8 @@ import pytest
 import torch
 from torch import nn
 
-from particle_sliders.fibo_native import FiboEditResponseAdapter, FiboParticleSlider
 from particle_sliders.native_lora import lora_target_plan
 from particle_sliders.pg09_audio import ARLastHiddenResponseAdapter, AudioRow
-from particle_sliders.pg09_backends import ResponseRow
 from particle_sliders.routed_projection import TinyParticleProjection
 
 
@@ -178,83 +176,3 @@ def test_ar_history_must_match_and_leave_a_prompt_prefix(row):
     _, _, response = response_fixture()
     with pytest.raises(ValueError, match='history'):
         response.prepare(row)
-
-
-class FiboAttention(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.to_q, self.to_k, self.to_v = [nn.Linear(4, 4) for _ in range(3)]
-        self.to_out = nn.ModuleList([nn.Linear(4, 4)])
-
-
-class FiboNativeShape(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.config = SimpleNamespace(n_layers=1, n_refiner_layers=0,
-            injection_layer_ids=[], cap_feat_dim=4, in_channels=4, patch_size=2)
-        block = nn.Module()
-        block.attention = FiboAttention()
-        self.layers = nn.ModuleList([block])
-        self.noise_refiner = nn.ModuleList()
-
-    def forward(self, *, hidden_states, timestep, encoder_hidden_states,
-                encoder_attention_mask, context_latents, return_dict):
-        mask = encoder_attention_mask
-        if mask is None:
-            mask = torch.ones(1, encoder_hidden_states.shape[2], dtype=torch.bool)
-        context = (encoder_hidden_states * mask[:, None, :, None]).sum((1, 2)) / mask.sum()
-        return (hidden_states + context[:, :, None, None],)
-
-
-def fibo_shape_fixture():
-    class Pipeline:
-        def __init__(self):
-            self.transformer = FiboNativeShape()
-            self.scheduler = SimpleNamespace(fixture=True)
-
-        def __call__(self, **kwargs):
-            raise RuntimeError('native capture fixture failure')
-
-    pipeline = Pipeline()
-    slider = FiboParticleSlider(pipeline.transformer)
-    response = FiboEditResponseAdapter(pipeline, slider,
-        model_identity={'qualification': 'CPU fixture only', 'fixture': 'cut-point-mask'})
-    condition = dict(embeds=torch.randn(1, 1, 3, 4),
-                     mask=torch.tensor([[True, True, False]]), context_0=torch.zeros(1, 4, 2, 2))
-    return pipeline, response, condition
-
-
-@pytest.mark.parametrize('mask', [torch.ones(1, 3), torch.ones(3, dtype=torch.bool),
-                                  torch.zeros(1, 3, dtype=torch.bool)])
-def test_fibo_padding_mask_rejects_dtype_shape_and_all_padding(mask):
-    _, response, condition = fibo_shape_fixture()
-    condition['mask'] = mask
-    with pytest.raises(ValueError, match='boolean padding mask'):
-        response.prepare(ResponseRow(condition, condition, condition,
-            torch.zeros(1, 4, 2, 2), timestep=torch.tensor(500.)))
-
-
-def test_fibo_valid_token_mask_is_not_an_adapter_or_loss_gate():
-    _, response, condition = fibo_shape_fixture()
-    altered = deepcopy(condition)
-    altered['embeds'][:, :, -1] = 1e6  # masked padding cannot change readout
-    x, time = torch.zeros(1, 4, 2, 2), torch.tensor(500.)
-    first = response.velocity(condition, x, time, scale=0.)
-    assert torch.equal(first, response.velocity(altered, x, time, scale=0.))
-    altered['mask'] = None  # None explicitly means no padding mask
-    assert not torch.equal(first, response.velocity(altered, x, time, scale=0.))
-
-
-def test_fibo_capture_failure_removes_only_owned_temporary_hooks():
-    pipeline, response, _ = fibo_shape_fixture()
-    foreign = pipeline.transformer.register_forward_pre_hook(lambda module, args: None)
-    hooks = dict(pipeline.transformer._forward_pre_hooks)
-    scheduler = pipeline.scheduler
-    try:
-        for _ in range(2):
-            with pytest.raises(RuntimeError, match='native capture fixture failure'):
-                response.capture_pair('neutral', 'positive', [object()])
-            assert dict(pipeline.transformer._forward_pre_hooks) == hooks
-            assert pipeline.scheduler is scheduler
-    finally:
-        foreign.remove()

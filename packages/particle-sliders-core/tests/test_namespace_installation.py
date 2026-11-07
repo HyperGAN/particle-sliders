@@ -1,4 +1,4 @@
-"""Real pip install/uninstall isolation, including a separate conceptmod owner.
+"""Shared-only 0.14 install/uninstall isolation with a separate Conceptmod owner.
 
 The fixture owns the same top-level file as the separate Conceptmod project,
 exports a native backend, and deliberately provides no legacy textsliders tree.
@@ -12,6 +12,7 @@ import io
 import os
 from pathlib import Path
 import subprocess
+import shutil
 import sys
 import venv
 import zipfile
@@ -39,12 +40,11 @@ def wheels(tmp_path_factory):
         core, = folder.glob("particle_sliders_core-*.whl")
     with zipfile.ZipFile(core) as wheel:
         assert not any(name.startswith("conceptmod/") for name in wheel.namelist())
-        hook = "particle_sliders_legacy_imports.pth"
-        record, = [name for name in wheel.namelist() if name.endswith(".dist-info/RECORD")]
-        rows = {row[0]: row[1:] for row in csv.reader(io.StringIO(wheel.read(record).decode()))}
-        content = wheel.read(hook)
-        digest = base64.urlsafe_b64encode(hashlib.sha256(content).digest()).rstrip(b"=").decode()
-        assert rows[hook] == ["sha256=" + digest, str(len(content))]
+        assert "particle_sliders_legacy_imports.pth" not in wheel.namelist()
+        assert not any(name.startswith(("particle_sliders/textsliders/",
+                                       "particle_sliders/notrigger/"))
+                       for name in wheel.namelist())
+        assert "particle_sliders/music3_native.py" not in wheel.namelist()
     fixture = folder / "conceptmod-0.0.0-py3-none-any.whl"
     files = {
         "conceptmod/__init__.py": b'PROJECT = "separate-conceptmod"\n',
@@ -89,6 +89,12 @@ def isolated_python(folder):
             target.symlink_to(entry, target_is_directory=entry.is_dir())
     site = run([str(python), "-c", "import site; print(site.getsitepackages()[0])"], folder).stdout.strip()
     Path(site, "dependencies.pth").write_text(str(dependencies) + "\n")
+    # setuptools' optional vendor fallback can be hidden by a system backports
+    # namespace. Copy its actual tarfile dependency into this private fixture.
+    import setuptools
+    vendor = Path(setuptools.__file__).parent / '_vendor' / 'backports'
+    if vendor.is_dir():
+        shutil.copytree(vendor, Path(site) / 'backports', dirs_exist_ok=True)
     return str(python)
 
 
@@ -111,33 +117,21 @@ import conceptmod
 assert conceptmod.PROJECT == 'separate-conceptmod'
 from conceptmod.backends import NATIVE_API
 assert NATIVE_API == 'native-backend'
-from conceptmod.textsliders.lora import LoRAModule as Old
-from particle_sliders.textsliders.lora import LoRAModule as New
-assert Old is New and New.__module__ == 'particle_sliders.textsliders.lora'
-assert importlib.import_module('conceptmod.textsliders.lora') is importlib.import_module('particle_sliders.textsliders.lora')
+from particle_sliders.native_lora import LoRAModule
+assert LoRAModule.__module__ == 'particle_sliders.native_lora'
+assert importlib.util.find_spec('conceptmod.textsliders') is None
+assert importlib.util.find_spec('particle_sliders.music3_native') is None
+assert importlib.util.find_spec('particle_sliders.textsliders') is None
 core = importlib.metadata.distribution('particle-sliders-core')
 other = importlib.metadata.distribution('conceptmod')
 assert not set(map(str, core.files)) & set(map(str, other.files))
 ''')
-    # Site-disabled interpreters do not process startup hooks. Explicit
-    # activation is supported and does not require importing any model runtime.
-    site = run([python, "-c", "import site; print(site.getsitepackages()[0])"], tmp_path, env).stdout.strip()
-    run([python, "-S", "-c", f'''
-import importlib.util, sys
-sys.path.insert(0, {site!r})
-assert importlib.util.find_spec('conceptmod.textsliders') is None
-from particle_sliders._legacy_namespace import install
-install()
-assert importlib.util.find_spec('conceptmod.textsliders.lora') is not None
-assert 'torch' not in sys.modules
-'''], tmp_path, env)
     pip("uninstall", "-y", "conceptmod")
     check('''
-from conceptmod.textsliders.lora import LoRAModule as Old
-from particle_sliders.textsliders.lora import LoRAModule as New
-assert Old is New
-import conceptmod
-assert not hasattr(conceptmod, 'PROJECT')
+import importlib.util
+assert importlib.util.find_spec('conceptmod') is None
+from particle_sliders.native_lora import LoRAModule
+assert LoRAModule.__module__ == 'particle_sliders.native_lora'
 ''')
     pip("install", "--no-deps", "--no-index", "--no-cache-dir", str(conceptmod))
     pip("uninstall", "-y", "particle-sliders-core")
@@ -153,7 +147,7 @@ assert not pathlib.Path(site.getsitepackages()[0], 'particle_sliders_legacy_impo
 ''')
 
 
-def test_editable_wheel_owns_and_removes_startup_hook(tmp_path):
+def test_editable_matches_shared_wheel_and_uninstalls_cleanly(tmp_path):
     project = Path(os.environ.get("PARTICLE_SLIDERS_TEST_PROJECT", Path(__file__).resolve().parents[1]))
     assert (project / "pyproject.toml").is_file(), "Set PARTICLE_SLIDERS_TEST_PROJECT outside a checkout"
     python = isolated_python(tmp_path)
@@ -163,13 +157,18 @@ def test_editable_wheel_owns_and_removes_startup_hook(tmp_path):
          "--no-build-isolation", "--editable", str(project)], tmp_path, env)
     run([python, "-c", '''
 import importlib.metadata, pathlib, site, sys
-from conceptmod.textsliders.lora import LoRAModule as Old
-from particle_sliders.textsliders.lora import LoRAModule as New
-assert Old is New
+import importlib.util
+import particle_sliders
+assert 'src/particle_sliders' not in particle_sliders.__file__
+assert '__editable__' in particle_sliders.__file__
+from particle_sliders.native_lora import LoRAModule
+assert importlib.util.find_spec('conceptmod') is None
+assert importlib.util.find_spec('particle_sliders.music3_native') is None
+assert importlib.util.find_spec('particle_sliders.textsliders') is None
 record = importlib.metadata.distribution('particle-sliders-core').files
-assert 'particle_sliders_legacy_imports.pth' in set(map(str, record))
-assert pathlib.Path(site.getsitepackages()[0], 'particle_sliders_legacy_imports.pth').is_file()
-assert not any(name in sys.modules for name in ('particlegan', 'diffusers', 'hypergan', 'hndl'))
+assert 'particle_sliders_legacy_imports.pth' not in set(map(str, record))
+assert not pathlib.Path(site.getsitepackages()[0], 'particle_sliders_legacy_imports.pth').exists()
+assert not any(name in sys.modules for name in ('diffusers', 'hypergan', 'hndl', 'music3'))
 '''], tmp_path, env)
     run([python, "-m", "pip", "uninstall", "-y", "particle-sliders-core"], tmp_path, env)
     result = run([python, "-c", '''

@@ -74,3 +74,5 @@ CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 python -m pytest -q 
 ```
 
 The environment has the combined core checkout installed editable, ParticleGAN 0.9.5, and the packaging build requirements. One nested editable-install/uninstall test is deselected because its fresh child environment inherits the machine's incompatible setuptools/backports installation. Ordinary wheel installation/uninstallation and namespace subprocess tests are included.
+
+See [the 2026-11-07 shared-boundary and follow-up PR tracker](followups-20261107.md) for the subsequent separate `develop` PRs and new cohort validation.

@@ -147,6 +147,8 @@ class DoRAModule(nn.Module):
         del self.org_module
 
     def forward(self, x):
+        if self.multiplier == 0:
+            return self.org_forward(x)
         weight = self.org_module_weight
         if weight.data.ndim == 4:  # For handling LoRAs applied to Conv2Ds.
             lora_weight = torch.mm(self.lora_up.weight.flatten(start_dim=1), self.lora_down.weight.flatten(start_dim=1))

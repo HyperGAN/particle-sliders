@@ -68,34 +68,14 @@ def test_explicit_historical_live_export_keeps_its_raw_provenance():
 def test_live_recipes_are_raw_and_named_historical_stamp_is_retained():
     from particle_sliders.formulation import particle_gmix_1600_v2, winning_formulation
     from particle_sliders.recipe import SliderRecipe
-    from particle_sliders.textsliders._slider2d.adv import AdvConfig
     assert winning_formulation().spec['ema'] is None
     assert winning_formulation().formulation_id == 'particle-gmix-1600-v2-raw'
     assert particle_gmix_1600_v2().parameters['ema'] == .995
-    assert SliderRecipe().ema is None and AdvConfig().ema is None
+    assert SliderRecipe().ema is None
     with pytest.raises(ValueError, match='EMA'):
         SliderRecipe.from_dict({'ema': .995})
-    with pytest.raises(ValueError, match='EMA'):
-        AdvConfig(ema=.995)
 
 
-@pytest.mark.parametrize('module,needs_host', [
-    ('tiny_llm_particle', True), ('bonsai_gguf_particle', False),
-    ('music3_particle_bridge', True), ('yue2_particle_bridge', True), ('yue2_backend', True),
-])
-def test_particle_loaders_reject_averaged_metadata_before_host_allocation(tmp_path, module, needs_host):
-    import importlib
-    import json
-    from safetensors.torch import save_file
-    loaded = importlib.import_module('particle_sliders.textsliders.' + module)
-    name = {'tiny_llm_particle': 'TinyParticleSlider', 'bonsai_gguf_particle': 'BonsaiParticleHead',
-            'music3_particle_bridge': 'ParticleNetwork', 'yue2_particle_bridge': 'ParticleSlider',
-            'yue2_backend': 'YuE2Slider'}[module]
-    path = tmp_path / (module + '.safetensors')
-    save_file({'weight': torch.ones(1)}, path, metadata={'conceptmod': json.dumps({'weights_kind': 'ema'})})
-    arguments = (None, path) if needs_host else (path,)
-    with pytest.raises(ValueError, match='Averaged adapter'):
-        getattr(loaded, name).load(*arguments)
 
 
 def test_upstream_disabled_recipe_value_stays_zero_and_scalar_history_is_untouched():

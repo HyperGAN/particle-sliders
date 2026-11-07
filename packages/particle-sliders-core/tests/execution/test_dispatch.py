@@ -175,6 +175,82 @@ def test_cancel_reaps_owned_worker_and_updates_progress(product, tmp_path):
     assert json.loads((tmp_path/'run/result.json').read_text())['worker_reaped'] is True
 
 
+@pytest.mark.parametrize('linger', [False, True])
+def test_output_decode_failure_records_error_and_reaps_owned_worker(product, tmp_path, linger):
+    # An isolated controller gives this regression a test-only watchdog: the
+    # former missing EOF event otherwise leaves the controller polling forever.
+    (tmp_path/'worker.py').write_text(
+        "import os,time\nos.write(1,b'\\xff\\n')\n" + ('time.sleep(60)\n' if linger else ''))
+    spec = deepcopy(product[1])
+    spec['command'].insert(1, '-S')
+    product[0].write_text(json.dumps(spec))
+    request = request_for(product, tmp_path)
+    request_file = tmp_path/'request.json'
+    request_file.write_text(json.dumps(request))
+    source = Path(__file__).resolve().parents[2]/'src'
+    code = '''import json,pathlib,sys
+import particle_sliders.execution.local as local
+assert pathlib.Path(local.__file__).resolve().is_relative_to(pathlib.Path(sys.argv[2]).resolve())
+owned=[]
+original=local.subprocess.Popen
+def start(*args,**kwargs):
+ child=original(*args,**kwargs);owned.append(child);return child
+local.subprocess.Popen=start
+try:
+ local.execute_resolved_request(json.load(open(sys.argv[1])))
+except RuntimeError as error:
+ assert 'output reader failed' in str(error),str(error)
+ assert isinstance(error.__cause__,UnicodeDecodeError),repr(error.__cause__)
+else:
+ raise AssertionError('invalid worker output was accepted')
+assert len(owned)==1 and owned[0].poll() is not None
+assert owned[0].stdout.closed
+'''
+    completed = subprocess.run([sys.executable, '-S', '-c', code, str(request_file), str(source)],
+        env=dict(os.environ, PYTHONPATH=str(source), PYTHONIOENCODING='utf-8', CUDA_VISIBLE_DEVICES=''),
+        capture_output=True, text=True, timeout=15)
+    assert completed.returncode == 0, completed.stderr
+    result = json.loads((tmp_path/'run/result.json').read_text())
+    assert result['status'] == 'failed' and result['worker_reaped'] is True
+    assert 'output reader failed' in result['error']
+    assert json.loads((tmp_path/'run/progress.json').read_text()) == result
+
+
+def test_output_reader_preserves_read_error_if_close_also_fails():
+    import queue
+    from particle_sliders.execution.local import _read_worker_output
+    failure = OSError('read failed')
+    class BrokenStream:
+        def __iter__(self):
+            yield 'retained output\n'
+            raise failure
+        def close(self):
+            raise OSError('close failed')
+    events = queue.Queue()
+    _read_worker_output(BrokenStream(), events)
+    assert events.get_nowait() == ('retained output\n', None)
+    assert events.get_nowait() == (None, failure)
+    assert events.empty()
+
+
+def test_worker_exit_during_cleanup_signal_is_still_reaped(monkeypatch):
+    import particle_sliders.execution.local as local
+    class ExitingWorker:
+        pid = 123
+        waited = False
+        def poll(self):
+            return None
+        def wait(self, timeout=None):
+            self.waited = True
+            return 0
+    worker = ExitingWorker()
+    def exited(*args):
+        raise ProcessLookupError('already exited')
+    monkeypatch.setattr(local.os, 'killpg', exited)
+    local._reap_worker(worker)
+    assert worker.waited
+
+
 def test_resolved_budget_rejects_transport_tamper(product, tmp_path):
     r = request_for(product,tmp_path)
     r['resolved']['target_steps'] = 999

@@ -253,6 +253,8 @@ class LoRAModule(nn.Module):
         return g.reshape(shape)
 
     def forward(self, x):
+        if self.multiplier == 0:
+            return self.org_forward(x)
         # LoRA may be fp32/cuda while the host module is bf16 or CPU-offloaded.
         weight = self.lora_down.weight
         x_lora = x.to(device=weight.device, dtype=weight.dtype)
@@ -441,9 +443,12 @@ def apply_continuous_lora_scale(module, scale: float) -> int:
         scaling = getattr(child, "scaling", None)
         if is_lora and isinstance(scaling, dict) and scaling:
             base = getattr(child, "_krea_base_scaling", None)
-            if not isinstance(base, dict) or any(key not in base for key in scaling):
-                child._krea_base_scaling = {k: float(v) for k, v in scaling.items()}
-                base = child._krea_base_scaling
+            if not isinstance(base, dict):
+                base = {}
+                child._krea_base_scaling = base
+            # Existing entries may already be scaled. Only a newly attached
+            # adapter supplies a new canonical baseline; never recapture peers.
+            base.update({key: float(value) for key, value in scaling.items() if key not in base})
             for key in scaling:
                 scaling[key] = base[key] * scale
             updated += 1

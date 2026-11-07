@@ -187,6 +187,8 @@ class LoRAModule(nn.Module):
         return g.reshape(shape)
 
     def forward(self, x):
+        if self.multiplier == 0:
+            return self.org_forward(x)
         # LoRA may be fp32/cuda while the host module is bf16 or CPU-offloaded.
         weight = self.lora_down.weight
         x_lora = x.to(device=weight.device, dtype=weight.dtype)

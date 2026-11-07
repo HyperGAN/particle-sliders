@@ -13,7 +13,9 @@ include LEGACY-MIGRATION.md
 include FIBO-NETWORK-PROVENANCE.json
 include MODERN-GRAM.md
 include _build_backend.py
-include particle_sliders_legacy_imports.pth
+include _core_build.py
+include setup.py
+include SHARED-CORE-BOUNDARY.md
 
 include TRAINING-COMMAND.md
 

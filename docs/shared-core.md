@@ -1,67 +1,46 @@
-The dependency contract covers all model families: product slider packages → particle-sliders → ParticleGAN/HyperGAN. See the [backend migration inventory](backend-migration-inventory.md) for implemented sessions, existing bindings and explicit legacy gaps.
-
 # Shared particle-sliders API
 
-The installable `particle-sliders-core` package owns the conditional GAN update,
-state protocol and reusable native-response adapters. Product repositories pin
-a reviewed full commit and execute `particle_sliders.ConditionalPG09.step()`;
-a stamp import or dummy-only call does not establish shared live execution.
+Product slider packages depend on `particle-sliders-core`, which delegates GAN
+mathematics to exact released ParticleGAN **0.9.5**. Core **0.14.0** packages only
+generic lifecycle, response, adapter and execution modules. Read the
+[explicit module boundary](../packages/particle-sliders-core/SHARED-CORE-BOUNDARY.md)
+and [product inventory](backend-migration-inventory.md) before selecting a cohort.
 
-Version 0.6.0 pins released ParticleGAN **0.9.1**, with explicit FP32 host
-execution. It does not depend on develop or 0.10. Upstream's new BF16/channels-last
-CUDA trainer policy remains a separate native execution qualification.
-[Release and compatibility](https://github.com/255BITS/ParticleGAN/pull/450).
-
-Install the Git subdirectory package, optionally with `[serialization]`, rather
-than using a workspace checkout or copying modules. See the
-[package API table and examples](../packages/particle-sliders-core/README.md)
-and [full contract](../packages/particle-sliders-core/CONDITIONAL-PG09-CONTRACT.md).
-All public backend/campaign/native-architecture modules are inside the wheel;
-imports never load pretrained weights or select a GPU. The old repository paths
-alias those implementations. `concept_slider_core` is a deprecated root alias;
-`packages/concept-slider-core` is a retired path.
+Products register entry-point factories or inject complete owned bindings into
+`particle_sliders.lifecycle` / `particle_sliders.response`. A product loads its
+native model, builds teachers, selects adapter targets and supplies response
+coordinates. Shared `ConditionalPG09` owns updates, optimizer state and private
+RNG. A stamp import or a dummy call does not establish shared live execution.
 
 | Shared package owns | Product owns |
 |---|---|
-| Actual adapter parameter ownership and signed checkpoint scale capture | Native projection names and attachment choices |
-| Public PG loss/penalty/prior and optimizer lifecycle | Frozen base model, exact model/tokenizer/scheduler identity |
-| Independent D/G sampling and checkpointed private RNG/coverage | Frozen teacher conditioning, native response geometry and row policy |
-| Strict training checkpoint and adapter-only inference protocol | Native sampler/decoder orchestration and matched quality evidence |
-| Reusable lazy cache providers and response adapters | Weight/model staging, hardware admission and release decisions |
+| Adapter attachment, activation and optimizer ownership | Native target names and architecture choices |
+| Upstream game lifecycle and exact checkpoint continuation | Frozen model, tokenizer, scheduler and source identity |
+| Evaluation splits and observation rollback | Teacher construction, response coordinates and row policy |
+| Raw adapter export and inference dispatch | Media generation and native qualification |
+| Recipe/hyperparameter inputs and execution contracts | Native admission, presets and release decisions |
 
-Generator training uses public adversarial loss plus its required public prior
-regularizer, without optimized reconstruction/MSE. Native fields preserve
-spatial/time axes through the penalty. Wide continuous vectors still require an
-explicit exact source overlay; the package never silently patches dependencies,
-projects vectors into fake images, or changes the objective.
+Use new immutable source cohorts for adoption. Core 0.14 does not rebind old
+checkpoints, supply model-specific pickle aliases or upgrade existing products.
+Music3 moves its native loader and concrete AR response adapter into
+[its product](https://github.com/HyperGAN/music3-particle-sliders). The generic
+`ARLastHiddenResponseAdapter`, conditioning, critic and response-row helpers stay
+in `particle_sliders.pg09_audio`.
 
-`state_dict()`/`load_state_dict()` continue successful training updates.
-`export_state_dict()`/`load_export_state_dict()` load adapter-only inference;
-these exports cannot become resumable training packets. Invalid optimizer,
-sampler, source, architecture, conditioning and export-step state fails before
-live mutation. Evaluation preserves training RNG and adapter modes/buffers.
+New sessions explicitly disable weight EMA (`ema_decay=None`). All model,
+adapter, critic and particle-bank weights remain raw; upstream optimizer scalar
+statistics remain unchanged. Rank only by operand-first FP64 per-example pooled
+relative SSE, then average equally across examples. Media and preservation
+measurements are diagnostics.
 
-Source relocation and PG 0.9.0→0.9.1 change checkpoint lineage. Existing pinned
-runs retain their original checkout/environment and receipts. Adoption requires
-a new cohort or explicit reviewed migration; no transparent rebind is provided.
-CPU tests do not establish native GPU memory, full sampler/decoder parity or
-model quality.
+Training checkpoints resume training; adapter-only exports cannot be used as
+training packets. Invalid source, architecture, optimizer, sampler or packet
+family is rejected before live mutation. Evaluation restores training RNG and
+adapter modes/buffers. Wide continuous responses declare their supported domain
+explicitly, rather than being reshaped or projected to bypass a penalty gate.
 
-The historical `winning_formulation()`, `FormulationGame`, `EndpointGame` and
-`BISPFGame` remain available for named historical arms. Endpoint includes MSE;
-the old wide-vector BISPF route lacks the new domain gate. Every legacy/default
-CLI must be migrated or explicitly closed by its owner; a package dependency
-alone is insufficient. Research toys remain in
-[HyperGAN/conceptmod](https://github.com/HyperGAN/conceptmod).
-
-`EndpointGame.state_dict()` now emits a complete schema-2 training packet with
-adapter weights. Loading an older unschematized game packet requires its
-separately saved weights explicitly:
-`game.load_state_dict(old_packet, adapter_state=saved_adapter_weights)`.
-The loader restores the adapter, critic, optimizers and random streams together
-before allowing another update. An old game packet alone cannot recover an
-interrupted generator update; keep the original packet and adapter artifact.
-
-New image consumers use the [versioned image session lifecycle](../packages/particle-sliders-core/IMAGE-LIFECYCLE.md), which owns factory preparation, stepping, raw checkpoints and exports, response/native rendering dispatch and cleanup. Historical root exports retain their named objectives; they are not the recommended image lifecycle.
-
-[HyperGAN run-rendering and HANDL network-definition seams](hypergan-interface-seams.md) are handed off separately; current custom definitions are inventoried and have not been silently rewritten.
+Historical named generic engines remain available for their documented recipes.
+Embedded product sources are retained as migration input outside the default
+0.14 distribution. The complete previous packaging and API contract remains at
+[core 0.13 source](https://github.com/HyperGAN/particle-sliders/tree/285180ed9813f12e912bb6bce6bada00496fd19a).
+Native runtime, GPU memory and pretrained quality require separate product tests.
