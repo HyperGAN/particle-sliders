@@ -80,8 +80,9 @@ adoption by every product. Product owners qualify their native runtime separatel
 Historical experiments, prompts and results remain in [docs](docs/README.md) and
 `lr-work`; their recorded source pins and scientific identities remain binding.
 
-For development, install the test extra and run the generic core tests against
-an installed wheel outside the checkout. The install/uninstall tests also check
+For development, install the test extra and run `python -m pytest` against the
+installed wheel. The default suite tests the shared core without adding `src/`
+to Python paths; isolated install tests also run outside the checkout. The install/uninstall tests also check
 strict editable installs and coexistence with a separately owned Conceptmod.
 Historical native/namespace tests apply to their original cohorts; see the
 [boundary qualification record](packages/particle-sliders-core/SHARED-CORE-BOUNDARY.md).
