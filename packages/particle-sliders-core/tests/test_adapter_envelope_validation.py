@@ -1,9 +1,26 @@
 """Rejected envelope configuration leaves pending and effective state intact."""
 import importlib
+from importlib.metadata import distribution
+from pathlib import Path
 
 import pytest
 import torch
 from torch import nn
+
+
+def adapter_module(name, kind):
+    try:
+        return importlib.import_module(name)
+    except ModuleNotFoundError as error:
+        # 0.14 intentionally excludes embedded products. Never hide a missing
+        # generic module, a missing lora/dora module, or an internal dependency.
+        if kind != 'native' and error.name == 'particle_sliders.textsliders':
+            import particle_sliders
+            installed = distribution('particle-sliders-core')
+            origin = Path(installed.locate_file('particle_sliders/__init__.py')).resolve()
+            if installed.version == '0.14.0' and Path(particle_sliders.__file__).resolve() == origin:
+                pytest.skip('installed core 0.14 cohort excludes legacy textsliders; retained source 0.13 runs this case')
+        raise
 
 
 class Attention(nn.Module):
@@ -16,7 +33,7 @@ class Attention(nn.Module):
 
 
 def network(kind):
-    module = importlib.import_module('particle_sliders.' + ('native_lora' if kind == 'native' else 'textsliders.lora'))
+    module = adapter_module('particle_sliders.' + ('native_lora' if kind == 'native' else 'textsliders.lora'), kind)
     host = Attention()
     value = module.LoRANetwork(host, rank=2, alpha=2., target_replace=['Attention'])
     with torch.no_grad():
