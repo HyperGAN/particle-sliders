@@ -1,0 +1,118 @@
+{
+  "base_commit": "3e8052250d593a55d9f071cebae503e764342d05",
+  "branch": "feat/model-agnostic-parameter-search-20261104",
+  "checks": [
+    {
+      "command": "PYTHONPATH=packages/particle-sliders-core/src python3 -m pytest -q packages/particle-sliders-core/tests/parameter_search",
+      "passed": 57,
+      "seconds": 20.08
+    },
+    {
+      "command": "CUDA_VISIBLE_DEVICES='' PYTHONPATH=packages/particle-sliders-core/src /ml2/codex-storage/future-workspaces/2026-10-31/task-14/.venv-qwen-native/bin/python -m pytest -q packages/particle-sliders-core/tests/test_parameter_search_lifecycle.py packages/particle-sliders-core/tests/test_evaluation_splits.py",
+      "passed": 12,
+      "scope": "Actual common SliderSession/ConditionalPG09 CPU adapter-only + participating bank; EMA/raw, trained OFF, full restore/replay, observation/RNG preservation; no CUDA initialized",
+      "seconds": 2.39
+    },
+    {
+      "command": "python3 -m compileall -q scripts/search_parameters.py packages/particle-sliders-core/src/particle_sliders/parameter_search",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ],
+  "examples": [
+    {
+      "actual_step_budgets": [
+        4,
+        12
+      ],
+      "audit": {
+        "run": "77ba5fd16c9a917b64ffa97c8cce97b9844bfeba7ef8cdbbd635777340e9152c",
+        "status": "raw metrics, full checkpoints and exports verified; media quality remains a separate gate",
+        "verified_evaluations": 122,
+        "verified_trials": 32
+      },
+      "backend": "fixture-vector",
+      "completed_update_calls": 240,
+      "config": "examples/parameter_search/vector.json",
+      "config_sha256": "0675a0ad75fde532ab5e6503c3b3117b6d4777ca0e537655cad7a523b4f25db4",
+      "idempotent_resume": "passed; no additional update calls; same nominations",
+      "local_artifacts": "/tmp/particle-search-final-20261104-vector",
+      "nominations": [
+        {
+          "boundary": [],
+          "candidate": "4508b362eafa6369",
+          "error": 0.046032553547155644,
+          "status": "fixture_only"
+        },
+        {
+          "boundary": [],
+          "candidate": "82f7f13c04f45227",
+          "error": 0.3733695078611319,
+          "status": "fixture_only"
+        }
+      ],
+      "physical_update_calls": 240,
+      "run": "77ba5fd16c9a917b64ffa97c8cce97b9844bfeba7ef8cdbbd635777340e9152c",
+      "trials": 32
+    },
+    {
+      "actual_step_budgets": [
+        4,
+        12
+      ],
+      "audit": {
+        "run": "3fb55f38f3200832f9e887b2d60a3a50af105f4576636ebef5714914194ec220",
+        "status": "raw metrics, full checkpoints and exports verified; media quality remains a separate gate",
+        "verified_evaluations": 128,
+        "verified_trials": 32
+      },
+      "backend": "fixture-coupled",
+      "completed_update_calls": 256,
+      "config": "examples/parameter_search/coupled.json",
+      "config_sha256": "3a45408783a56f744a7ace1bf64e29a29a6b22e485ac17b114f54837ff545fd8",
+      "idempotent_resume": "passed; no additional update calls; same nominations",
+      "local_artifacts": "/tmp/particle-search-final-20261104-coupled",
+      "nominations": [
+        {
+          "boundary": [],
+          "candidate": "0c216019cc993fef",
+          "error": 0.35278114142102157,
+          "status": "fixture_only"
+        },
+        {
+          "boundary": [],
+          "candidate": "4508b362eafa6369",
+          "error": 0.04463325403886512,
+          "status": "fixture_only"
+        }
+      ],
+      "physical_update_calls": 256,
+      "run": "3fb55f38f3200832f9e887b2d60a3a50af105f4576636ebef5714914194ec220",
+      "trials": 32
+    }
+  ],
+  "implementation": {
+    "python": "3.11.17 (main, Oct  1 2026, 20:17:42) [GCC 14.3.0]",
+    "sources": {
+      "__init__.py": "9c40a87896ad0aeabbd46ce4426b8adae935bcf3cdbfb6d79428d95635f919f2",
+      "__main__.py": "531216df401d806c83c6a225570e6b7a3b024a115d432c991c114c225ebcc80c",
+      "backend.py": "3e7c9eac469d44aa91a6ee1a54b89cf2a71f4978f61754261d74bd1ec4363ce9",
+      "fixture.py": "eb35c3994caf7a0d80f1d50c65dfa1224107815ee02880f62b9b46d0c3978b9a",
+      "metric.py": "6a28a7dcaf6e9653f7c66fa65f0aa8e4d6512d1a1caa7ec2739bcbb1aa9bd83f",
+      "runner.py": "e9ade77a5ce6dcb66747739e8ba7b7ee370d2e29b653bd7e1dc13f0f49ea0fa2",
+      "space.py": "a3a26082abc04a910dd87f52f7f59c80c10c3191e39e9ec19ff549fa4c3944a0"
+    }
+  },
+  "implementation_sha256": "2b3801bf253094a501d978bacdb8df508ca849c0e40f7deb48134403eeb56b0b",
+  "limitations": [
+    "Both search backends are explicitly synthetic CPU fixtures; all nominations remain fixture_only.",
+    "No pretrained model, native accelerator allocation, model download or native quality qualification was performed by this worker.",
+    "Native products must register an explicit search adapter and retain their own compatible source/dependency environment; ordinary response/image backends are not automatically wired.",
+    "Scalar teacher fit is separate from matched media evidence. Accepted native results require seeded/heldout/OFF/replay/interior/media gates.",
+    "Babel identity unavailable for this subagent; parent aggregates coordinator reporting; no borrowed credentials or replacement process."
+  ],
+  "schema": "particle-sliders-parameter-search-validation-v1"
+}
