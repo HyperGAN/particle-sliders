@@ -22,3 +22,5 @@ include TRAINING-COMMAND.md
 include HYPERGAN-REPORTING.md
 
 include COMPATIBILITY-PG095.md
+
+include PARAMETER-SEARCH.md

@@ -27,3 +27,7 @@ then average examples equally.
 Wide continuous-vector backends explicitly declare
 `penalty_input_domain="continuous"` with `response_domain="continuous_vector"`.
 CPU fixture qualification does not establish native model or media quality.
+
+The shared [raw parameter search](PARAMETER-SEARCH.md) provides model-owned
+hyperparameter bindings, exact full-coordinate RAW metric ranking, retained
+evidence, and step-budgeted resume without a native runtime dependency.

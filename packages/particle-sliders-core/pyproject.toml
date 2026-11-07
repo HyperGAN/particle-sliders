@@ -23,7 +23,7 @@ hndl = ["hndl==0.8.2; python_version >= '3.11' and python_version < '3.15'"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["particle_sliders", "particle_sliders.execution", "concept_slider_core"]
+include = ["particle_sliders", "particle_sliders.execution", "particle_sliders.parameter_search", "concept_slider_core"]
 
 [tool.setuptools]
 include-package-data = false
@@ -35,4 +35,5 @@ particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bis
 testpaths = ["tests"]
 
 [project.scripts]
+particle-slider-search = "particle_sliders.parameter_search.__main__:main"
 particle-slider = "particle_sliders.session_cli:main"
