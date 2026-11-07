@@ -30,12 +30,38 @@ def score(metrics):
     return float(np.mean([m['relative_steering_mse'] for m in metrics]))
 
 
+def refinement_identity(args, pipe, model, spec, all_rows):
+    fit = d.verify_fit(args, pipe, model, spec, all_rows)
+    return dict(stage='refinement', fit=fit,
+        fit_evaluation=d.artifacts.file_identity(args.output/spec['id']/'evaluation.json'),
+        source=d.artifacts.file_identity(__file__),
+        settings=dict(steps=args.steps, initialization_seed=9182, sample_seed=9918,
+            optimizer='Adam', learning_rate=1e-4, clip_grad_norm=1.,
+            scales=[.5, 1.], validation_every=10))
+
+
+def refined_outputs(out, concept):
+    target = out/f'{concept}_distilled_refined_rank8.safetensors'
+    return [target, target.with_suffix('.json')]
+
+
 def refine(args, pipe, model, spec, all_rows):
+    with d.artifacts.attempt_lock(args.output/spec['id']):
+        return _refine(args, pipe, model, spec, all_rows)
+
+
+def _refine(args, pipe, model, spec, all_rows):
     concept = spec['id']
     out = args.output / concept
     target = out / f'{concept}_distilled_refined_rank8.safetensors'
+    identity = refinement_identity(args, pipe, model, spec, all_rows)
+    d.artifacts.bind_identity(out/'refinement-identity.json', identity,
+        evidence=[out/'refined-evaluation.json', *refined_outputs(out, concept)])
     if (out/'refined-evaluation.json').exists():
+        d.artifacts.verify_completion(out/'refined-evaluation.json', identity, refined_outputs(out, concept))
         return target
+    if any(path.exists() for path in refined_outputs(out, concept)):
+        raise ValueError(f'Uncommitted refinement export exists; retain evidence and use a new output directory: {out}')
     source = args.release/spec['weights']
     assert d.file_digest(source) == spec['sha256']
     teacher, metadata = d.YuE2Slider.load(model, source)
@@ -47,9 +73,9 @@ def refine(args, pipe, model, spec, all_rows):
     fitting_rows = [row for row in all_rows if row['lyrics'] != train[-1]['lyrics']]
     sequences = []
     for index, row in enumerate(train):
-        saved = json.loads((out/f'train-rollout-{index}.json').read_text())
-        assert saved['prefix'] == d.make_plan(pipe, row, 4100+index).prefix
-        sequences.append((f'train-{index}', saved['ids'], len(saved['prefix'])))
+        ids = d.load_rollout(pipe, row, 4100+index, identity['fit']['settings']['train_tokens'],
+                             out/f'train-rollout-{index}.json', identity['fit'])
+        sequences.append((f'train-{index}', ids, len(d.make_plan(pipe, row, 4100+index).prefix)))
     with torch.no_grad():
         baseline = d.compare(model, teacher, student, [sequences[-1]])
     best_score, best_step = score(baseline), 0
@@ -110,10 +136,10 @@ def refine(args, pipe, model, spec, all_rows):
         heldout.extend(d.existing_eval(args.reference, concept, row, 1709))
     with torch.no_grad():
         metrics = d.compare(model, teacher, student, heldout, logits=True)
-    d.write_json(out/'refined-evaluation.json', dict(concept=concept,
+    d.artifacts.publish_completion(out/'refined-evaluation.json', identity, dict(concept=concept,
         checkpoint=target.name, checkpoint_sha256=d.file_digest(target),
         history=history, selected_step=best_step, heldout=metrics,
-        zero_exact=True, ordinary_lora_only=True))
+        zero_exact=True, ordinary_lora_only=True), refined_outputs(out, concept))
     d.log('refine_complete', concept=concept, selected_step=best_step,
         heldout_music_mse=float(np.mean([m['relative_steering_mse'] for m in metrics if m['region']=='music'])))
     del optimizer, teacher, student, best, cached, loss, prediction
@@ -123,14 +149,44 @@ def refine(args, pipe, model, spec, all_rows):
 
 
 @torch.inference_mode()
-def audio(args, pipe, model, spec, target):
+def audio(args, pipe, model, spec, target, all_rows):
+    with d.artifacts.attempt_lock(args.output/spec['id']/'audio'):
+        generation_config = pipe.generation_config
+        try:
+            return _audio(args, pipe, model, spec, target, all_rows)
+        finally:
+            pipe.generation_config = generation_config
+
+
+def _audio(args, pipe, model, spec, target, all_rows):
     import soundfile as sf
     from yue2.modeling_vae import YuE2VAE
     concept = spec['id']
     out = args.output/concept/'audio'
     out.mkdir(exist_ok=True)
+    refinement = refinement_identity(args, pipe, model, spec, all_rows)
+    d.artifacts.bind_identity(out.parent/'refinement-identity.json', refinement,
+                             evidence=[out.parent/'refined-evaluation.json'])
+    d.artifacts.verify_completion(out.parent/'refined-evaluation.json', refinement,
+                                 refined_outputs(out.parent, concept))
+    identity = dict(stage='audio', refinement=refinement,
+        refinement_evaluation=d.artifacts.file_identity(out.parent/'refined-evaluation.json'),
+        checkpoint=d.artifacts.file_identity(target),
+        settings=dict(generation_config=replace(pipe.generation_config, ode_steps=16).to_dict(),
+            max_tokens=500, min_tokens=200, seed=1709, scale=1., sample_rate=48000,
+            subtype='PCM_16', halo_frames=16, soundfile=sf.__version__,
+            libsndfile=sf.__libsndfile_version__))
+    outputs = [out/f'row{index}-{kind}{suffix}'
+        for index, _ in enumerate(d.rows(args.release, spec, 'eval'))
+        for kind in ('off', 'teacher', 'plain-ar', 'plain-all')
+        for suffix in ('.flac', '-semantic.npy', '.json')]
+    d.artifacts.bind_identity(out/'audio-identity.json', identity,
+        evidence=[path for path in out.iterdir() if path.name != '.distillation.lock'])
     if (out/'summary.json').exists():
+        d.artifacts.verify_completion(out/'summary.json', identity, outputs)
         return
+    if any(path.exists() for path in outputs):
+        raise ValueError(f'Uncommitted audio outputs exist; retain evidence and use a new output directory: {out}')
     teacher, _ = d.YuE2Slider.load(model, args.release/spec['weights'])
     d.detach(model, teacher)
     student, _ = d.YuE2Slider.load(model, target)
@@ -177,10 +233,11 @@ def audio(args, pipe, model, spec, target):
             d.write_json(out/f'row{index}-{kind}.json', dict(entry, caption=row['neutral'], lyrics=row['lyrics']))
             records.append(entry)
             d.log('audio_complete', concept=concept, **entry)
-    d.write_json(out/'summary.json', dict(concept=concept, recordings=records,
+    d.artifacts.publish_completion(out/'summary.json', identity, dict(concept=concept, recordings=records,
         checkpoint_sha256=d.file_digest(target), teacher_sha256=spec['sha256'],
         protocol='Same caption, lyrics and seed; 20-second diagnostic limit, 16 ODE steps',
-        plain_all_note='Native LoRA also applied to acoustic-prefix AR projections, mirroring standard ComfyUI scope; not a ComfyUI audio render'))
+        plain_all_note='Native LoRA also applied to acoustic-prefix AR projections, mirroring standard ComfyUI scope; not a ComfyUI audio render'),
+        outputs)
     del teacher, student
     gc.collect()
     torch.cuda.empty_cache()
@@ -214,13 +271,12 @@ def main():
         memory_budget_gib=26, progress=False) as pipe:
         model = pipe._load_model().requires_grad_(False)
         for concept in args.ids.split(','):
-            if not (args.output/concept/'evaluation.json').exists():
-                raise RuntimeError(f'First-stage distillation has not finished: {concept}')
+            d.verify_fit(args, pipe, model, specs[concept], list(all_rows.values()))
             if args.audio_only:
                 target = args.output/concept/f'{concept}_distilled_refined_rank8.safetensors'
             else:
                 target = refine(args, pipe, model, specs[concept], list(all_rows.values()))
-            audio(args, pipe, model, specs[concept], target)
+            audio(args, pipe, model, specs[concept], target, list(all_rows.values()))
 
 
 if __name__ == '__main__':
