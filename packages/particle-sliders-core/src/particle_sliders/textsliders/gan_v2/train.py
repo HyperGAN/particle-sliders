@@ -47,7 +47,7 @@ def arm_settings(name,*,origin,horizon,diagnostics_every):
     return recipe,critic
 
 
-def export(run,engine,ema,*,rank,alpha,metadata,prompts,run_signature):
+def export(run,engine,ema,*,rank,alpha,metadata,prompts,run_signature,name=None,publish_latest=True):
     if ema is not None:
         raise ValueError('Weight EMA is disabled; averaged exports are unsupported')
     from safetensors.torch import save_file
@@ -58,12 +58,35 @@ def export(run,engine,ema,*,rank,alpha,metadata,prompts,run_signature):
         prompts_file=str(Path(prompts).resolve()),recommended_range=[0.,1.],
         gan_v2=dict(recipe=asdict(engine.recipe),signature_digest=state.digest(run_signature),
                     quality_status='research_candidate_requires_audio_validation'))
-    path=run/f'{run.name}_step{step}.safetensors'
+    path=run/f'{name or run.name}_step{step}.safetensors'
     tensors={k:v.detach().cpu().contiguous() for k,v in engine.network.state_dict().items()}
     save_file(tensors,str(path));write_json(path.with_suffix('.json'),base)
     outputs={'live':str(path)}
-    write_json(run/'latest.json',dict(step=step,checkpoints=outputs))
+    if publish_latest:
+        # Compatibility for an explicit standalone raw export; training uses
+        # publish_checkpoint so this receipt never precedes the full state.
+        write_json(run/'latest.json',dict(step=step,checkpoints=outputs))
     return outputs
+
+
+def publish_checkpoint(run,engine,sampler,ema,run_signature,history,*,rank,alpha,metadata,prompts):
+    from particle_sliders.execution.checkpoint_generation import publish_generation
+    from particle_sliders._training import require_healthy_update
+    from particle_sliders._restore_training import require_healthy_restore
+    require_healthy_update(engine,engine.g_optimizer,engine.d_optimizer)
+    require_healthy_restore(engine,engine.g_optimizer,engine.d_optimizer)
+    run=Path(run)
+    step=engine.completed
+    weights=f'{run.name}_step{step}.safetensors'
+    def build(directory):
+        state.save(directory/'state.pt',engine,sampler,ema,run_signature,history)
+        export(directory,engine,ema,rank=rank,alpha=alpha,metadata=metadata,
+               prompts=prompts,run_signature=run_signature,name=run.name,publish_latest=False)
+    return publish_generation(run,f'step-{step:09d}',
+        identity=dict(signature_sha256=state.digest(run_signature),completed_steps=step,weights_kind='raw'),
+        required=['state.pt',weights,str(Path(weights).with_suffix('.json'))],build=build,
+        reference_fields=lambda directory:dict(step=step,state=str(directory/'state.pt'),
+            checkpoints={'live':str(directory/weights)}))
 
 
 def parse_args(argv=None):
@@ -110,7 +133,9 @@ def train(args):
     torch.set_num_threads(4);torch.manual_seed(args.seed);random.seed(args.seed)
     device=torch.device('cuda:0')
     run=args.run_dir.resolve();run.mkdir(parents=True,exist_ok=True)
-    if (run/'state.pt').exists() and not args.resume:raise ValueError('Existing run requires explicit resume or a fresh directory')
+    if any((run/name).exists() for name in ('state.pt','latest.json','generations')) and not args.resume:
+        raise ValueError('Existing run requires explicit resume or a fresh directory')
+    resume_path=state.checkpoint_path(args.resume) if args.resume else None
     rows,metadata=legacy._load_rows(args.prompts);validate_prompts(rows)
     recipe,critic_config=arm_settings(args.arm,origin=args.schedule_origin,horizon=args.schedule_horizon,
                                      diagnostics_every=args.diagnostics_every)
@@ -140,7 +165,7 @@ def train(args):
     if args.source_state:
         source=state.initialize_from_legacy(args.source_state,engine,reuse_critic=not critic_config['conditioned'])
     elif args.resume:
-        source=torch.load(args.resume,map_location='cpu',weights_only=True)['signature']['source']
+        source=torch.load(resume_path,map_location='cpu',weights_only=True)['signature']['source']
     identity={'path':str(args.model_dir.resolve()),'files':{str(p.relative_to(args.model_dir)):
         {'size':p.stat().st_size,'mtime_ns':p.stat().st_mtime_ns} for p in sorted((args.model_dir/'language_model').glob('*.safetensors'))}}
     run_signature=state.signature(recipe,critic_config,fixture_manifest(prepared),rank=args.rank,alpha=float(args.rank),
@@ -149,7 +174,7 @@ def train(args):
     # Batch/sampler and frame geometry must also be immutable on resume.
     run_signature['data']={'batch':args.batch,'seed':args.seed,'frames':args.frames,'policy_stride':args.policy_stride,
         'history_seeds':args.history_seeds,'prompts_sha256':sha(args.prompts)}
-    history=state.restore(args.resume,engine,sampler,ema,run_signature) if args.resume else []
+    history=state.restore(resume_path,engine,sampler,ema,run_signature) if args.resume else []
     if args.until<=engine.completed:raise ValueError('Requested endpoint must advance the loaded state')
     write_json(run/'manifest.json',run_signature)
     provenance=run/'provenance';provenance.mkdir(exist_ok=True)
@@ -178,6 +203,7 @@ def train(args):
     old_handlers={sig:signal.signal(sig,stop) for sig in (signal.SIGTERM,signal.SIGINT)}
     log=run/f'train-from-{engine.completed}.jsonl'
     if log.exists():raise ValueError('Existing attempt log; resume into a fresh run directory')
+    publication=None
     try:
         with log.open('w') as handle:
             while engine.completed<args.until and not stop_requested:
@@ -187,13 +213,15 @@ def train(args):
                       f"FM grad factor={row['fm_gradient']['factor']:.3f} "
                       f"effective step={row['effective_limit']['actual_norm']:.5f}",flush=True)
                 if engine.completed%args.save_every==0:
-                    export(run,engine,ema,rank=args.rank,alpha=float(args.rank),metadata=metadata,prompts=args.prompts,run_signature=run_signature)
-                    state.save(run/'state.pt',engine,sampler,ema,run_signature,history)
-                    state.save(run/f'step{engine.completed}_state.pt',engine,sampler,ema,run_signature,history)
-            outputs=export(run,engine,ema,rank=args.rank,alpha=float(args.rank),metadata=metadata,prompts=args.prompts,run_signature=run_signature)
-            state.save(run/'state.pt',engine,sampler,ema,run_signature,history)
+                    publication=publish_checkpoint(run,engine,sampler,ema,run_signature,history,
+                        rank=args.rank,alpha=float(args.rank),metadata=metadata,prompts=args.prompts)
+            if publication is None or publication['step']!=engine.completed:
+                publication=publish_checkpoint(run,engine,sampler,ema,run_signature,history,
+                    rank=args.rank,alpha=float(args.rank),metadata=metadata,prompts=args.prompts)
+            outputs=publication['checkpoints']
             write_json(run/'status.json',dict(status='paused' if stop_requested else 'budget_complete',
-                completed=engine.completed,outputs=outputs,convergence='not_inferred_from_training_budget'))
+                completed=engine.completed,outputs=outputs,checkpoint=publication['state'],
+                generation=publication['generation'],convergence='not_inferred_from_training_budget'))
     finally:
         for sig,handler in old_handlers.items():signal.signal(sig,handler)
     return outputs
