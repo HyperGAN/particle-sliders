@@ -26,6 +26,14 @@ step/signature before mutating a game. Explicit historical .pt paths remain
 supported under their existing exact source/configuration checks. Old
 checkpoints do not acquire new receipts or metric qualification.
 
+For scripts/train_lm_gan_v2.sh, use a fresh run name and set
+RESUME_STATE=/absolute/path/to/previous-run/latest.json for a new committed
+generation, or explicitly supply the historical full .pt path with its complete
+original source/configuration pin. The captured analysis/campaign callers retain
+their old top-level state.pt assumptions and are migration inputs, not updated
+entry points for this prospective format. No nontransactional state.pt alias is
+created to make those historical protocols appear compatible.
+
 On a staging/build/fsync/rename failure, partial directories remain evidence
 and the prior latest receipt stays authoritative. If directory publication
 succeeds but latest publication fails, the committed orphan generation remains
