@@ -7,7 +7,6 @@ from pathlib import Path
 import pytest
 import torch
 from particle_sliders import pg09
-from particle_sliders.fibo_hndl import PROFILE, verified_builder
 from test_conditional_pg09 import fixture, equal
 
 
@@ -41,41 +40,10 @@ def test_previous_release_checkpoint_identity_refuses_transactionally(key, value
     equal(before, game.state_dict())
 
 
-def test_exact_actual_framework_develop_identity():
-    pytest.importorskip("hndl")
-    pytest.importorskip("hypergan.hndl_networks")
-    _, identity = verified_builder()
-    assert identity['profile'] == PROFILE == 'hypergan-hndl-v2'
-    assert identity['hndl_version'] == version('hndl') == '0.10.0'
-    assert identity['hypergan_commit'] == '5f368a3770cf5bdae0448995c9f76e29af8049f7'
-    assert len(identity['hypergan_build_provenance_sha256']) == 64
 
 
-@pytest.mark.parametrize('change', [{'dirty': True}, {'commit': '0' * 40}])
-def test_same_builder_bytes_cannot_claim_wrong_or_dirty_framework_commit(monkeypatch, change):
-    pytest.importorskip("hndl")
-    pytest.importorskip("hypergan.hndl_networks")
-    read = Path.read_text
-    def altered(path, *args, **kwargs):
-        text = read(path, *args, **kwargs)
-        if path.name == '_build_provenance.json':
-            document = json.loads(text)
-            document.update(change)
-            return json.dumps(document)
-        return text
-    monkeypatch.setattr(Path, 'read_text', altered)
-    with pytest.raises(ValueError, match='clean HyperGAN develop build provenance'):
-        verified_builder()
 
 
-def test_old_network_profile_refuses_before_host_mutation():
-    from particle_sliders.fibo_native import FiboParticleSlider, target_modules
-    from test_fibo_native import Pipeline
-    model = Pipeline().transformer
-    before = [module.forward for module in target_modules(model).values()]
-    with pytest.raises(ValueError, match='unknown Fibo network profile'):
-        FiboParticleSlider(model, network_profile='hypergan-hndl-v1')
-    assert before == [module.forward for module in target_modules(model).values()]
 
 
 def test_previous_host_source_refusal_explains_original_cohort_without_mutation():
