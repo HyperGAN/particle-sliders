@@ -1,8 +1,4 @@
-"""Generic LoRA construction and activation over product-owned named targets.
-
-The original name-based selector remains available through a compatibility
-adapter. New integrations pass ``LoRANetwork(..., target_plan=...)`` directly.
-"""
+"""Native LoRA architecture shared by model adapters; no training loop imports."""
 # ref:
 # - https://github.com/cloneofsimo/lora/blob/master/lora_diffusion/lora.py
 # - https://github.com/kohya-ss/sd-scripts/blob/main/networks/lora.py
@@ -10,8 +6,8 @@ adapter. New integrations pass ``LoRANetwork(..., target_plan=...)`` directly.
 from __future__ import annotations
 
 import os
-from collections.abc import Iterable
-from typing import Optional, List
+import math
+from typing import TYPE_CHECKING, Optional, List, Type, Set, Literal
 
 import torch
 import torch.nn as nn
@@ -19,17 +15,45 @@ import torch.nn as nn
 from .adapter_activation import activation_is_entered, activation_mutation, push_activation, restore_activation
 from .adapter_attachment import atomic_attachment
 
-# Re-export the historical import surface without embedding model selection in
-# the generic construction/activation path.
-from .native_lora_compat import (
-    DEFAULT_TARGET_REPLACE,
-    LORA_PREFIX_UNET,
-    TRAINING_METHODS,
-    UNET_TARGET_REPLACE_MODULE_CONV,
-    UNET_TARGET_REPLACE_MODULE_TRANSFORMER,
-    lora_module_kind as _legacy_module_kind,
-    lora_target_plan as _legacy_target_plan,
-)
+if TYPE_CHECKING:
+    from diffusers import UNet2DConditionModel
+
+
+UNET_TARGET_REPLACE_MODULE_TRANSFORMER = [
+#     "Transformer2DModel",  # どうやらこっちの方らしい？ # attn1, 2
+    "Attention"
+]
+UNET_TARGET_REPLACE_MODULE_CONV = [
+    "ResnetBlock2D",
+    "Downsample2D",
+    "Upsample2D",
+    "DownBlock2D",
+    "UpBlock2D",
+
+]  # locon, 3clier
+
+LORA_PREFIX_UNET = "lora_unet"
+
+DEFAULT_TARGET_REPLACE = UNET_TARGET_REPLACE_MODULE_TRANSFORMER
+
+TRAINING_METHODS = Literal[
+    "noxattn",  # train all layers except x-attns and time_embed layers
+    "innoxattn",  # train all layers except self attention layers
+    "selfattn",  # ESD-u, train only self attention layers
+    "xattn",  # ESD-x, train only x attention layers
+    "full",  #  train all layers
+    "xattn-strict", # q and k values
+    "noxattn-hspace",
+    "noxattn-hspace-last",
+    # "xlayer",
+    # "outxattn",
+    # "outsattn",
+    # "inxattn",
+    # "inmidsattn",
+    # "selflayer",
+]
+
+
 
 
 def lora_init_weights_advanced(lora_down, lora_up, init_scale=0.01, sparsity=0.9):
@@ -58,42 +82,68 @@ def lora_init_weights_advanced(lora_down, lora_up, init_scale=0.01, sparsity=0.9
 
 def lora_target_plan(root_module, target_replace_modules, *, prefix=LORA_PREFIX_UNET,
                      delimiter="_", train_method="full"):
-    """Compatibility discovery; new integrations supply explicit named targets."""
-    return _legacy_target_plan(root_module, target_replace_modules, prefix=prefix,
-                               delimiter=delimiter, train_method=train_method)
-
-
-def _validate_target_plan(root, target_plan, network):
-    """Materialize and check all explicit targets before allocating adapters."""
-    plan = tuple(target_plan)
-    if not plan:
-        raise ValueError("target_plan must contain at least one named host module")
-    owned = {id(module) for module in root.modules()}
-    names, modules = set(), set()
-    for entry in plan:
-        if not isinstance(entry, (tuple, list)) or len(entry) != 2:
-            raise ValueError("target_plan entries must be (export_name, host_module) pairs")
-        name, module = entry
-        if not isinstance(name, str) or not name or "." in name:
-            raise ValueError("target_plan export names must be nonempty strings without '.'")
-        if (name in names or name in {
-            "unet_loras", "_activation_guard", "_activation_stack", "_activation_owner",
-        } or hasattr(network, name)):
-            raise ValueError(f"target_plan export name is duplicated or reserved: {name!r}")
-        if id(module) not in owned:
-            raise ValueError(f"target_plan host {name!r} does not belong to the supplied root")
-        if id(module) in modules:
-            raise ValueError(f"target_plan host module is repeated: {name!r}")
-        if not isinstance(module, (nn.Linear, nn.Conv1d, nn.Conv2d)):
-            raise TypeError(f"target_plan host {name!r} must be Linear, Conv1d or Conv2d")
-        if isinstance(module, (nn.Conv1d, nn.Conv2d)) and (
-            module.groups != 1 or any(value != 1 for value in module.dilation)
-            or module.padding_mode != "zeros"
-        ):
-            raise ValueError(f"target_plan convolution {name!r} requires groups=1, dilation=1 and zero padding mode")
-        names.add(name)
-        modules.add(id(module))
-    return plan
+    """Read native target names and modules without initialization or attachment."""
+    targets = []
+    names = []
+    wrapped_ids = set()  # dedupe by module identity: overlapping target classes
+    # (e.g. the root model + its blocks) must not wrap the same Linear twice
+    for name, module in root_module.named_modules():
+        if train_method == "noxattn" or train_method == "noxattn-hspace" or train_method == "noxattn-hspace-last":  # Cross Attention と Time Embed 以外学習
+            if "attn2" in name or "time_embed" in name:
+                continue
+        elif train_method == "innoxattn":  # Cross Attention 以外学習
+            if "attn2" in name:
+                continue
+        elif train_method == "selfattn":  # Self Attention のみ学習
+            if "attn1" not in name:
+                continue
+        elif train_method == "xattn" or train_method == "xattn-strict":  # Cross Attention のみ学習
+            if "attn2" not in name:
+                continue
+        elif train_method == "full":  # 全部学習
+            pass
+        else:
+            raise NotImplementedError(
+                f"train_method: {train_method} is not implemented."
+            )
+        if module.__class__.__name__ in target_replace_modules:
+            for child_name, child_module in module.named_modules():
+                if 'add_' in child_name:
+                    continue
+                if child_module.__class__.__name__ in [
+                    "Linear",
+                    "Conv1d",
+                    "Conv2d",
+                    "LoRACompatibleLinear",
+                    "LoRACompatibleConv",
+                ]:
+                    if train_method == 'xattn-strict':
+                        if 'out' in child_name:
+                            continue
+                    if train_method == 'noxattn-hspace':
+                        if 'mid_block' not in name:
+                            continue
+                    if train_method == 'noxattn-hspace-last':
+                        if 'mid_block' not in name or '.1' not in name or 'conv2' not in child_name:
+                            continue
+                    if id(child_module) in wrapped_ids:
+                        continue
+                    # Skip empty path segments. The root model class is one of
+                    # TARGET_REPLACE_FULL and its named_modules() name is "",
+                    # which used to yield "lora_unet..transformer_blocks-0-..."
+                    # -> a "lora_unet--" double delimiter. Because the identity
+                    # dedupe lets the root claim every module first, *every*
+                    # --targets full key came out double, disagreeing with the
+                    # single-delimiter names --targets attn gives the very same
+                    # attention modules -- and with the ComfyUI converter, which
+                    # matches "lora_unet-".
+                    lora_name = ".".join(p for p in (prefix, name, child_name) if p)
+                    lora_name = lora_name.replace(".", delimiter)
+                    if lora_name not in names:
+                        wrapped_ids.add(id(child_module))
+                        targets.append((lora_name, child_module))
+                        names.append(lora_name)
+    return targets
 
 
 class LoRAModule(nn.Module):
@@ -114,22 +164,13 @@ class LoRAModule(nn.Module):
         self.lora_name = lora_name
         self.lora_dim = lora_dim
 
-        if isinstance(org_module, nn.Linear):
-            kind = "linear"
-        elif isinstance(org_module, nn.Conv1d):
-            kind = "conv1d"
-        elif isinstance(org_module, nn.Conv2d):
-            kind = "conv2d"
-        else:
-            kind = _legacy_module_kind(org_module)
-
-        if kind == "linear":
+        if "Linear" in org_module.__class__.__name__:
             in_dim = org_module.in_features
             out_dim = org_module.out_features
             self.lora_down = nn.Linear(in_dim, lora_dim, bias=False)
             self.lora_up = nn.Linear(lora_dim, out_dim, bias=False)
 
-        elif kind == "conv1d":
+        elif org_module.__class__.__name__ == "Conv1d":
             in_dim = org_module.in_channels
             out_dim = org_module.out_channels
             self.lora_dim = min(self.lora_dim, in_dim, out_dim)
@@ -145,7 +186,7 @@ class LoRAModule(nn.Module):
             )
             self.lora_up = nn.Conv1d(self.lora_dim, out_dim, 1, bias=False)
 
-        elif kind == "conv2d":
+        elif "Conv" in org_module.__class__.__name__:  # 一応
             in_dim = org_module.in_channels
             out_dim = org_module.out_channels
 
@@ -223,16 +264,10 @@ class LoRAModule(nn.Module):
 
 
 class LoRANetwork(nn.Module):
-    """Attach LoRA to an explicit sequence of ``(export_name, host_module)``.
-
-    Names are checkpoint module names and are used verbatim, in plan order.
-    Targets must belong to ``unet`` (the historical root argument name). The
-    legacy selector arguments remain supported when ``target_plan`` is absent.
-    """
     @atomic_attachment('unet')
     def __init__(
         self,
-        unet: nn.Module,
+        unet: "UNet2DConditionModel",
         rank: int = 4,
         multiplier: float = 1.0,
         delimiter: str = "_",
@@ -240,8 +275,6 @@ class LoRANetwork(nn.Module):
         target_replace = DEFAULT_TARGET_REPLACE,
         prefix=LORA_PREFIX_UNET,
         train_method: TRAINING_METHODS = "full",
-        *,
-        target_plan: Optional[Iterable[tuple[str, nn.Module]]] = None,
     ) -> None:
         super().__init__()
         self.lora_scale = 1
@@ -254,20 +287,16 @@ class LoRANetwork(nn.Module):
         # LoRAのみ
         self.module = LoRAModule
 
-        if target_plan is None:
-            self.unet_loras = self.create_modules(
-                prefix, unet, target_replace, delimiter, self.lora_dim,
-                self.multiplier, train_method=train_method,
-            )
-        else:
-            if (target_replace is not DEFAULT_TARGET_REPLACE or train_method != "full"
-                    or prefix != LORA_PREFIX_UNET or delimiter != "_"):
-                raise ValueError("target_plan cannot be combined with legacy selector/naming arguments")
-            targets = _validate_target_plan(unet, target_plan, self)
-            self.unet_loras = [
-                self.module(name, module, self.multiplier, self.lora_dim, self.alpha)
-                for name, module in targets
-            ]
+        # unetのloraを作る
+        self.unet_loras = self.create_modules(
+            prefix,
+            unet,
+            target_replace,
+            delimiter,
+            self.lora_dim,
+            self.multiplier,
+            train_method=train_method,
+        )
         #print(f"create LoRA for U-Net: {len(self.unet_loras)} modules.")
 
         # assertion 名前の被りがないか確認しているようだ
