@@ -1,5 +1,11 @@
 # Teacher/student evaluation and learning-rate search
 
+The shared search may default to the relative-response proxy described here.
+Measuring intended effect in matched finished outputs is an optional improvement,
+not a requirement to run a proxy search, use its completed results or repeat
+training/confirmation. The campaign protocol below describes its original
+declared measurement; retained searches and scores keep their original identity.
+
 Use this common workflow before selecting a learning rate or extending a slider
 run. Validate the measurement first, compare candidates at equal budgets, then
 confirm the selected raw response on held-out examples. A lower GAN training

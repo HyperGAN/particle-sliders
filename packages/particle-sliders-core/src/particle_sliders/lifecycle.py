@@ -19,11 +19,11 @@ import torch
 
 from .pg09 import ConditionalPG09, PG_SOURCE_PROFILE, _hash, _validate_module
 from .weight_policy import require_no_weight_ema, require_raw_selection
+from .restoration import _RESTORATION_FAILED, _restore_all, native_cleanup, checkpoint_cleanup, _rng_devices
 
 API = 'particle-sliders-image-session-v1'
 TRAINING = API + '-training'
 INFERENCE = API + '-inference'
-_RESTORATION_FAILED = '_particle_sliders_restoration_failed'
 
 
 class LifecycleError(RuntimeError):
@@ -213,37 +213,6 @@ class Backend:
         _released_sources(profile)
 
 
-def _rng_devices(*values):
-    """Discover explicit CUDA devices, including nested native arguments/staging."""
-    devices, seen = set(), set()
-    def visit(value, device_key=False):
-        if not isinstance(value, (str, int, float, bool, type(None), torch.device)):
-            if id(value) in seen:
-                return
-            seen.add(id(value))
-        if isinstance(value, torch.device) or device_key and isinstance(value, str):
-            device = torch.device(value)
-            if device.type == 'cuda':
-                devices.add(device.index if device.index is not None else torch.cuda.current_device())
-        elif isinstance(value, torch.Tensor):
-            if value.is_cuda:
-                devices.add(value.device.index)
-        elif isinstance(value, torch.nn.Module):
-            for tensor in (*value.parameters(), *value.buffers()):
-                visit(tensor)
-        elif isinstance(value, dict):
-            for key, child in value.items():
-                visit(child, key in ('device', 'torch_device', 'execution_device', 'text_device'))
-        elif isinstance(value, (tuple, list)):
-            for child in value:
-                visit(child)
-        elif hasattr(value, 'device'):
-            visit(value.device, True)
-    for value in values:
-        visit(value)
-    return sorted(devices)
-
-
 def _seed_observation(seed, devices):
     torch.set_rng_state(torch.Generator().manual_seed(seed).get_state())
     for device in devices:
@@ -311,50 +280,6 @@ def _network_observation(network, seed, *, devices, observation=None, restore_fa
         _restore_all([restore_buffers, lambda: network.load_state_dict(state, strict=True), restore_buffers,
             *(lambda module=module, training=training: setattr(module, 'training', training)
               for module, training in modes)], primary=primary, on_failure=restore_failed)
-
-
-def _restore_all(actions, *, primary=None, on_failure=None):
-    """Attempt every action; preserve only the explicitly supplied operation error.
-
-    Ambient exceptions may belong to an unrelated caller's ``except`` block.
-    A normal cleanup failure must still be raised in that case.
-    """
-    failures = []
-    for action in actions:
-        try:
-            action()
-        except BaseException as exc:
-            failures.append(exc)
-    if failures:
-        # A product context can retain the body exception as the primary error.
-        # Propagate restoration failure explicitly, rather than parsing notes.
-        setattr(primary if primary is not None else failures[0], _RESTORATION_FAILED, True)
-        if on_failure is not None:
-            on_failure()
-        if primary is not None:
-            for failure in failures:
-                primary.add_note('native restoration failed: ' + type(failure).__name__ + ': ' + str(failure))
-        else:
-            first, *others = failures
-            for failure in others:
-                first.add_note('additional native restoration failure: ' + type(failure).__name__ + ': ' + str(failure))
-            raise first
-
-
-def native_cleanup(root):
-    """Capture borrowed module modes/gradient flags/checkpoint settings before binding.
-
-    Factories call this before changing a supplied model, and compose the returned
-    callback with removal of their owned hooks. It is safe to call repeatedly.
-    """
-    checkpoint = checkpoint_cleanup(root)
-    modes = [(module, module.training) for module in root.modules()]
-    gradients = [(parameter, parameter.requires_grad) for parameter in root.parameters()]
-    def restore():
-        _restore_all([checkpoint,
-            *(lambda module=module, mode=mode: setattr(module, 'training', mode) for module, mode in modes),
-            *(lambda parameter=parameter, grad=grad: parameter.requires_grad_(grad) for parameter, grad in gradients)])
-    return restore
 
 
 @contextmanager
@@ -507,23 +432,6 @@ def updates(game, stop_after, *, ema=None):
         yield advance(game, ema=ema)
 
 
-def checkpoint_cleanup(root):
-    """Capture caller-owned checkpoint hooks before a native adapter binds them."""
-    keys = ('gradient_checkpointing', '_gradient_checkpointing_func')
-    saved = [(module, {key: getattr(module, key) for key in keys if hasattr(module, key)})
-             for module in root.modules()]
-    def restore():
-        actions = []
-        for module, previous in saved:
-            for key in keys:
-                if key in previous:
-                    actions.append(lambda module=module, key=key, value=previous[key]: setattr(module, key, value))
-                elif hasattr(module, key):
-                    actions.append(lambda module=module, key=key: delattr(module, key))
-        _restore_all(actions)
-    return restore
-
-
 class SliderSession:
     api, training_schema, inference_schema = API, TRAINING, INFERENCE
 
@@ -557,7 +465,7 @@ class SliderSession:
             raise ValueError('evaluation split needs a non-train name, EvaluationRows and stable identity')
         self._manifest = dict(api=self.api, config=config.as_dict(), capabilities=asdict(capabilities),
             lifecycle_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-            game_signature=deepcopy(self.game._signature),
+            game_signature=self.game.signature,
             native_response=response_identity,
             evaluation_splits={name: _hash(value.identity)
                                for name, value in self._evaluation_rows.items()})
@@ -585,16 +493,15 @@ class SliderSession:
         self._training()
         self.capabilities.check('train')
         if self.binding.before_update is not None:
-            state = self.game.state_dict()
-            restore_native = native_cleanup(self.game.network)
             try:
-                with torch.random.fork_rng(devices=_rng_devices(self.game.network)):
+                with self.game.rollback_on_error():
                     allowed = self.binding.before_update(dict(completed_steps=self.game.completed_steps,
                                                               manifest=self.manifest))
-                if allowed is False:
-                    raise UnsupportedOperation('native update admission rejected')
+                    if allowed is False:
+                        raise UnsupportedOperation('native update admission rejected')
             except BaseException as primary:
-                _restore_all([lambda: self.game.load_state_dict(state), restore_native], primary=primary)
+                if getattr(primary, _RESTORATION_FAILED, False):
+                    self._restoration_failed()
                 raise
         try:
             stats = advance(self.game, ema=self.ema)
@@ -663,36 +570,7 @@ class SliderSession:
                     prepared_ema.load_state_dict(self.game.network, payload['ema'])
                 except Exception as exc:
                     raise CheckpointError('invalid training/EMA state') from exc
-                flags = self.game._failed, self.game._export_loaded
-                # A previously failed update has no valid resumable rollback
-                # packet; a valid restore can recover it, failed recovery stays disabled.
-                previous = None if any(flags) else self.game.state_dict()
-                # Keep ordinary packet rejection before any live module hook;
-                # rollback is reserved for failures after successful preflight.
-                self.game._validate_state_dict(payload['game'])
-                restore_runtime = self.game._runtime_restorers()
-                cleanup = [native_cleanup(module) for module in
-                           (self.game.network, self.game.critic, self.game.prior) if module is not None]
-                try:
-                    self.game._apply_state_dict(payload['game'])
-                except BaseException as primary:
-                    # Normal PG preflight errors precede mutation. Live custom
-                    # load hooks/transfers can still fail later: restore the last
-                    # owned game state, then every native flag even if rollback fails.
-                    if previous is None:
-                        self.game._failed = True
-                        primary.add_note('restore failed on a disabled game; no resumable rollback packet exists')
-                    else:
-                        try:
-                            self.game.load_state_dict(previous)
-                        except BaseException as rollback:
-                            self.game._failed = True
-                            primary.add_note('game rollback failed; game disabled until valid restore: '
-                                             + type(rollback).__name__ + ': ' + str(rollback))
-                        else:
-                            self.game._failed, self.game._export_loaded = flags
-                    _restore_all([*restore_runtime, *cleanup], primary=primary)
-                    raise
+                self.game.load_state_dict(payload['game'])
                 self.ema.values = prepared_ema.values
                 self.last_metrics = prepared_metrics
                 self.inference_only = False
@@ -722,8 +600,12 @@ class SliderSession:
             raise CheckpointError('Only raw inference is supported; averaged artifacts require their archived loader')
         try:
             self.game.load_export_state_dict(payload['adapter'])
-        except (ValueError, KeyError, TypeError) as exc:
-            raise CheckpointError('invalid inference adapter') from exc
+        except BaseException as exc:
+            if getattr(exc, _RESTORATION_FAILED, False):
+                self._restoration_failed()
+            if isinstance(exc, (ValueError, KeyError, TypeError)):
+                raise CheckpointError('invalid inference adapter') from exc
+            raise
         self.inference_only = True
 
     @contextmanager

@@ -114,7 +114,7 @@ class ResponseSession(SliderSession):
 
     def __init__(self, config, capabilities, binding):
         super().__init__(config, capabilities, binding)
-        signature = self.game._signature
+        signature = self.game.signature
         if (self.game.response_domain != capabilities.response_domain
                 or tuple(self.game.response_shape) != capabilities.response_shape
                 or signature['pg_version'] != capabilities.pg_version

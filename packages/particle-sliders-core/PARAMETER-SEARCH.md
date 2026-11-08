@@ -14,7 +14,8 @@ not migrated or relabelled. Historical validation receipts remain under
 
 ## Ranking and confirmation
 
-The sole score is RAW teacher/student FP64 operand-first relative SSE:
+The default score is RAW teacher/student FP64 operand-first relative SSE, used
+as a proxy for relative effect:
 
 ```
 example_error = sum((float(S) - float(T)) ** 2) / sum((float(T) - float(N)) ** 2)
@@ -28,6 +29,14 @@ subtraction or reduction; do not provide low-precision precomputed differences,
 projections, scalar summaries, or generated text comparisons. The target is the
 actual backend training target, including a signed formulation if applicable.
 Neutral and teacher identities are frozen across candidates and seeds.
+
+This proxy is an acceptable default for search. Measuring the intended effect
+in matched finished outputs is an optional improvement to the search objective,
+not a prerequisite for using this API or its existing results. It does not
+require repeating completed training, replacing historical scores or adding a
+fresh confirmation pass. The current runner retains its one fixed proxy metric;
+an output-effect search would declare its scorer, matched cases and objective
+as a separate explicit protocol rather than add a second ranking gate.
 
 Each FP64 coordinate term enters an exact streaming integer superaccumulator,
 rounded once per example statistic. Chunk boundaries cannot affect the score.
