@@ -13,8 +13,10 @@ cohorts and checkpoints retain their original loaders.
 
 Install this directory with Python 3.11+ and PyTorch 2.6+. Products should pin a
 reviewed full Git commit. Fresh configurations use `ema_decay=None`; all model
-weights remain raw. Rank by operand-first FP64 per-example pooled relative SSE,
-then average examples equally.
+weights remain raw. The default LR-search proxy is operand-first FP64
+per-example pooled relative SSE, averaged equally across examples. Scoring the
+intended effect in matched finished outputs is an optional improvement, not an
+admission, confirmation or rerun requirement for this proxy search.
 
 - [Response sessions](RESPONSE-SESSIONS.md)
 - [Image lifecycle](IMAGE-LIFECYCLE.md)

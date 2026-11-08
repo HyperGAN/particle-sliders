@@ -134,6 +134,18 @@ context through backward. Weight EMA is disabled for adapters, critics and
 particle banks. Every export and inference path uses raw current weights.
 Upstream scalar optimizer statistics are unchanged. Training failures close the
 session; recover by opening a fresh session and loading a qualified checkpoint.
+Direct `ConditionalPG09.step()` also poisons interrupted updates, including
+`KeyboardInterrupt` and `SystemExit`, and refuses checkpoint/export until a valid
+full state is restored. The engine owns atomic training and adapter restores;
+sessions call those public loaders rather than manipulate its private flags.
+`game.signature` returns an independent source/model/data snapshot.
+
+Native admission uses `game.rollback_on_error()`: ordinary rejection restores
+game state, native flags and ambient RNG. Failed rollback quarantines the session
+until cleanup. A late inference-load failure likewise restores the preceding
+training state, or quarantines if restoration fails; it never leaves partially
+loaded weights trainable under the previous checkpoint identity.
+
 Observation restores global RNG and adapter modes/buffers and does not consume
 training streams. Native factories preserve their sampler state.
 

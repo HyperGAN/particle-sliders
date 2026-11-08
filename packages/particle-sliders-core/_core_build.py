@@ -12,7 +12,7 @@ CORE_MODULES = frozenset({
     'lifecycle', 'native_lora', 'optimizer_policy', 'peft_scaling', 'pg09',
     'pg093', 'pg094', 'pg095', 'pg09_audio', 'pg09_backends', 'pg09_hndl',
     'pg09_readout_critic', 'recipe', 'reference', 'response',
-    'routed_projection', 'session_cli', 'teachers', 'weight_policy',
+    'restoration', 'routed_projection', 'session_cli', 'teachers', 'weight_policy',
 })
 
 

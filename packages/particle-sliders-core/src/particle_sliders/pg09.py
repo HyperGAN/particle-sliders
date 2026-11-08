@@ -20,6 +20,7 @@ from torch import nn
 from particlegan import get_recipe, scale_learning_rates
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 from .optimizer_policy import configure_dense_profile, optimizer_diagnostics
+from .restoration import _RESTORATION_FAILED, _restore_all, native_cleanup, _rng_devices
 
 PG_VERSION = '0.9.5'
 PG_SOURCE_PROFILE = 'release-0.9.5'
@@ -94,7 +95,9 @@ def _implementation_sources(backend, critic, provider=None):
                     objects.append(obj)
             if isinstance(owner, nn.Module):
                 objects.extend(owner.modules())
-    result = {'particle_sliders.pg09': hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+    result = {'particle_sliders.pg09': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+              'particle_sliders.restoration': hashlib.sha256(
+                  Path(__file__).with_name('restoration.py').read_bytes()).hexdigest()}
     for obj in objects:
         cls = type(obj)
         try:
@@ -478,6 +481,11 @@ class ConditionalPG09:
         return dict(policy=deepcopy(self.optimizer_policy),
             generator=optimizer_diagnostics(self.opt_g), critic=optimizer_diagnostics(self.opt_d))
 
+    @property
+    def signature(self):
+        """Read-only snapshot of this engine's source/model/data contract."""
+        return deepcopy(self._signature)
+
     def step(self):
         if self._export_loaded:
             raise RuntimeError('inference export is not a resumable training checkpoint')
@@ -488,7 +496,7 @@ class ConditionalPG09:
         try:
             with self._model_stream():
                 return self._step()
-        except Exception:
+        except BaseException:
             self._failed = True
             raise
 
@@ -705,8 +713,66 @@ class ConditionalPG09:
                   for name, value in transient.items())]
 
     def load_state_dict(self, state):
-        self._validate_state_dict(state)
-        self._apply_state_dict(state)
+        """Validate and restore atomically; a failed rollback poisons the game.
+
+        This engine owns its weights, optimizer histories, counters and runtime
+        restoration. Callers never need to manipulate its internal health flags.
+        A valid full checkpoint can recover a previously poisoned game.
+        """
+        devices = _rng_devices(self.network, self.critic, self.prior, self.device)
+        with torch.random.fork_rng(devices=devices):
+            self._validate_state_dict(state)
+            with self._state_transaction():
+                self._apply_state_dict(state)
+
+    @contextmanager
+    def rollback_on_error(self):
+        """Protect a caller admission hook without committing an update.
+
+        Successful hooks retain their intended changes. Rejected or interrupted
+        hooks restore game state, native flags and ambient RNG; failed recovery
+        poisons the game and explicitly marks the original exception.
+        """
+        if self._failed or self._export_loaded:
+            self.state_dict()  # Raise the normal training-state diagnostic.
+        with self._state_transaction():
+            yield
+
+    @contextmanager
+    def _state_transaction(self):
+        devices = _rng_devices(self.network, self.critic, self.prior, self.device)
+        with torch.random.fork_rng(devices=devices):
+            # A failed update or inference-only engine has no qualified full
+            # training rollback packet. A valid incoming restore may recover it;
+            # a failed attempt must leave it disabled.
+            previous = None if self._failed or self._export_loaded else self.state_dict()
+            restore_runtime = self._runtime_restorers()
+            cleanup = [native_cleanup(module) for module in
+                       (self.network, self.critic, self.prior) if module is not None]
+            try:
+                yield
+            except BaseException as primary:
+                if previous is None:
+                    self._failed = True
+                    setattr(primary, _RESTORATION_FAILED, True)
+                    primary.add_note('restore failed on a disabled game; no resumable rollback packet exists')
+                    actions = []
+                else:
+                    # This packet was captured from the healthy live engine.
+                    # Do not re-enter public validation or recurse into restore.
+                    def restore_game():
+                        try:
+                            self._apply_state_dict(previous)
+                        except BaseException as rollback:
+                            primary.add_note('game rollback failed; game disabled until valid restore: '
+                                             + type(rollback).__name__ + ': ' + str(rollback))
+                            raise
+                    actions = [restore_game]
+                def poison():
+                    self._failed = True
+                _restore_all([*actions, *restore_runtime, *cleanup],
+                             primary=primary, on_failure=poison)
+                raise
 
     def _apply_state_dict(self, state):
         """Apply a packet already checked by _validate_state_dict in this call."""
@@ -754,12 +820,15 @@ class ConditionalPG09:
                              network=self.network.state_dict(), completed_steps=self.completed_steps))
 
     def load_export_state_dict(self, state):
-        if state.get('schema') != 'conditional-pg09-adapter-v1' or state.get('config') != self._signature:
-            raise ValueError('adapter export protocol differs')
-        if type(state['completed_steps']) is not int or not 0 <= state['completed_steps'] <= self.recipe.total_steps:
-            raise ValueError('invalid adapter export step')
-        _validate_module(self.network, state['network'])
-        self.network.load_state_dict(state['network'], strict=True)
-        self.completed_steps = state['completed_steps']
-        self._failed = False
-        self._export_loaded = True
+        devices = _rng_devices(self.network, self.critic, self.prior, self.device)
+        with torch.random.fork_rng(devices=devices):
+            if state.get('schema') != 'conditional-pg09-adapter-v1' or state.get('config') != self._signature:
+                raise ValueError('adapter export protocol differs')
+            if type(state['completed_steps']) is not int or not 0 <= state['completed_steps'] <= self.recipe.total_steps:
+                raise ValueError('invalid adapter export step')
+            _validate_module(self.network, state['network'])
+            with self._state_transaction():
+                self.network.load_state_dict(state['network'], strict=True)
+                self.completed_steps = state['completed_steps']
+                self._failed = False
+                self._export_loaded = True
