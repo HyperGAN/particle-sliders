@@ -21,6 +21,46 @@ model-specific subclasses belong to the product. Products own media generation.
 `teacher_convention` options; model-family names never select those semantics.
 `FlowSchedule.increasing_linear` supplies a generic increasing-time schedule.
 
+## Native adapter targets
+
+Products supply an explicit ordered plan of `(export_name, host_module)` pairs
+to `LoRANetwork`. Selection stays with the product, which knows its native model
+and checkpoint naming scheme. Core validates the complete plan before allocating
+or attaching adapters, then preserves its names and order verbatim:
+
+```python
+from particle_sliders.native_lora import LoRANetwork
+
+# These paths and exported names belong to the product's reviewed source cohort.
+projection_paths = ["blocks.0.query", "blocks.0.value"]
+plan = [
+    ("product_" + path.replace(".", "_"), model.get_submodule(path))
+    for path in projection_paths
+]
+network = LoRANetwork(model, rank=8, alpha=8., multiplier=0., target_plan=plan)
+```
+
+Each host must belong to the supplied root. Names must be unique, nonempty
+module names without dots, and cannot shadow network attributes or activation
+state; hosts cannot appear twice. Supported operators are
+`nn.Linear`, `nn.Conv1d` and `nn.Conv2d`, including subclasses. Convolutions in an
+explicit plan require groups 1, dilation 1 and zero padding mode, matching the
+existing branch implementation. Unsupported targets fail before host mutation.
+This API does not choose target names from class names, path substrings or a
+training-method preset. Do not combine `target_plan` with legacy selection or
+naming arguments; export names are already complete.
+
+For existing integrations, `native_lora.lora_target_plan`, the historical
+constants and constructor selector arguments remain available. Their discovery
+policy lives in `native_lora_compat`, including the original attention/time/block
+filters and checkpoint names. Legacy constructors retain that behavior when no
+explicit plan is supplied. This compatibility adapter does not require diffusers
+or any model package. The excluded historical `textsliders` source is unchanged.
+Adopting a new target plan is a product source-cohort decision, not an automatic
+upgrade of an existing checkpoint or exact training resume.
+
+## Distribution
+
 The default wheel and strict editable installation include only an explicit
 list of shared modules plus the execution package. They exclude `textsliders`,
 `notrigger`, native Music3/YuE2/Qwen/Fibo implementations, model-specific image
