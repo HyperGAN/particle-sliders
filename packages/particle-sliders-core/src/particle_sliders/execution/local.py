@@ -1,4 +1,5 @@
 """Isolated local execution; no product or Torch imports in the controller."""
+from contextlib import contextmanager
 from copy import deepcopy
 import ctypes
 import json
@@ -12,6 +13,7 @@ import tempfile
 import threading
 import time
 
+from .process_identity import capture_process_identity
 from .request import materialize_training, validate_resolved, _target
 
 
@@ -26,6 +28,38 @@ def atomic_json(path, value):
 
 class ReportingError(RuntimeError):
     """The selected observer failed; retain native training state separately."""
+
+
+class ControllerTerminated(KeyboardInterrupt):
+    """SIGTERM delivered to the controller, unwound as a recorded cancellation."""
+
+
+def _terminated(signum, frame):
+    raise ControllerTerminated('controller received SIGTERM')
+
+
+def _deferred(signum, frame):
+    pass  # A repeated SIGTERM must not abort the terminal receipt in progress.
+
+
+@contextmanager
+def _sigterm_cancels():
+    # Only replace the default disposition, and only where signal.signal works.
+    if threading.current_thread() is not threading.main_thread() or signal.getsignal(signal.SIGTERM) is not signal.SIG_DFL:
+        yield
+        return
+    signal.signal(signal.SIGTERM, _terminated)
+    try:
+        yield
+    finally:
+        # Leave a handler that a callback installed during the run in place.
+        if signal.getsignal(signal.SIGTERM) in (_terminated, _deferred):
+            signal.signal(signal.SIGTERM, signal.SIG_DFL)
+
+
+def _defer_sigterm():
+    if threading.current_thread() is threading.main_thread() and signal.getsignal(signal.SIGTERM) is _terminated:
+        signal.signal(signal.SIGTERM, _deferred)
 
 
 def _bind_worker_lifetime(parent_pid):
@@ -228,6 +262,11 @@ def _reap_worker(child):
 
 
 def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
+    with _sigterm_cancels():
+        return _execute(request, on_checkpoint=on_checkpoint, on_progress=on_progress)
+
+
+def _execute(request, *, on_checkpoint=None, on_progress=None):
     request = deepcopy(request)
     spec = _admit(request)
     _check_reporting(request)  # Explicit reporting failures occur before GPU/output allocation.
@@ -241,12 +280,13 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
     atomic_json(config, materialize_training(request))
     command, cwd, env = command_for(request, config, artifacts)
     progress = dict(status='starting', profile=spec['name'], qualification=spec['status'],
-                    target_steps=_target(request['training'], spec), completed_steps=0)
-    atomic_json(output / 'progress.json', progress)
+                    target_steps=_target(request['training'], spec), completed_steps=0,
+                    controller_identity=capture_process_identity())
     child = None
     reporter, reporter_log = None, None
     training_result = None
     seen = set()
+    atomic_json(output / 'progress.json', progress)
     try:
         reporter, reporter_log = _start_reporter(request, output)
         parent_pid = os.getpid()
@@ -254,6 +294,7 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                  text=True, bufsize=1, start_new_session=True, preexec_fn=_bind_worker_lifetime(parent_pid))
         progress['pid'] = child.pid
+        progress['worker_identity'] = capture_process_identity(child.pid)
         atomic_json(output / 'progress.json', progress)
         lines = queue.Queue()
         thread = threading.Thread(target=_read_worker_output, args=(child.stdout, lines), daemon=True)
@@ -326,7 +367,8 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
         result = dict(status=status, completed_steps=target, target_steps=progress['target_steps'],
                       profile=spec['name'], qualification=spec['status'], **paths,
                       semantic_sha256=request['resolved']['semantic_sha256'],
-                      runtime_sha256=request['resolved']['runtime_sha256'], native_result=native)
+                      runtime_sha256=request['resolved']['runtime_sha256'], native_result=native,
+                      controller_identity=progress['controller_identity'], worker_identity=progress['worker_identity'])
         training_result = result
         atomic_json(output / 'result.json', result)
         atomic_json(output / 'progress.json', result)
@@ -340,12 +382,15 @@ def execute_resolved_request(request, *, on_checkpoint=None, on_progress=None):
             on_progress(deepcopy(result))
         return result
     except BaseException as error:
+        _defer_sigterm()
         status = 'cancelled' if isinstance(error, KeyboardInterrupt) else 'failed'
         if child is not None:
             _reap_worker(child)
         terminal = dict(status=status, error=str(error), target_steps=progress['target_steps'],
                         last_checkpoint=progress.get('last_checkpoint'),
-                        worker_reaped=child is None or child.poll() is not None)
+                        worker_reaped=child is None or child.poll() is not None,
+                        controller_identity=progress['controller_identity'],
+                        worker_identity=progress.get('worker_identity'))
         if training_result is not None:
             terminal.update(training_status=training_result['status'], completed_steps=training_result['completed_steps'],
                             checkpoint=training_result['checkpoint'], adapter=training_result['adapter'])

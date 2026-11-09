@@ -6,7 +6,7 @@ from setuptools.command.build_py import build_py
 
 CORE_MODULES = frozenset({
     '__init__', '_restore_training', '_training',
-    'adapter_activation', 'adapter_attachment', 'adapter_loading', 'bispf_game',
+    'adapter_activation', 'adapter_attachment', 'adapter_loading', 'bispf_game', 'candidate_failure',
     'distillation', 'endpoint_game', 'field_critic', 'formulation',
     'formulation_game', 'grad_regularizers', 'inference', 'initialization', 'legacy_compat',
     'lifecycle', 'native_lora', 'native_lora_compat', 'optimizer_policy', 'peft_scaling', 'pg09',

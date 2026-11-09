@@ -17,6 +17,19 @@ def require_raw_selection(selection):
         raise ValueError('Only raw current weights are supported; averaged artifacts require their archived loader')
 
 
+def _value(value):
+    """Decode safetensors str->str metadata; unrecognized text stays enabled."""
+    if not isinstance(value, str):
+        return value
+    text = value.strip().lower()
+    if text in ('', 'none', 'null', 'false'):
+        return None
+    try:
+        return float(text)
+    except ValueError:
+        return value
+
+
 def require_raw_provenance(metadata):
     """Refuse known averaged adapters without rewriting historical metadata.
 
@@ -25,9 +38,9 @@ def require_raw_provenance(metadata):
     not acquire raw provenance through a filename or the new default.
     """
     kind = metadata.get('weights_kind')
-    if kind in ('ema', 'averaged') or metadata.get('effective_ema'):
+    if isinstance(kind, str) and kind.strip().lower() in ('ema', 'averaged') or _value(metadata.get('effective_ema')):
         raise ValueError('Averaged adapter is incompatible with raw-only inference; preserve its archived loader')
-    enabled = any(metadata.get(key) not in (None, 0.0) for key in ('ema', 'ema_decay'))
+    enabled = any(_value(metadata.get(key)) not in (None, 0.0) for key in ('ema', 'ema_decay'))
     if kind not in ('live', 'raw') and enabled:
         raise ValueError('Adapter has EMA provenance without an explicit raw/live weight record')
 

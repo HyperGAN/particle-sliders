@@ -139,6 +139,18 @@ cancellation preserve earlier checkpoints and record a terminal state. Linux
 workers are bound to the controller lifetime; normal cancellation stops/reaps
 only the owned worker group. Native wrappers must also own their descendants.
 
+`result.json` and the final `progress.json` record one terminal status:
+`completed` (full target), `checkpointed` (`--stop-after` reached), `failed`, or
+`cancelled`. Ctrl-C and SIGTERM to a local controller both cancel: the worker is
+reaped and `worker_reaped` is recorded. For SIGTERM the CLI prints one line and
+exits 143; Ctrl-C still propagates `KeyboardInterrupt`. SIGTERM is converted only while the controller
+runs in the main thread with the default disposition; an embedding
+application's own handler is left in place. SIGKILL or a power loss leaves no
+receipt; `progress.json` then keeps its last running state with the worker
+`pid` and exact `controller_identity`/`worker_identity` (host, boot, PID,
+start stamp, or `null` when unreadable) so liveness can be proven rather than
+guessed from a reusable PID.
+
 Declare portable files explicitly with `input_files` entries containing `name`
 and `local_path`, referring to them in training as `input://name`. Resolution
 records sizes/SHA256; execution verifies them again before mapping to paths.

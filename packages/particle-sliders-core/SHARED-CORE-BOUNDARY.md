@@ -69,7 +69,9 @@ list of shared modules plus the execution package. They exclude `textsliders`,
 bindings, model prompts, campaign runners and model assets. Adding a file to the
 source tree does not automatically add it to the public distribution. No legacy
 `conceptmod` startup hook or product alias is installed. Stale files from earlier
-local builds are removed from the build output before packaging.
+local builds are removed from the build output before packaging. The build test
+parses every packaged module and requires each intra-package import to resolve
+inside the built wheel, so a new shared module must be added to the list.
 
 Music3 native loading, its routed adapter and its concrete response subclass
 move to [HyperGAN/music3-particle-sliders](https://github.com/HyperGAN/music3-particle-sliders).
@@ -99,7 +101,10 @@ APIs; they are not a substitute objective for the shared `ConditionalPG09` path.
 
 Fresh sessions explicitly use `ema_decay=None` and raw current weights for
 training, ranking, confirmation, export and inference. Upstream optimizer scalar
-statistics are unchanged. Current rate decisions use one equal-case mean
+statistics are unchanged. Raw-only admission reads safetensors header text as
+the typed value it encodes: blank, `none`, `null`, `false` and numeric zero are
+absent/disabled; nonzero numbers, `true`, JSON text and any other text count as
+averaging and are refused without a raw/live record. Current rate decisions use one equal-case mean
 intended-effect ON-minus-OFF value in finished native outputs, retaining negatives,
 zeros and all ties. The fixed-SSE search remains a historical diagnostic; its
 old observations are not deleted or rewritten.

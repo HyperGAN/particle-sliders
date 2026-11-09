@@ -15,6 +15,14 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
 
 
+def file_sha256(path, block=1 << 20):
+    checksum = hashlib.sha256()
+    with Path(path).open('rb') as stream:
+        while chunk := stream.read(block):
+            checksum.update(chunk)
+    return checksum.hexdigest()
+
+
 def read_json(path):
     return json.loads(Path(path).read_text(), parse_constant=lambda v: (_ for _ in ()).throw(ValueError('nonfinite JSON: ' + v)))
 
@@ -269,7 +277,7 @@ def resolve_request(config, *, base=None, profile=None, runner=None, output=None
         path = (base / row['local_path']).resolve()
         if not path.is_file():
             raise ValueError('missing input file: ' + name)
-        size, checksum = path.stat().st_size, hashlib.sha256(path.read_bytes()).hexdigest()
+        size, checksum = path.stat().st_size, file_sha256(path)
         if row.get('sha256', checksum) != checksum or row.get('size', size) != size:
             raise ValueError('input checksum or size differs: ' + name)
         inputs.append(dict(name=name, local_path=str(path), size=size, sha256=checksum))
@@ -305,7 +313,7 @@ def materialize_training(request):
     files = {}
     for row in request.get('input_files', []):
         path = Path(row['local_path'])
-        if path.stat().st_size != row['size'] or hashlib.sha256(path.read_bytes()).hexdigest() != row['sha256']:
+        if path.stat().st_size != row['size'] or file_sha256(path) != row['sha256']:
             raise ValueError('staged input changed: ' + row['name'])
         files[row['name']] = str(path.resolve())
     def visit(value):
