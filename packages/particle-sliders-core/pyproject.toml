@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "particle-sliders-core"
-version = "0.14.1"
+version = "0.14.1+convnd.1"
 description = "Model-independent ParticleGAN slider lifecycle and shared tuning contracts"
 readme = "SHARED-CORE-BOUNDARY.md"
 requires-python = ">=3.11"
@@ -29,7 +29,7 @@ include = ["particle_sliders", "particle_sliders.execution", "particle_sliders.p
 include-package-data = false
 
 [tool.setuptools.package-data]
-particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json", "pg09_continuous_profile.json", "legacy_stamp.json", "pg093_release.json", "pg094_release.json", "pg095_release.json", "pg094_continuous.json", "provenance_sources/*.txt"]
+particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json", "pg09_continuous_profile.json", "legacy_stamp.json", "pg093_release.json", "pg094_release.json", "pg095_release.json", "pg095_convnd.json", "pg094_continuous.json", "provenance_sources/*.txt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

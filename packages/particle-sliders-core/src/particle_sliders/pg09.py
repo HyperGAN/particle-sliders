@@ -27,17 +27,38 @@ PG_SOURCE_PROFILE = 'release-0.9.5'
 # Exact published wheel and immutable release-tag source identity.
 PG_WHEEL_SHA256 = 'c1c0de7a635ac1b1634ba158eed050b6f6aed993e01f9b463435430c77d846ae'
 PG_SOURCE_COMMIT = '1b8355b184b21bb7d81104ee590813c262f6df0a'
-_DOMAIN_PAIRS = ((PG_SOURCE_PROFILE, 'auto'), (PG_SOURCE_PROFILE, 'continuous'))
+CONVND_SOURCE_PROFILE = 'pg095-convnd-per-offset-v1'
+_CONVND_MANIFEST_SHA256 = '0542a3d40ed8d7eaae0c73bdcab52672920b6194b0a5d4cc2df95a89663ec9b2'
+_DOMAIN_PAIRS = ((PG_SOURCE_PROFILE, 'auto'), (PG_SOURCE_PROFILE, 'continuous'),
+                 (CONVND_SOURCE_PROFILE, 'auto'))
+
+
+def _profile_document(profile=PG_SOURCE_PROFILE):
+    if profile == PG_SOURCE_PROFILE:
+        document = json.loads(Path(__file__).with_name('pg095_release.json').read_text())
+        expected = (PG_VERSION, PG_SOURCE_PROFILE, PG_SOURCE_COMMIT, PG_WHEEL_SHA256)
+    elif profile == CONVND_SOURCE_PROFILE:
+        raw = Path(__file__).with_name('pg095_convnd.json').read_bytes()
+        if hashlib.sha256(raw).hexdigest() != _CONVND_MANIFEST_SHA256:
+            raise RuntimeError('exact qualified unreleased ConvNd manifest changed')
+        document = json.loads(raw)
+        expected = ('0.9.5+convnd.1', CONVND_SOURCE_PROFILE,
+                    '37f1b23281c551a196f9e508be691a6cf724c858',
+                    '8d40e26b726351cee157bb58f613b6d81efdcbbaf730bf95979c106190b94ac0')
+    else:
+        raise ValueError('unknown PG source profile; original environments remain required')
+    if tuple(document[k] for k in ('version', 'source_profile', 'source_commit', 'wheel_sha256')) != expected:
+        raise RuntimeError('PG source manifest contradicts this engine')
+    return document
+
+
+def _profile_version(profile=PG_SOURCE_PROFILE):
+    return _profile_document(profile)['version']
 
 
 def _released_sources(profile=PG_SOURCE_PROFILE):
     import particlegan
-    if profile != PG_SOURCE_PROFILE:
-        raise ValueError('unknown PG0.9.5 source profile; old releases/overlays require their original environment')
-    document = json.loads(Path(__file__).with_name('pg095_release.json').read_text())
-    if (document['version'], document['source_profile'], document['source_commit'], document['wheel_sha256']) != (
-            PG_VERSION, PG_SOURCE_PROFILE, PG_SOURCE_COMMIT, PG_WHEEL_SHA256):
-        raise RuntimeError('PG0.9.5 source manifest contradicts this engine')
+    document = _profile_document(profile)
     root = Path(particlegan.__file__).resolve().parent
     actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob('*.py'))}
@@ -55,11 +76,14 @@ def validate_pg09_domain(response_shape, *, response_domain,
     into ConditionalPG09. Released PG0.9.5 accepts explicit continuous vectors
     of any width; automatic dispatch retains its shape gates.
     """
-    if version('particlegan') != PG_VERSION:
-        raise RuntimeError('ConditionalPG09 requires particlegan==' + PG_VERSION + ' base release')
+    expected_version = _profile_version(pg_source_profile)
+    if version('particlegan') != expected_version:
+        raise RuntimeError('ConditionalPG09 requires exact profile version ' + expected_version)
     if (pg_source_profile, penalty_input_domain) not in _DOMAIN_PAIRS:
         raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
     sources = _released_sources(pg_source_profile)
+    if pg_source_profile == CONVND_SOURCE_PROFILE and response_domain != 'continuous_field':
+        raise ValueError('ConvNd profile is admitted only for native continuous fields')
     shape = tuple(response_shape)
     if not shape or shape[0] != 1 or any(type(v) is not int or v < 1 for v in shape):
         raise ValueError('response requires positive native dimensions and leading singleton batch')
@@ -295,8 +319,9 @@ class ConditionalPG09:
                  sigma=1.0, recipe_overrides=None, sampling='balanced',
                  optimizer_dense_profile='auto',
                  pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto'):
-        if version('particlegan') != PG_VERSION:
-            raise RuntimeError('ConditionalPG09 requires particlegan==' + PG_VERSION + ' with an exact admitted source profile')
+        profile_document = _profile_document(pg_source_profile)
+        if version('particlegan') != profile_document['version']:
+            raise RuntimeError('ConditionalPG09 requires the exact admitted profile version')
         if (pg_source_profile, penalty_input_domain) not in _DOMAIN_PAIRS:
             raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
         if preset not in ('bispf_optimized', 'bispf'):
@@ -391,7 +416,9 @@ class ConditionalPG09:
         self.completed_steps = 0
         self._failed = False
         self._export_loaded = False
-        self._signature = dict(pg_version=PG_VERSION, pg_release_wheel_sha256=PG_WHEEL_SHA256, pg_source_commit=PG_SOURCE_COMMIT,
+        self._signature = dict(pg_version=profile_document['version'],
+            pg_release_wheel_sha256=PG_WHEEL_SHA256 if pg_source_profile == PG_SOURCE_PROFILE else None,
+            pg_source_commit=profile_document['source_commit'],
             pg_sources_sha256=pg_sources_sha256, implementation_sources=_implementation_sources(backend, critic, self.provider),
             pg_source_profile=pg_source_profile,
             pg_patch_sha256=None, host_training_precision='float32',
@@ -410,6 +437,9 @@ class ConditionalPG09:
             generator_arm='routed_particle_gan' if self.prior else 'adapter_gan',
             objective='g_adv+public_prior;d_adv+public_penalty',
             network_schema={k: (list(v.shape), str(v.dtype)) for k, v in self.network.state_dict().items()})
+        if pg_source_profile == CONVND_SOURCE_PROFILE:
+            self._signature.update(pg_distribution_wheel_sha256=profile_document['wheel_sha256'],
+                pg_source_manifest_sha256=_CONVND_MANIFEST_SHA256, pg_unreleased_source_profile=True)
 
     def _check_optimizer_ownership(self, g_parameters, d_parameters):
         for optimizer, expected in ((self.opt_g, g_parameters), (self.opt_d, d_parameters)):

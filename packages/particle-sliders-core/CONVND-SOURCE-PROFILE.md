@@ -1,0 +1,11 @@
+# Explicit unreleased ConvNd Source profile
+
+This local core0.14.1+convnd.1 source candidate adds only the exact pg095-convnd-per-offset-v1 profile. Its unreleased PG0.9.5+convnd.1 is frozen at37f1b232, based on admitted1b8355. The full68 Python Source map, original actual wheel-build metadata and actual9retained+1corrected CPU reference evidence are packaged in pg095_convnd.json, which the engine authenticates by whole SHA. These are ten distinct optimizer tests; no native product/GPU/pretrained qualification is implied.
+
+Default PG_VERSION/PG_SOURCE_PROFILE/PG_SOURCE_COMMIT/PG_WHEEL_SHA256 and pg095_release.json remain stock095. A local ConvNd installation is refused with the default profile. Unknown profiles and version/source mismatches are refused; only an explicitly selected ConvNd native continuous_field/auto pair is added. Packed/vector admission is unchanged for stock095 and absent for ConvNd. No source patch/install occurs at runtime.
+
+Use engine_options with explicit pg_source_profile and pg_version, or the constructor's explicit pg_source_profile. The old release-wheel signature stays unchanged for stock095. New profile packets truthfully have pg_release_wheel_sha256=null plus pg_distribution_wheel_sha256, exact manifest SHA and pg_unreleased_source_profile=true. Original captured environments/cohorts are not migrated.
+
+The fresh initializer now accepts an explicit pg_source_profile keyword defaulting release095. The new profile path requires the exact new version, unchanged3534ff23 initializer and whole68 Source identity, then records that provenance in the receipt. It does not alter initializer sampling/QR/staging/mutation/Parameter ownership or restore checks. Stock/default receipt fields remain the same apart from the normal helper Source identity of this new core. Products must still skip initialization on restoration/inference.
+
+The actual built-wheel SHA was emitted by the original successful pip build; the manifest does not claim the transient wheel body is retained. The installed whole Python Source was authenticated by the genuine CPU wrapper. Neither a PyPI release nor public merge is claimed. The core dependency's PEP440 public==0.9.5 permits local version labels; exact runtime Source/version/profile guards enforce the narrower actual policy.

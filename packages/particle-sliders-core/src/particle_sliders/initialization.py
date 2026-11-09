@@ -114,7 +114,7 @@ def _linear_holder(original, parameters):
 def initialize_fresh_components(
     components: Mapping[str, ComponentInitialization], *, cohort_id: str,
     source_identity: Mapping[str, object], completed_steps: int,
-    restored_from: str | None, optimizers: Sequence,
+    restored_from: str | None, optimizers: Sequence, pg_source_profile: str = "release-0.9.5",
 ) -> InitializationReceipt:
     """Stage all owned trainables, then commit in place with a provenance receipt.
 
@@ -140,8 +140,21 @@ def initialize_fresh_components(
         raise ValueError("components require nonempty names and ComponentInitialization values")
     version = metadata.version("particlegan")
     pg_source = _source(pg_init.__file__)
-    if version != "0.9.5" or pg_source["sha256"] != _ADMITTED_INIT_SHA256:
-        raise ValueError("this helper admits the recorded ParticleGAN 0.9.5 initializer source only")
+    profile_provenance = None
+    if pg_source_profile == "release-0.9.5":
+        if version != "0.9.5" or pg_source["sha256"] != _ADMITTED_INIT_SHA256:
+            raise ValueError("this helper admits the recorded ParticleGAN 0.9.5 initializer source only")
+    else:
+        from .pg09 import CONVND_SOURCE_PROFILE, _profile_document, _released_sources, _CONVND_MANIFEST_SHA256
+        if pg_source_profile != CONVND_SOURCE_PROFILE:
+            raise ValueError("unknown explicit initializer source profile")
+        profile = _profile_document(pg_source_profile)
+        if version != profile["version"] or pg_source["sha256"] != _ADMITTED_INIT_SHA256:
+            raise ValueError("exact ConvNd distribution and unchanged initializer required")
+        profile_provenance = {"source_profile": pg_source_profile,
+            "pg_sources_sha256": _released_sources(pg_source_profile),
+            "source_manifest_sha256": _CONVND_MANIFEST_SHA256,
+            "unreleased": True}
 
     # Validate ownership globally, including KEEP/frozen parameters and buffers.
     seen_modules, seen_parameters, storages, buffers = set(), set(), set(), set()
@@ -269,6 +282,8 @@ def initialize_fresh_components(
                 "source_identity": source_identity, "completed_steps": completed_steps, "restored_from": restored_from,
                 "particlegan": {"version": version, "initializer_source": pg_source},
                 "helper_source": _source(__file__), "components": records}
+    if profile_provenance is not None:
+        document["particlegan"].update(profile_provenance)
     receipt = InitializationReceipt(_canonical(document))
     # All validation/staging precedes mutation. Roll back values on a copy exception.
     with torch.no_grad():
