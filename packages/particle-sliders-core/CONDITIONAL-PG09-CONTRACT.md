@@ -1,85 +1,111 @@
-# Conditional ParticleGAN 0.9 integration contract
+# Conditional ParticleGAN engine
 
-## Current core 0.12.0 / PG 0.9.4
+`ConditionalPG09` owns the shared adversarial response game, optimizer state,
+private sampling streams and exact continuation. Current core 0.14.0 uses exact
+released ParticleGAN 0.9.5. For the explanation and equations, see
+[teacher/student training](../../docs/math.md); for model usage, see the
+[product repositories](../../docs/products.md).
 
-Use `particle_sliders.pg094.ConditionalPG094` (also exported as
-`particle_sliders.pg09.ConditionalPG09`) with
-`pg_source_profile="release-0.9.4", penalty_input_domain="auto"`.
-The exact official release, source manifest, optimizer policy and restore
-boundaries are documented in [COMPATIBILITY-PG094.md](COMPATIBILITY-PG094.md)
-and [MODERN-GRAM.md](MODERN-GRAM.md). The active source rejects the historical
-`release` and `alz-continuous-v1` profiles below and all flat continuous vectors
-of width >=170. Products must use the actual native geometry and a fresh cohort;
-changing dependency pins does not update trained weights or migrate checkpoints.
+## Build a game
 
-## Historical PG 0.9.0 / 0.9.1 integration record
-
-The remaining record describes its original source/profile and CPU evidence.
-Its old profile arguments and overlays are not installation instructions for
-current core. Preserve the matching historical source pin when reproducing it.
-
-Historical qualification checkout (immutable; not an install requirement): `/ml2/codex-storage/future-workspaces/2026-10-16/task-6/particle-sliders-pg09-core`, branch `integration/pg09-conditional-core`.
-
-Implementation API:
+A product supplies a frozen native backend, prepared teacher/student rows and a
+conditional critic. Most consumers use a [session factory](RESPONSE-SESSIONS.md)
+rather than constructing this engine directly.
 
 ```python
 from particle_sliders.pg09 import ConditionalPG09
+
 game = ConditionalPG09(
     backend, prepared_rows, critic,
-    conditions=conditions, particles=particles,
+    conditions=conditions, particles=None,
     response_domain="continuous_field", response_scale=1.0,
-    preset="bispf_optimized", batch_size=2, seed=7,
-    total_steps=100, sigma=1.0, recipe_overrides=None, sampling="balanced",
-    pg_source_profile="release", penalty_input_domain="auto",
+    preset="bispf_optimized", batch_size=2, seed=7, total_steps=100,
+    sigma=1.0, sampling="balanced", recipe_overrides=None,
+    pg_source_profile="release-0.9.5", penalty_input_domain="auto",
 )
 metrics = game.step()
 state = game.state_dict()
 game.load_state_dict(state)
 ```
 
-`backend.network` owns only generator adapter trainables. `backend.prepare(ResponseRow)` returns frozen `PreparedResponse(row, target, neutral)`; `backend.generated(prepared)` returns a differentiable tensor of exactly the target shape. `backend.metadata()` describes model identity, CFG, timestep coordinates, target convention, and checkpoint scale capture. No outer `network.scaled(1)` may override the row sign. Backend owns conditional-only CFG and rendering through the same response loop. Backend owns no loss or optimizer.
+The names `backend`, `prepared_rows`, `critic` and `conditions` above are
+product-owned objects. `backend.network` exposes only the intended adapter
+trainables. The frozen host model is outside the optimizer. The backend supplies:
 
-Native continuous field shapes must remain `[1,C,H,W]` or `[1,C,T,H,W]` through the public PG penalty. Critic may flatten internally. Generic continuous vectors `[1,D]` with D >= 170 are rejected: released PG 0.9 interprets these as categorical simplex data. Reshaping generic vectors to impersonate images is prohibited. Conditions are fixed detached numeric `[rows,K]` tensors containing the declared timestep/sign/context coordinates; critic signature is `critic(response, condition)` and produces raw scalar logits. The same row conditions bind real, fake and penalty evaluations.
+- `prepare(ResponseRow) -> PreparedResponse(row, target, neutral)` for capture.
+- `generated(prepared)` returning a differentiable response of the target's
+  exact native shape, with the row's sign/scale preserved through backward and
+  activation recomputation.
+- `metadata()` binding the native model, response coordinates, conditioning,
+  target convention and scale/checkpoint behavior.
 
-`particles` is either None (adapter GAN arm, explicitly no particle-bank claim) or the actual shared routed `nn.Parameter[N,Z]` used by `generated`. Mere registration of an otherwise unused bank does not qualify. Core validates optimizer ownership and recipe dimensions against this bank. Dense routing binds all participating bank rows through the public optimizer API. A reusable routed-bank module belongs in core; adapter owners must not invent a disconnected prior to satisfy the signature.
+The critic is `critic(response, condition)` and returns raw scalar logits.
+Conditions are detached numeric `[rows, K]` coordinates shared across real,
+fake and penalty evaluations. Native rendering belongs to the product.
 
-The core owns independent D/G row and Gaussian-reference streams. Critic coordinates are real Gaussian reference and fake reference plus `(generated-target)/response_scale`; this paired residual is not an optimized MSE loss. Generator objective is solely the public recipe adversarial loss plus its required prior regularizer. Critic objective is the public adversarial loss plus public critic penalty. Optimized recipe uses public constraint-geometry backward and learning-rate policy. No MSE, reconstruction, distillation or separately invented auxiliary objective is admitted.
+## Response geometry and source profile
 
-Large caches use a lazy provider in place of an eager tuple. Its API is `len(provider)`, `provider.response_shape` including the leading1, `provider.identity()` returning a stable immutable cache/index/conditioning-policy descriptor, `provider[index] -> PreparedResponse`, and `provider.conditions(indices) -> detached [batch,K]`. Pass `conditions=None`; core reads no response rows during construction, retains the provider, and fetches only selected unique rows per phase. Native target tensors are never concatenated across the whole cache. Small CPU sampler metadata is O(number of rows); response memory is bounded by the active batch/provider cache. Provider source and identity are checkpoint-bound. Selected targets/neutral/conditions are validated before use; providers must checksum their immutable assets and supply generation inputs on the backend's device.
+| Response | Native shape | Declaration |
+|---|---|---|
+| Continuous image/video field | `[1,C,H,W]` or `[1,C,T,H,W]` | `continuous_field`, penalty domain `auto` |
+| Continuous vector | `[1,D]` | `continuous_vector`, penalty domain `continuous` |
 
-Default `sampling="balanced"` independently shuffles complete D and G row cycles. Permutations, cursors, row exposures and four private row/noise RNG states are checkpointed and validated before live restore. Exact row counts/coverage are reported on each completed step. `sampling="replacement"` remains an explicit distinct bound policy. For MOSS,15360signedrows require1920updates at batch8 per complete G cycle; two cycles require3840updates. Actual admission must first measure model memory/runtime. Useful context, timestep, sign, strength and protocol coordinates belong in conditions; row IDs alone do not qualify held-out transfer.
+The released `continuous` declaration supports wide native vectors, including
+widths 1024, 2048 and 4096. `auto` retains upstream width gates and refuses flat
+continuous vectors of width 170 or more. Do not project, truncate, or spatially
+reshape a vector to get through admission. Pass the same shape/profile/domain
+pair to the descriptor and actual game. `validate_pg09_domain(...)` performs the
+source and geometry check before a native forward.
 
-Checkpoints bind resolved recipe, verified PG version, model/protocol/conditioning/target digests, response domain and scale, network/critic/actual bank, both optimizer states, regularizer state, D/G row/noise and model RNG states and completed step. Restore must validate transactionally before mutating live state. Export includes adapter and actual routed bank plus metadata; frozen base weights are excluded. Evaluation/render RNG must not advance training streams. The pending game implementation must reject detached generator callbacks under every supported preset, including original `bispf`.
+The core verifies installed ParticleGAN sources against its release manifest.
+It does not install patches, mutate an environment or alias historical profiles
+to the current release. See [compatibility](COMPATIBILITY-PG095.md).
 
-The implementation verifies all 49 imported PG Python sources against an explicit profile, and binds actual core/backend/critic/native-adapter submodule source hashes, native architecture trees, Python/Torch/CUDA/numpy runtime and numeric flags into checkpoints. Default `pg_source_profile="release", penalty_input_domain="auto"` verifies the released wheel, supports native fields and continuous vectors below170, and rejects patched sources. No package is installed or modified by this integration.
+## Loss and trainable ownership
 
-The separately qualified pair `pg_source_profile="alz-continuous-v1", penalty_input_domain="continuous"` accepts native rank-2 continuous vectors of any width ONLY when the imported sources exactly match `pg09_continuous_profile.json`. This manifest records the single ALZ patch SHA256 `c6531a21f62fa96682f5aece517a6a862bb849ab971aa2766b3946b9a7543571`, base released wheel and all49 modified-overlay Python hashes. The overlay changes the public penalty's input-domain declaration, not host loss math. The pair is rejected for image fields; the default profile never falls back. Independent CPU tests cover actual G/D/bank updates, positive continuous penalties, fresh-process optimizer/RNG continuation for both presets at1024/2048/4096/5120,42 default numeric parity comparisons, and real cross-profile checkpoint rejection before mutation.
+The critic sees paired Gaussian reference and reference plus
+`(generated - target) / response_scale`. The default recipe uses the upstream
+Sinkhorn-relativistic adversarial loss. Critic penalty, particle regularizer,
+constraint-geometry backward and optimizer rules remain upstream. There is no
+added MSE, reconstruction or auxiliary distillation objective.
 
-Thin backends can call `validate_pg09_domain(shape, response_domain=..., pg_source_profile=..., penalty_input_domain=...)` before their first model forward, then supply those same options to core. It validates actual sources and native shape and never reshapes data. Training checkpoints bind declared/resolved domains, profile, base and patch/source identities; cross-mode, cross-source and cross-runtime restores fail closed.
+`particles=None` means an adapter-only game. Otherwise `particles` is the actual
+trainable `nn.Parameter[N,Z]` bank used by generation. A registered but unused
+bank does not qualify. Core validates optimizer ownership and bank dimensions;
+products must not add a disconnected bank to satisfy an interface.
 
-`evaluate(index, seed=...)` preserves training RNG; `export_state_dict()` and `load_export_state_dict()` transfer adapter-only inference payloads. An inference export cannot resume training; use the full training checkpoint. Backend rendering remains on `backend.render` using its declared response loop.
+## Providers, sampling and observation
 
-No GPU admission until objective, gradient, row binding, conditioning, domain, sampling, export/reload and exact-resume CPU gates pass. Prior MSE jobs remain held and are preserved as wrong-objective baselines. CPU qualification is not model-quality or live-memory qualification.
+An eager tuple can hold small datasets. A lazy provider supplies `len(provider)`,
+`response_shape` including leading 1, `identity()`, `provider[index]` returning a
+`PreparedResponse`, and `conditions(indices)` returning detached `[batch,K]`.
+Pass `conditions=None` for a provider. Construction retains it without reading
+all response rows; each phase fetches selected unique rows. The provider owns
+checksums and immutable cache identity. Response memory stays bounded by the
+active batch and provider cache; sampler metadata is proportional to row count.
 
+Default `sampling="balanced"` independently shuffles complete row cycles for
+critic and generator. `replacement` is a separate explicit policy. Permutations,
+cursors, row exposure counts, row/noise streams and model RNG are checkpointed.
+`evaluate(index, seed=...)` preserves training RNG; session observation also
+restores adapter buffers/modes and product-owned native state.
 
-## Package 0.6.0 / released PG 0.9.1 lineage
+## State transitions
 
-The installable API now pins PG 0.9.1 (wheel SHA256
-`b01b7957169cb3de45887e22b4d525fd54071577e1de58089707cf05fe6992ec`).
-All49 sources are verified against the new release/profile manifests. The
-reviewed continuous patch is replayed onto this exact release only in a separately
-staged overlay; the old 0.9.0 overlay is not accepted. The profile label is retained,
-while base release, wheel, patch and source identities remain explicit.
+A step completes only after both critic and generator updates. An interrupted
+partial step, including `KeyboardInterrupt` or `SystemExit`, poisons the game:
+updates, checkpointing and exports refuse until a valid full training restore.
+Sessions close on training failure; reopen from a qualified full checkpoint.
 
-The host component loop binds `training_precision=float32`; it does not silently
-claim upstream GANTrainer's BF16/channels-last CUDA execution. The optimized
-recipe's batched optimizer setting remains explicit in the saved resolved recipe.
-No source or numeric compatibility is inferred from a version bump.
+`state_dict()` includes raw adapter/critic/bank weights, optimizers, regularizer,
+streams, counters, resolved recipe and source/model/data/runtime identity.
+`load_state_dict()` validates before mutation and restores atomically; a failed
+rollback poisons the game. `rollback_on_error()` is the public transaction for
+reversible admission checks. `game.signature` returns an independent snapshot;
+callers must not manipulate engine private flags.
 
-Public response/campaign/native modules live in `particle_sliders`, with old
-repository paths acting as same-object aliases. Moving class/source identity or
-changing PG version deliberately invalidates old source-bound checkpoints.
-Inference exports validate and retain completed steps; failed partial updates
-cannot export, and inference-loaded games cannot issue training checkpoints.
-Adapter evaluation temporarily uses eval mode and restores each original mode;
-frozen native model evaluation remains the backend's responsibility.
+`export_state_dict()` produces adapter/bank inference weights without the frozen
+base. `load_export_state_dict()` validates and applies them transactionally.
+Inference-loaded state cannot resume training. Use a full training checkpoint
+for continuation and preserve its original source cohort. Weight EMA is disabled;
+ParticleGAN scalar optimizer statistics are unchanged.

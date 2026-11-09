@@ -109,4 +109,4 @@ the additional worker lifecycle test (device isolation, failure continuation,
 and restart skipping), bringing the relevant passing checks to 30. The five
 queue tests run without allocating a GPU. Dashboard JavaScript syntax checked
 with `node --check`. The original recipe's CPU gate proof and deployment checks
-remain in [the particle-bridge audit](../../docs/yue2-particle-bridge.md).
+remain in [the particle-bridge audit](https://github.com/HyperGAN/particle-sliders/blob/ba513741b7d4be93d049c4e1d88168f86c41e783/docs/yue2-particle-bridge.md).

@@ -1,6 +1,6 @@
 # One training command, separate native environments
 
-Use the same installed command for every product with a training profile:
+Use the shared command after following the [product repository](../../docs/products.md)'s setup and installing its training profile:
 
 ```sh
 particle-slider train --config path/to/recipe.json
@@ -107,7 +107,7 @@ completed steps. Checkpoint directories expose a completion marker
 `checkpoints/step-*/checkpoint.json` or `manifest.json` after all state is durable.
 Native workers must handle termination and stop/reap their own descendant groups.
 Native artifact selection and export format belong to that worker by default;
-the controller does not label its output as raw, EMA, v1 or v2. Explicit
+the controller does not label its output as raw or a particular export version. Explicit
 `--selection` / `--export-format` overrides require matching boolean profile
 capabilities, are forwarded as worker arguments, and must be confirmed in the
 worker result. An unsupported override fails before launch. A fixed native
@@ -131,7 +131,8 @@ stdlib-only module. File profiles avoid co-installing conflicting native product
 A controller run writes `request.json`, canonical `training.json`, `train.log`,
 `progress.json`, `result.json` and the product's `artifacts/` directory. Session
 workers checkpoint every requested interval after successful updates, retaining
-model, optimizer, EMA, RNG and step state through the native checkpoint API.
+raw model weights, optimizer, RNG and step state through the native checkpoint API.
+Shared session packets retain only a disabled EMA envelope.
 Final completion requires the requested update count and readable checkpoint and
 adapter paths; deeper format validation remains product-owned. Failures and
 cancellation preserve earlier checkpoints and record a terminal state. Linux
@@ -172,3 +173,21 @@ or checkpoint identity. Failures stop only the owned job; if native training
 already completed, its completed steps and artifacts remain explicit in the
 failure receipt. See [HYPERGAN-REPORTING.md](HYPERGAN-REPORTING.md) for setup,
 recorded metrics and attaching to an existing run.
+
+## Session artifact selection
+
+For the exact SessionConfig route, `--export-format v1` retains `adapter.pt`.
+Use `--export-format v2` for `adapter-v2.pt`, or `both` for both.
+`--selection raw` applies to each. V2 requires a product `InferenceSpec` before
+training starts; missing support refuses before updates or output creation.
+`training.pt` remains the full source/cohort-bound resume checkpoint.
+
+```sh
+particle-slider train --config local-session.json --out new-run \
+  --export-format both --selection raw
+particle-slider infer --artifact new-run/adapter-v2.pt --runtime local-native.json \
+  --mode response --strength .5 --out response.pt
+```
+
+The runtime JSON belongs to the product and contains no training configuration.
+See [native inference](NATIVE-INFERENCE.md) for loading and capability rules.

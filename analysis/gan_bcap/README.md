@@ -12,5 +12,5 @@ PYTHONPATH=. python analysis/gan_bcap/gaussian_repro.py --modes 8 --steps 1500
 ```
 
 This is not a live `--pole_mode`. Findings on the leftover-gated 2-D
-fixtures: [docs/lm-2d-adv.md](../../docs/lm-2d-adv.md). Operator index:
+fixtures: [docs/lm-2d-adv.md](https://github.com/HyperGAN/particle-sliders/blob/ba513741b7d4be93d049c4e1d88168f86c41e783/docs/lm-2d-adv.md). Operator index:
 [docs/README.md](../../docs/README.md).

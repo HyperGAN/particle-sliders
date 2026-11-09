@@ -140,16 +140,3 @@ an optional test dependency; this file skips explicitly when it is absent.
 Run it with `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1` and CPU-only bounded
 thread settings. Passing tiny fixtures does not qualify H3/Pika or other native
 backends, GPU kernels, waveform rendering or wide continuous response domains.
-
-Executed source receipt on 2026-10-31: **186 passed in 8.97s**, including 43
-real-PEFT cases and the previous 143 cut-point/lifecycle/provenance cases. The
-isolated environment used Python 3.14.4, Torch 2.15.0+cpu, official ParticleGAN
-0.9.3, PEFT 0.21.2, Transformers 5.22.1 and pytest 9.2.0. These are test-environment
-versions, not new repository dependency pins or a cross-product qualification.
-The installed PG source map retained the exact digest recorded in CUT-POINTS.md.
-Importing `particle_sliders.peft_scaling` in a fresh process did not import PEFT.
-
-```bash
-CUDA_VISIBLE_DEVICES='' HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
-python -m pytest -q packages/particle-sliders-core/tests/{test_peft_scaling,test_cut_points,test_checkpoint_ownership,test_conditional_pg09,test_fibo_native,test_image_lifecycle,test_response_lifecycle,test_dependency_direction,test_compact_inference}.py
-```

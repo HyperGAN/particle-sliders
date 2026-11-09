@@ -1,6 +1,6 @@
 # Repeatable reward-slider game specification
 
-The [handoff](../../docs/reward-slider-game-handoff.md) defines the next work:
+The [handoff](https://github.com/HyperGAN/particle-sliders/blob/ba513741b7d4be93d049c4e1d88168f86c41e783/docs/reward-slider-game-handoff.md) defines the next work:
 implement a reusable evaluator and an experiment controller that keep trying
 different methods after weak candidates, until a better LoRA is confirmed.
 

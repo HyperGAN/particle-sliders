@@ -1,5 +1,9 @@
 [Back to audit overview](README.md)
 
+> Historical snapshot: findings, PR status and validation describe the date of
+> this record. Subsequent fixes are in the current source. Use the
+> [current core guides](../../README.md) for present API behavior.
+
 ## Training and numerical execution
 
 These are temporal protocols in the code, not proposed changes to ParticleGAN mathematics. A numbered training budget completing is distinct from convergence, a measured LR recommendation, or publication.

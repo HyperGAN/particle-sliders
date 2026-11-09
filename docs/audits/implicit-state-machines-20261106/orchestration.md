@@ -1,5 +1,9 @@
 [Back to audit overview](README.md)
 
+> Historical snapshot: findings, PR status and validation describe the date of
+> this record. Subsequent fixes are in the current source. Use the
+> [current core guides](../../README.md) for present API behavior.
+
 # Particle Sliders main: orchestration state-machine audit
 
 Read-only source audit of `/ml2/particlesliders-working/implicit-state-machines-main-20261106`, origin/main `2b212c108637ca996d7676664547056066f2b22c`. No GPU jobs, models, services, network, publishing, or application mutations executed. Source line references below are relative to that root. `T/` abbreviates `packages/particle-sliders-core/src/particle_sliders/textsliders/`. This is an inventory of source behavior, including historical research workflows, not an endorsement of their scientific ranking policy. Several historical branches use CE/perceptual/collapse selection and EMA-labelled templates; standing user constraints supersede these on future execution.

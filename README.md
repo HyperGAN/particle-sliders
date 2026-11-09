@@ -1,90 +1,104 @@
-# particle-sliders
+# Particle Sliders
 
-Shared infrastructure for building concept sliders with ParticleGAN. The
-`hypergan/*-particle-sliders` products supply their models; this repository
-supplies a common training lifecycle, adapter controls, checkpointing,
-evaluation, hyperparameter inputs and execution tools.
+Particle Sliders trains small adapters that give a frozen generative model a
+controllable edit: make an image shinier, change a musical style, or steer a
+language model's response. The adapter's strength is the slider.
 
-A slider is an adapter on a frozen model. Its strength controls the learned
-edit, and strength zero bypasses the adapter. Model loading, prompts, response
-coordinates, media generation and product presets belong to each product.
+This repository provides **`particle-sliders-core`**, the shared training engine,
+sessions, adapter controls, checkpoints, evaluation and execution tools.
+**Model loading, prompts, training recipes and generation belong to the
+[product repositories](docs/products.md).** Start there to train or use a slider.
 
-## Shared core and products
-
-```
- music3-particle-sliders   other *-particle-sliders products
-                  \       /
-             particle-sliders-core
-                      |
-               ParticleGAN 0.9.5
-```
-
-Core **0.14.0** introduces an explicit model-independent distribution boundary.
-The wheel and strict editable install contain generic modules only. Music3's
-native loader and response implementation belong to
-[HyperGAN/music3-particle-sliders](https://github.com/HyperGAN/music3-particle-sliders),
-which uses the shared game instead of copying its training loop. Other products
-adopt the new cohort through their own reviewed source pins.
-
-The source tree still retains historical model integrations and experiments as
-migration input. Their presence does not make them part of the 0.14 wheel.
-Existing checkpoints and captured runs keep their original source/environment.
-See [the exact boundary and compatibility rules](packages/particle-sliders-core/SHARED-CORE-BOUNDARY.md).
-
-| Need | Shared entry point |
+| Model family | Usage and model setup |
 |---|---|
-| Bind an injected frozen model and train a response | [`response`](packages/particle-sliders-core/RESPONSE-SESSIONS.md) |
-| Use an image lifecycle | [`lifecycle`](packages/particle-sliders-core/IMAGE-LIFECYCLE.md) |
-| Apply an exported adapter | [Native inference contract](packages/particle-sliders-core/NATIVE-INFERENCE.md) |
-| Tune hyperparameters with a consistent metric | [Evaluation and LR search](packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md) |
-| Configure and dispatch work | [Training commands](packages/particle-sliders-core/TRAINING-COMMAND.md) |
-| Understand the upstream game and shape contracts | [Conditional ParticleGAN contract](packages/particle-sliders-core/CONDITIONAL-PG09-CONTRACT.md) |
-| Migrate a product | [Shared API](docs/shared-core.md) · [Migration inventory](docs/backend-migration-inventory.md) |
+| Images | [Anima](https://github.com/HyperGAN/anima-particle-sliders), [Supra](https://github.com/HyperGAN/supra-particle-sliders), [Krea2](https://github.com/HyperGAN/krea2-particle-sliders), [Ming](https://github.com/HyperGAN/ming-particle-sliders), [Iris](https://github.com/HyperGAN/iris-particle-sliders) |
+| More image models | [Qwen Image](https://github.com/HyperGAN/qwen-image-particle-sliders), [Z-Image](https://github.com/HyperGAN/zimage-particle-sliders), [P-H3](https://github.com/HyperGAN/p-h3-image-particle-sliders), [MOSS](https://github.com/HyperGAN/moss-image-sliders) |
+| Music and audio | [Music3](https://github.com/HyperGAN/music3-particle-sliders), [YuE2](https://github.com/HyperGAN/yue2-particle-sliders) |
+| Language models | [Glimmer](https://github.com/HyperGAN/glimmer-particle-sliders), [Qwen3.5](https://github.com/HyperGAN/qwen35-particle-sliders), [Glide](https://github.com/HyperGAN/glide-particle-sliders) |
 
-## Install and integrate
+Each product documents its own supported operations and dependencies. These
+links do not imply that every product supports the same core version, native
+training, or rendering.
 
-Python 3.11+ and PyTorch 2.6+ are required. Pin a reviewed full commit in products;
-the package depends on exact released `particlegan==0.9.5`.
+## How training works
+
+A product constructs matched teacher/student examples. For an image edit,
+for example, the frozen teacher sees “a shiny red cup” while the student sees
+“a red cup.” Both receive the same latent and timestep. The student uses the
+frozen base plus a trainable adapter; the teacher stays frozen. Audio and text
+products choose their own matching inputs and native response coordinates.
+The teacher and student can share one frozen base, with the adapter disabled for
+the teacher pass.
+
+The goal is to make the student's neutral-prompt response acquire the teacher's
+edit. Training compares their numerical responses inside the model, rather than
+requiring a rendered image, waveform, or generated text at every update.
+At inference, the product applies the learned adapter at a chosen strength.
+Strength scales the adapter branch; a complete generated output need not vary
+linearly, and the product defines supported strengths and OFF behavior.
+
+## Math: a paired residual game
+
+For matched example $i$, let $T_i$ be the frozen teacher target and
+$S_\theta(i)$ the student's response. With positive response scale $a$:
+
+$$
+e_i = \frac{S_\theta(i)-T_i}{a}, \qquad
+n_i \sim \mathcal{N}(0,\sigma^2 I).
+$$
+
+The conditional critic sees a real reference $n_i$ and a fake reference
+$n_i+e_i$, with the same example condition $c_i$. When the student matches its
+teacher, $e_i=0$ and the pair is identical. ParticleGAN supplies the adversarial
+loss, critic penalty, optimizer rules and, when a real routed particle bank
+participates, its regularizer. The response error constructs the game;
+**training does not minimize a separately added MSE loss**.
+
+One update trains the critic, then trains the adapter through the frozen critic.
+The frozen native base and teacher are outside the optimizers. See
+[the math guide](docs/math.md) for the default Sinkhorn-relativistic loss,
+conditioning, optional particle bank, and the distinction between the training
+objective and the search metric.
+
+## Shared core
+
+Current core **0.14.0** requires Python 3.11+, PyTorch 2.6–2.x and exact
+**`particlegan==0.9.5`**. Products pin reviewed source commits and retain their
+own compatible native environments.
 
 ```sh
-pip install './packages/particle-sliders-core[serialization]'
-# Development uses the same restricted module boundary:
-pip install -e './packages/particle-sliders-core[serialization]'
+# From this repository; product setup instructions live in the links above.
+python -m pip install './packages/particle-sliders-core[serialization]'
 ```
 
-Use `particle_sliders.response`, `particle_sliders.lifecycle` and
-`particle_sliders.execution`. Products register entry-point factories or inject
-owned model bindings; core does not import products to construct models. Generic
-adapter primitives live in `native_lora`, `adapter_activation`,
-`adapter_attachment` and `peft_scaling`. `pg09_audio` provides generic AR response
-helpers; concrete model subclasses live in their products.
+| Integrating a product | Guide |
+|---|---|
+| Decide what belongs in core and what the product owns | [Distribution boundary](packages/particle-sliders-core/SHARED-CORE-BOUNDARY.md) |
+| Bind teacher/student responses and use the shared game | [Response sessions](packages/particle-sliders-core/RESPONSE-SESSIONS.md) · [Engine contract](packages/particle-sliders-core/CONDITIONAL-PG09-CONTRACT.md) |
+| Train, evaluate, resume and export an image adapter | [Image sessions](packages/particle-sliders-core/IMAGE-LIFECYCLE.md) |
+| Load an adapter without rebuilding training resources | [Native inference](packages/particle-sliders-core/NATIVE-INFERENCE.md) |
+| Plan and dispatch training in the product's environment | [Training command](packages/particle-sliders-core/TRAINING-COMMAND.md) |
+| Search hyperparameters | [Search API](packages/particle-sliders-core/PARAMETER-SEARCH.md) · [Evaluation](packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md) |
+| Build and test the core | [Development](docs/development.md) |
 
-Fresh sessions explicitly use `ema_decay=None`. Training, ranking, confirmation,
-exports and inference use raw current weights. Rank only by teacher/student
-operand-first FP64 relative SSE, pooled within each example and averaged equally
-across examples. Keep media and preservation diagnostics separate from ranking.
-ParticleGAN's optimizer scalar statistics remain unchanged.
+Fresh sessions explicitly set `ema_decay=None`. Training, checkpoints, selection,
+exports and inference use raw current weights. ParticleGAN's scalar optimizer
+statistics are unchanged; they are not model-weight averaging.
 
-## Compatibility and evidence
+The default search uses relative teacher/student error as a proxy for the
+learned effect. Measuring the intended effect in matched finished outputs can
+improve selection, but is optional. It does not require repeating completed
+searches or adding a new confirmation gate. Each search keeps its declared
+objective and evidence.
 
-Core 0.13.0's embedded model modules, legacy `conceptmod` aliases and historical
-product guidance remain available at
-[`285180e`](https://github.com/HyperGAN/particle-sliders/tree/285180ed9813f12e912bb6bce6bada00496fd19a).
-Core 0.14 does not install those namespaces or silently relocate checkpoint
-classes. The replaced bindings are also archived under
-[`legacy/model-bindings/core-0.13.0`](legacy/model-bindings/core-0.13.0).
+## Project and history
 
-CPU fixtures verify shared lifecycle behavior and installed package isolation.
-They do not establish native GPU admission, pretrained media quality or successful
-adoption by every product. Product owners qualify their native runtime separately.
-Historical experiments, prompts and results remain in [docs](docs/README.md) and
-`lr-work`; their recorded source pins and scientific identities remain binding.
+Particle Sliders has developed into a shared, model-independent project. It
+builds on [Concept Sliders](https://github.com/rohitgandikota/sliders) and the
+[sliders-conceptmod lineage](https://github.com/ntc-ai/sliders-conceptmod).
+The original attribution and [MIT license](LICENSE) remain intact.
 
-For development, install the test extra and run `python -m pytest` against the
-installed wheel. The default suite tests the shared core without adding `src/`
-to Python paths; isolated install tests also run outside the checkout. The install/uninstall tests also check
-strict editable installs and coexistence with a separately owned Conceptmod.
-Historical native/namespace tests apply to their original cohorts; see the
-[boundary qualification record](packages/particle-sliders-core/SHARED-CORE-BOUNDARY.md).
-
-Research credit and the [MIT license](LICENSE) are preserved.
+Historical embedded model code, experiments and old checkpoint loaders are not
+part of the current core wheel. Use their original source pins to reproduce
+old runs; see [history and retained evidence](docs/history.md).
+The [documentation index](docs/README.md) lists the current guides.

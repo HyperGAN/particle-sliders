@@ -1,46 +1,32 @@
-# Shared particle-sliders API
+# Shared core API map
 
-Product slider packages depend on `particle-sliders-core`, which delegates GAN
-mathematics to exact released ParticleGAN **0.9.5**. Core **0.14.0** packages only
-generic lifecycle, response, adapter and execution modules. Read the
-[explicit module boundary](../packages/particle-sliders-core/SHARED-CORE-BOUNDARY.md)
-and [product inventory](backend-migration-inventory.md) before selecting a cohort.
+Core 0.14.0 is model-independent. Products depend on core; core does not import
+products to discover or load models. For end-user usage, see the
+[product repositories](products.md).
 
-Products register entry-point factories or inject complete owned bindings into
-`particle_sliders.lifecycle` / `particle_sliders.response`. A product loads its
-native model, builds teachers, selects adapter targets and supplies response
-coordinates. Shared `ConditionalPG09` owns updates, optimizer state and private
-RNG. A stamp import or a dummy call does not establish shared live execution.
+| Boundary | Product supplies | Core owns |
+|---|---|---|
+| Response generation | Frozen base, target/neutral capture, native coordinates, conditions, differentiable student callback | Conditional game, optimizers, private sampling/RNG and exact state |
+| Adapter attachment | Explicit target plan and stable export names | Generic LoRA primitives, attachment ownership and strength controls |
+| Session | Validated options and complete `Binding` with cleanup | Train/evaluate/resume/export lifecycle and observation transactions |
+| Inference | Native-only base/adapter factory and verified identity | Artifact validation and operation/strength preflight |
+| Search | Frozen grids, supported effective parameters, original response coordinates | Candidate scheduling, relative-error arithmetic and evidence audit |
+| Execution | Product profile and isolated runtime | Planning, runner dispatch, owned workers, progress and results |
 
-| Shared package owns | Product owns |
-|---|---|
-| Adapter attachment, activation and optimizer ownership | Native target names and architecture choices |
-| Upstream game lifecycle and exact checkpoint continuation | Frozen model, tokenizer, scheduler and source identity |
-| Evaluation splits and observation rollback | Teacher construction, response coordinates and row policy |
-| Raw adapter export and inference dispatch | Media generation and native qualification |
-| Recipe/hyperparameter inputs and execution contracts | Native admission, presets and release decisions |
+Start with the [distribution boundary](../packages/particle-sliders-core/SHARED-CORE-BOUNDARY.md).
+Use [response sessions](../packages/particle-sliders-core/RESPONSE-SESSIONS.md) for
+numerical responses and [image sessions](../packages/particle-sliders-core/IMAGE-LIFECYCLE.md)
+when the product offers image operations. Both use the same
+[conditional engine](../packages/particle-sliders-core/CONDITIONAL-PG09-CONTRACT.md).
 
-Use new immutable source cohorts for adoption. Core 0.14 does not rebind old
-checkpoints, supply model-specific pickle aliases or upgrade existing products.
-Music3 moves its native loader and concrete AR response adapter into
-[its product](https://github.com/HyperGAN/music3-particle-sliders). The generic
-`ARLastHiddenResponseAdapter`, conditioning, critic and response-row helpers stay
-in `particle_sliders.pg09_audio`.
+A product factory owns model-specific construction and cleanup. A separate
+[native inference factory](../packages/particle-sliders-core/NATIVE-INFERENCE.md)
+builds only the resources needed to apply an exported adapter. Generic core code
+must not acquire product prompts, fixed model directories, class-name target
+selection, native schedulers, media decoders or campaign policy.
 
-New sessions explicitly disable weight EMA (`ema_decay=None`). All model,
-adapter, critic and particle-bank weights remain raw; upstream optimizer scalar
-statistics remain unchanged. Rank only by operand-first FP64 per-example pooled
-relative SSE, then average equally across examples. Media and preservation
-measurements are diagnostics.
-
-Training checkpoints resume training; adapter-only exports cannot be used as
-training packets. Invalid source, architecture, optimizer, sampler or packet
-family is rejected before live mutation. Evaluation restores training RNG and
-adapter modes/buffers. Wide continuous responses declare their supported domain
-explicitly, rather than being reshaped or projected to bypass a penalty gate.
-
-Historical named generic engines remain available for their documented recipes.
-Embedded product sources are retained as migration input outside the default
-0.14 distribution. The complete previous packaging and API contract remains at
-[core 0.13 source](https://github.com/HyperGAN/particle-sliders/tree/285180ed9813f12e912bb6bce6bada00496fd19a).
-Native runtime, GPU memory and pretrained quality require separate product tests.
+Full training checkpoints and adapter exports serve different purposes. Resume
+requires the full original training state and source identity; an export applies
+learned weights for inference. See the session guides for these lifecycle rules.
+Historical embedded products remain [reproduction material](history.md), outside
+the installed core.

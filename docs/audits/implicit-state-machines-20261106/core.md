@@ -1,5 +1,9 @@
 [Back to audit overview](README.md)
 
+> Historical snapshot: findings, PR status and validation describe the date of
+> this record. Subsequent fixes are in the current source. Use the
+> [current core guides](../../README.md) for present API behavior.
+
 # Shared core lifecycle and execution state-machine audit
 
 Read-only source audit of `origin/main` at `2b212c108637ca996d7676664547056066f2b22c` in `/ml2/particlesliders-working/implicit-state-machines-main-20261106`. No imports, models, training, GPU work, service calls, or tests were run. Paths below are relative to `packages/particle-sliders-core/src/particle_sliders/`.

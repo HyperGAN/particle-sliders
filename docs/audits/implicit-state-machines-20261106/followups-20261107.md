@@ -1,5 +1,9 @@
 # Shared boundary and state-machine follow-ups
 
+> Historical snapshot: findings, PR status and validation describe the date of
+> this record. Subsequent fixes are in the current source. Use the
+> [current core guides](../../README.md) for present API behavior.
+
 The original audit and 13 priority fixes merged into `main` on 2026-11-06.
 The following new PRs target `develop`, created from reviewed main
 `285180ed9813f12e912bb6bce6bada00496fd19a`. They are separate review units and
