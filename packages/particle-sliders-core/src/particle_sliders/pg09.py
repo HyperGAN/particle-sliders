@@ -67,6 +67,12 @@ def validate_pg09_domain(response_shape, *, response_domain,
         if len(shape) not in (4, 5) or penalty_input_domain != 'auto':
             raise ValueError('continuous_field requires genuine native 4D/5D shape on release auto profile')
         resolved = 'image'
+    elif response_domain == 'continuous_packed':
+        if len(shape) != 3 or penalty_input_domain != 'auto':
+            raise ValueError('continuous_packed requires genuine native rank3 shape on release auto profile')
+        # PG0.9.5 itself selects its rank>=3/image penalty branch. Preserve
+        # that official law without recasting token axes as spatial geometry.
+        resolved = 'image'
     elif response_domain == 'continuous_vector':
         if len(shape) != 2 or (shape[1] >= 170 and penalty_input_domain != 'continuous'):
             raise ValueError('released PG09 cannot admit flat continuous vectors with width >=170')
@@ -398,7 +404,7 @@ class ConditionalPG09:
             rows_sha256=_hash(self.provider.identity() if self.provider is not None else self.rows),
             conditions_sha256=(_hash(self.conditions) if self.conditions is not None else 'bound-by-provider-identity'),
             row_count=len(self.rows), sampling=sampling,
-            response_domain=response_domain, resolved_penalty_domain=('image' if len(shape) >= 3 else 'continuous'),
+            response_domain=response_domain, resolved_penalty_domain=domain['resolved_penalty_domain'],
             penalty_input_domain=penalty_input_domain, response_shape=list(shape[1:]),
             response_scale=self.response_scale, sigma=self.sigma,
             generator_arm='routed_particle_gan' if self.prior else 'adapter_gan',
