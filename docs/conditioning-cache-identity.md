@@ -23,7 +23,7 @@ requires the staged input bytes to establish that identity.
 Old unidentified cache files remain unchanged at their old paths. They cannot
 establish a valid hit and must be regenerated under the new identity schema.
 Mismatched or malformed payloads at new paths are refused without rewriting
-them. This PR changes no teacher-generation, training or optimizer formula.
+them. Cache identity does not change the teacher-generation, training or optimizer formula.
 
 Core 0.14 excludes the historical model-specific consumer from its default
 wheel. The helper lives in the shared execution namespace so product-owned

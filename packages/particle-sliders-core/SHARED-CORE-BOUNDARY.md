@@ -1,8 +1,10 @@
 # Model-independent Particle Sliders core
 
-Core 0.14.0 is an explicit new packaging cohort, based on released ParticleGAN
+Core 0.14.1 is an explicit new packaging cohort, based on released ParticleGAN
 0.9.5. Product repositories depend on this core and register or inject their
-native factories. The core never constructs a named pretrained model.
+native factories. The core never constructs a named pretrained model. For model setup, training
+recipes and generation, use the [product repositories](../../docs/products.md).
+For the teacher/student game, see the [math guide](../../docs/math.md).
 
 | Shared core | Model product |
 |---|---|

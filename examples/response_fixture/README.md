@@ -1,6 +1,6 @@
 # Installed numerical response example (offline fixture)
 
-Synthetic adapter-only vector example. No native model, token or audio renderer.
+Synthetic adapter-only vector example for core 0.14.1 / ParticleGAN 0.9.5. No native model, token or audio renderer.
 The fixture has installed CPU qualification; it makes no native media claim.
 Use a separate environment with this branch's exact core/ParticleGAN dependency.
 Build this tiny plugin with `python -m pip wheel --no-deps --no-build-isolation .`,
@@ -12,11 +12,11 @@ cd fresh-vector-run
 printf '.3' > base.txt
 printf '4' > rows.txt
 cat > config.json <<'JSON'
-{"backend":"vector-fixture","cohort":"new-vector-example-source-cohort","options":{"model_file":"base.txt","training_file":"rows.txt","ema_decay":0.9}}
+{"backend":"vector-fixture","cohort":"new-vector-example-source-cohort","options":{"steps":4,"model_file":"base.txt","training_file":"rows.txt","ema_decay":null}}
 JSON
 particle-slider capabilities --interface response --config config.json
 particle-slider train --interface response --config config.json --out run \
-  --stop-after 2 --export-format both --selection ema
+  --stop-after 2 --export-format both --selection raw
 particle-slider evaluate --interface response --config config.json \
   --resume run/training.pt --strength .5 --out response.pt
 printf '{"model_file":"base.txt"}' > native.json

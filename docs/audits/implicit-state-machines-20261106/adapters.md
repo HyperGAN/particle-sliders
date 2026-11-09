@@ -1,5 +1,9 @@
 [Back to audit overview](README.md)
 
+> Historical snapshot: findings, PR status and validation describe the date of
+> this record. Subsequent fixes are in the current source. Use the
+> [current core guides](../../README.md) for present API behavior.
+
 # Particle Sliders main: adapter, inference and generation state machines
 
 Static source audit at `2b212c108637ca996d7676664547056066f2b22c` in `/ml2/particlesliders-working/implicit-state-machines-main-20261106`. No imports, models, GPU work, network calls or tests were run. Fibo is excluded. This section covers runtime adapters, inference contracts and generation hooks; it does not claim to cover all product frontends, training algorithms or experiment controllers.

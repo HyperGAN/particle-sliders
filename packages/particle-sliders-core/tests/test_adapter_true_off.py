@@ -18,8 +18,8 @@ def adapter_module(name, kind):
             import particle_sliders
             installed = distribution('particle-sliders-core')
             origin = Path(installed.locate_file('particle_sliders/__init__.py')).resolve()
-            if installed.version == '0.14.0' and Path(particle_sliders.__file__).resolve() == origin:
-                pytest.skip('installed core 0.14 cohort excludes legacy textsliders; retained source 0.13 runs this case')
+            if installed.version == particle_sliders.__version__ and Path(particle_sliders.__file__).resolve() == origin:
+                pytest.skip('installed shared core excludes legacy textsliders; retained source 0.13 runs this case')
         raise
 
 

@@ -1,8 +1,13 @@
 # Slider comparison pipeline
 
+> Historical workflow. Its scoring gates and commands describe the original
+> experiment, not current shared-core selection. Use the [product repos](../docs/products.md)
+> for usage and [current evaluation](../packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md)
+> for new searches.
+
 Operational runbook for `scripts/slider_pipeline.py` and the
-`slider_pipeline/` package. Measurement contract: [SCORING.md](../SCORING.md).
-Campaign notes and retracted metrics: [MUSIC3.md](../MUSIC3.md).
+`slider_pipeline/` package. Measurement contract: [SCORING.md](https://github.com/HyperGAN/particle-sliders/blob/ba513741b7d4be93d049c4e1d88168f86c41e783/SCORING.md).
+Campaign notes and retracted metrics: [MUSIC3.md](https://github.com/HyperGAN/particle-sliders/blob/ba513741b7d4be93d049c4e1d88168f86c41e783/MUSIC3.md).
 
 **Scope: transformer sliders only.** The gates (especially G4 song identity)
 were frozen on transformer attacks. A working LM half changes the arrangement
@@ -58,7 +63,7 @@ the invocation that owns the baseline, so two `--only` shards cannot race.
 
 Copy `slider_pipeline/specs/phase1-loss-triphop.yaml`. Prompt-file
 catalog (which yaml is which axis, including `prompts-cand-*`):
-[docs/prompts.md](../docs/prompts.md). `load_spec` refuses
+[docs/prompts.md](https://github.com/HyperGAN/particle-sliders/blob/ba513741b7d4be93d049c4e1d88168f86c41e783/docs/prompts.md). `load_spec` refuses
 anything that would make the comparison unpaired or unscoreable:
 
 - `cache_dir` must already exist. The pipeline never runs the AR stage

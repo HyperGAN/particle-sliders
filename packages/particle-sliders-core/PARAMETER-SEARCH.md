@@ -3,12 +3,12 @@
 `particle-slider-search` runs bounded, resumable hyperparameter searches through
 model-owned backend bindings. The shared runner owns proposals, matched step
 budgets, retained response coordinates, exact checkpoint replay, and ranking.
-A product owns model allocation, native responses, optimizers, and admission.
+A product binding owns model allocation, native responses, admission and full
+trial state, delegating optimizer mathematics to its declared engine.
+For model setup, see the [product repositories](../../docs/products.md).
 Importing the search contract does not import Torch or any product runtime.
 
-This is a new raw-only cohort, not a continuation of the November 4 search.
-Its config schema is `particle-sliders-raw-parameter-search-v2`; backend and raw
-response identifiers also change. Historical manifests/checkpoints are refused,
+The current raw-only config schema is `particle-sliders-raw-parameter-search-v2`; historical manifests/checkpoints are refused,
 not migrated or relabelled. Historical validation receipts remain under
 `legacy/parameter-search/20261104/`; they do not qualify this implementation.
 
@@ -133,13 +133,3 @@ actual effective parameters/groups, initial state, native state, and full raw
 coordinate chunks using the session observation transaction. This bridge has a
 real small CPU lifecycle regression against released ParticleGAN; native product
 backends remain individually unqualified until their own installed tests pass.
-
-## Qualification of this raw-only cohort
-
-The installed shared wheel passed 627 tests with 23 explicit skips. Independent
-focused review passed 73 search/lifecycle tests and exact-summation reference
-probes. Both full CPU CLI examples completed plan/run/offline audit and repeated
-execution with zero extra updates. The new source, wheel and artifact digests
-are recorded in [`docs/parameter-search-raw-validation-20261107.json`](../../docs/parameter-search-raw-validation-20261107.json). These results qualify shared
-CPU orchestration and arithmetic; pretrained/native/media behavior stays
-unqualified. Historical receipts under `legacy/` describe a separate old cohort.

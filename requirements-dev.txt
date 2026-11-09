@@ -1,6 +1,6 @@
 # CPU test and development dependencies for this repository.
 # Install PyTorch first if you need a specific CUDA build; each model backend
-# still needs its own runtime (see the backend guides under docs/). Tests
+# still needs its own runtime (see the product repositories linked in docs/products.md). Tests
 # that need the music workstation (its app package, pinned Music 3
 # Diffusers build or local campaign files) skip elsewhere.
 torch>=2.6,<3

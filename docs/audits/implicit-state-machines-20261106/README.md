@@ -1,5 +1,9 @@
 # Implicit state machines in Particle Sliders
 
+> Historical snapshot: findings, PR status and validation describe the date of
+> this record. Subsequent fixes are in the current source. Use the
+> [current core guides](../../README.md) for present API behavior.
+
 Audited `HyperGAN/particle-sliders` **main at `2b212c108637ca996d7676664547056066f2b22c`**, fetched 2026-11-06. The source is isolated on `audit/implicit-state-machines-20261106`.
 
 The app's state machines are mostly encoded in **flags, mutable model methods, context-manager lifetimes, optimizer progress, filesystem markers and child-process ownership**. Some have status strings, but no centralized definition of legal transitions. The most important boundaries are ownership, partial failure, durable commit and recovery.

@@ -1,7 +1,12 @@
 # Slider quality calibration
 
+> Historical workflow. Its scoring gates and commands describe the original
+> experiment, not current shared-core selection. Use the [product repos](../docs/products.md)
+> for usage and [current evaluation](../packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md)
+> for new searches.
+
 **Pilot completed:** the first combined metric failed the development checks.
-See [the listening results](../docs/slider-quality-pilot-results.md). All responses
+See [the listening results](https://github.com/HyperGAN/particle-sliders/blob/ba513741b7d4be93d049c4e1d88168f86c41e783/docs/slider-quality-pilot-results.md). All responses
 and the first model are preserved; the optimizer score remains unavailable.
 
 The implemented workflow measures actual LM renders, collects blind listening
@@ -12,7 +17,7 @@ measurements, insufficient prompt/seed coverage and calibration overlap fail
 closed. Existing frozen LM gates remain vetoes.
 
 The target and its limits are in
-[the proposal](../docs/slider-selection-metric.md). The current implementation
+[the proposal](https://github.com/HyperGAN/particle-sliders/blob/ba513741b7d4be93d049c4e1d88168f86c41e783/docs/slider-selection-metric.md). The current implementation
 evaluates exact unit endpoints, including both poles of bipolar sliders.
 Intermediate settings and long-form endings require their own evaluations;
 short endpoints do not certify those behaviors.

@@ -291,7 +291,11 @@ def test_controller_death_stops_own_worker(product, tmp_path):
         until=time.monotonic()+5
         while time.monotonic()<until:
             stat=Path(f'/proc/{worker_pid}/stat')
-            if not stat.exists() or stat.read_text().split(') ',1)[1].startswith('Z'):
+            try:
+                state = stat.read_text().split(') ', 1)[1]
+            except (FileNotFoundError, ProcessLookupError):
+                break  # The owned worker exited between lookup and read.
+            if state.startswith('Z'):
                 break
             time.sleep(.02)
         else:

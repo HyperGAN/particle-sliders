@@ -1,6 +1,6 @@
-# Core 0.13.0 and ParticleGAN 0.9.5
+# Pinned ParticleGAN 0.9.5 compatibility
 
-This release updates the shared slider engine to published `particlegan==0.9.5`.
+Core 0.14.1 uses published `particlegan==0.9.5`.
 The `ConditionalPG09`, backend, lifecycle and command APIs remain unchanged.
 `particle_sliders.pg095` supplies the explicit versioned entrypoint. Its source
 manifest binds every installed ParticleGAN Python file to the published wheel
@@ -32,6 +32,5 @@ place. CPU tests cover actual updates, exact split continuation, inference expor
 wide-vector declaration, and rejection of mismatched checkpoint identities.
 These tests do not establish improvement on a pretrained model.
 
-Optional HNDL/HyperGAN pins are unchanged. This change does not qualify a new
-native Fibo, audio, image or language-model result. Products adopt this source
+Optional HNDL/HyperGAN pins are unchanged. This pin does not qualify a native model result. Products adopt this source
 explicitly and evaluate fresh runs separately.

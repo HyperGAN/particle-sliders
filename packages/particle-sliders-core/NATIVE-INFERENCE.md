@@ -1,6 +1,7 @@
-# Native-only inference, core 0.8.1
+# Native-only inference
 
-Dependency direction is product -> particle-sliders -> ParticleGAN/HyperGAN.
+Products supply native factories; core supplies the inference lifecycle.
+For model installation and generation, see the [product repositories](../../docs/products.md).
 Products register `particle_sliders.inference_backends` separately from
 `particle_sliders.image_backends`. Core never falls back to a training factory.
 Native base models and model libraries remain local product dependencies.
@@ -71,11 +72,11 @@ Factories must declare precision/device truth and reject unsupported accelerator
 `Binding.before_update(request)` runs immediately before each PG update. Request
 is a detached dictionary with completed_steps and manifest. It must be a pure
 admission decision over the factory's existing native evidence. Return False or
-raise to reject. Core restores PG state, RNG and network flags on rejection;
-no update/EMA/on_step occurs and the session remains usable. External I/O or
+raise to reject. Core restores PG state, RNG and network flags on rejection, or quarantines the
+session if restoration fails;
+no update or on_step event occurs and the session remains usable. External I/O or
 arbitrary native mutation is forbidden in admission. Accepted hooks do not alter
-GAN mathematics. Existing Anima non-CPU admission gates remain until adopted
-and tested by that derivative.
+GAN mathematics. Native admission rules remain product-owned.
 
 `native_cleanup(module)` captures borrowed training modes, requires-grad flags
 and gradient-checkpoint settings before mutation. Factories compose its
@@ -89,16 +90,11 @@ specific reason). An unimplemented backend can declare operations=(),
 base_precisions=(). Do not advertise response/native rendering or precision
 support that does not exist. The existing `render` gate remains compatible.
 
-HyperGAN owns run presentation. Use on_step plus detached observations and
-manifest/artifact references with its supported external RunReporter, in a
-separate reporting subdirectory. Core does not depend on HyperGAN Execution
-internals or introduce another renderer. HNDL matched-weight network migrations
-remain separate. Native pretrained backbones remain native.
+Optional run reporting is documented in [HyperGAN reporting](HYPERGAN-REPORTING.md).
 
+## Observation isolation
 
-## Observation isolation correction (0.8.1)
-
-Both session types now share buffer/mode/state restoration. All registered
+Training and native inference sessions share buffer/mode/state restoration. All registered
 adapter buffers, including nonpersistent and nested buffers, are restored on
 successful and failed observations, retaining original buffer references and
 persistence registrations. Product observation hooks still own native state
@@ -106,5 +102,4 @@ outside binding.network. CUDA RNG device collection includes adapter buffers
 and explicit local runtime/request devices, alongside parameters. CPU-only
 FakeTensor probes verify collection/fork/seed control flow without executing
 CUDA; they do not qualify GPU RNG, memory or mixed-device native backends.
-The held 0.8.0 commit and artifact receipts remain available. Source changes
-require newly reviewed pins/cohorts; no training checkpoint is rebound here.
+Source changes require reviewed pins/cohorts; preserve original checkpoint identities.

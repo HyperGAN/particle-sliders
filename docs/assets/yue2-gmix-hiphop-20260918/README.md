@@ -38,7 +38,7 @@ At strength +1, from update 100 to 1600, held-out residual RMS falls from
 0.996702 to 0.144063, teacher SWD from 0.663255 to 0.049993, and mean gain rises
 from 0.183105 to 0.989067. Final training edit cosine is 0.994790.
 
-The [training evidence section](../../math.md#training-evidence) defines the graph terms.
+The [training evidence section](https://github.com/HyperGAN/particle-sliders/blob/ba513741b7d4be93d049c4e1d88168f86c41e783/docs/math.md#training-evidence) defines the graph terms.
 The [probe implementation](../../../packages/particle-sliders-core/src/particle_sliders/textsliders/distribution_probe.py)
 defines the residuals, projection distances and gain. The probe uses fixed
 random projections and continuation seeds disjoint from training; it does not
