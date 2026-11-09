@@ -333,13 +333,21 @@ class Run:
         if row['parameters'] != parameters or row['confirmation'] != confirmation:
             raise ValueError('trial identity collision')
         guard = self.failure_guard(row) if self.failure_guard is not None else None
+        unassessed = None
         if guard is not None:
             try:
                 guard.require_resume()  # Before checksum/model/open/restore.
                 if row['latest'] is not None and int(row['latest']) > 0:
                     cp = row['checkpoints'][row['latest']]
-                    guard.require_selection(FileRecord(str(self.root / cp['path']),
-                        (self.root / cp['path']).stat().st_size, cp['sha256']))
+                    record = FileRecord(str(self.root / cp['path']), (self.root / cp['path']).stat().st_size, cp['sha256'])
+                    try:
+                        guard.require_selection(record)
+                    except GuardUnmeasured:
+                        # Killed after the receipt persisted but before its probe
+                        # committed. require_resume() passed, so no probe failed or
+                        # stayed unknown; probe this checkpoint before any update.
+                        guard.require_resume()
+                        unassessed = record
             except (CandidateFailure, GuardUnmeasured) as exc:
                 row['outcome'] = 'failed' if isinstance(exc, CandidateFailure) else 'unmeasured'
                 row['failure'] = dict(error=type(exc).__name__, reason=str(exc),
@@ -363,6 +371,8 @@ class Run:
             if initial != active.initial_state_sha256:
                 raise ValueError('initial weights/streams differ inside matched architecture cohort/seed')
             self.checkpoint(active, row, directory)
+            if unassessed is not None:
+                guard.require_selection(unassessed)
             if not row['replay']:
                 # Qualify exact update+restore+replay for EVERY trial, counting
                 # physical calls separately from completed training budget.
@@ -371,6 +381,8 @@ class Run:
                     self.checkpoint(active, row, directory)
                 first = row['checkpoints']['1']
                 active.close()
+                if guard is not None:
+                    guard.require_resume()
                 active = self.open_trial(parameters, seed, cohort,
                                            checkpoint=self.root / row['checkpoints']['0']['path'])
                 self._guarded_update(active, parameters, guard)
@@ -384,7 +396,10 @@ class Run:
             if active.completed_steps > budget:
                 # Later rungs have already run: restore the requested common
                 # budget for cached evaluation, never compare different steps.
+                # Its checkpoint is probed/selected below before evaluation.
                 active.close()
+                if guard is not None:
+                    guard.require_resume()
                 active = self.open_trial(parameters, seed, cohort,
                     checkpoint=self.root / row['checkpoints'][str(budget)]['path'])
             while active.completed_steps < budget:
@@ -593,7 +608,7 @@ def audit(directory):
     require_no_weight_ema(manifest['config']['backend_options']['ema_decay'])
     if tuple(manifest['capabilities']['selections']) != ('raw',):
         raise ValueError('only raw search capabilities can be audited')
-    external_media_discrepancies = []
+    external_media_discrepancies, guard_exclusions = [], []
     count = 0
     for row in progress['trials'].values():
         for checkpoint in row['checkpoints'].values():
@@ -638,15 +653,22 @@ def audit(directory):
         cap = Capabilities(**descriptor)
         space = Space(cap, config['fixed'], config['space'])
         search = config['search']
+        def trial_row(trial_id):
+            row = progress['trials'].get(trial_id)
+            if not isinstance(row, dict):
+                raise ValueError('missing retained trial evidence: ' + trial_id)
+            return row
         def measured(candidate, seed, budget, split):
             trial_id = f"{digest(candidate)[:16]}-seed-{seed}"
-            row = progress['trials'][trial_id]
+            row = trial_row(trial_id)
             if (canonical(row['parameters']) != canonical(candidate) or row['id'] != trial_id
                     or row['candidate'] != digest(candidate)[:16] or row['seed'] != seed
                     or row['cohort'] != space.cohort(cap.identity, candidate)
                     or row['confirmation'] != (seed in search['confirmation_seeds'])):
                 raise ValueError('result candidate parameters/cohort/seed differ')
             key = f"{budget:08d}-{split}-{config['selection']}"
+            if key not in row['evaluations']:
+                raise ValueError(f'missing raw evaluation evidence {key} for trial {trial_id}')
             return read_json(root / row['evaluations'][key] / 'score.json')
         def ranked(candidates, budget):
             groups = {}
@@ -658,22 +680,69 @@ def audit(directory):
                     diagnostics=dict(aligned_better_than_off=all(v['diagnostics']['aligned_better_than_off'] for v in values)), seed_errors=[v['error'] for v in values])
                 groups.setdefault(row['cohort'], []).append(row)
             return {cohort: ordered_rows(values, space) for cohort, values in sorted(groups.items())}
+        # Only a retained guard refusal/failure row (as written by Run.trial)
+        # can explain a candidate missing from a recorded rung or nomination.
+        guard_outcomes = {'catastrophic_output': 'failed', 'unmeasured_output_guard': 'unmeasured'}
+        def excluded(parameters, seeds, stage, message):
+            candidate = digest(parameters)[:16]
+            for seed in seeds:
+                row = progress['trials'].get(f'{candidate}-seed-{seed}')
+                failure = row.get('failure') if isinstance(row, dict) else None
+                if (isinstance(failure, dict) and failure.get('kind') in guard_outcomes
+                        and row.get('outcome') == guard_outcomes[failure['kind']]
+                        and row.get('id') == f'{candidate}-seed-{seed}' and row.get('seed') == seed
+                        and canonical(row.get('parameters')) == canonical(parameters)
+                        and row.get('confirmation') == (seed in search['confirmation_seeds'])):
+                    guard_exclusions.append(dict(candidate=candidate, rung=stage, kind=failure['kind'], trial=row['id']))
+                    return
+            raise ValueError(f'{message}: {candidate} has no retained guard-exclusion evidence')
+        def members(recorded):
+            return [r['candidate'] for rows in recorded['groups'].values() for r in rows]
+        def rung(candidates, recorded, budget):
+            expected = {digest(p)[:16]: p for p in candidates}
+            present = members(recorded)
+            if len(set(present)) != len(present) or not set(present) <= set(expected):
+                raise ValueError('result proposals/ranking/metrics/completed budgets differ from raw evidence: unexpected/duplicate candidate')
+            for candidate, parameters in expected.items():
+                if candidate not in present:
+                    excluded(parameters, search['training_seeds'], budget,
+                             'result proposals/ranking/metrics/completed budgets differ from raw evidence')
+            groups = ranked([p for c, p in expected.items() if c in present], budget)
+            if recorded != dict(budget=budget, groups=groups):
+                raise ValueError('result proposals/ranking/metrics/completed budgets differ from raw evidence')
+            return groups
+        recorded = results['rungs']
+        if (not isinstance(recorded, list) or len(recorded) != len(search['budgets'])
+                or any(not isinstance(r, dict) or set(r) != {'budget', 'groups'} or r['budget'] != b
+                       or not isinstance(r['groups'], dict)
+                       or any(not isinstance(rows, list) or any(not isinstance(x, dict) or 'candidate' not in x for x in rows)
+                              for rows in r['groups'].values())
+                       for r, b in zip(recorded, search['budgets']))):
+            raise ValueError('result proposals/ranking/metrics/completed budgets differ from raw evidence')
         candidates = space.explore(search['initial_candidates'], search['seed'])
         budget = search['budgets'][0]
-        groups = ranked(candidates, budget)
         if search['refinement_candidates']:
-            nominees = [rows[0]['parameters'] for rows in groups.values()]
-            candidates += space.refine(nominees, candidates, search['refinement_candidates'])
-            groups = ranked(candidates, budget)
-        rungs = [dict(budget=budget, groups=groups)]
-        for budget in search['budgets'][1:]:
+            # Refinement follows execute(): leaders of the initial candidates
+            # that this execution ranked, and only when any were ranked.
+            present = set(members(recorded[0]))
+            first = ranked([p for p in candidates if digest(p)[:16] in present], budget)
+            if first:
+                nominees = [rows[0]['parameters'] for rows in first.values()]
+                candidates = candidates + space.refine(nominees, candidates, search['refinement_candidates'])
+        groups = rung(candidates, recorded[0], budget)
+        for recorded_rung, budget in zip(recorded[1:], search['budgets'][1:]):
             candidates = [r['parameters'] for rows in groups.values() for r in rows[:search['keep_per_cohort']]]
-            groups = ranked(candidates, budget)
-            rungs.append(dict(budget=budget, groups=groups))
-        if results['rungs'] != rungs:
-            raise ValueError('result proposals/ranking/metrics/completed budgets differ from raw evidence')
-        if {r['cohort'] for r in results['nominations']} != set(groups) or len(results['nominations']) != len(groups):
+            groups = rung(candidates, recorded_rung, budget)
+        nominations = results['nominations']
+        if not isinstance(nominations, list) or any(not isinstance(n, dict) or 'cohort' not in n for n in nominations):
             raise ValueError('incomplete/duplicate cohort nominations')
+        cohorts = [n['cohort'] for n in nominations]
+        if len(set(cohorts)) != len(cohorts) or not set(cohorts) <= set(groups):
+            raise ValueError('incomplete/duplicate cohort nominations')
+        for cohort, rows in groups.items():
+            if cohort not in cohorts:
+                excluded(rows[0]['parameters'], search['training_seeds'] + search['confirmation_seeds'],
+                         'nomination', 'incomplete/duplicate cohort nominations')
         for nominee in results['nominations']:
             best = groups[nominee['cohort']][0]
             if any(nominee[k] != best[k] for k in best if k != 'diagnostics'):
@@ -681,7 +750,7 @@ def audit(directory):
             parameters = nominee['parameters']
             trial_ids = [f"{nominee['candidate']}-seed-{seed}" for seed in
                          search['training_seeds'] + search['confirmation_seeds']]
-            evidence = {t: evidence_binding(root, progress['trials'][t], budget) for t in trial_ids}
+            evidence = {t: evidence_binding(root, trial_row(t), budget) for t in trial_ids}
             if nominee['evidence'] != evidence:
                 raise ValueError('nomination raw/checkpoint/export evidence differs')
             confirmation = [measured(parameters, seed, budget, 'dev') for seed in search['confirmation_seeds']]
@@ -690,7 +759,7 @@ def audit(directory):
                     or nominee['heldout_errors'] != [v['error'] for v in heldout]):
                 raise ValueError('confirmation/heldout metrics differ from raw evidence')
             for trial_id in trial_ids:
-                row = progress['trials'][trial_id]
+                row = trial_row(trial_id)
                 required = [f"{budget:08d}-dev-{config['selection']}"]
                 if row['confirmation']:
                     required.append(f"{budget:08d}-heldout-{config['selection']}")
@@ -710,11 +779,11 @@ def audit(directory):
                 raise ValueError('missing exact replay for finalist')
             if nominee['diagnostics'] != diagnostics or nominee['boundary_parameters'] != boundary or nominee['status'] != 'confirmed_raw_metric':
                 raise ValueError('nomination qualification/boundary/status differs from raw evidence')
-        overall = ordered_rows(results['nominations'], space)[0]
-        expected_overall = dict(candidate=overall['candidate'], cohort=overall['cohort'], status=overall['status'],
-            basis='lowest exact RAW relative SSE among cohort finalists at the same frozen target/grid/metric/budget/seeds')
+        overall = ordered_rows(nominations, space)
+        expected_overall = dict(candidate=overall[0]['candidate'], cohort=overall[0]['cohort'], status=overall[0]['status'],
+            basis='lowest exact RAW relative SSE among cohort finalists at the same frozen target/grid/metric/budget/seeds') if overall else None
         if results['overall_nomination'] != expected_overall:
             raise ValueError('overall nomination differs from ranked cohort finalists')
     return dict(run=digest(manifest), verified_evaluations=count, verified_trials=len(progress['trials']),
-                diagnostics=dict(external_media_discrepancies=external_media_discrepancies),
+                diagnostics=dict(external_media_discrepancies=external_media_discrepancies, guard_exclusions=guard_exclusions),
                 status='raw metrics, full checkpoints and exports verified; media/OFF/boundary are diagnostics only')

@@ -1,7 +1,9 @@
 import argparse
 import json
+import os
 from pathlib import Path
 import sys
+import time
 
 from .runner import Run, atomic_json, audit, plan, read_json
 
@@ -34,6 +36,11 @@ def main(argv=None):
                         retained='resume the identical command; actual saved steps are in progress.json',
                         no_confirmed_result=True))
                     raise
+                # A later successful resume supersedes the failure receipt;
+                # retain it under a non-canonical name instead of deleting it.
+                interruption = Path(args.out) / 'interruption.json'
+                if interruption.exists():
+                    os.replace(interruption, interruption.with_name(f'interruption-resolved-{time.time_ns()}.json'))
             result = dict(run=report['run'], results=str(Path(args.out) / 'results.json'), nominations=report['nominations'])
         print(json.dumps(result, sort_keys=True, indent=2, allow_nan=False))
         return 0

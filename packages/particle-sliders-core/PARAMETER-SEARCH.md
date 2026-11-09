@@ -116,6 +116,28 @@ resume intentionally refuses even an implementation change; start a new run.
 The offline auditor verifies all raw metric artifacts, full checkpoints, raw
 exports, replay receipts, proposal/rung order, and independent confirmation.
 Checksums establish local artifact consistency, not an adversarial signature.
+A failed run writes `interruption.json` (`no_confirmed_result`); a later
+successful run of the same command renames it to
+`interruption-resolved-<time_ns>.json` beside `results.json` rather than
+deleting it.
+
+With a failure guard, the auditor rebuilds each recorded rung's candidate set
+as `execute()` does (refinement only from ranked initial leaders, then
+`keep_per_cohort` survivors) and recomputes every recorded row exactly. A
+candidate may be absent from a rung, and a final cohort may lack a nomination,
+only when `progress.json` retains a guard trial row for it
+(`catastrophic_output`/`failed` or `unmeasured_output_guard`/`unmeasured`;
+training seeds for rungs, training or confirmation seeds for nominations).
+Anything else is a `ValueError`; with no nomination, `overall_nomination` must
+be `null`. Accepted exclusions are listed in `diagnostics.guard_exclusions`
+(empty for unguarded runs). Because rungs are recorded at execution time, an
+idempotent re-execution also omits a later-failed candidate from earlier rungs.
+
+On resume, a guarded trial is refused before checksum/open when its guard is
+failed, unmeasured or unqualified. A latest checkpoint whose receipt persisted
+but whose probe never committed (a kill in between) is restored and probed
+before any update, evaluation or export, instead of being refused forever. A
+probe that committed and did not finish stays unmeasured.
 
 ## Product backend contract
 
