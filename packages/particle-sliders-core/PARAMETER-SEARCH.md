@@ -9,6 +9,12 @@ output-effect scorer/callback; `selection="raw"` is weight provenance and
 to replace finished-output measurements, repeat a completed search, or add a
 confirmation requirement to an existing effect decision.
 
+The opt-in Python API can bind a qualified
+[catastrophic-output guard](CATASTROPHIC-OUTPUT-GUARD.md) and a product-owned
+finished-output provider. This is a separate persistent eligibility check, not
+an effect-score term or the old optional `--media-review`. The default legacy
+CLI is not automatically wired or qualified by that API addition.
+
 `particle-slider-search` runs bounded, resumable hyperparameter searches through
 model-owned backend bindings. The shared runner owns proposals, matched step
 budgets, retained response coordinates, exact checkpoint replay, and ranking.

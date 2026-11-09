@@ -16,6 +16,7 @@ from .backend import Capabilities, Parameter, resolve
 from .metric import METRIC, algebraic_controls, canonical, digest, file_hash, mean, score, write_raw
 from .space import Space
 from ..weight_policy import require_no_weight_ema, require_raw_selection
+from ..candidate_failure import CandidateFailure, GuardUnmeasured, FileRecord
 
 SCHEMA = 'particle-sliders-raw-parameter-search-v2'
 
@@ -137,7 +138,7 @@ def ordered_rows(values, space):
 
 
 class Run:
-    def __init__(self, config, directory, *, allow_native=False):
+    def __init__(self, config, directory, *, allow_native=False, failure_guard=None):
         self.config, self.root = config_snapshot(config), Path(directory)
         config = self.config
         self.backend, self.cap, self.space, self.initial = validated(config, allow_native=allow_native)
@@ -147,6 +148,7 @@ class Run:
         self.expected = json.loads(canonical(self.expected))
         self.identity = digest(self.expected)
         self.progress = None
+        self.failure_guard = failure_guard
 
     @contextmanager
     def lock(self):
@@ -211,6 +213,11 @@ class Run:
         if canonical(active.frozen_identity()) != canonical(self.expected['capabilities']['identity']):
             raise ValueError('actual teacher/model/precision/schedule/data/coordinates differ')
 
+    def _guarded_update(self, active, parameters, guard):
+        if guard is not None:
+            guard.require_update()
+        return self.update(active, parameters)
+
     def update(self, active, parameters):
         self.resources(next_update=True)
         self.verify(active, parameters)
@@ -233,6 +240,7 @@ class Run:
             if (file_hash(self.root / receipt['path']) != receipt['sha256']
                     or active.state_digest() != receipt['state_sha256']):
                 raise ValueError('retained full checkpoint/state differs')
+            self.check_finished_outputs(active, row, receipt)
             return receipt
         path = directory / f'step-{step:08d}.full'
         atomic_file(path, active.checkpoint)
@@ -242,7 +250,22 @@ class Run:
         row['checkpoints'][key] = receipt
         row['latest'] = key
         self.persist()
+        self.check_finished_outputs(active, row, receipt)
         return receipt
+
+    def check_finished_outputs(self, active, row, receipt):
+        if self.failure_guard is None or active.completed_steps == 0:
+            return
+        guard = self.failure_guard(row)
+        checkpoint = FileRecord(str(self.root / receipt['path']),
+                                (self.root / receipt['path']).stat().st_size, receipt['sha256'])
+        def probe():
+            provider = getattr(active, 'finished_outputs', None)
+            if not callable(provider):
+                raise GuardUnmeasured('backend has no product-owned finished-output probe')
+            # This is NOT responses() or evaluate()'s numerical vector/SSE path.
+            return provider(split='dev', selection=self.config['selection'])
+        guard.check_checkpoint(checkpoint, probe)
 
     def evaluate(self, active, row, directory, split, selection, *, off=False):
         self.resources()
@@ -309,6 +332,21 @@ class Run:
             self.persist()
         if row['parameters'] != parameters or row['confirmation'] != confirmation:
             raise ValueError('trial identity collision')
+        guard = self.failure_guard(row) if self.failure_guard is not None else None
+        if guard is not None:
+            try:
+                guard.require_resume()  # Before checksum/model/open/restore.
+                if row['latest'] is not None and int(row['latest']) > 0:
+                    cp = row['checkpoints'][row['latest']]
+                    guard.require_selection(FileRecord(str(self.root / cp['path']),
+                        (self.root / cp['path']).stat().st_size, cp['sha256']))
+            except (CandidateFailure, GuardUnmeasured) as exc:
+                row['outcome'] = 'failed' if isinstance(exc, CandidateFailure) else 'unmeasured'
+                row['failure'] = dict(error=type(exc).__name__, reason=str(exc),
+                    kind='catastrophic_output' if isinstance(exc, CandidateFailure) else
+                         'unmeasured_output_guard' if isinstance(exc, GuardUnmeasured) else 'technical')
+                self.persist()
+                raise
         checkpoint = None
         if row['latest'] is not None:
             cp = row['checkpoints'][row['latest']]
@@ -329,13 +367,13 @@ class Run:
                 # Qualify exact update+restore+replay for EVERY trial, counting
                 # physical calls separately from completed training budget.
                 if active.completed_steps == 0:
-                    self.update(active, parameters)
+                    self._guarded_update(active, parameters, guard)
                     self.checkpoint(active, row, directory)
                 first = row['checkpoints']['1']
                 active.close()
                 active = self.open_trial(parameters, seed, cohort,
                                            checkpoint=self.root / row['checkpoints']['0']['path'])
-                self.update(active, parameters)
+                self._guarded_update(active, parameters, guard)
                 if active.state_digest() != first['state_sha256']:
                     raise ValueError('full checkpoint one-update exact replay failed')
                 row['replay'] = True
@@ -350,7 +388,7 @@ class Run:
                 active = self.open_trial(parameters, seed, cohort,
                     checkpoint=self.root / row['checkpoints'][str(budget)]['path'])
             while active.completed_steps < budget:
-                self.update(active, parameters)
+                self._guarded_update(active, parameters, guard)
                 if active.completed_steps % self.config['resources']['checkpoint_every'] == 0:
                     self.checkpoint(active, row, directory)
             self.checkpoint(active, row, directory)
@@ -380,8 +418,11 @@ class Run:
             self.persist()
             return primary
         except BaseException as exc:
-            row['outcome'] = 'interrupted' if isinstance(exc, (KeyboardInterrupt, ResourceLimit)) else 'failed'
-            row['failure'] = dict(error=type(exc).__name__, reason=str(exc))
+            row['outcome'] = ('unmeasured' if isinstance(exc, GuardUnmeasured) else
+                              'interrupted' if isinstance(exc, (KeyboardInterrupt, ResourceLimit)) else 'failed')
+            row['failure'] = dict(error=type(exc).__name__, reason=str(exc),
+                    kind='catastrophic_output' if isinstance(exc, CandidateFailure) else
+                         'unmeasured_output_guard' if isinstance(exc, GuardUnmeasured) else 'technical')
             self.persist()
             raise
         finally:
@@ -391,7 +432,12 @@ class Run:
         search = self.config['search']
         groups = {}
         for parameters in candidates:
-            values = [self.trial(parameters, seed, budget) for seed in search['training_seeds']]
+            try:
+                values = [self.trial(parameters, seed, budget) for seed in search['training_seeds']]
+            except (CandidateFailure, GuardUnmeasured):
+                # Only this candidate is excluded. Preserve all checkpoints,
+                # first guard outcomes and old numerical evaluations.
+                continue
             row = dict(candidate=digest(parameters)[:16], parameters=parameters,
                 cohort=self.space.cohort(self.cap.identity, parameters), completed_steps=budget,
                 error=mean(v['error'] for v in values),
@@ -408,7 +454,7 @@ class Run:
         budget = search['budgets'][0]
         candidates = self.initial
         groups = self.rank(candidates, budget)
-        if search['refinement_candidates']:
+        if search['refinement_candidates'] and groups:
             nominees = [rows[0]['parameters'] for rows in groups.values()]
             candidates = candidates + self.space.refine(nominees, candidates, search['refinement_candidates'])
             groups = self.rank(candidates, budget)
@@ -421,7 +467,12 @@ class Run:
         for cohort, rows in groups.items():
             finalist = dict(rows[0])
             params = finalist['parameters']
-            confirmation = [self.trial(params, seed, budget, confirmation=True) for seed in search['confirmation_seeds']]
+            try:
+                confirmation = [self.trial(params, seed, budget, confirmation=True) for seed in search['confirmation_seeds']]
+            except (CandidateFailure, GuardUnmeasured):
+                # A finalist's new failure must not terminate other cohorts.
+                # Its earlier numerical observations remain retained history.
+                continue
             heldout = []
             trial_ids = [f"{finalist['candidate']}-seed-{seed}" for seed in search['training_seeds'] + search['confirmation_seeds']]
             # Heldout is evaluated only after finalist choice, for independent
@@ -446,9 +497,9 @@ class Run:
         overall = ordered_rows(nominations, self.space)
         report = dict(schema=SCHEMA, run=self.identity, metric=METRIC, selection=self.config['selection'],
                       rungs=rungs, nominations=nominations,
-                      overall_nomination=dict(candidate=overall[0]['candidate'], cohort=overall[0]['cohort'],
+                      overall_nomination=(dict(candidate=overall[0]['candidate'], cohort=overall[0]['cohort'],
                           status=overall[0]['status'],
-                          basis='lowest exact RAW relative SSE among cohort finalists at the same frozen target/grid/metric/budget/seeds'),
+                          basis='lowest exact RAW relative SSE among cohort finalists at the same frozen target/grid/metric/budget/seeds') if overall else None),
                       resources=self.progress, media_review=review,
                       qualification='synthetic CPU demonstration only' if self.cap.evidence == 'fixture' else
                       'native evidence is limited to this frozen cohort, target, grid, seeds and budget')

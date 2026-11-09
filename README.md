@@ -79,6 +79,7 @@ python -m pip install './packages/particle-sliders-core[serialization]'
 | Load an adapter without rebuilding training resources | [Native inference](packages/particle-sliders-core/NATIVE-INFERENCE.md) |
 | Plan and dispatch training in the product's environment | [Training command](packages/particle-sliders-core/TRAINING-COMMAND.md) |
 | Select rates from intended effect | [Evaluation and saved-output workflow](packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md) · [Historical SSE runner](packages/particle-sliders-core/PARAMETER-SEARCH.md) |
+| Stop catastrophically failed candidates | [Qualified finished-output guard API](packages/particle-sliders-core/CATASTROPHIC-OUTPUT-GUARD.md) |
 | Build and test the core | [Development](docs/development.md) |
 
 Fresh sessions explicitly set `ema_decay=None`. Training, checkpoints, selection,
