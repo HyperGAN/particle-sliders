@@ -16,14 +16,18 @@ teacher/student training, see the [project overview](../../README.md) and
 | Use image operations | [Image sessions](IMAGE-LIFECYCLE.md) |
 | Apply an adapter without training resources | [Native inference](NATIVE-INFERENCE.md) |
 | Dispatch training in a product runtime | [Training command](TRAINING-COMMAND.md) |
-| Search and compare candidates | [Search API](PARAMETER-SEARCH.md) · [Evaluation](EVALUATION-AND-LR-SEARCH.md) |
+| Select rates from intended effect | [Evaluation and saved-output workflow](EVALUATION-AND-LR-SEARCH.md) · [Historical SSE runner](PARAMETER-SEARCH.md) |
 | Manage rates and scaling | [Learning rates](LEARNING-RATE-CONTRACT.md) · [PEFT scaling](PEFT-SCALING.md) |
 | Own activation checkpoint wrappers | [Checkpoint ownership](CHECKPOINT-OWNERSHIP.md) |
 
 Fresh sessions set `ema_decay=None`; all model weights and exports are raw.
-Relative teacher/student error is the default search proxy. Measuring intended
-effect in matched finished outputs is an optional improvement, not a requirement
-or a reason to repeat completed searches. Historical checkpoints retain their
-original source and environment pins.
+Select rates only by equal-case intended-effect ON-minus-OFF mean in finished
+outputs, retaining negatives, zeros and all tied maxima. Relative teacher/student
+error is diagnostic only. Reuse completed training, RAW checkpoints, outputs and
+first measurements without extra confirmation. The existing fixed-SSE
+`particle-slider-search` runner has no output-effect callback; use the supported
+product inference path and external frozen instrument described in the
+evaluation guide. Historical protocols, results and checkpoint source/environment
+pins remain unchanged.
 
 See [development](../../docs/development.md) for build and test instructions.

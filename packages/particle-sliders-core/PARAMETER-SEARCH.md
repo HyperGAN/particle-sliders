@@ -1,4 +1,13 @@
-# Shared raw parameter search
+# Fixed SSE runner: historical diagnostic contract
+
+For current LR recommendations, use the [finished-output workflow](EVALUATION-AND-LR-SEARCH.md):
+one equal-case intended-effect ON-minus-OFF mean, preserving negatives, zeros
+and all tied maxima. This page documents the existing **fixed-SSE** runner,
+including its historical tie rules and confirmation protocol. It has no
+output-effect scorer/callback; `selection="raw"` is weight provenance and
+`--media-review` cannot change ranking. Do not use this runner or its CPU fixture
+to replace finished-output measurements, repeat a completed search, or add a
+confirmation requirement to an existing effect decision.
 
 `particle-slider-search` runs bounded, resumable hyperparameter searches through
 model-owned backend bindings. The shared runner owns proposals, matched step
@@ -12,10 +21,9 @@ The current raw-only config schema is `particle-sliders-raw-parameter-search-v2`
 not migrated or relabelled. Historical validation receipts remain under
 `legacy/parameter-search/20261104/`; they do not qualify this implementation.
 
-## Ranking and confirmation
+## Fixed SSE ranking and historical confirmation
 
-The default score is RAW teacher/student FP64 operand-first relative SSE, used
-as a proxy for relative effect:
+The runner's fixed score is RAW teacher/student FP64 operand-first relative SSE:
 
 ```
 example_error = sum((float(S) - float(T)) ** 2) / sum((float(T) - float(N)) ** 2)
@@ -30,13 +38,12 @@ projections, scalar summaries, or generated text comparisons. The target is the
 actual backend training target, including a signed formulation if applicable.
 Neutral and teacher identities are frozen across candidates and seeds.
 
-This proxy is an acceptable default for search. Measuring the intended effect
-in matched finished outputs is an optional improvement to the search objective,
-not a prerequisite for using this API or its existing results. It does not
-require repeating completed training, replacing historical scores or adding a
-fresh confirmation pass. The current runner retains its one fixed proxy metric;
-an output-effect search would declare its scorer, matched cases and objective
-as a separate explicit protocol rather than add a second ranking gate.
+Keep this diagnostic and all completed results under their original metric
+labels. Current intended-effect recommendations do not use SSE, its secondary
+tie rules or finalist checks to select rates. Missing effect measurements use
+saved RAWs, supported product inference and a frozen external instrument; this
+runner has no switch that changes its objective. Do not repeat completed
+training, replace historical scores or add a fresh confirmation pass.
 
 Each FP64 coordinate term enters an exact streaming integer superaccumulator,
 rounded once per example statistic. Chunk boundaries cannot affect the score.
@@ -65,7 +72,7 @@ cannot veto an otherwise finite primary score. Optional algebraic controls can
 be computed with `metric.algebraic_controls`; they are not native OFF evidence
 and are not automatically required by search.
 
-## CPU example
+## CPU fixture example: fixed-SSE diagnostics
 
 After installing this branch's core wheel:
 
