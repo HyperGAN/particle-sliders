@@ -11,7 +11,7 @@ Its official BISPF penalty uses its rank>=3 branch, named `image` internally;
 the shared signature records that resolution. This is the upstream rank law,
 not a claim packed coordinates are spatial pixels. `input_domain="continuous"`
 does not disable that upstream rank branch and is not a packed-domain option.
-No GAN loss, optimizer, regularizer, shape gate or scalar statistic changes.
+No GAN loss, optimizer, regularizer or scalar statistic changes.
 Existing vector and genuine4D/5D field contracts and refusals remain unchanged.
 
 Declare `adapter_gan` for an ordinary LoRA without a particle bank. Actual routed
