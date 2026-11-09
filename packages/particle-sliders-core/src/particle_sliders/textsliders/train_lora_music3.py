@@ -155,13 +155,64 @@ def load_config_defaults(path: Path | None) -> dict[str, Any]:
     return raw
 
 
-def _prompt_hash(prompt: str, lyrics: str, duration: float, seed: int) -> str:
-    payload = f"{prompt}\n---\n{lyrics}\n---\n{duration:.3f}\n---\n{seed}"
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+def _cache_request(prompt, lyrics, duration, seed, lm_scale):
+    return dict(prompt=prompt, lyrics=lyrics, duration=float(duration), seed=int(seed),
+                lm_scale=float(lm_scale))
 
 
-def _cache_path(cache_dir: Path, prompt: str, lyrics: str, duration: float, seed: int) -> Path:
-    return cache_dir / f"{_prompt_hash(prompt, lyrics, duration, seed)}.pt"
+def _prompt_hash(prompt, lyrics, duration, seed, *, cache_identity, lm_scale=0.):
+    from particle_sliders.execution.cache_identity import cache_key
+    return cache_key(cache_identity, _cache_request(prompt, lyrics, duration, seed, lm_scale))
+
+
+def _cache_path(cache_dir, prompt, lyrics, duration, seed, *, cache_identity, lm_scale=0.):
+    from particle_sliders.execution.cache_identity import cache_path
+    return cache_path(cache_dir, cache_identity, _cache_request(prompt, lyrics, duration, seed, lm_scale))
+
+
+def _condition_cache_identity(model_dir, lm_weights, device):
+    """Bind this historical consumer to actual model/adapter bytes before a hit.
+
+    The new shared distribution excludes this model-specific consumer; products
+    may reuse execution.cache_identity with their own explicit identity policy.
+    """
+    from importlib.metadata import PackageNotFoundError, version
+    from particle_sliders.execution.cache_identity import fingerprint_file
+    from particle_sliders.weight_policy import require_raw_checkpoint
+    model_dir = Path(model_dir)
+    if not model_dir.is_dir():
+        raise FileNotFoundError('condition cache requires the staged model identity: ' + str(model_dir))
+    files = {path.name: path for path in model_dir.glob('*.json') if path.is_file()}
+    if not files:
+        raise ValueError('condition cache requires staged model architecture/config files')
+    for component in AR_COMPONENTS:
+        folder = model_dir / component
+        inputs = [path for path in folder.rglob('*') if path.is_file()]
+        if not inputs:
+            raise ValueError('condition cache requires staged component bytes: ' + component)
+        files.update({str(path.relative_to(model_dir)): path for path in inputs})
+    adapter = None
+    if lm_weights is not None:
+        lm_weights = Path(lm_weights)
+        require_raw_checkpoint(lm_weights)
+        paths = {'weights': lm_weights}
+        for label, sidecar in (('sidecar', lm_weights.with_suffix('.json')),
+                               ('appended_sidecar', Path(str(lm_weights) + '.json'))):
+            if sidecar.is_file():
+                paths[label] = sidecar
+        adapter = dict(files={name: fingerprint_file(path) for name, path in sorted(paths.items())},
+                       architecture=dict(rank=8, alpha=8., target_replace=['Qwen3Attention'],
+                                         prefix='lora_te', delimiter='-', train_method='full'))
+    try:
+        runtime = version('diffusers')
+    except PackageNotFoundError:
+        runtime = 'not-installed'
+    return dict(model={name: fingerprint_file(path) for name, path in sorted(files.items())},
+                adapter=adapter, settings=dict(dtype='bfloat16', device=str(device),
+                min_ar_frames=MIN_AR_FRAMES, retry_limit=AR_RETRY_LIMIT,
+                duration_frame_rate=12.5, components=list(AR_COMPONENTS),
+                torch_version=str(torch.__version__), diffusers_version=runtime,
+                implementation=fingerprint_file(Path(__file__))))
 
 
 def _flush() -> None:
@@ -350,13 +401,15 @@ def _cache_or_encode(
     skip_ar: bool,
     lm_network: LoRANetwork | None = None,
     lm_scale: float = 0.0,
+    *,
+    cache_identity: dict,
 ) -> torch.Tensor:
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_prompt = prompt if lm_network is None else f"__lm{lm_scale:+.3f}__\n{prompt}"
-    path = _cache_path(cache_dir, cache_prompt, lyrics, duration, seed)
+    from particle_sliders.execution.cache_identity import load_tensor, save_tensor
+    request = _cache_request(prompt, lyrics, duration, seed, lm_scale)
+    path = _cache_path(cache_dir, prompt, lyrics, duration, seed,
+                       cache_identity=cache_identity, lm_scale=lm_scale)
     if path.exists():
-        payload = torch.load(path, map_location="cpu", weights_only=False)
-        condition = payload["condition"] if isinstance(payload, dict) else payload
+        condition = load_tensor(path, cache_identity, request)
         print(f"cache hit {path.name} shape={tuple(condition.shape)} lm={lm_scale:g}")
         return condition
     if skip_ar:
@@ -367,18 +420,7 @@ def _cache_or_encode(
     condition = _encode_condition(
         pipe, prompt, lyrics, duration, int(seed), device, lm_network=lm_network, lm_scale=lm_scale
     )
-    torch.save(
-        {
-            "condition": condition,
-            "prompt": prompt,
-            "lyrics": lyrics,
-            "duration": float(duration),
-            "seed": int(seed),
-            "lm_scale": float(lm_scale),
-        },
-        path,
-    )
-    return condition
+    return save_tensor(path, condition, cache_identity, request)
 
 
 def build_conditions(
@@ -405,6 +447,7 @@ def build_conditions(
                 entries.append((prompt, noise))
         return entries
 
+    cache_identity = _condition_cache_identity(model_dir, lm_weights, device)
     use_lm = lm_weights is not None
     jobs: list[tuple[str, str, float, int]] = []
     for prompt in prompts:
@@ -430,13 +473,13 @@ def build_conditions(
                 )
 
     def _key(text: str, lyrics: str, scale: float, seed: int) -> str:
-        hashed = text if not use_lm else f"__lm{scale:+.3f}__\n{text}"
-        return _prompt_hash(hashed, lyrics, duration, seed)
+        return _prompt_hash(text, lyrics, duration, seed,
+                            cache_identity=cache_identity, lm_scale=scale)
 
     missing_jobs = []
     for text, lyrics, scale, seed in jobs:
-        hashed = text if not use_lm else f"__lm{scale:+.3f}__\n{text}"
-        if not _cache_path(cache_dir, hashed, lyrics, duration, seed).exists():
+        if not _cache_path(cache_dir, text, lyrics, duration, seed,
+                           cache_identity=cache_identity, lm_scale=scale).exists():
             missing_jobs.append((text, scale, seed))
     need_ar = bool(missing_jobs)
 
@@ -479,6 +522,7 @@ def build_conditions(
                 skip_ar,
                 lm_network=lm_network,
                 lm_scale=scale,
+                cache_identity=cache_identity,
             )
     finally:
         if pipe is not None:

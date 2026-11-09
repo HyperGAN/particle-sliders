@@ -8,16 +8,26 @@ punishing the valley. Writes a leaderboard under analysis/music3_critic_sweep_*/
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
+import fcntl
 import json
 import os
 from pathlib import Path
-import shutil
 import statistics as stats
 import subprocess
 import sys
 import time
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+# This retained checkout script uses the helper shipped with the same source.
+CORE_SOURCE = ROOT / "packages/particle-sliders-core/src"
+if str(CORE_SOURCE) not in sys.path:
+    sys.path.insert(0, str(CORE_SOURCE))
+
+from particle_sliders.execution.process_identity import (
+    capture_process_identity, process_liveness, valid_identity,
+)
 PY = "/home/mikkel/anaconda3/envs/minimax-music3/bin/python"
 PROMPTS = ROOT / "analysis/uni16_fresh3400_20260912/prompts/metal-train.yaml"
 
@@ -157,6 +167,8 @@ def migrate_legacy_dirs(root: Path, cfg: dict):
         return target
     legacy = sorted(root.glob(f"runs/{cfg['name']}-s*"), key=lambda p: p.stat().st_mtime, reverse=True)
     if legacy:
+        # Never relocate a live/unverified writer or an incomplete capture.
+        prepare_attempt(legacy[0], 0)
         legacy[0].rename(target)
         old_log = root / "logs" / f"{legacy[0].name}.log"
         new_log = log_path(root, cfg)
@@ -173,37 +185,164 @@ def completed_steps(run: Path) -> int:
     return rows[-1]["step"] if rows else 0
 
 
-def run_one(cfg, *, steps, root, gpu):
-    save_dir = migrate_legacy_dirs(root, cfg)
-    log = log_path(root, cfg)
-    log.parent.mkdir(parents=True, exist_ok=True)
-    done = completed_steps(save_dir) if save_dir.exists() else 0
-    status = load_status(save_dir) if save_dir.exists() else {}
-    if status.get("status") == "complete" and done >= steps:
-        result = score(load_rows(save_dir))
-        result.update(cfg=cfg, steps=steps, save_dir=str(save_dir), reused=True)
-        return result
-    if save_dir.exists() and done == 0 and not (save_dir / "state.pt").exists():
-        shutil.rmtree(save_dir)
-    save_dir.mkdir(parents=True, exist_ok=True)
-    cmd, env = argv_for(cfg, steps=steps, save_dir=save_dir, gpu=gpu)
-    mode = "a" if log.exists() and done > 0 else "w"
-    with log.open(mode) as handle:
-        if mode == "a":
-            handle.write(f"\n# resume → {steps} from {done}\n")
+OWNER_SCHEMA = "particle-sliders-sweep-owner-v1"
+
+
+def owner_path(run):
+    return run / "sweep-owner.json"
+
+
+def read_owner(run):
+    try:
+        record = json.loads(owner_path(run).read_text())
+    except (OSError, ValueError) as error:
+        raise RuntimeError(f"Cannot verify attempt owner in {run}; retain it and use a new immutable output directory") from error
+    if (not isinstance(record, dict)
+            or set(record) != {"schema", "process", "controller", "exit_code"}
+            or record["schema"] != OWNER_SCHEMA
+            or not valid_identity(record["process"])
+            or not valid_identity(record["controller"])
+            or (record["exit_code"] is not None and type(record["exit_code"]) is not int)):
+        raise RuntimeError(f"Invalid attempt owner in {run}; retain it and use a new immutable output directory")
+    return record
+
+
+def write_owner(run, record):
+    # Readers never observe a truncated owner or a half-written exit receipt.
+    fd, temporary = tempfile.mkstemp(prefix=".sweep-owner-", dir=run)
+    try:
+        with os.fdopen(fd, "w") as handle:
+            json.dump(record, handle, sort_keys=True)
+            handle.write("\n")
             handle.flush()
-        proc = subprocess.run(cmd, cwd=ROOT, env=env, stdout=handle, stderr=subprocess.STDOUT)
-    rows = load_rows(save_dir)
-    result = score(rows)
-    result.update(
-        cfg=cfg, steps=steps, save_dir=str(save_dir), log=str(log),
-        returncode=proc.returncode, reused=False, resumed_from=done,
-    )
-    if proc.returncode != 0:
-        result["ok"] = False
-        result["reason"] = f"train_exit_{proc.returncode}"
-        result["fitness"] = -1e9
+            os.fsync(handle.fileno())
+        os.replace(temporary, owner_path(run))
+    finally:
+        Path(temporary).unlink(missing_ok=True)
+
+
+def wait_for_owner(run, *, poll_seconds=5):
+    """Wait only for proven-live local work, then require a reaped exit receipt."""
+    original = read_owner(run)
+    if process_liveness(original["controller"]) == "unknown":
+        raise RuntimeError(f"Unverifiable controller in {run}; retained without automatic reroll")
+    while True:
+        record = read_owner(run)
+        if any(record[key] != original[key] for key in ("process", "controller")):
+            raise RuntimeError(f"Attempt owner changed in {run}; retained without automatic reroll")
+        alive = process_liveness(record["process"])
+        if alive == "unknown":
+            raise RuntimeError(f"Unverifiable attempt owner in {run}; retained without automatic reroll")
+        if alive == "live":
+            if record["exit_code"] is not None:
+                raise RuntimeError(f"Live attempt has an invalid exit receipt in {run}")
+            time.sleep(poll_seconds)
+            continue
+        if record["exit_code"] is not None:
+            if record["exit_code"] != 0:
+                raise RuntimeError(f"Attempt owner exited {record['exit_code']} in {run}; retained without automatic reroll")
+            return
+        # A training marker is never evidence that a dead process will progress.
+        if load_status(run).get("status") == "training":
+            raise RuntimeError(f"Training owner exited in {run}; retained without automatic reroll")
+        if process_liveness(record["controller"]) != "live":
+            raise RuntimeError(f"No live controller can certify the exit in {run}; retained without automatic reroll")
+        time.sleep(poll_seconds)
+
+
+def prepare_attempt(run, steps):
+    if not run.exists():
+        return 0, False
+    if owner_path(run).exists():
+        wait_for_owner(run)
+    status = load_status(run)
+    done = completed_steps(run)
+    if status.get("status") == "complete" and done >= steps:
+        # Historical terminal directories predate owner receipts; keep their
+        # existing reuse behavior, without claiming new process provenance.
+        return done, True
+    checkpoint = run / "state.pt"
+    if (status.get("status") in {"complete", "checkpoint_ready", "paused"}
+            and checkpoint.is_file() and checkpoint.stat().st_size > 0):
+        # Actual full-state/schema admission stays with the trainer's loader.
+        return done, False
+    raise RuntimeError(f"Attempt {run} has no verified terminal completion or resumable full checkpoint; retain it and use a new immutable output directory")
+
+
+@contextmanager
+def launch_lock(root, cfg):
+    locks = root / "owner-locks"
+    locks.mkdir(parents=True, exist_ok=True)
+    with (locks / f"{cfg['name']}.lock").open("a") as handle:
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise RuntimeError("Another controller is preparing this attempt; retain it and retry after ownership is recorded") from error
+        try:
+            yield
+        finally:
+            fcntl.flock(handle, fcntl.LOCK_UN)
+
+
+def start_attempt(cfg, *, steps, root, gpu):
+    with launch_lock(root, cfg):
+        save_dir = migrate_legacy_dirs(root, cfg)
+        done, reused = prepare_attempt(save_dir, steps)
+        if reused:
+            result = score(load_rows(save_dir))
+            result.update(cfg=cfg, steps=steps, save_dir=str(save_dir), reused=True)
+            return dict(result=result)
+        save_dir.mkdir(parents=True, exist_ok=True)
+        log = log_path(root, cfg)
+        log.parent.mkdir(parents=True, exist_ok=True)
+        cmd, env = argv_for(cfg, steps=steps, save_dir=save_dir, gpu=gpu)
+        mode = "a" if log.exists() else "w"
+        handle = log.open(mode)
+        proc = None
+        try:
+            if mode == "a":
+                handle.write(f"\n# resume → {steps} from {done}\n")
+                handle.flush()
+            controller = capture_process_identity()
+            if controller is None:
+                raise RuntimeError("Cannot establish this controller's local process identity")
+            proc = subprocess.Popen(cmd, cwd=ROOT, env=env, stdout=handle, stderr=subprocess.STDOUT)
+            process = capture_process_identity(proc.pid)
+            if process is None:
+                raise RuntimeError("Cannot establish the started trainer's process identity; attempt retained")
+            owner = dict(schema=OWNER_SCHEMA, process=process, controller=controller, exit_code=None)
+            write_owner(save_dir, owner)
+        except BaseException:
+            if proc is not None:
+                if proc.poll() is None:
+                    proc.terminate()  # Only the child created by this call.
+                proc.wait()
+            handle.close()
+            raise
+        return dict(proc=proc, handle=handle, owner=owner, cfg=cfg,
+                    steps=steps, save_dir=save_dir, log=log, done=done)
+
+
+def finish_attempt(attempt):
+    if "result" in attempt:
+        return attempt["result"]
+    try:
+        code = attempt["proc"].wait()
+        if read_owner(attempt["save_dir"]) != attempt["owner"]:
+            raise RuntimeError("Attempt ownership changed before child exit; output retained")
+        write_owner(attempt["save_dir"], dict(attempt["owner"], exit_code=code))
+    finally:
+        attempt["handle"].close()
+    result = score(load_rows(attempt["save_dir"]))
+    result.update(cfg=attempt["cfg"], steps=attempt["steps"], save_dir=str(attempt["save_dir"]),
+                  log=str(attempt["log"]), returncode=code, reused=False, resumed_from=attempt["done"])
+    if code != 0:
+        result.update(ok=False, reason=f"train_exit_{code}", fitness=-1e9)
     return result
+
+
+def run_one(cfg, *, steps, root, gpu):
+    return finish_attempt(start_attempt(cfg, steps=steps, root=root, gpu=gpu))
 
 
 def write_board(root, board):
@@ -248,75 +387,27 @@ def main():
             cfg = pending.pop(0)
             print(json.dumps(dict(phase="screen", cfg=cfg["name"], gpu=gpu)), flush=True)
             batch.append((cfg, gpu))
-        procs = []
-        for cfg, gpu in batch:
-            save_dir = migrate_legacy_dirs(args.root, cfg)
-            log = log_path(args.root, cfg)
-            log.parent.mkdir(parents=True, exist_ok=True)
-            done = completed_steps(save_dir) if save_dir.exists() else 0
-            status = load_status(save_dir) if save_dir.exists() else {}
-            if status.get("status") == "complete" and done >= args.screen_steps:
-                result = score(load_rows(save_dir))
-                result.update(cfg=cfg, steps=args.screen_steps, save_dir=str(save_dir), reused=True)
+        attempts = []
+        error = None
+        try:
+            for cfg, gpu in batch:
+                attempts.append(start_attempt(cfg, steps=args.screen_steps, root=args.root, gpu=gpu))
+        except BaseException as failure:
+            error = failure
+        # Reap every child we started even if another admission/spawn/receipt
+        # failed. No foreign process is terminated or otherwise altered.
+        for attempt in attempts:
+            try:
+                result = finish_attempt(attempt)
                 board.append(result)
                 write_board(args.root, board)
-                print(json.dumps(dict(
-                    done=cfg["name"], reused=True,
-                    **{k: result.get(k) for k in ("fitness", "cos_late_med", "recovery", "drops")},
-                )), flush=True)
-                continue
-            if save_dir.exists() and done == 0 and not (save_dir / "state.pt").exists():
-                shutil.rmtree(save_dir)
-            # If a live trainer still owns this dir, wait for it instead of wiping.
-            if status.get("status") == "training" and done < args.screen_steps:
-                print(json.dumps(dict(wait=cfg["name"], completed=done, until=status.get("until"))), flush=True)
-                while True:
-                    time.sleep(5)
-                    status = load_status(save_dir)
-                    done = completed_steps(save_dir)
-                    if status.get("status") in {"complete", "failed", "checkpoint_ready"}:
-                        break
-                    if status.get("status") != "training":
-                        break
-                if done >= args.screen_steps and status.get("status") == "complete":
-                    result = score(load_rows(save_dir))
-                    result.update(cfg=cfg, steps=args.screen_steps, save_dir=str(save_dir), reused=True)
-                    board.append(result)
-                    write_board(args.root, board)
-                    print(json.dumps(dict(
-                        done=cfg["name"], waited=True,
-                        **{k: result.get(k) for k in ("fitness", "cos_late_med", "recovery", "drops")},
-                    )), flush=True)
-                    continue
-            save_dir.mkdir(parents=True, exist_ok=True)
-            cmd, env = argv_for(cfg, steps=args.screen_steps, save_dir=save_dir, gpu=gpu)
-            mode = "a" if log.exists() and done > 0 else "w"
-            handle = log.open(mode)
-            if mode == "a":
-                handle.write(f"\n# resume → {args.screen_steps} from {done}\n")
-                handle.flush()
-            proc = subprocess.Popen(cmd, cwd=ROOT, env=env, stdout=handle, stderr=subprocess.STDOUT)
-            procs.append((cfg, gpu, proc, handle, save_dir, log, done))
-        for cfg, gpu, proc, handle, save_dir, log, done in procs:
-            code = proc.wait()
-            handle.close()
-            result = score(load_rows(save_dir))
-            result.update(
-                cfg=cfg, steps=args.screen_steps, save_dir=str(save_dir), log=str(log),
-                returncode=code, reused=False, resumed_from=done,
-            )
-            if code != 0:
-                result["ok"] = False
-                result["reason"] = f"train_exit_{code}"
-                result["fitness"] = -1e9
-            board.append(result)
-            write_board(args.root, board)
-            print(json.dumps(dict(
-                done=cfg["name"], fitness=result.get("fitness"),
-                cos_late_med=result.get("cos_late_med"), recovery=result.get("recovery"),
-                drops=result.get("drops"), d0=result.get("d_adv_zero_frac"),
-                resumed_from=done,
-            )), flush=True)
+                print(json.dumps(dict(done=result["cfg"]["name"], reused=result["reused"],
+                                      fitness=result.get("fitness"), resumed_from=result.get("resumed_from"))), flush=True)
+            except BaseException as failure:
+                if error is None:
+                    error = failure
+        if error is not None:
+            raise error
 
     board = write_board(args.root, board)
     finalists = [r for r in board if r.get("ok") and r.get("steps") == args.screen_steps][: args.top_k]

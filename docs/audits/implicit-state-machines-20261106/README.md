@@ -1,5 +1,9 @@
 # Implicit state machines in Particle Sliders
 
+> Historical snapshot: findings, PR status and validation describe the date of
+> this record. Subsequent fixes are in the current source. Use the
+> [current core guides](../../README.md) for present API behavior.
+
 Audited `HyperGAN/particle-sliders` **main at `2b212c108637ca996d7676664547056066f2b22c`**, fetched 2026-11-06. The source is isolated on `audit/implicit-state-machines-20261106`.
 
 The app's state machines are mostly encoded in **flags, mutable model methods, context-manager lifetimes, optimizer progress, filesystem markers and child-process ownership**. Some have status strings, but no centralized definition of legal transitions. The most important boundaries are ownership, partial failure, durable commit and recovery.
@@ -66,3 +70,5 @@ This is a map of the main ownership boundary, not a replacement specification. C
 - The baseline audit used no application imports, model loading, training, GPU allocation, services or runtime tests. Its additions are documentation and the source manifest. Subsequent fix-branch tests are recorded separately in the [fix PR tracker](fix-prs.md).
 - Archived `analysis/`/`legacy/` experiments, generated/static assets, external products/dependency internals and retired Fibo are excluded except where a compatibility interface is referenced. Fixture-only tokenizer state is explicitly separated. This is a comprehensive static inventory of the scoped app workflows, not a proof that every possible dynamic state has been discovered.
 - Historical research selection, preservation/media gates, early stopping and EMA branches are documented as existing behavior. They do not supersede the current sole RAW FP64 operand-first equal-example relative-SSE metric, fixed declared budgets, raw-weight rule or official optimizer formula.
+
+See [the 2026-11-07 shared-boundary and follow-up PR tracker](followups-20261107.md) for the subsequent separate `develop` PRs and new cohort validation.

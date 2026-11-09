@@ -5,9 +5,9 @@ backend-path = ["."]
 
 [project]
 name = "particle-sliders-core"
-version = "0.13.0"
-description = "Conditional ParticleGAN 0.9 slider core with native response backends"
-readme = "COMPATIBILITY-PG095.md"
+version = "0.14.1"
+description = "Model-independent ParticleGAN slider lifecycle and shared tuning contracts"
+readme = "SHARED-CORE-BOUNDARY.md"
 requires-python = ">=3.11"
 license = {file = "LICENSE"}
 dependencies = [
@@ -20,25 +20,20 @@ test = ["pytest>=8", "setuptools>=84.2.1", "safetensors>=0.4,<1", "pillow>=13.0.
 serialization = ["safetensors>=0.4,<1"]
 hndl = ["hndl==0.8.2; python_version >= '3.11' and python_version < '3.15'"]
 
-fibo-hndl = ["hndl==0.10.0; python_version >= '3.11' and python_version < '3.15'", "hypergan @ git+https://github.com/HyperGAN/HyperGAN.git@5f368a3770cf5bdae0448995c9f76e29af8049f7"]
-hypergan-hndl = ["hndl==0.10.0; python_version >= '3.11' and python_version < '3.15'", "hypergan @ git+https://github.com/HyperGAN/HyperGAN.git@5f368a3770cf5bdae0448995c9f76e29af8049f7"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["particle_sliders*", "concept_slider_core*"]
+include = ["particle_sliders", "particle_sliders.execution", "particle_sliders.parameter_search", "concept_slider_core"]
+
+[tool.setuptools]
+include-package-data = false
 
 [tool.setuptools.package-data]
-"particle_sliders.textsliders" = ["data/*.yaml", "run.sh"]
-"particle_sliders.notrigger" = ["data/*.yaml"]
-"particle_sliders.textsliders.reward_game" = ["README.md"]
-"particle_sliders.textsliders.reward_preference" = ["README.md"]
-"particle_sliders.textsliders.reward_search" = ["README.md"]
-"particle_sliders.textsliders.reward_sliders" = ["README.md"]
-particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json", "pg09_continuous_profile.json", "fibo_provenance.json", "audio_closure_provenance.json", "legacy_stamp.json", "pg093_release.json", "pg094_release.json", "pg095_release.json", "pg094_continuous.json", "fibo_hndl_010_sources.json", "fibo_hndl_sources.json", "*.hndl"]
+particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json", "pg09_continuous_profile.json", "legacy_stamp.json", "pg093_release.json", "pg094_release.json", "pg095_release.json", "pg094_continuous.json", "provenance_sources/*.txt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
 
 [project.scripts]
+particle-slider-search = "particle_sliders.parameter_search.__main__:main"
 particle-slider = "particle_sliders.session_cli:main"

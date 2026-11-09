@@ -1,72 +1,58 @@
-# Reversible scale-capturing checkpoints (local proposal)
+# Activation checkpoint ownership
 
-This change is not in the published API or the previously qualified core pins.
-It leaves ParticleGAN mathematics, response geometry and checkpoint packets
-unchanged. New source bytes require their own reviewed source identity; do not
-silently rebind a research cohort or replace an installed package.
+This guide concerns **activation recomputation during backward**, not disk
+training checkpoints. A recomputed block must use the adapter strength captured
+by its original forward, even if an outer strength scope has since exited.
 
-`checkpoint_with_adapter_scale(block, network)` still installs immediately and
-refuses a block already wrapped by this helper. It now returns an
-`AdapterScaleCheckpoint` handle with `close()` and context-manager support:
+`checkpoint_with_adapter_scale(block, network)` installs immediately and returns
+an `AdapterScaleCheckpoint` handle with `close()` and context-manager support:
 
 ```python
 from contextlib import ExitStack
 from particle_sliders.pg09_backends import checkpoint_with_adapter_scale
 
 with ExitStack() as checkpoints:
-    for block in native_blocks:
-        checkpoints.enter_context(checkpoint_with_adapter_scale(block, adapter.network))
-    # Run the existing training/session operation here.
+    for block in product_selected_blocks:
+        checkpoints.enter_context(checkpoint_with_adapter_scale(block, network))
+    # Product/session operation; network exposes scale and scaled(value).
 ```
 
-`native_blocks` are selected native modules; `adapter.network` is the existing
-scale owner exposing `scale` and `scaled(value)`. No model import or selection
-policy is added. ExitStack unwinds earlier blocks if a later installation or
-the operation raises, including interruption. Retain the individual handles if
-cleanup may encounter an ownership conflict: ExitStack itself discards failed
-callbacks and cannot serve as a retry ledger. Nested distinct blocks unwind in
-reverse order. Nested installation on the same block is refused while preserving
-the outer wrapper. Nested scopes of the same open handle close only at the outer
-exit. Ignoring the return keeps the previous eager lifetime.
+Products select blocks; core supplies no model discovery policy. Earlier
+installations unwind if a later one fails. The same block cannot be wrapped
+twice. Nested scopes of one open handle close only on the outer exit.
 
-Closing restores the exact prior instance `forward`/marker ownership, including
-removing an override when `forward` originally came from the class. Repeated
-close is safe; a closed handle cannot be reentered. The handle refuses to
-overwrite a forward or marker replaced by another owner. Resolve that ownership
-conflict before retrying cleanup. Do not restore the broader native owner first.
-An already built autograd graph retains its captured scale even after close;
-closing does not cancel pending work or provide concurrency synchronization.
+Closing restores the exact prior instance `forward` and marker ownership,
+including removing an override when `forward` originally came from the class.
+Repeated close is safe; a closed handle cannot be reentered. A replaced forward
+or marker is an ownership conflict: the helper refuses to overwrite it. Resolve
+that conflict before retrying cleanup. A built autograd graph retains its
+captured scale after close; closing does not cancel pending work or synchronize
+concurrent calls.
 
-`ARLastHiddenResponseAdapter` installs its selected blocks transactionally and
-owns a ledger of their handles. `close_checkpointing()` attempts all remaining
-handles in reverse installation order. Successfully closed handles are removed;
-failed ones remain owned. The first failure is raised after all attempts. Resolve
-the external ownership conflict, then call the same adapter method again; closed
-siblings are not replayed. Both inherited Music3/YuE2 adapters expose this method.
-Handle construction and adapter owner assignment are protected by rollback; a
-failed final transfer cannot discard the local cleanup ledger.
+## Native adapter cleanup
 
-The native factory must retain the adapter while cleanup is unresolved and run
-wrapper cleanup before broader model/slider restoration. A sequential close
-callback makes that ordering explicit:
+`ARLastHiddenResponseAdapter` installs selected blocks transactionally and keeps
+an ownership ledger. `close_checkpointing()` attempts remaining handles in
+reverse order, removes successful entries and raises the first failure after
+attempting all siblings. Failed entries remain available for retry.
+
+The product must retain that adapter until cleanup succeeds, and close wrappers
+before restoring the broader native owner:
 
 ```python
-adapter = make_existing_native_response_adapter()
-
 def close_native():
-    adapter.close_checkpointing()  # may raise; retains unfinished handles
-    restore_native_owner()        # run only after all wrappers have closed
-
-# Supply close_native as the existing Binding's close callback. On conflict,
-# retain the adapter/native owner, resolve the conflict and retry this cleanup.
+    adapter.close_checkpointing()
+    restore_native_owner()  # only after wrapper cleanup succeeds
 ```
 
-Do not rely on a disposable ExitStack callback to remember an unresolved adapter
-cleanup or continue broader native restoration after that cleanup refuses. The
-adapter method is retryable; this does not change session/factory close policies.
+Do not rely on a disposable `ExitStack` to remember failed cleanup callbacks;
+it discards them. Retain individual handles or the adapter's retry ledger when
+external ownership conflicts are possible. Factory cleanup still owns native
+modes, device placement, checkpoint flags and adapter attachment. This helper
+restores only its own attributes.
 
-The factory still owns modes, device placement, native checkpoint flags and LoRA
-attachment. This helper restores only its own two attributes. The separate
-`bind_native_gradient_checkpointing` API is unchanged. The authored tiny CPU
-ownership/scale tests have not run; runtime and installed-wheel qualification
-remain pending resource admission on each exact PG line.
+A qualified native public checkpoint API can instead use
+`bind_native_gradient_checkpointing(model, network)`. Keep one checkpoint owner
+per block. [PEFT scaling](PEFT-SCALING.md) shows composition with a selected
+adapter scope. Ordinary uncaptured checkpoint calls can replay with the wrong
+scale and are not equivalent.

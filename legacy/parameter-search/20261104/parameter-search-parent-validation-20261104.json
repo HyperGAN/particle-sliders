@@ -1,0 +1,119 @@
+{
+  "attacks": {
+    "binary": {
+      "rejected": true
+    },
+    "export-resume": {
+      "rejected": true
+    },
+    "forged-scalar": {
+      "rejected": true
+    }
+  },
+  "implementation_commit": "a46462569c1cbffe928549285e8d5f2516aad96c",
+  "implementation_sources": {
+    "__init__.py": "9c40a87896ad0aeabbd46ce4426b8adae935bcf3cdbfb6d79428d95635f919f2",
+    "__main__.py": "531216df401d806c83c6a225570e6b7a3b024a115d432c991c114c225ebcc80c",
+    "backend.py": "3e7c9eac469d44aa91a6ee1a54b89cf2a71f4978f61754261d74bd1ec4363ce9",
+    "fixture.py": "eb35c3994caf7a0d80f1d50c65dfa1224107815ee02880f62b9b46d0c3978b9a",
+    "metric.py": "6a28a7dcaf6e9653f7c66fa65f0aa8e4d6512d1a1caa7ec2739bcbb1aa9bd83f",
+    "runner.py": "e9ade77a5ce6dcb66747739e8ba7b7ee370d2e29b653bd7e1dc13f0f49ea0fa2",
+    "space.py": "a3a26082abc04a910dd87f52f7f59c80c10c3191e39e9ec19ff549fa4c3944a0"
+  },
+  "independent_cli": {
+    "coupled": {
+      "common_completed_step_budgets": [
+        4,
+        12
+      ],
+      "fixture_only": true,
+      "idempotent_resume": true,
+      "immutable_artifacts_verified": 456,
+      "independent_CLI_audit": true,
+      "physical_updates_before_and_after": 256,
+      "runtime": "3.11.17 (main, Oct  1 2026, 20:17:42) [GCC 14.3.0]",
+      "trials": 32
+    },
+    "vector": {
+      "common_completed_step_budgets": [
+        4,
+        12
+      ],
+      "fixture_only": true,
+      "idempotent_resume": true,
+      "immutable_artifacts_verified": 436,
+      "independent_CLI_audit": true,
+      "physical_updates_before_and_after": 240,
+      "runtime": "3.11.17 (main, Oct  1 2026, 20:17:42) [GCC 14.3.0]",
+      "trials": 32
+    }
+  },
+  "independent_combined_tests": {
+    "command": "CUDA_VISIBLE_DEVICES='' PYTHONPATH=packages/particle-sliders-core/src python -m pytest -q packages/particle-sliders-core/tests/parameter_search packages/particle-sliders-core/tests/test_parameter_search_lifecycle.py packages/particle-sliders-core/tests/test_evaluation_splits.py",
+    "passed": 69,
+    "seconds": 22.18
+  },
+  "limits": [
+    "Both built-in model search examples are CPU fixtures; no native training quality claim.",
+    "Retained pretrained response checks covered one complete example and a separate complete 16-example/128-row development grid. These verify shared arithmetic/transport compatibility against actual native responses, not a new native search adapter or convergence.",
+    "Native model products must register their own qualified SearchBackend/Trial or lifecycle adapter.",
+    "No currently running p-h3 source/runtime/configuration or other GPU workload was modified."
+  ],
+  "retained_native_full_grid_crosscheck": {
+    "GPU_allocations": 0,
+    "additional_training_updates": 0,
+    "audit_source_sha256": "79431f4d3a886eb1282f6be58fe24b0705d11b564c0ca0696f40378c690a1e55",
+    "completed_training_steps": 64,
+    "coordinates": 50348032,
+    "examples": 16,
+    "native_error": 1.0015872012194311,
+    "native_forward_calls": 0,
+    "native_gain": 0.012957430128672535,
+    "per_scene_matches_at_relative_tolerance": 1e-12,
+    "receipt_sha256": "72892defa4c0f2041096cb09c38244965b292a2128c5ea7a9e2b769ad496beae",
+    "rows": 128,
+    "scope": "All 16 development examples, eight native positions each, full image plus audio coordinates from the retained 64-step EMA checkpoint; zero additional native operations.",
+    "seconds": 71.57895876200018,
+    "shared_error": 1.0015872012194311,
+    "shared_gain": 0.012957430128672537,
+    "source_hashes": {
+      "cache": "64157d58076b55f7d7593e05242eacfe7765be54dea7a5687f88c72b85991149",
+      "metric": "6a28a7dcaf6e9653f7c66fa65f0aa8e4d6512d1a1caa7ec2739bcbb1aa9bd83f",
+      "student": "c55534eba8a34514ece2c0ddbfcfbf5ecbbc4b701f40b84ee45bbacd812ddd74"
+    },
+    "status": "passed"
+  },
+  "retained_native_metric_crosscheck": {
+    "binary_sha256": "422bd910c1e2001b132472c89772c1bfc329b5bb14c7a3bfb00ea46ec9354eac",
+    "cuda_initialized": false,
+    "current_metric_source_sha256": "6a28a7dcaf6e9653f7c66fa65f0aa8e4d6512d1a1caa7ec2739bcbb1aa9bd83f",
+    "declared_native_positions": 8,
+    "example": {
+      "path": "neutral",
+      "scene": "bottle",
+      "seed": 171
+    },
+    "full_response_elements": 393344,
+    "metric_source_sha256": "6a28a7dcaf6e9653f7c66fa65f0aa8e4d6512d1a1caa7ec2739bcbb1aa9bd83f",
+    "native_coordinates_scored": 3146752,
+    "native_forward_calls": 0,
+    "native_training_updates": 0,
+    "numpy_error": 0.9704572484097231,
+    "numpy_gain": 0.02426220038404668,
+    "raw_sha256": "75f0b268b738ad8cff574a224cf4880a90d8b246c68bd0b9df1a34fa774d7a05",
+    "schema": "shared-search-actual-native-metric-audit-v1",
+    "shared_error": 0.970457248409724,
+    "shared_gain": 0.024262200384047295,
+    "status": "passed",
+    "student_artifact_sha256": "c210d9dfd64085840687ee021e333670dd0b8747d8501f888b8c6d3d390c3f7f"
+  },
+  "schema": "particle-sliders-parameter-search-parent-validation-v1",
+  "wheel": {
+    "build": "python -m build --wheel --no-isolation",
+    "installed_console_entrypoint_help": "passed",
+    "installed_coupled_run_and_audit_without_site_packages": "passed;32 CPU fixture trials,256 physical update calls,128 audited evaluations",
+    "installed_into_separate_target": true,
+    "sha256": "6f0298ec8bfdea5150d9e1e5adef534c88f78d70b977715d0ea02b0d913a1e94",
+    "torch_numpy_particlegan_imported_by_shared_package": false
+  }
+}

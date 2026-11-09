@@ -1,29 +1,29 @@
-# particle-sliders-core 0.13.0
+# particle-sliders-core
 
-Shared particle-slider training, response binding, checkpointing and export,
-using **ParticleGAN 0.9.5**. Products supply their frozen model and adapters;
-the shared core supplies the GAN training engine. GAN mathematics stays in
-ParticleGAN rather than being copied into each product.
+Shared infrastructure for training and applying small adapters on frozen
+models. Core 0.14.1 is model-independent and pins `particlegan==0.9.5`.
 
-Install from this repository's `packages/particle-sliders-core` directory.
-Python 3.11+ and PyTorch 2.6+ are required. The exact dependency is
-`particlegan==0.9.5`; see [compatibility and source identity](COMPATIBILITY-PG095.md).
+For model installation, prompts, recipes and generation, use the
+[product repositories](../../docs/products.md). For a readable explanation of
+teacher/student training, see the [project overview](../../README.md) and
+[math guide](../../docs/math.md).
 
-The existing `ConditionalPG09` and lifecycle APIs are retained. For wide native
-continuous vectors, explicitly declare `penalty_input_domain="continuous"` with
-`response_domain="continuous_vector"`. Automatic dispatch retains its shape
-gates. This is released upstream support, not a categorical fallback or reshape.
+| Task | Contract |
+|---|---|
+| Understand core/product ownership and installed modules | [Distribution boundary](SHARED-CORE-BOUNDARY.md) |
+| Supply native paired responses | [Conditional engine](CONDITIONAL-PG09-CONTRACT.md) |
+| Train numerical responses | [Response sessions](RESPONSE-SESSIONS.md) |
+| Use image operations | [Image sessions](IMAGE-LIFECYCLE.md) |
+| Apply an adapter without training resources | [Native inference](NATIVE-INFERENCE.md) |
+| Dispatch training in a product runtime | [Training command](TRAINING-COMMAND.md) |
+| Search and compare candidates | [Search API](PARAMETER-SEARCH.md) · [Evaluation](EVALUATION-AND-LR-SEARCH.md) |
+| Manage rates and scaling | [Learning rates](LEARNING-RATE-CONTRACT.md) · [PEFT scaling](PEFT-SCALING.md) |
+| Own activation checkpoint wrappers | [Checkpoint ownership](CHECKPOINT-OWNERSHIP.md) |
 
-Old checkpoints retain their original core/ParticleGAN environments. The explicit
-`pg095` entrypoint identifies fresh 0.9.5 training; `pg094` refuses old requests
-rather than migrating them. Historical `winning_formulation()` helpers remain
-available for architecture and explicitly named historical recipes.
+Fresh sessions set `ema_decay=None`; all model weights and exports are raw.
+Relative teacher/student error is the default search proxy. Measuring intended
+effect in matched finished outputs is an optional improvement, not a requirement
+or a reason to repeat completed searches. Historical checkpoints retain their
+original source and environment pins.
 
-- [Conditional response contract](CONDITIONAL-PG09-CONTRACT.md)
-- [Training commands](TRAINING-COMMAND.md)
-- [Image lifecycle](IMAGE-LIFECYCLE.md)
-- [Native inference](NATIVE-INFERENCE.md)
-- [Previous PG0.9.4 compatibility record](COMPATIBILITY-PG094.md)
-
-CPU fixtures verify training and serialization behavior. They do not establish
-native-model quality or a benchmark win.
+See [development](../../docs/development.md) for build and test instructions.

@@ -221,6 +221,126 @@ def test_raw_export_refreshes_latest_receipt_and_matches_current_weights(tmp_pat
     assert not list(run.glob('*ema*'))
 
 
+def test_complete_checkpoint_generation_restores_raw_state_and_preserves_historical_files(tmp_path):
+    import json
+    import random
+    from pathlib import Path
+    from safetensors.torch import load_file
+    from particle_sliders.execution.checkpoint_generation import verify_reference
+    from particle_sliders.textsliders.gan_v2 import state,train
+    engine=make_engine(0);sampler=state.RowSampler(3,2,7)
+    history=[engine.update(sampler.next())]
+    signature={'test':'complete-raw-generation'}
+    run=tmp_path/'run';run.mkdir()
+    (run/'state.pt').write_bytes(b'archived historical checkpoint')
+    receipt=train.publish_checkpoint(run,engine,sampler,None,signature,history,
+        rank=3,alpha=3.,metadata={},prompts=tmp_path/'prompts.json')
+    directory,manifest,_=verify_reference(run/'latest.json')
+    assert set(manifest['files'])=={'state.pt','run_step1.safetensors','run_step1.json'}
+    checkpoint=state.checkpoint_path(run/'latest.json')
+    assert checkpoint==directory/'state.pt'==state.checkpoint_path(directory/'generation.json')
+    assert checkpoint==state.checkpoint_path(directory)==state.checkpoint_path(checkpoint)
+    blob=torch.load(checkpoint,weights_only=True)
+    raw=load_file(receipt['checkpoints']['live'])
+    for key,value in engine.network.state_dict().items():
+        assert torch.equal(value.cpu(),blob['network'][key])
+        assert torch.equal(value.cpu(),raw[key])
+    assert blob['completed']==1 and blob['ema'] is None
+    assert json.loads((directory/'run_step1.json').read_text())['steps']==1
+    assert (run/'state.pt').read_bytes()==b'archived historical checkpoint'
+    restored=make_engine(0);restored_sampler=state.RowSampler(3,2,9)
+    assert state.restore(run/'latest.json',restored,restored_sampler,None,signature)==history
+    torch.set_rng_state(blob['torch_rng']);random.setstate(blob['python_rng'])
+    expected=engine.update(sampler.next())
+    torch.set_rng_state(blob['torch_rng']);random.setstate(blob['python_rng'])
+    actual=restored.update(restored_sampler.next())
+    assert actual==expected
+    for key,value in engine.network.state_dict().items():
+        assert torch.equal(value,restored.network.state_dict()[key])
+    old={name:(directory/name).read_bytes() for name in manifest['files']}
+    train.publish_checkpoint(run,engine,sampler,None,signature,history+[expected],
+        rank=3,alpha=3.,metadata={},prompts=tmp_path/'prompts.json')
+    assert verify_reference(run/'latest.json')[2]['step']==2
+    assert old=={name:(directory/name).read_bytes() for name in manifest['files']}
+    assert Path(receipt['checkpoints']['live']).exists()
+
+
+def test_export_failure_retains_staged_full_state_without_advancing_latest(tmp_path,monkeypatch):
+    from particle_sliders.textsliders.gan_v2 import state,train
+    engine=make_engine(0);sampler=state.RowSampler(3,2,7)
+    signature={'test':'publication-failure'}
+    history=[engine.update(sampler.next())]
+    run=tmp_path/'run'
+    train.publish_checkpoint(run,engine,sampler,None,signature,history,
+        rank=3,alpha=3.,metadata={},prompts=tmp_path/'prompts.json')
+    before=(run/'latest.json').read_bytes()
+    history.append(engine.update(sampler.next()))
+    def failed_export(*args,**kwargs):
+        raise OSError('injected export failure after full-state serialization')
+    monkeypatch.setattr(train,'export',failed_export)
+    with pytest.raises(OSError,match='injected export failure'):
+        train.publish_checkpoint(run,engine,sampler,None,signature,history,
+            rank=3,alpha=3.,metadata={},prompts=tmp_path/'prompts.json')
+    assert (run/'latest.json').read_bytes()==before
+    assert torch.load(state.checkpoint_path(run/'latest.json'),weights_only=True)['completed']==1
+    staged=list((run/'generations').glob('.step-000000002-*.partial/state.pt'))
+    assert len(staged)==1 and torch.load(staged[0],weights_only=True)['completed']==2
+    with pytest.raises(ValueError,match='uncommitted'):
+        state.checkpoint_path(staged[0])
+
+
+@pytest.mark.parametrize('damage',['weights','sidecar','state','export_reference','step_reference'])
+def test_generation_resume_refuses_mixed_files_before_live_load(tmp_path,monkeypatch,damage):
+    import json
+    from pathlib import Path
+    from particle_sliders.textsliders.gan_v2 import state,train
+    source=make_engine(0);source_sampler=state.RowSampler(3,2,7)
+    history=[source.update(source_sampler.next())]
+    signature={'test':'mixed-files'}
+    run=tmp_path/'run'
+    receipt=train.publish_checkpoint(run,source,source_sampler,None,signature,history,
+        rank=3,alpha=3.,metadata={},prompts=tmp_path/'prompts.json')
+    if damage=='weights':Path(receipt['checkpoints']['live']).write_bytes(b'other update weights')
+    elif damage=='sidecar':Path(receipt['checkpoints']['live']).with_suffix('.json').write_text('{}')
+    elif damage=='state':Path(receipt['state']).write_bytes(b'partial state')
+    else:
+        if damage=='export_reference':receipt['checkpoints']['live']='/unrelated/export.safetensors'
+        else:receipt['step']=99
+        (run/'latest.json').write_text(json.dumps(receipt))
+    target=make_engine(0);target_sampler=state.RowSampler(3,2,9)
+    monkeypatch.setattr(target.network,'load_state_dict',
+                        lambda *args,**kwargs:pytest.fail('mixed collection reached live module load'))
+    with pytest.raises(ValueError):
+        state.restore(run/'latest.json',target,target_sampler,None,signature)
+    assert target.completed==0
+
+
+def test_generation_manifest_step_is_checked_against_full_state_before_live_load(tmp_path,monkeypatch):
+    import hashlib
+    import json
+    from pathlib import Path
+    from particle_sliders.textsliders.gan_v2 import state,train
+    source=make_engine(0);sampler=state.RowSampler(3,2,7)
+    history=[source.update(sampler.next())]
+    signature={'test':'manifest-state-consistency'}
+    run=tmp_path/'run'
+    receipt=train.publish_checkpoint(run,source,sampler,None,signature,history,
+        rank=3,alpha=3.,metadata={},prompts=tmp_path/'prompts.json')
+    manifest_path=Path(receipt['state']).parent/'generation.json'
+    manifest=json.loads(manifest_path.read_text())
+    manifest['identity']['completed_steps']=2
+    manifest_path.write_text(json.dumps(manifest))
+    receipt['step']=2
+    receipt['manifest_sha256']=hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    (run/'latest.json').write_text(json.dumps(receipt))
+    target=make_engine(0);target_sampler=state.RowSampler(3,2,9)
+    monkeypatch.setattr(target.network,'load_state_dict',
+                        lambda *args,**kwargs:pytest.fail('inconsistent generation reached live load'))
+    with pytest.raises(ValueError,match='identity changed'):
+        state.restore(run/'latest.json',target,target_sampler,None,signature)
+    assert target.completed==0
+
+
 def test_diagnostics_do_not_change_updates_and_limits_are_real():
     one, two = make_engine(0), make_engine(1)
     a, b = one.update([0,1,2]), two.update([0,1,2])

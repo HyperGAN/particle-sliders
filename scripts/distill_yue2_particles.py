@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 from contextlib import contextmanager
 import gc
+import importlib.metadata
 import json
 import os
 from pathlib import Path
@@ -17,13 +18,103 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(ROOT), str(ROOT.parent)]
+sys.path[:0] = [str(Path(__file__).resolve().parent), str(ROOT), str(ROOT.parent)]
 import numpy as np
 import torch
 import torch.nn.functional as F
 import yaml
 from particle_sliders.textsliders.yue2_backend import YuE2Slider, attention_targets, file_digest
 from app.rewriter import _artist_name_hit
+import distillation_artifacts as artifacts
+
+
+def cohort_identity(args, pipe, model, release, spec, calibration_rows):
+    """Bind the effective historical protocol without changing its objective."""
+    weights = getattr(pipe, 'weights', None)
+    if not isinstance(weights, dict):
+        raise ValueError('Verified full model weight/config identity is required')
+    for kind in ('mot', 'vae'):
+        record = weights.get(kind, {})
+        if not isinstance(record, dict):
+            raise ValueError('Verified full model weight/config identity is required')
+        files = record.get('files', {})
+        if not isinstance(files, dict) or not files:
+            raise ValueError('Verified full model weight/config identity is required')
+        artifacts.require_sha256(record.get('config_sha256'), kind + ' configuration')
+        for name, item in files.items():
+            if not isinstance(item, dict) or type(item.get('bytes')) is not int or item['bytes'] < 1:
+                raise ValueError('Verified full model weight/config identity is required')
+            artifacts.require_sha256(item.get('sha256'), kind + '/' + name)
+    artifacts.require_sha256(getattr(pipe, 'runtime_sha256', None), 'YuE2 runtime source')
+    core = Path(sys.modules['particle_sliders'].__file__).resolve().parent
+    sources = {f'core/{path.relative_to(core)}': path for path in core.rglob('*.py')}
+    sources.update(distill=Path(__file__), artifacts=Path(artifacts.__file__),
+                   rewriter=Path(sys.modules[_artist_name_hit.__module__].__file__))
+    source = release / spec['weights']
+    teacher = artifacts.file_identity(source)
+    if teacher['sha256'] != spec['sha256']:
+        raise ValueError('Teacher checkpoint content differs from the declared release')
+    references = {}
+    for row in range(2):
+        for kind in ('off', 'metal'):
+            for name in ('prefix.npy', 'semantic.npy'):
+                label = f'row-{row}-seed-1709/{kind}/{name}'
+                references[label] = artifacts.file_identity(args.reference / spec['id'] / label)
+    return artifacts.snapshot(dict(protocol='historical-yue2-distillation-v1', qualification='historical-protocol-only',
+        source=artifacts.source_identity(sources), runtime_sha256=pipe.runtime_sha256,
+        versions=dict(python=sys.version, numpy=np.__version__, torch=torch.__version__,
+                      yaml=yaml.__version__, safetensors=importlib.metadata.version('safetensors')),
+        model=dict(weights=weights, config=model.config.to_dict(), training=model.training,
+                   parameter_layout={name: dict(shape=list(parameter.shape), dtype=str(parameter.dtype),
+                                                device=str(parameter.device))
+                                     for name, parameter in model.named_parameters()},
+                   tokenizer=artifacts.file_identity(Path(pipe.model_dir)/'qwen.tiktoken')),
+        execution=dict(gpu=args.gpu, backend=pipe.backend, quantization=pipe.quantization,
+            offload_ar=pipe.offload_ar, vae_core_frames=pipe.vae_core_frames,
+            generation_config=pipe.generation_config.to_dict(),
+            float32_matmul_precision=torch.get_float32_matmul_precision(),
+            default_dtype=str(torch.get_default_dtype()), threads=torch.get_num_threads(),
+            interop_threads=torch.get_num_interop_threads(), cuda_build=torch.version.cuda,
+            cuda_matmul_tf32=torch.backends.cuda.matmul.allow_tf32,
+            cudnn_tf32=torch.backends.cudnn.allow_tf32,
+            cudnn_benchmark=torch.backends.cudnn.benchmark,
+            cudnn_deterministic=torch.backends.cudnn.deterministic,
+            cuda_visible_devices=os.getenv('CUDA_VISIBLE_DEVICES'),
+            cublas_workspace_config=os.getenv('CUBLAS_WORKSPACE_CONFIG'),
+            deterministic_algorithms=torch.are_deterministic_algorithms_enabled()),
+        release_catalog=artifacts.file_identity(release/'catalog.json'), spec=spec,
+        teacher=teacher, prompts={split: artifacts.file_identity(release/spec['prompts'][split])
+                                 for split in ('train', 'eval')},
+        calibration_rows=calibration_rows, references=references))
+
+
+def fit_identity(args, pipe, model, release, spec, calibration_rows, train_tokens):
+    return dict(stage='ridge', cohort=cohort_identity(args, pipe, model, release, spec, calibration_rows),
+        settings=dict(train_tokens=train_tokens, initialization_seed=9182, rollout_seed=4100,
+            prefix_seed=7, heldout_seed=1709, ridges=[1e-4, 1e-3, 1e-2],
+            calibration_scales=[0., 1.], comparison_scales=[.5, 1.], rank=8, alpha=8.))
+
+
+def fit_outputs(out, concept, count):
+    checkpoint = out/f'{concept}_distilled_rank8.safetensors'
+    return [checkpoint, checkpoint.with_suffix('.json'),
+            *(out/f'train-rollout-{index}.json' for index in range(count))]
+
+
+def verify_fit(args, pipe, model, spec, calibration_rows):
+    out = args.output/spec['id']
+    saved = artifacts.read_json(out/'distillation-identity.json')
+    try:
+        train_tokens = saved['identity']['settings']['train_tokens']
+        if type(train_tokens) is not int or train_tokens < 1:
+            raise ValueError
+    except (KeyError, TypeError, ValueError):
+        raise ValueError('First-stage distillation has no valid effective token budget; retain its evidence') from None
+    identity = fit_identity(args, pipe, model, args.release, spec, calibration_rows, train_tokens)
+    artifacts.bind_identity(out/'distillation-identity.json', identity)
+    artifacts.verify_completion(out/'evaluation.json', identity,
+                               fit_outputs(out, spec['id'], len(rows(args.release, spec, 'train'))))
+    return identity
 
 
 def write_json(path, value):
@@ -80,18 +171,35 @@ def make_plan(pipe, row, seed):
     return pipe.plan(request=SongRequest(style=row['neutral'], lyrics=row['lyrics'], cot='off', seed=seed))
 
 
-def rollout(pipe, model, network, row, seed, count, cache):
+def rollout_identity(pipe, row, seed, count, cohort, prefix):
+    return dict(stage='teacher-rollout', cohort=cohort, row=row, prefix=prefix,
+                seed=seed, max_tokens=count, min_tokens=min(200, count), scale=1.)
+
+
+def load_rollout(pipe, row, seed, count, cache, cohort):
+    prefix = make_plan(pipe, row, seed).prefix
+    identity = rollout_identity(pipe, row, seed, count, cohort, prefix)
+    saved = artifacts.verify_record(cache, identity)
+    if saved.get('prefix') != prefix or saved.get('seed') != seed or saved.get('max_tokens') != count:
+        raise ValueError(f'Rollout protocol differs; retain evidence at {cache}')
+    ids = saved.get('ids')
+    if not isinstance(ids, list) or any(type(token) is not int for token in ids) or ids[:len(prefix)] != prefix:
+        raise ValueError(f'Rollout tokens differ from their prefix; retain evidence at {cache}')
+    return ids
+
+
+def rollout(pipe, model, network, row, seed, count, cache, *, cohort):
     from yue2.protocol import CODEC_OFFSET
     plan = make_plan(pipe, row, seed)
     if cache.exists():
-        saved = json.loads(cache.read_text())
-        assert saved['prefix'] == plan.prefix and saved['seed'] == seed
-        return saved['ids']
+        return load_rollout(pipe, row, seed, count, cache, cohort)
     with attached(model, network, 1):
         semantic = pipe.generate_semantic(plan, sampling={'max_tokens': count, 'min_tokens': min(200, count)})
     ids = plan.prefix + [int(t) + CODEC_OFFSET for t in semantic.tokens]
-    write_json(cache, dict(prefix=plan.prefix, ids=ids, seed=seed, max_tokens=count,
-                          truncated=semantic.truncated, timing=semantic.timing))
+    artifacts.write_new_json(cache, artifacts.seal(
+        dict(prefix=plan.prefix, ids=ids, seed=seed, max_tokens=count,
+             truncated=semantic.truncated, timing=semantic.timing),
+        rollout_identity(pipe, row, seed, count, cohort, plan.prefix)))
     return ids
 
 
@@ -191,27 +299,39 @@ def existing_eval(root, concept, row, seed):
 
 
 def fit_one(args, pipe, model, release, spec, calibration_rows):
+    with artifacts.attempt_lock(args.output/spec['id']):
+        return _fit_one(args, pipe, model, release, spec, calibration_rows)
+
+
+def _fit_one(args, pipe, model, release, spec, calibration_rows):
     concept = spec['id']
     out = args.output / concept
     out.mkdir(parents=True, exist_ok=True)
     checkpoint = out / f'{concept}_distilled_rank8.safetensors'
+    identity = fit_identity(args, pipe, model, release, spec, calibration_rows, args.train_tokens)
+    artifacts.bind_identity(out/'distillation-identity.json', identity,
+        evidence=[path for path in out.iterdir() if path.name != '.distillation.lock'])
+    train, test = rows(release, spec, 'train'), rows(release, spec, 'eval')
     if (out / 'evaluation.json').exists():
+        artifacts.verify_completion(out/'evaluation.json', identity, fit_outputs(out, concept, len(train)))
         log('skip_completed', concept=concept)
         return
+    if checkpoint.exists() or checkpoint.with_suffix('.json').exists():
+        raise ValueError(f'Uncommitted distillation export exists; retain evidence and use a new output directory: {out}')
     source = release / spec['weights']
     assert file_digest(source) == spec['sha256']
     teacher, metadata = YuE2Slider.load(model, source)
     detach(model, teacher)
     teacher.requires_grad_(False)
     assert metadata['model_identity'] == pipe.weights['mot']
-    train, test = rows(release, spec, 'train'), rows(release, spec, 'eval')
     assert not {r['lyrics'] for r in train} & {r['lyrics'] for r in test}
     validation_lyrics = train[-1]['lyrics']
     fitting_rows = [r for r in calibration_rows if r['lyrics'] != validation_lyrics]
     log('rollouts', concept=concept, gpu=args.gpu, prefix_rows=len(fitting_rows))
     sequences = []
     for index, row in enumerate(train):
-        ids = rollout(pipe, model, teacher, row, 4100+index, args.train_tokens, out/f'train-rollout-{index}.json')
+        ids = rollout(pipe, model, teacher, row, 4100+index, args.train_tokens,
+                      out/f'train-rollout-{index}.json', cohort=identity)
         sequences.append((f'train-{index}', ids, len(make_plan(pipe, row, 4100+index).prefix)))
         log('rollout_complete', concept=concept, row=index, tokens=len(ids))
     student = YuE2Slider(model, rank=8, alpha=8.)
@@ -268,10 +388,11 @@ def fit_one(args, pipe, model, release, spec, calibration_rows):
         assert all(ids[:n] == expected for _, ids, n in found)
         heldout.extend(found)
     metrics = compare(model, teacher, exported, heldout, logits=True)
-    write_json(out / 'evaluation.json', dict(concept=concept, checkpoint=checkpoint.name,
+    artifacts.publish_completion(out / 'evaluation.json', identity, dict(concept=concept, checkpoint=checkpoint.name,
         checkpoint_sha256=file_digest(checkpoint), teacher_sha256=spec['sha256'],
         validation=scores, selected_ridge=selected['ridge'], heldout=metrics,
-        zero_exact=True, roundtrip_exact=True, ordinary_lora_only=True))
+        zero_exact=True, roundtrip_exact=True, ordinary_lora_only=True),
+        fit_outputs(out, concept, len(train)))
     log('fit_complete', concept=concept, checkpoint=str(checkpoint),
         heldout_music_mse=float(np.mean([m['relative_steering_mse'] for m in metrics if m['region']=='music'])))
     del teacher, exported
@@ -312,7 +433,8 @@ def main():
                 fit_one(args, pipe, model, args.release, specs[concept], list(all_rows.values()))
             except Exception:
                 import traceback
-                write_json(args.output / concept / 'error.json', dict(traceback=traceback.format_exc()))
+                artifacts.write_new_json(args.output / concept / f'error-{time.time_ns()}.json',
+                                         dict(traceback=traceback.format_exc()))
                 raise
 
 

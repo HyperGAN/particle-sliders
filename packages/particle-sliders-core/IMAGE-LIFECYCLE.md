@@ -1,185 +1,107 @@
-# Public image lifecycle, version 1
+# Image sessions
 
-Use `particle_sliders.lifecycle` for new image integrations. It owns preparation
-through a registered product factory, updates, raw weights, resume, export, evaluation,
-native rendering dispatch and cleanup. Callers supply a local configuration;
-they do not construct a slider, response adapter, provider, critic or optimizer.
-`ConditionalPG09` still owns the actual GAN mathematics, private random streams,
-coverage, optimizers and strict source-bound state. No reconstruction loss,
-particle bank or generic solver is added to force models into the same shape.
+`particle_sliders.lifecycle` owns preparation through a product factory,
+updates, evaluation, exact resume, raw exports, rendering dispatch and cleanup.
+The product owns its frozen model, teacher capture, adapter, native response
+and renderer. For model-specific usage, use the
+[product repositories](../../docs/products.md); core has no built-in pretrained
+Iris, Qwen, Krea or other model loader.
 
-## Small local examples
+## Session use
 
-Install the core plus ONE derivative in its compatible backend environment, at
-the reviewed exact pins. Installation never implies permission to fetch models.
-The examples use random/synthetic CPU fixtures and need no model downloads.
-Set `CUDA_VISIBLE_DEVICES=''`, `HF_HUB_OFFLINE=1`, `OMP_NUM_THREADS=1` and
-`MKL_NUM_THREADS=1` for bounded tests. These fixtures establish software
-contracts, not pretrained convergence, accelerator fit or image quality.
-
-Iris and Qwen take the same locally understandable paired-prompt input:
-
-```python
-import torch
-from particle_sliders.lifecycle import SessionConfig, open_session
-
-torch.set_num_threads(1)
-rows = [dict(neutral='a red cup', positive='a shiny red cup'),
-        dict(neutral='a blue bowl', positive='a shiny blue bowl')]
-config = SessionConfig('iris', 'my-new-cpu-cohort', dummy=True, rows=rows,
-    steps=4, height=16, width=16, trajectory_steps=4, records_per_pair=2,
-    ema_decay=None)
-# For Qwen use backend='qwen', height=32, width=32 in its own environment.
-with open_session(config) as session:
-    session.train(stop_after=2)
-    session.checkpoint('new-run/training.pt')
-with open_session(config, resume='new-run/training.pt') as session:
-    session.train()  # continues to the ORIGINAL fixed four-update budget
-    session.export('new-run/adapter.pt', selection='raw')
-with open_session(config, artifact='new-run/adapter.pt', operation='evaluate') as session:
-    response = session.evaluate(index=0, seed=11, strength=.5)
-```
-
-Krea's tiny fixture creates an actual native tiny transformer and PEFT adapters,
-then prepares its edit/preservation cache internally:
+After installing a product that registers `my-image`:
 
 ```python
 from particle_sliders.lifecycle import SessionConfig, open_session
-config = SessionConfig('krea2', 'my-new-krea-cpu-cohort', dummy=True, steps=4)
-with open_session(config) as session:
-    session.train()
-    response = session.evaluate(strength=-.5)
-    session.export('krea-new-run/adapter.pt')
+
+config = SessionConfig("my-image", "new-reviewed-cohort",
+                       steps=4, ema_decay=None, **product_options)
+with open_session(config) as run:
+    run.train(stop_after=2)
+    run.checkpoint("training.pt")
+with open_session(config, resume="training.pt") as run:
+    run.train()  # continues to the original four-step horizon
+    response = run.evaluate(index=0, seed=11, strength=.5)
+    run.export("adapter.pt", selection="raw")
+    # Only when the product provides a native-only inference specification:
+    run.export_inference("adapter-v2.pt", selection="raw")
 ```
 
-The Krea tiny fixture is response-only. Its native factory accepts `cache_file`
-(the existing frozen local teacher cache) and `native_args` (the product's
-existing CLI option list, including local transformer/skeleton paths). It loads
-the native backend itself, verifies the cache against actual frozen weights,
-and builds the complete adapter GAN. `--allow_hub`, legacy resume and adapter
-loading arguments are rejected; use the session's resume/artifact interface.
-The native factory uses BF16 base weights and FP32 trainables. This path requires
-separate resource admission; the CPU examples do not run it.
+`product_options` comes from the product. `evaluate` returns a numerical response.
+`render(...)` calls a product callback and is available only when the capability
+allows it. There is no generic sampler substitution. Products define prompts,
+references, output formats, strength ranges and native precision support.
 
-Fibo's complete installed staged mock example is one command:
+## Product factory
 
-```bash
-python -m fibo_particle_slider.example new-fibo-cpu-run
-```
-
-Or call `fibo_particle_slider.lifecycle.synthetic_config('new-local-cache')`,
-then use exactly the session calls above. The factory loads the staged mock,
-attaches the actual routed bank, captures teachers, writes/loads the cache,
-constructs the critic/game and undoes attachment on exit. Its mock EDIT pipeline
-is explicitly not the pretrained/native pipeline.
-
-For already staged native Fibo, use backend `fibo` and options `model_dir`,
-`manifest` (the original verified staging receipt), `cache_dir`, `index_sha256`,
-`response_scale`, `steps`, `base_precision='bfloat16'`. Instead of an existing
-cache SHA256, `pairs` may contain dictionaries with `neutral`, `positive`, local
-`images` paths, optional local `mask`, and `seed`; the factory performs capture
-and cache construction. Ordered references/masks and the native four-step
-sampler remain in Fibo. No local manifest is fabricated for pretrained weights.
-
-Native rendering uses the same loaded session/adapter:
+Register a `Backend` under `particle_sliders.image_backends`:
 
 ```python
-# Qwen, in its backend environment; tiny fixture supports output_type='latent'.
-images = session.render(prompt='a red cup', strength=.5, seed=7,
-    height=32, width=32, steps=4, output_type='latent')
-# Fibo: session.render(prompt='keep jacket', images=[local_pil_image],
-#     strength=.5, seed=7, output_type='latent')
-# Krea native: session.render(prompt=grounded_prompt, strength=-.5,
-#     seed=7, resolution=768)
+from particle_sliders.lifecycle import Backend, Binding, Capabilities
+
+CAPS = Capabilities(generator_arm="adapter_gan", render=False)
+BACKEND = Backend("my-image", CAPS, prepare, validate, preflight=preflight)
 ```
 
-Iris `render` raises `UnsupportedOperation` before model allocation through
-`open_session(..., operation='render')`, or before any sampler call on an open
-session. Raw Iris velocity evaluation never claims image output. Native
-FlowDPMSolver parity is still required.
+`validate(options)` and optional `preflight(options, request, staged)` must check
+inputs without allocating weights. `prepare(options, **staged)` builds the
+complete game and returns `Binding(game, close, ...)`. It must unwind its own
+partial failures. `configure_capabilities(options)` can provide allocation-free
+configuration-dependent descriptors.
 
-## Contracts and capability preflight
+A binding may also supply `render`, `inference`, `before_update`, `observation`,
+`evaluation_rows` and `response` hooks. Keep native scheduler, packing, decoder,
+base identity and adapter target selection inside the product. Cleanup must
+restore owned hooks and borrowed native settings.
 
-`SessionConfig(backend, cohort, **options)` snapshots finite JSON input.
-`cohort` is mandatory. `backend(name).describe(config)` reports effective
-capabilities without loading weights. `open_session(config, operation=...,
-strength=..., references=...)` checks capability, options, budgets, exact
-released PG sources and packet kind/config before invoking the factory.
+## State and failure rules
 
-| Backend | Generator | Response strengths | Native rendering | References |
-|---|---|---|---|---|
-| Iris | routed particle GAN | [0,1] | disabled pending solver parity | unsupported |
-| Qwen Image 2.1 | routed particle GAN | [0,1] | native pipeline; synthetic fixture latent only | unsupported |
-| Krea2 | adapter GAN, particles=None | all finite signed values | native pipeline; tiny fixture response only | unsupported |
-| Fibo Edit Turbo | routed particle GAN | [0,1] | native EDIT pipeline | required for rendering |
+`SessionConfig(backend, cohort, **options)` snapshots finite JSON; a nonempty
+cohort is required. Opening checks operation, strength, references, precision,
+options, budgets, released PG sources and packet identity before preparation.
+The factory's actual game must match the declared generator arm.
 
-Strength ranges are executable interface support, not quality qualification.
-All trainables remain FP32; base precision support is declared separately.
-Native Qwen and Fibo pin incompatible Diffusers Git implementations: use separate
-environments. This API does not promise co-installation or cross-model weight
-compatibility. Manifests share a protocol, not a frozen-model identity.
+Training uses the adapter scale context through backward. Each successful
+`step()` completes both critic and generator phases before publishing metrics.
+Training failures close the session; reopen from a full checkpoint. Direct
+engine use poisons interrupted partial updates until a valid full restore.
 
-Product packages register `particle_sliders.image_backends` entry points. A
-registration exposes `Backend(name, capabilities, prepare, validate, optional
-configure_capabilities)`. `validate(options)` performs allocation-free local
-checks. `prepare(options)` owns all construction and returns
-`Binding(game, close, render=None)`; it must unwind partial failures. Callers
-may supply an already staged runtime to a factory for local integration tests.
-`close()` is idempotent through the session and restores owned adapter hooks and
-checkpoint settings. The factory owns native packing, conditioning, decoder,
-scheduler, base identity and genuine formulation differences.
+Admission via `Binding.before_update(request)` must be a pure decision over
+existing native evidence. Rejection restores game state, native flags and RNG;
+no update or `on_step` event occurs. Failed rollback quarantines the session
+until cleanup. Inference-load failure similarly restores the preceding training
+state, or quarantines when restoration fails. Callers use the engine's public
+restore/transaction APIs, not private state flags.
 
-`session.step()` and `train(stop_after=..., on_step=...)` use the common scale
-context through backward. Weight EMA is disabled for adapters, critics and
-particle banks. Every export and inference path uses raw current weights.
-Upstream scalar optimizer statistics are unchanged. Training failures close the
-session; recover by opening a fresh session and loading a qualified checkpoint.
-Observation restores global RNG and adapter modes/buffers and does not consume
-training streams. Native factories preserve their sampler state.
+Observation restores RNG and all registered adapter buffers/modes, including
+nonpersistent buffers. A product `observation()` hook owns native state outside
+the adapter, including provider fetches. Cleanup is explicit and idempotent on
+success; ownership conflicts must be resolved rather than overwritten.
 
-## Checkpoints, artifacts and errors
+## Training checkpoints and exports
 
-Training packet schema `particle-sliders-image-session-v1-training` contains
-full PG state, a disabled EMA envelope (`decay=None`, `values=None`) and last metrics. Inference schema
-`particle-sliders-image-session-v1-inference` contains the raw current
-adapter export and cannot resume training. Both include a manifest binding
-configuration/cohort, capabilities, factory/lifecycle bytes and the PG source,
-backend, model, conditioning, architecture and recipe signature, plus a SHA256
-content checksum. These checksums detect corruption; they are not signatures.
-Packets use `torch.load(weights_only=True)` and same-filesystem atomic replace.
-Invalid metadata, nonempty EMA state, sampler or optimizer state is rejected before mutation.
-Inference loading intentionally requires the same prepared configuration and
-frozen cache; independent new-prompt rendering then uses the native callback.
-A compact inference-only loader without preparation is outside this first slice.
+| Artifact | Contents | Purpose |
+|---|---|---|
+| `training.pt` | Raw game weights, optimizers, streams, counters, recipe and exact identity | Continue the original training cohort |
+| V1 `adapter.pt` | Raw adapter/bank with matching session manifest | Inference through the matching prepared session |
+| V2 `adapter-v2.pt` | Raw adapter/bank with native-only specification and origin receipt | Inference without training resources |
 
-Existing product envelopes keep their original entrypoints and schema. Their
-writers reuse shared raw stepping and atomic-save facilities. Existing cdf/f797
-runs, active environments and result receipts remain unchanged. New pins are
-new source cohorts; even when an old schema is retained, source checks may reject
-old packets. No automatic migration or rebinding is provided. The new CLI rejects
-legacy packets with a diagnostic directing callers to their original loader.
+Image v1 schemas are `particle-sliders-image-session-v1-training` and
+`...-inference`. Manifests bind configuration/cohort, capabilities, factory/core
+sources, model, data and game signature. Content checksums detect corruption;
+they are not cryptographic authorship signatures. Packets use
+`torch.load(weights_only=True)` and same-filesystem atomic replacement.
 
-Catch `UnsupportedOperation` for capability gates, `BackendUnavailable` for
-missing/ambiguous registration or dependency isolation, and `CheckpointError`
-for packet kind/version/checksum/source/cohort mismatch. They derive from
-`LifecycleError`. Invalid configuration uses `ValueError`; native errors keep
-their original cause. A rejected restore leaves a live session usable.
+Invalid state is rejected before mutation. Full and adapter restores are
+transactional. Source, runtime, model, cache or recipe changes do not silently
+migrate a checkpoint. V1 inference-loaded sessions reject training, step,
+checkpoint and restore. V2 has its own [inference interface](NATIVE-INFERENCE.md).
 
-## Installed CLI
+Weight EMA is disabled for adapter, critic and bank. The retained training
+packet's disabled EMA envelope has `decay=None, values=None`; nonempty EMA state
+is rejected. All exports and inference use raw current weights. Upstream scalar
+optimizer statistics are unchanged.
 
-Write `config.as_dict()` as JSON and use the same common commands in each
-backend environment:
-
-```bash
-particle-slider capabilities --config config.json
-particle-slider train --config config.json --stop-after 2 --out new-run
-particle-slider train --config config.json --resume new-run/training.pt --out continuation
-particle-slider evaluate --config config.json --artifact continuation/adapter.pt --out response.pt
-```
-
-Training writes full state, inference artifact, metrics and a manifest with file
-hashes. Use a new output directory to preserve existing receipts. `--selection raw` is the only supported selection. `ema_decay` must be `None`;
-EMA-bearing checkpoints and averaged inference artifacts require their archived
-implementation. Existing averaged artifacts are never relabelled as raw. Render uses `--native render.json`, whose keys are
-the local backend arguments above; reference images are local paths. No command
-implicitly enables downloads, patches a dependency or schedules GPU work.
+See [response sessions](RESPONSE-SESSIONS.md) for numerical audio/text bindings,
+[execution](TRAINING-COMMAND.md) for training commands and
+[engine contracts](CONDITIONAL-PG09-CONTRACT.md) for the shared game.

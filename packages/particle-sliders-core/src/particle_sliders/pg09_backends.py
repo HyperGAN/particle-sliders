@@ -136,8 +136,8 @@ class FlowSchedule:
             raise ValueError("Euler intervals must share a nonzero direction")
 
     @classmethod
-    def supra(cls, steps):
-        """Supra Hub convention: t=0 noise -> t=1 data, x += v/steps."""
+    def increasing_linear(cls, steps):
+        """Uniform t=0 to t=1 trajectory with positive Euler intervals."""
         if type(steps) is not int or steps < 1:
             raise ValueError("positive integer steps required")
         return cls(tuple(i / steps for i in range(steps)), tuple(1. / steps for _ in range(steps)))
@@ -191,8 +191,15 @@ class FrozenResponseAdapter:
     family = "abstract"
     time_coordinates = "abstract"
 
-    def __init__(self, network, *, decoder: Callable | None = None, model_identity=None):
+    def __init__(self, network, *, decoder: Callable | None = None, model_identity=None,
+                 trajectory_direction="decreasing", teacher_convention="positive"):
         from copy import deepcopy
+        if trajectory_direction not in ("increasing", "decreasing"):
+            raise ValueError("trajectory_direction must be increasing or decreasing")
+        if teacher_convention not in ("positive", "signed_difference"):
+            raise ValueError("teacher_convention must be positive or signed_difference")
+        self.trajectory_direction = trajectory_direction
+        self.teacher_convention = teacher_convention
         self.network = network
         self.decoder = decoder
         if any(p.device.type != "cpu" for p in network.parameters()) and not model_identity:
@@ -240,10 +247,10 @@ class FrozenResponseAdapter:
         if (row.timestep is None) == (row.schedule is None):
             raise ValueError("choose one velocity timestep or a trajectory schedule")
         if row.schedule is not None:
-            if self.family.startswith('supra') and any(d <= 0 for d in row.schedule.deltas):
-                raise ValueError("Supra trajectory uses increasing flow time with positive Euler intervals")
-            if not self.family.startswith('supra') and any(d >= 0 for d in row.schedule.deltas):
-                raise ValueError("Anima/MOSS trajectories use descending sigma intervals")
+            if self.trajectory_direction == 'increasing' and any(d <= 0 for d in row.schedule.deltas):
+                raise ValueError("increasing trajectory requires positive Euler intervals")
+            if self.trajectory_direction == 'decreasing' and any(d >= 0 for d in row.schedule.deltas):
+                raise ValueError("decreasing trajectory requires negative Euler intervals")
         if row.timestep is not None and not torch.isfinite(row.timestep).all():
             raise ValueError("finite timestep required")
         def snapshot(value):
@@ -265,13 +272,13 @@ class FrozenResponseAdapter:
             neutral = self._response(row, scale=0.)
             positive = self._response(row, condition=row.positive, scale=0.)
             target = positive
-            if self.family == "moss":
+            if self.teacher_convention == "signed_difference":
                 if row.schedule is not None or row.guidance != 1:
-                    raise ValueError("MOSS signed teacher uses raw velocity; CFG is inference-only")
+                    raise ValueError("signed-difference teacher requires raw velocity; CFG is inference-only")
                 negative = self._response(row, condition=row.negative, scale=0.)
                 target = neutral + row.scale * row.strength * (positive - negative)
             elif row.scale != 1 or row.strength != 1:
-                raise ValueError("Anima/Supra use unipolar positive targets at scale +1")
+                raise ValueError("positive teacher requires unipolar targets at scale +1")
         target, neutral = target.detach(), neutral.detach()
         if not torch.isfinite(target).all() or not torch.isfinite(neutral).all():
             raise ValueError("nonfinite frozen response")
@@ -294,84 +301,15 @@ class FrozenResponseAdapter:
     def metadata(self):
         return dict(protocol="frozen-response-pg090-v1", family=self.family,
                     model_identity=self.model_identity,
-                    target_convention=("neutral + sign*strength*(positive-negative)" if self.family == "moss"
+                    target_convention=("neutral + sign*strength*(positive-negative)" if self.teacher_convention == "signed_difference"
                                        else "frozen positive response"),
+                    trajectory_direction=self.trajectory_direction,
+                    teacher_convention=self.teacher_convention,
                     checkpoint_scale_capture="per-forward captured context",
                     time_coordinates=self.time_coordinates,
                     student_conditioning="neutral", cfg_adapter_branch="conditional_only",
                     negative_layer_skip=False, adapter_names=list(self.network.names),
                     adapter_dtype="float32", quality_qualified=False)
-
-
-class AnimaResponseAdapter(FrozenResponseAdapter):
-    family = "anima"
-    time_coordinates = "scheduler training timestep; LiveAnimaBackend normalizes by num_train_timesteps"
-
-    def __init__(self, backend, *, decoder=None, model_identity=None):
-        self.backend = backend
-        super().__init__(_adapter_parameters(backend), decoder=decoder, model_identity=model_identity)
-        roots = list(_roots(backend))
-        pipe = getattr(backend, "pipe", None)
-        if pipe is not None and hasattr(pipe, "transformer"):
-            roots.append(("pipe.transformer", pipe.transformer))
-        seen = set()
-        for _, root in roots:
-            if id(root) not in seen:
-                bind_native_gradient_checkpointing(root, self.network)
-                seen.add(id(root))
-
-    def _velocity(self, condition, latent, timestep):
-        maximum = getattr(self.backend, "num_train_timesteps", 1000)
-        if torch.any((timestep < 0) | (timestep > maximum)):
-            raise ValueError("Anima time must be a raw scheduler timestep")
-        # No scale argument: the outer reversible context must survive backward.
-        # Encoding is live, so conditioner LoRA is never replaced by frozen embeds.
-        return self.backend.predict_v(condition, latent, timestep)
-
-
-class SupraResponseAdapter(AnimaResponseAdapter):
-    family = "supra"
-    time_coordinates = "Supra flow time t=0 noise -> t=1 data; dx/dt=velocity"
-
-    def _velocity(self, condition, latent, timestep):
-        if torch.any((timestep < 0) | (timestep > 1)):
-            raise ValueError("Supra time must be flow sigma in [0,1]")
-        # LiveSupraBackend.predict_v resets scale to 1 internally. Reuse its frozen
-        # encoding/context and native transformer directly under our scale scope.
-        if hasattr(self.backend, "_context"):
-            embeds, mask = self.backend._context(condition)
-            hidden = latent.to(self.backend.device)
-            embeds = embeds.to(hidden)
-            if embeds.ndim == 2:
-                embeds = embeds.unsqueeze(0)
-            time = timestep.reshape(-1).to(hidden.device, torch.float32).expand(hidden.shape[0])
-            mask = None if mask is None else mask.to(hidden.device)
-            return self.backend.transformer(hidden, time, embeds, mask).float()
-        embeds, _ = self.backend.encode_text(condition)
-        return self.backend._forward(latent, timestep, embeds)
-
-
-class MossResponseAdapter(FrozenResponseAdapter):
-    family = "moss"
-    time_coordinates = "official MOSS scheduler timestep = 1000*sigma"
-
-    def __init__(self, transformer, slider, *, decoder=None, model_identity=None):
-        self.transformer, self.slider = transformer, slider
-        for block in getattr(transformer, "layers", ()):
-            code = getattr(block.forward, "__code__", None)
-            if (code is not None and "checkpoint" in (code.co_names + code.co_freevars) and
-                    not getattr(block, "_pg09_scale_checkpoint", False)):
-                raise ValueError("replace legacy checkpoint wrappers with checkpoint_with_adapter_scale")
-        named = list(slider.named_parameters())
-        if any(p.requires_grad for p in transformer.parameters()):
-            raise ValueError("MOSS base transformer must be frozen")
-        super().__init__(AdapterParameters(named, slider.at), decoder=decoder, model_identity=model_identity)
-
-    def _velocity(self, condition, latent, timestep):
-        if torch.any((timestep < 0) | (timestep > 1000)):
-            raise ValueError("MOSS time must be the raw scheduler timestep in [0,1000]")
-        embeds, mask = condition
-        return self.transformer(latent, timestep, embeds, mask).sample.float()
 
 
 class _RepeatableScaleContext:
@@ -566,104 +504,3 @@ def load_adapter(adapter, path, *, model_fingerprint):
         raise ValueError("adapter export keys, shapes, dtype or finite values differ")
     adapter.network.load_state_dict(state, strict=True)
     return metadata
-
-
-class AnimaRuntimeResponseAdapter(FrozenResponseAdapter):
-    """Reuse lumen_studio's TurboRuntime, actual ParticleAdapter and Mixer.
-
-    No copied router/particle prior. The supplied adapter must already be attached
-    to this runtime under ``name``. The same actual bank is exposed to core.
-    """
-    family = "anima_turbo_runtime"
-    time_coordinates = "official scheduler timestep; runtime.predict divides by training timestep count"
-
-    def __init__(self, runtime, adapter, name):
-        if runtime.mixer.adapters.get(name) is not adapter:
-            raise ValueError("attach this actual particle adapter to runtime.mixer first")
-        if any(p.requires_grad for p in runtime.transformer.parameters()):
-            raise ValueError("Anima runtime base must be frozen")
-        self.runtime, self.adapter, self.name = runtime, adapter, name
-        network = AdapterParameters(adapter.named_parameters(),
-                                    lambda scale: runtime.mixer.scales({name: scale}))
-        self.particles = adapter.particles  # the actual routed bank, never a replacement
-        super().__init__(network, decoder=runtime.decode, model_identity=runtime.identity)
-        bind_native_gradient_checkpointing(runtime.transformer, network)
-
-    def _velocity(self, condition, latent, timestep):
-        embedding = self.runtime.encode(condition) if isinstance(condition, str) else condition
-        return self.runtime.predict(latent, timestep, embedding)
-
-    def _advance(self, latent, velocity, delta):
-        # Match TurboRuntime.step exactly: FP32 tensor scalar times BF16
-        # model output, FP32 sample addition, then BF16 output cast.
-        velocity = velocity.to(self.runtime.dtype)
-        dt = torch.as_tensor(delta, device=latent.device, dtype=torch.float32)
-        return (latent.float() + dt * velocity).to(self.runtime.dtype)
-
-    def metadata(self):
-        return dict(super().metadata(), model_identity=self.runtime.identity,
-                    particle_bank="existing lumen_studio ParticleAdapter.particles",
-                    trajectory_rounding=str(self.runtime.dtype))
-
-
-class _SupraRuntimeBackend:
-    """Inspectable runtime view; reuses the product's actual model and text cache."""
-    def __init__(self, runtime):
-        self.runtime = runtime
-        self.transformer, self.device = runtime.model, runtime.device
-
-    def trainable_parameters(self):
-        return self.runtime.parameters()
-
-    def _context(self, condition):
-        return self.runtime.encode(condition)
-
-
-class SupraRuntimeResponseAdapter(SupraResponseAdapter):
-    """Reuse supra.runtime.SupraRuntime's frozen text cache, DiT, LoRA and VAE."""
-    family = "supra_runtime"
-
-    def __init__(self, runtime, *, model_identity=None):
-        self.runtime = runtime
-        backend = _SupraRuntimeBackend(runtime)
-        super().__init__(backend, decoder=self._decode, model_identity=model_identity)
-
-    def _velocity(self, condition, latent, timestep):
-        # Preserve product autocast while controlling conditional/negative scales
-        # separately, unlike legacy runtime.velocity's concatenated CFG branches.
-        from contextlib import nullcontext
-        context = (torch.autocast('cuda', dtype=torch.bfloat16)
-                   if self.runtime.device.type == 'cuda' else nullcontext())
-        with context:
-            return super()._velocity(condition, latent, timestep)
-
-    def _decode(self, latent):
-        from contextlib import nullcontext
-        context = (torch.autocast('cuda', dtype=torch.bfloat16)
-                   if self.runtime.device.type == 'cuda' else nullcontext())
-        with context:
-            return self.runtime.vae.decode(latent / .18215).sample
-
-
-def moss_pipeline_decoder(pipe, *, output_type='pil'):
-    """Bind official MOSS FLUX.2 normalization/latent unpacking to the renderer."""
-    if getattr(pipe, 'vae', None) is None:
-        raise ValueError('a staged FLUX.2 VAE is required')
-
-    def decode(latent):
-        if not torch.isfinite(latent).all():
-            raise FloatingPointError('nonfinite MOSS latent before VAE decode')
-        vae = pipe.vae
-        z = latent.to(device=vae.device, dtype=vae.dtype)
-        bn = vae.bn
-        z = (z * (bn.running_var + vae.config.batch_norm_eps).sqrt().to(z).view(1, -1, 1, 1)
-             + bn.running_mean.to(z).view(1, -1, 1, 1))
-        batch, channels, height, width = z.shape
-        z = (z.reshape(batch, channels // 4, 2, 2, height, width)
-             .permute(0, 1, 4, 2, 5, 3).reshape(batch, channels // 4, height * 2, width * 2))
-        images = vae.decode(z, return_dict=False)[0]
-        if not torch.isfinite(images).all():
-            raise FloatingPointError('nonfinite MOSS VAE float output before clamp/postprocess')
-        images = images.clamp(-1, 1)
-        return pipe.image_processor.postprocess(images, output_type=output_type)
-    return decode

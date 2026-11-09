@@ -187,6 +187,8 @@ class LoRAModule(nn.Module):
         return g.reshape(shape)
 
     def forward(self, x):
+        if self.multiplier == 0:
+            return self.org_forward(x)
         # LoRA may be fp32/cuda while the host module is bf16 or CPU-offloaded.
         weight = self.lora_down.weight
         x_lora = x.to(device=weight.device, dtype=weight.dtype)
@@ -380,12 +382,16 @@ class LoRANetwork(nn.Module):
         (transformer chunks). mode='prefix' takes the first S values
         (LM tokens, including a full-prefix refresh).
         """
+        if mode not in ('stretch', 'prefix'):
+            raise ValueError("Sequence gain mode must be 'stretch' or 'prefix'")
         if gain is None:
             tensor = None
         elif torch.is_tensor(gain):
             tensor = gain.detach().float().reshape(-1).cpu()
         else:
             tensor = torch.tensor(list(gain), dtype=torch.float32)
+        if tensor is not None and (tensor.numel() == 0 or not torch.isfinite(tensor).all()):
+            raise ValueError('Sequence gain must be non-empty and finite in FP32')
         with activation_mutation(self):
             self.seq_gain = tensor
             self.seq_gain_mode = mode

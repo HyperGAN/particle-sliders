@@ -23,6 +23,7 @@ def code_fingerprints():
     paths=list(folder.glob('*.py')) + [folder.parent/name for name in (
         'train_lm_slider_music3.py','lm_adv.py','lm_gan.py','lora.py','lm_gan_state.py')]
     paths.append(folder.parents[5]/'analysis/gan_bcap/parameter_step_limit.py')
+    paths.append(folder.parent.parent/'execution/checkpoint_generation.py')
     return {str(path.resolve()):sha(path) for path in sorted(paths)}
 
 
@@ -76,11 +77,44 @@ def save(path,engine,sampler,ema,run_signature,history):
     torch.save(blob,temporary);temporary.replace(path)
 
 
+def checkpoint_path(path):
+    """Verify new collection receipts; explicitly supplied historical .pt stays supported."""
+    from particle_sliders.execution.checkpoint_generation import verify_generation, verify_reference
+    path=Path(path).resolve()
+    if path.name=='latest.json':
+        directory,manifest,receipt=verify_reference(path)
+        checkpoint=directory/'state.pt'
+        if receipt.get('state')!=str(checkpoint) or 'state.pt' not in manifest['files']:
+            raise ValueError('Generation receipt does not identify its full training checkpoint')
+        if receipt.get('step')!=manifest['identity'].get('completed_steps'):
+            raise ValueError('Generation receipt step differs from its checkpoint identity')
+        exports=[name for name in manifest['files'] if name.endswith('.safetensors')]
+        if len(exports)!=1 or receipt.get('checkpoints')!={'live':str(directory/exports[0])}:
+            raise ValueError('Generation receipt does not identify its raw adapter export')
+        return checkpoint
+    if path.is_dir() or path.name=='generation.json':
+        directory=path if path.is_dir() else path.parent
+        manifest=verify_generation(directory)
+        if 'state.pt' not in manifest['files']:
+            raise ValueError('Generation has no full training checkpoint')
+        return directory/'state.pt'
+    if path.parent.parent.name=='generations':
+        manifest=verify_generation(path.parent)
+        if path.name!='state.pt' or path.name not in manifest['files']:
+            raise ValueError('Generation resume requires its full training checkpoint')
+    return path
+
+
 def restore(path,engine,sampler,ema,run_signature):
     if ema is not None:
         raise ValueError('Weight EMA is disabled')
     from particle_sliders._restore_training import restore_training_state, validate_resume_rng
-    blob=torch.load(path,map_location='cpu',weights_only=True)
+    checkpoint=checkpoint_path(path)
+    blob=torch.load(checkpoint,map_location='cpu',weights_only=True)
+    if checkpoint.parent.parent.name=='generations':
+        from particle_sliders.execution.checkpoint_generation import verify_generation
+        verify_generation(checkpoint.parent,identity=dict(signature_sha256=digest(blob['signature']),
+            completed_steps=blob['completed'],weights_kind='raw'))
     if blob.get('ema') is not None:
         raise ValueError('EMA checkpoint requires its archived implementation; no implicit raw migration')
     if blob.get('schema')!='music-gan-v2-1' or blob['signature']!=run_signature:

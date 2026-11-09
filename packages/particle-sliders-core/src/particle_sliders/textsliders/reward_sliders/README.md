@@ -1,6 +1,6 @@
 # Reward-derived Music 3 sliders
 
-This research package implements the [CE handoff](../../../../../../docs/reward-model-sliders-handoff.md).
+This research package implements the [CE handoff](https://github.com/HyperGAN/particle-sliders/blob/ba513741b7d4be93d049c4e1d88168f86c41e783/docs/reward-model-sliders-handoff.md).
 The running investigation and its exact artifacts are in
 [reward_sliders_20260907](../../../../../../analysis/reward_sliders_20260907/README.md).
 

@@ -1,5 +1,9 @@
 # Fix PRs for the state-machine audit
 
+> Historical snapshot: findings, PR status and validation describe the date of
+> this record. Subsequent fixes are in the current source. Use the
+> [current core guides](../../README.md) for present API behavior.
+
 The [audit](README.md) records `main` at `2b212c1`. The PRs below implement the seven priority findings as separate review units, splitting grouped ownership/recovery concerns. All 13 fix PRs were independently reviewed and merged into `main` on 2026-11-06. The additional device-visibility bug was discovered during regression work.
 
 | Audit finding | Fix PR | Original review dependency |
@@ -74,3 +78,5 @@ CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 python -m pytest -q 
 ```
 
 The environment has the combined core checkout installed editable, ParticleGAN 0.9.5, and the packaging build requirements. One nested editable-install/uninstall test is deselected because its fresh child environment inherits the machine's incompatible setuptools/backports installation. Ordinary wheel installation/uninstallation and namespace subprocess tests are included.
+
+See [the 2026-11-07 shared-boundary and follow-up PR tracker](followups-20261107.md) for the subsequent separate `develop` PRs and new cohort validation.

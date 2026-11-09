@@ -18,7 +18,7 @@
     "native_lora.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-21/task-2/shared/packages/particle-sliders-core/src/particle_sliders/native_lora.py",
       "original_sha256": "9cb43b8b03148e11c9b957e81ed3897a965f2a21c69d440c6aaafee452aa6018",
-      "packaged_sha256": "f514f827b74744ec2705d30589eb862a2ba15c1d49b847830c50dffc0b465fb4"
+      "packaged_sha256": "51c7ea3ac049e8c1d8d56e2303c29a858dbd28cc3026119f38c4f18cef733802"
     },
     "yue2_native.py": {
       "origin": "/ml2/codex-storage/future-workspaces/2026-10-17/task-12/venv-pg091/lib/python3.11/site-packages/particle_sliders/yue2_native.py",

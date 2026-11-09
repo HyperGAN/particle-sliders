@@ -1,0 +1,70 @@
+{
+  "schema": "particle-sliders-raw-parameter-search-v2",
+  "backend": "fixture-coupled",
+  "backend_options": {
+    "schedule_horizon": 32,
+    "precision": "float64",
+    "device": "cpu",
+    "ema_decay": null
+  },
+  "selection": "raw",
+  "min_edit_energy": 0.0,
+  "fixed": {
+    "particles.population": 2,
+    "particles.temperature": 1.0
+  },
+  "space": {
+    "lr.generator": {
+      "low": 0.03,
+      "high": 0.3,
+      "scale": "log",
+      "include_zero": false,
+      "initial": 0.1
+    },
+    "lr.critic": {
+      "low": 0.03,
+      "high": 0.3,
+      "scale": "log",
+      "include_zero": false,
+      "initial": 0.1
+    },
+    "lr.particle": {
+      "low": 0.03,
+      "high": 0.3,
+      "scale": "log",
+      "include_zero": false,
+      "initial": 0.1
+    },
+    "regularizer.l2_alpha": {
+      "low": 0.001,
+      "high": 0.1,
+      "scale": "log",
+      "include_zero": true,
+      "initial": 0.01
+    }
+  },
+  "search": {
+    "seed": 41,
+    "initial_candidates": 12,
+    "refinement_candidates": 2,
+    "budgets": [
+      4,
+      12
+    ],
+    "keep_per_cohort": 2,
+    "training_seeds": [
+      7,
+      17
+    ],
+    "confirmation_seeds": [
+      29,
+      37
+    ]
+  },
+  "resources": {
+    "max_updates": 1000,
+    "max_trials": 40,
+    "max_artifact_bytes": 100000000,
+    "checkpoint_every": 4
+  }
+}

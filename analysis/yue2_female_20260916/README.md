@@ -2,7 +2,7 @@
 
 This experiment ports the winning UNI16 **initial 600-update warm-up** to
 YuE2's native AR attention path. The reference is
-[the selected formulation](../../docs/hub-formulation-fresh-selected.md) and
+[the selected formulation](https://github.com/HyperGAN/particle-sliders/blob/ba513741b7d4be93d049c4e1d88168f86c41e783/docs/hub-formulation-fresh-selected.md) and
 `warmup_args` in `analysis/uni16_fresh3400_20260912/common.py`.
 
 - Rank 8, alpha 8; zero-initialized LoRA-up matrices; 112 AR projections.
