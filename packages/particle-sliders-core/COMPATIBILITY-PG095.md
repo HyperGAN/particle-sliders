@@ -1,6 +1,6 @@
 # Pinned ParticleGAN 0.9.5 compatibility
 
-Core 0.14.0 uses published `particlegan==0.9.5`.
+Core 0.14.1 uses published `particlegan==0.9.5`.
 The `ConditionalPG09`, backend, lifecycle and command APIs remain unchanged.
 `particle_sliders.pg095` supplies the explicit versioned entrypoint. Its source
 manifest binds every installed ParticleGAN Python file to the published wheel

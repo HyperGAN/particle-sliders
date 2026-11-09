@@ -1,6 +1,6 @@
 # Installed numerical response example (offline fixture)
 
-Synthetic adapter-only vector example for core 0.14.0 / ParticleGAN 0.9.5. No native model, token or audio renderer.
+Synthetic adapter-only vector example for core 0.14.1 / ParticleGAN 0.9.5. No native model, token or audio renderer.
 The fixture has installed CPU qualification; it makes no native media claim.
 Use a separate environment with this branch's exact core/ParticleGAN dependency.
 Build this tiny plugin with `python -m pip wheel --no-deps --no-build-isolation .`,

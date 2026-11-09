@@ -1,7 +1,7 @@
 # Conditional ParticleGAN engine
 
 `ConditionalPG09` owns the shared adversarial response game, optimizer state,
-private sampling streams and exact continuation. Current core 0.14.0 uses exact
+private sampling streams and exact continuation. Current core 0.14.1 uses exact
 released ParticleGAN 0.9.5. For the explanation and equations, see
 [teacher/student training](../../docs/math.md); for model usage, see the
 [product repositories](../../docs/products.md).

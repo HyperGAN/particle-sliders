@@ -1,6 +1,6 @@
 # Shared core API map
 
-Core 0.14.0 is model-independent. Products depend on core; core does not import
+Core 0.14.1 is model-independent. Products depend on core; core does not import
 products to discover or load models. For end-user usage, see the
 [product repositories](products.md).
 
