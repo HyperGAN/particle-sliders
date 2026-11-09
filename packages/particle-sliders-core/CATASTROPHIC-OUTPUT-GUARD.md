@@ -107,10 +107,46 @@ concurrent replacement of a failed state.
 
 | State | Updates/resume | Selection |
 | --- | --- | --- |
-| new, qualified, before first declared boundary | permitted within the declared probe cadence | unmeasured |
-| pass | permitted until the next required boundary | only the exact assessed checkpoint |
-| failed | refused; retain FULL/RAW/old scores | refused |
-| unmeasured | blocked pending explicit resolution; not a model-failure claim | refused |
+| pending: new, qualified, before first declared boundary, or after explicit resolution with no retained passing row | permitted within the declared probe cadence | refused until a passing assessment returns the candidate to pass |
+| pass: latest probe passed, or explicit resolution with earlier passing rows retained | permitted until the next required boundary | only an exact checkpoint with its own passing row |
+| failed | refused; retain FULL/RAW/old scores | refused; can never be resolved or cleared |
+| probe in flight (`unmeasured` + `probe_committed` row, guard lock held) | other workers wait for the probe, then act on its final state | waits likewise |
+| unmeasured (finished, or interrupted probe) | refused until explicit `resolve_unmeasured`; not a model-failure claim | refused |
+
+`check_checkpoint` holds the candidate guard lock while it probes, and journals
+`unmeasured` with a `probe_committed` row **before** rendering, so a crash never
+becomes an implicit pass. `require_update`/`require_resume`/`require_selection`
+read the journal without the lock and never block, except when they find that
+in-flight shape. The lock is then the liveness proof (the kernel releases it
+when its holder exits or dies): a sibling seed/rung of the same candidate,
+in another thread, guard instance or process, waits for the live probe and
+then proceeds, or raises `CandidateFailure`/`GuardUnmeasured`, from the final
+journal. If nobody holds the lock, the probe was interrupted and the candidate
+stays `unmeasured`. A nested guard call from the thread that is running that
+candidate's probe raises `GuardUnmeasured` instead of waiting for itself.
+
+`guard.resolve_unmeasured(reason=..., resolved_by=...)` is the only exit from
+`unmeasured`. It is explicit and never called by `GuardedSession`,
+`open_guarded_session`, the search runner or any other automatic path. It takes
+the guard lock (so it cannot race a live probe), requires nonempty `reason` and
+`resolved_by`, refuses `failed` with `CandidateFailure` and `pending`/`pass` with
+`ValueError`. Nothing is deleted: it appends to the journal's `resolutions` list
+the reason, resolver, UTC timestamp, previous status and, verbatim, every
+`probe_committed`/`unmeasured` checkpoint row, which it moves out of
+`checkpoints` so those exact checkpoints can be assessed again. Passing rows stay
+in place. The candidate returns to the state it held before the unknown probe:
+`pass` when earlier passing rows remain (those exact checkpoints stay
+selectable; a superseded checkpoint has no row and needs its own new passing
+assessment), otherwise `pending`. Resolution never creates a pass. Journals
+written before this field existed remain readable.
+
+Resolution does not touch the observation cache. Retained first observations,
+committed observer calls without a durable outcome and observer-returned
+uncertain verdicts are never re-rated, so re-probing byte-identical output
+returns that retained first observation and the candidate becomes `unmeasured`
+again. Resolution only helps where no observer verdict was recorded for the new
+probe's outputs: a probe/render/transient error, or an interruption before the
+observer call.
 
 ## Search integration and existing behavior
 
@@ -141,5 +177,7 @@ checkpoint-before-probe, stop/no-extra-update, persistent reopen/resume refusal,
 rank exclusion without dropping other candidates or changing a metric, native
 empty outcomes, unknown/error behavior, first-call durability, qualification
 becoming available after a no-call diagnostic, output-byte mismatches, honest
-categorical judgments and rejection of vector-only probes. It imports neither
+categorical judgments, rejection of vector-only probes, sibling threads and
+processes waiting for a live probe, killed probers staying unmeasured, nested
+same-thread calls, explicit resolution and its limits, and session cleanup. It imports neither
 Torch nor a numerical framework and performs no native model call or training.

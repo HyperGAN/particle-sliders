@@ -5,6 +5,7 @@ qualified observer; numerical responses are never interpreted as media here.
 """
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 import fcntl
 import hashlib
 import json
@@ -12,6 +13,7 @@ import math
 import os
 from pathlib import Path
 import tempfile
+import threading
 
 
 def _canonical(value):
@@ -20,6 +22,22 @@ def _canonical(value):
 
 def _digest(value):
     return hashlib.sha256(_canonical(value)).hexdigest()
+
+
+# flock is per open file description, so threads of one process exclude each
+# other like processes do. Record the holder so that a nested call from the
+# thread running a probe raises instead of waiting for itself.
+_HOLDERS, _HOLDERS_LOCK = {}, threading.Lock()
+
+
+def _holder():
+    return os.getpid(), threading.get_ident()
+
+
+def _in_flight(value):
+    return value["status"] == "unmeasured" and any(
+        isinstance(row, dict) and row.get("status") == "probe_committed"
+        for row in value.get("checkpoints", {}).values())
 
 
 def _write(path, value):
@@ -58,8 +76,13 @@ class FileRecord:
     @classmethod
     def from_path(cls, path):
         path = Path(path)
-        body = path.read_bytes()
-        return cls(str(path), len(body), hashlib.sha256(body).hexdigest())
+        checksum = hashlib.sha256()
+        size = 0
+        with path.open("rb") as stream:
+            for block in iter(lambda: stream.read(1024 * 1024), b""):
+                checksum.update(block)
+                size += len(block)
+        return cls(str(path), size, checksum.hexdigest())
 
     def verify(self):
         checksum = hashlib.sha256()
@@ -270,9 +293,24 @@ class CandidateGuard:
     @contextmanager
     def _lock(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self.path.with_name(self.path.name + ".lock").open("a") as lock:
+        name = self.path.with_name(self.path.name + ".lock")
+        key = str(name.resolve())
+        if self._held_here(key):
+            raise GuardUnmeasured("nested guard call from the thread already holding this candidate's guard")
+        with name.open("a") as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
-            yield
+            try:
+                with _HOLDERS_LOCK:
+                    _HOLDERS[key] = _holder()
+                yield
+            finally:
+                with _HOLDERS_LOCK:
+                    _HOLDERS.pop(key, None)
+
+    def _held_here(self, key=None):
+        key = key or str(self.path.with_name(self.path.name + ".lock").resolve())
+        with _HOLDERS_LOCK:
+            return _HOLDERS.get(key) == _holder()
 
     def _read(self):
         try:
@@ -286,25 +324,74 @@ class CandidateGuard:
             raise GuardUnmeasured("invalid candidate guard state")
         return value
 
-    def require_update(self):
+    def _settled(self):
+        """Lock-free read unless a probe_committed row may belong to a live probe.
+
+        The guard lock is the liveness proof: the kernel releases it when its
+        holder dies. Wait for a live prober, then act on its final journal; a
+        row still in flight once the lock is ours was interrupted and stays
+        unmeasured. The probing thread itself cannot wait for its own probe.
+        """
         value = self._read()
+        if not _in_flight(value) or self._held_here():
+            return value
+        with self._lock():
+            return self._read()
+
+    def _admit(self, value):
         if value["status"] == "failed":
             raise CandidateFailure("candidate has a retained catastrophic-output failure")
         if value["status"] == "unmeasured":
-            raise GuardUnmeasured("required catastrophic-output assessment remains unmeasured")
+            raise GuardUnmeasured("required catastrophic-output assessment remains unmeasured"
+                                  + (" (probe interrupted, or called from within its own probe)"
+                                     if _in_flight(value) else ""))
         error = self.cache.detector.qualification_error(self.binding["media"])
         if error:
             raise GuardUnmeasured(error)
 
+    def require_update(self):
+        self._admit(self._settled())
+
     require_resume = require_update
 
     def require_selection(self, checkpoint=None):
-        self.require_update()
-        value = self._read()
+        value = self._settled()
+        self._admit(value)
         assessed = value["checkpoints"].get(_digest(asdict(checkpoint))) if checkpoint is not None else None
         if (value["status"] != "pass" or checkpoint is not None
                 and (assessed is None or assessed.get("status") != "pass")):
             raise GuardUnmeasured("no healthy assessment of the selected checkpoint")
+
+    def resolve_unmeasured(self, *, reason, resolved_by):
+        """Explicit, journaled exit from unmeasured; never called automatically.
+
+        Moves probe_committed/unmeasured rows verbatim into ``resolutions`` so
+        those checkpoints can be assessed again; the candidate returns to pass
+        when earlier passing rows remain, else pending. A failure is never
+        cleared, and retained ObservationCache firsts are not re-rated.
+        """
+        if (not isinstance(reason, str) or not reason.strip()
+                or not isinstance(resolved_by, str) or not resolved_by.strip()):
+            raise ValueError("nonempty resolution reason and resolved_by required")
+        with self._lock():
+            value = self._read()
+            if value["status"] == "failed":
+                raise CandidateFailure("candidate has a retained catastrophic-output failure; it cannot be resolved")
+            if value["status"] != "unmeasured":
+                raise ValueError("only an unmeasured candidate can be resolved, not " + value["status"])
+            superseded = {key: row for key, row in value["checkpoints"].items()
+                          if row.get("status") in ("probe_committed", "unmeasured")}
+            for key in superseded:
+                del value["checkpoints"][key]
+            resolution = dict(reason=reason, resolved_by=resolved_by,
+                              resolved_at=datetime.now(timezone.utc).isoformat(),
+                              previous_status=value["status"], superseded_checkpoints=superseded)
+            value.setdefault("resolutions", []).append(resolution)
+            # Earlier passing assessments are unaffected by a later unknown
+            # probe: return to the state held before it, never to a new pass.
+            value["status"] = "pass" if any(row.get("status") == "pass" for row in value["checkpoints"].values()) else "pending"
+            _write(self.path, value)
+            return resolution
 
     def check_checkpoint(self, checkpoint, probe):
         with self._lock():
@@ -357,6 +444,13 @@ class CandidateGuard:
         return row
 
 
+def _close_preserving(session, exc):
+    try:
+        session.close()
+    except BaseException as cleanup:
+        exc.add_note("session.close() also failed: %s: %s" % (type(cleanup).__name__, cleanup))
+
+
 class GuardedSession:
     """Public wrapper preserving the original session/packet and update math.
 
@@ -385,8 +479,8 @@ class GuardedSession:
         metrics = self.session.step()
         try:
             self._boundary()
-        except BaseException:
-            self.session.close()
+        except BaseException as exc:
+            _close_preserving(self.session, exc)
             raise
         return metrics
 
@@ -411,7 +505,13 @@ class GuardedSession:
         return self.session.restore(packet)
 
     def __enter__(self):
-        self.guard.require_resume()
+        try:
+            self.guard.require_resume()
+        except BaseException as exc:
+            # ``with`` never calls __exit__ when __enter__ raises.
+            if callable(getattr(self.session, "close", None)):
+                _close_preserving(self.session, exc)
+            raise
         self.session.__enter__()
         return self
 
