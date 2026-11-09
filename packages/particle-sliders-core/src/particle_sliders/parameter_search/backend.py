@@ -117,6 +117,9 @@ class Trial(Protocol):
     def responses(self, split, selection, *, off=False):
         """Yield bounded raw chunks; preserve training/native/RNG/modes state."""
         ...
+    def finished_outputs(self, split, selection):
+        """Optional opt-in: genuine finished media for a qualified failure guard."""
+        ...
     def export(self, path, selection) -> None: ...
     def close(self) -> None: ...
 
@@ -183,6 +186,14 @@ class LifecycleTrial:
         # Use the existing observation transaction and restore native state.
         # OFF is a diagnostic at the trained checkpoint, never a ranking gate.
         return self.observer.chunks(self.session, split, selection, off=off)
+
+    def finished_outputs(self, split, selection):
+        require_raw_selection(selection)
+        provider = getattr(self.observer, 'finished_outputs', None)
+        if not callable(provider):
+            from ..candidate_failure import GuardUnmeasured
+            raise GuardUnmeasured('product has no finished-output probe; native responses are not media')
+        return provider(self.session, split, selection)
 
     def export(self, path, selection):
         require_raw_selection(selection)
