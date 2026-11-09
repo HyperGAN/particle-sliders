@@ -13,7 +13,7 @@ from .lifecycle import (
     Backend, BackendUnavailable, Capabilities, SliderSession, UnsupportedOperation,
     _open_registered,
 )
-from .pg09 import PG_VERSION, validate_pg09_domain
+from .pg09 import PG_VERSION, validate_pg09_domain, _profile_version
 
 API = 'particle-sliders-response-session-v1'
 TRAINING, INFERENCE = API + '-training', API + '-inference'
@@ -96,8 +96,9 @@ class ResponseBackend(Backend):
     def _check_pg(self, options, capabilities):
         if not isinstance(capabilities, ResponseCapabilities):
             raise TypeError('response registration requires ResponseCapabilities')
-        if capabilities.pg_version != PG_VERSION or options.get('pg_version', PG_VERSION) != PG_VERSION:
-            raise BackendUnavailable('response requires its exact core/PG version ' + PG_VERSION)
+        expected_version = _profile_version(capabilities.pg_source_profile)
+        if capabilities.pg_version != expected_version or options.get('pg_version', expected_version) != expected_version:
+            raise BackendUnavailable('response requires its exact admitted PG version ' + expected_version)
         profile = options.get('pg_source_profile', capabilities.pg_source_profile)
         domain = options.get('penalty_input_domain', capabilities.penalty_input_domain)
         if (profile, domain) != (capabilities.pg_source_profile, capabilities.penalty_input_domain):
