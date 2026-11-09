@@ -8,6 +8,9 @@ from importlib import import_module
 _EXPORTS = {
     "BISPFGame": "bispf_game",
     "ConditionalPG09": "pg09",
+    "ComponentInitialization": "initialization",
+    "InitializationReceipt": "initialization",
+    "initialize_fresh_components": "initialization",
     "fit_routed_down": "distillation",
     "EndpointGame": "endpoint_game",
     "endpoint_terms": "endpoint_game",
@@ -55,6 +58,9 @@ __version__ = "0.14.1"
 __all__ = [
     "BISPFGame",
     "ConditionalPG09",
+    "ComponentInitialization",
+    "InitializationReceipt",
+    "initialize_fresh_components",
     "EndpointGame",
     "FormulationGame",
     "GlobalMixErrorCritic",
