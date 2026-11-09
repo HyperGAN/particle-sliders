@@ -126,6 +126,42 @@ def test_all_pass_guard_keeps_unguarded_ranking_and_nominations(tmp_path, harnes
     assert audit(tmp_path / 'run')['diagnostics']['guard_exclusions'] == []
 
 
+def test_explicit_resolution_readmits_a_transiently_unmeasured_candidate(tmp_path, harness, monkeypatch):
+    value = config(training_seeds=(7, 8))
+    _, reference = execute(tmp_path / 'reference', value)
+    leaders = {rows[0]['candidate'] for rows in reference['rungs'][0]['groups'].values()}
+    run = Run(value, tmp_path / 'run', failure_guard=harness.guard)
+    victim = next(digest(p)[:16] for p in run.initial if digest(p)[:16] not in leaders)
+    render, failures = FixtureTrial.finished_outputs, []
+    def flaky(self, split, selection):
+        # One render error on the second seed, before any observer call.
+        if (digest(self.parameters)[:16], self.seed) == (victim, 8) and not failures:
+            failures.append(self.completed_steps)
+            raise RuntimeError('transient render error')
+        return render(self, split, selection)
+    monkeypatch.setattr(FixtureTrial, 'finished_outputs', flaky)
+    with run.lock():
+        report = run.execute()
+    assert len(failures) == 1 and victim not in ids(report)
+    row = read_json(tmp_path / 'run' / 'progress.json')['trials'][f'{victim}-seed-8']
+    assert (row['outcome'], row['failure']['kind']) == ('unmeasured', 'unmeasured_output_guard')
+    assert harness.state(victim)['status'] == 'unmeasured'
+    assert audit(tmp_path / 'run')['diagnostics']['guard_exclusions']
+    # Nothing re-admits it automatically: the identical command excludes it again.
+    _, again = execute(tmp_path / 'run', value, harness.guard)
+    assert victim not in ids(again) and len(failures) == 1
+    harness.guard(row).resolve_unmeasured(reason='render error before any observer call', resolved_by='test operator')
+    # Seed 7's earlier passing checkpoints stay selectable; seed 8's superseded
+    # checkpoint is probed again before any further update.
+    _, resolved = execute(tmp_path / 'run', value, harness.guard)
+    assert resolved['rungs'] == reference['rungs']
+    progress = read_json(tmp_path / 'run' / 'progress.json')
+    assert progress['trials'][f'{victim}-seed-8']['outcome'] == 'completed'
+    assert 'failure' not in progress['trials'][f'{victim}-seed-8']
+    assert harness.state(victim)['status'] == 'pass' and len(harness.state(victim)['resolutions']) == 1
+    assert audit(tmp_path / 'run')['diagnostics']['guard_exclusions'] == []
+
+
 def test_excluded_finalist_has_no_nomination_and_reexecution_audits(tmp_path, harness):
     value = config(cohorts=True)
     _, reference = execute(tmp_path / 'reference', value)
