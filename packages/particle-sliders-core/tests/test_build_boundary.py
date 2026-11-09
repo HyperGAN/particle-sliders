@@ -25,6 +25,7 @@ def test_rebuild_removes_stale_product_files_and_aliases(tmp_path):
     wheel, = wheels.glob('*.whl')
     with zipfile.ZipFile(wheel) as archive:
         names = archive.namelist()
+        assert 'particle_sliders/initialization.py' in names
         assert 'particle_sliders/native_lora.py' in names
         assert 'particle_sliders/native_lora_compat.py' in names
         assert 'particle_sliders/music3_native.py' not in names

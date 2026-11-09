@@ -113,6 +113,13 @@ unmeasured, not a fabricated pass or model failure. Enforcement requires actual
 observer qualification and a product-owned finished-output probe; this shared
 API does not claim deployment or media coverage for every product.
 
+## Fresh initialization
+
+[Scoped fresh initialization](SCOPED-INITIALIZATION.md) exposes explicit admitted
+ParticleGAN initializer choices before optimizer construction, with host-scale
+declarations and a source-bound receipt. It preserves frozen/KEEP/zero-up values
+and does not reset resumed cohorts or automatically initialize product factories.
+
 ## Qualification
 
 The distribution boundary is checked on built wheels and strict editable
