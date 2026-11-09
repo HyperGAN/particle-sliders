@@ -99,13 +99,19 @@ APIs; they are not a substitute objective for the shared `ConditionalPG09` path.
 
 Fresh sessions explicitly use `ema_decay=None` and raw current weights for
 training, ranking, confirmation, export and inference. Upstream optimizer scalar
-statistics are unchanged. The default search ranks by operand-first FP64 relative
-SSE, pooled within each example and then averaged equally across examples. This
-is an accepted proxy for relative effect. Measuring the intended effect in
-matched finished outputs can improve selection, but is optional; it does not
-invalidate completed proxy searches or require extra confirmation or training.
-Each declared search retains one fixed objective. Product quality/media
-diagnostics do not become additional ranking gates.
+statistics are unchanged. Current rate decisions use one equal-case mean
+intended-effect ON-minus-OFF value in finished native outputs, retaining negatives,
+zeros and all ties. The fixed-SSE search remains a historical diagnostic; its
+old observations are not deleted or rewritten.
+
+[Catastrophic-output eligibility](CATASTROPHIC-OUTPUT-GUARD.md) is separate from
+that ranking. A qualified check can persistently fail the affected candidate
+and stop updates/resume/selection while preserving FULL/RAW evidence and other
+candidates. Weak effect, beauty, preservation, teacher SSE and GAN loss are not
+catastrophic failure criteria. Missing/uncertain/unsupported assessments are
+unmeasured, not a fabricated pass or model failure. Enforcement requires actual
+observer qualification and a product-owned finished-output probe; this shared
+API does not claim deployment or media coverage for every product.
 
 ## Qualification
 
