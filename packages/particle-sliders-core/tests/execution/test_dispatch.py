@@ -359,3 +359,113 @@ def test_native_selection_must_be_confirmed_by_worker(product,tmp_path):
     worker.write_text(worker.read_text().replace("'checkpoint':str(cp),", "'selection':a.selection,'checkpoint':str(cp),"))
     r=resolve_request({'steps':2},base=tmp_path,profile=spec,selection='raw',output=tmp_path/'confirmed')
     assert execute_resolved_request(r)['native_result']['selection']=='raw'
+
+
+@pytest.mark.skipif(not sys.platform.startswith('linux'), reason='Linux process identity and parent-death contract')
+@pytest.mark.parametrize('repeated', [False, True])
+def test_sigterm_records_cancelled_receipt_and_reaps_worker(product, tmp_path, repeated):
+    import signal
+    import time
+    from particle_sliders.execution.process_identity import process_liveness
+    (tmp_path/'worker.py').write_text("import os,pathlib,signal,time;signal.signal(signal.SIGINT,signal.default_int_handler);pathlib.Path('worker.pid').write_text(str(os.getpid()));time.sleep(60)")
+    (tmp_path/'config.json').write_text(json.dumps({'steps': 5}))
+    source = Path(__file__).resolve().parents[2]/'src'
+    # The repeated case re-signals itself while the receipt path reaps the worker.
+    code = '''import os,signal,sys
+import particle_sliders.execution.local as local
+if sys.argv[1] == 'repeat':
+ reap=local._reap_worker
+ def again(child):
+  os.kill(os.getpid(),signal.SIGTERM);reap(child)
+ local._reap_worker=again
+from particle_sliders.execution.cli import main
+raise SystemExit(main(sys.argv[2:]))
+'''
+    controller = subprocess.Popen([sys.executable, '-c', code, 'repeat' if repeated else 'once', 'train',
+        '--config', str(tmp_path/'config.json'), '--profile', str(product[0]), '--out', str(tmp_path/'run'), '--no-reporting'],
+        env=dict(os.environ, PYTHONPATH=str(source), CUDA_VISIBLE_DEVICES=''),
+        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+    worker_pid = None
+    try:
+        until = time.monotonic() + 10
+        while time.monotonic() < until:
+            try:
+                started = json.loads((tmp_path/'run/progress.json').read_text())
+            except (OSError, ValueError):
+                started = {}
+            if 'worker_identity' in started and (tmp_path/'worker.pid').is_file():
+                break
+            time.sleep(.02)
+        else:
+            pytest.fail('worker did not start')
+        worker_pid = int((tmp_path/'worker.pid').read_text())
+        assert started['status'] == 'starting' and started['pid'] == worker_pid
+        controller.send_signal(signal.SIGTERM)
+        _, stderr = controller.communicate(timeout=20)
+    finally:
+        if controller.poll() is None:
+            controller.kill(); controller.wait()
+        if worker_pid:
+            try: os.kill(worker_pid, signal.SIGKILL)
+            except ProcessLookupError: pass
+    assert controller.returncode == 143, stderr
+    assert stderr.strip().count('\n') == 0 and 'SIGTERM' in stderr
+    result = json.loads((tmp_path/'run/result.json').read_text())
+    assert json.loads((tmp_path/'run/progress.json').read_text()) == result
+    assert result['status'] == 'cancelled' and 'SIGTERM' in result['error'] and result['worker_reaped'] is True
+    assert result['controller_identity']['pid'] == controller.pid
+    assert result['worker_identity'] == started['worker_identity'] and result['worker_identity']['pid'] == worker_pid
+    assert started['controller_identity'] == result['controller_identity']
+    assert process_liveness(result['worker_identity']) == 'dead'
+    assert process_liveness(result['controller_identity']) == 'dead'
+
+
+def test_sigterm_conversion_is_scoped_to_default_main_thread_disposition(product, tmp_path):
+    import signal
+    import threading
+    import particle_sliders.execution.local as local
+    previous = signal.signal(signal.SIGTERM, signal.SIG_DFL)
+    try:
+        seen = []
+        result = execute_resolved_request(request_for(product, tmp_path),
+            on_progress=lambda _: seen.append(signal.getsignal(signal.SIGTERM)))
+        assert result['status'] == 'completed' and seen and set(seen) == {local._terminated}
+        assert signal.getsignal(signal.SIGTERM) is signal.SIG_DFL
+        assert result['controller_identity']['pid'] == os.getpid() and result['worker_identity']['pid'] > 0
+
+        delivered = []
+        def embedded(signum, frame):
+            delivered.append(signum)
+        signal.signal(signal.SIGTERM, embedded)
+        seen.clear()
+        def progress(_):
+            seen.append(signal.getsignal(signal.SIGTERM))
+            if not delivered:
+                os.kill(os.getpid(), signal.SIGTERM)
+        r = resolve_request({'steps': 5}, base=tmp_path, profile=str(product[0]), output=tmp_path/'embedded')
+        assert execute_resolved_request(r, on_progress=progress)['status'] == 'completed'
+        assert delivered == [signal.SIGTERM] and set(seen) == {embedded}
+        assert signal.getsignal(signal.SIGTERM) is embedded
+
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        outcome = []
+        r = resolve_request({'steps': 5}, base=tmp_path, profile=str(product[0]), output=tmp_path/'threaded')
+        thread = threading.Thread(target=lambda: outcome.append(execute_resolved_request(r)))
+        thread.start(); thread.join(30)
+        assert outcome and outcome[0]['status'] == 'completed'
+        assert signal.getsignal(signal.SIGTERM) is signal.SIG_DFL
+    finally:
+        signal.signal(signal.SIGTERM, previous)
+
+
+def test_staged_inputs_are_hashed_in_bounded_blocks(product, tmp_path, monkeypatch):
+    from particle_sliders.execution.request import file_sha256
+    data = os.urandom((1 << 20) * 2 + 7)
+    (tmp_path/'labels.bin').write_bytes(data)
+    monkeypatch.setattr(Path, 'read_bytes', lambda self: pytest.fail('whole-file read of ' + str(self)))
+    assert file_sha256(tmp_path/'labels.bin') == hashlib.sha256(data).hexdigest()
+    value = dict(schema=REQUEST_SCHEMA, profile=str(product[0]), training={'steps': 5, 'labels': 'input://labels'},
+                 input_files=[{'name': 'labels', 'local_path': 'labels.bin'}])
+    request = resolve_request(value, base=tmp_path, output=tmp_path/'run')
+    assert request['input_files'][0]['sha256'] == hashlib.sha256(data).hexdigest()
+    assert materialize_training(request)['labels'] == str((tmp_path/'labels.bin').resolve())

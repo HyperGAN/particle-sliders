@@ -33,6 +33,8 @@ The wheel uses an explicit module allowlist in
 [`_core_build.py`](../packages/particle-sliders-core/_core_build.py). Strict editable
 installs use the same boundary. Adding source does not automatically add a
 public module. Keep model loaders, prompts and campaign code out of that list.
+`tests/test_build_boundary.py` fails when a packaged module imports a
+`particle_sliders` module the wheel omits.
 
 For a release check, install the built wheel in a clean environment and run the
 core tests from outside the checkout. Verify that excluded native products and

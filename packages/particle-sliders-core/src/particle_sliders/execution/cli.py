@@ -133,6 +133,12 @@ def main(argv=None):
     except (ValueError, RuntimeError, OSError, KeyError, TypeError) as exc:
         print(f'{type(exc).__name__}: {exc}', file=sys.stderr)
         return 2
+    except KeyboardInterrupt as exc:
+        from .local import ControllerTerminated
+        if not isinstance(exc, ControllerTerminated):
+            raise
+        print('ControllerTerminated: controller received SIGTERM; training cancelled', file=sys.stderr)
+        return 143
 
 
 if __name__ == '__main__':

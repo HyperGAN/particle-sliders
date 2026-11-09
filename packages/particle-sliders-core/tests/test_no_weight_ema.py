@@ -156,3 +156,34 @@ def test_raw_admission_precedes_host_inspection_and_preserves_wrapped_signature(
     save_file({'weight': torch.ones(1)}, path, metadata={'conceptmod': json.dumps({'weights_kind': 'raw'})})
     assert Loader.load(None, path) == (None, path)
     assert events == ['host snapshot', 'loader']
+
+
+DISABLED_STRINGS = [{'ema_decay': 'None'}, {'ema_decay': '0.0'}, {'ema': '0'}, {'ema': ' NULL '}, {'ema_decay': ''},
+                    {'ema': 'false'}, {'effective_ema': 'False'}, {'effective_ema': '0'},
+                    {'weights_kind': 'raw', 'effective_ema': 'False'}, {'weights_kind': 'raw', 'ema_decay': 'none'}]
+ENABLED_STRINGS = [{'ema_decay': '0.999'}, {'ema': 'true'}, {'ema': '{"decay": 0.995}'}, {'ema_decay': 'nan'},
+                   {'ema': 'unknown'}, {'effective_ema': 'True'}, {'effective_ema': '{"decay": 0.995}'},
+                   {'effective_ema': '0.9'}, {'weights_kind': ' EMA '}, {'weights_kind': 'Averaged'},
+                   {'weights_kind': 'ema', 'ema_decay': 'None'}, {'weights_kind': 'raw', 'effective_ema': 'yes'}]
+
+
+def _string_checkpoint(path, metadata):
+    from safetensors.torch import save_file
+    save_file({'weight': torch.ones(1)}, path, metadata=metadata)
+    return path
+
+
+@pytest.mark.parametrize('metadata', DISABLED_STRINGS)
+def test_string_encoded_absent_false_or_zero_matches_typed_values(tmp_path, metadata):
+    from particle_sliders.weight_policy import require_raw_checkpoint
+    require_raw_provenance(dict(metadata))
+    require_raw_checkpoint(_string_checkpoint(tmp_path / 'raw.safetensors', metadata))
+
+
+@pytest.mark.parametrize('metadata', ENABLED_STRINGS)
+def test_string_encoded_averaging_stays_fail_closed(tmp_path, metadata):
+    from particle_sliders.weight_policy import require_raw_checkpoint
+    with pytest.raises(ValueError, match='averaged|Averaged|EMA'):
+        require_raw_provenance(dict(metadata))
+    with pytest.raises(ValueError, match='averaged|Averaged|EMA'):
+        require_raw_checkpoint(_string_checkpoint(tmp_path / 'averaged.safetensors', metadata))
