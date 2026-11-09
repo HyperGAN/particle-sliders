@@ -78,18 +78,25 @@ python -m pip install './packages/particle-sliders-core[serialization]'
 | Train, evaluate, resume and export an image adapter | [Image sessions](packages/particle-sliders-core/IMAGE-LIFECYCLE.md) |
 | Load an adapter without rebuilding training resources | [Native inference](packages/particle-sliders-core/NATIVE-INFERENCE.md) |
 | Plan and dispatch training in the product's environment | [Training command](packages/particle-sliders-core/TRAINING-COMMAND.md) |
-| Search hyperparameters | [Search API](packages/particle-sliders-core/PARAMETER-SEARCH.md) · [Evaluation](packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md) |
+| Select rates from intended effect | [Evaluation and saved-output workflow](packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md) · [Historical SSE runner](packages/particle-sliders-core/PARAMETER-SEARCH.md) |
 | Build and test the core | [Development](docs/development.md) |
 
 Fresh sessions explicitly set `ema_decay=None`. Training, checkpoints, selection,
 exports and inference use raw current weights. ParticleGAN's scalar optimizer
 statistics are unchanged; they are not model-weight averaging.
 
-The default search uses relative teacher/student error as a proxy for the
-learned effect. Measuring the intended effect in matched finished outputs can
-improve selection, but is optional. It does not require repeating completed
-searches or adding a new confirmation gate. Each search keeps its declared
-objective and evidence.
+Select rates by one number: the equal-case mean intended-effect intensity in
+finished ON outputs minus matched OFF. Retain negative gains, zeros and all
+tied maxima. Teacher/student relative error is diagnostic only, never a selector
+or tiebreak. Reuse completed searches, saved RAW checkpoints, outputs and first
+measurements; no extra confirmation is required.
+
+The existing `particle-slider-search` runner implements its historical fixed
+SSE protocol, not this finished-output selection policy. It has no output-effect
+scorer callback, and `--media-review` does not change its ranking. Use the
+product's supported inference path and a frozen external output instrument as
+described in [the evaluation guide](packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md).
+Historical runner results and declared protocols remain intact.
 
 ## Project and history
 

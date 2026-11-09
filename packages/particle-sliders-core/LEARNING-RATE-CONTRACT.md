@@ -31,8 +31,16 @@ set `d_lr_mult=D/lr` and, when a bank exists, `prior_lr_mult=P/lr` for each
 candidate. Independent screens vary actual optimizer roles; an absent bank or
 optimizer is not an advertised parameter.
 
-Use the [evaluation protocol](EVALUATION-AND-LR-SEARCH.md) and
-[search API](PARAMETER-SEARCH.md). Relative teacher/student error is the accepted
-default proxy; output-effect measurement is optional. Keep each declared search's
-metric and completed results, compare equal completed budgets, and reuse saved
-raw checkpoints rather than rerun completed training.
+Use the [finished-output evaluation workflow](EVALUATION-AND-LR-SEARCH.md).
+Select only the equal-case mean intended-effect intensity ON minus matched OFF;
+retain negative gains, zeros and all tied maxima. Relative teacher/student
+error is diagnostic only. Reuse completed searches, saved RAW checkpoints,
+outputs and first measurements without additional fresh confirmation. Preserve
+historical metrics/results under their original labels.
+
+The [historical search runner](PARAMETER-SEARCH.md) still implements fixed SSE
+ranking and its original finalist protocol; it has no output-effect scorer
+callback. It is not the current finished-output selector. Use each product's
+actual supported inference/configuration route and frozen output instrument.
+Copy exact saved rate multipliers rather than recomputing them from rounded
+displayed rates when reusing a measured recipe or continuing its original state.
