@@ -48,7 +48,8 @@ class ResponseCapabilities:
         if (not shape or shape[0] != 1 or any(type(v) is not int or v < 1 for v in shape)
                 or self.response_domain == 'continuous_vector' and len(shape) != 2
                 or self.response_domain == 'continuous_field' and len(shape) not in (4, 5)
-                or self.response_domain not in ('continuous_vector', 'continuous_field')):
+                or self.response_domain == 'continuous_packed' and len(shape) != 3
+                or self.response_domain not in ('continuous_vector', 'continuous_field', 'continuous_packed')):
             raise ValueError('declare actual native continuous response geometry without reshaping')
         if set(self.operations) - {'train', 'resume', 'evaluate', 'export', 'response'}:
             raise ValueError('response v1 cannot advertise media rendering or unknown operations')
