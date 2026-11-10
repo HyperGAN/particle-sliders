@@ -19,6 +19,7 @@ dependencies = [
 test = ["pytest>=8", "setuptools>=84.2.1", "safetensors>=0.4,<1", "pillow>=13.0.0"]
 serialization = ["safetensors>=0.4,<1"]
 hndl = ["hndl==0.8.2; python_version >= '3.11' and python_version < '3.15'"]
+fibo-hndl = ["hndl==0.10.0; python_version >= '3.11' and python_version < '3.15'"]
 
 
 [tool.setuptools.packages.find]
@@ -29,7 +30,7 @@ include = ["particle_sliders", "particle_sliders.execution", "particle_sliders.p
 include-package-data = false
 
 [tool.setuptools.package-data]
-particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json", "pg09_continuous_profile.json", "legacy_stamp.json", "pg093_release.json", "pg094_release.json", "pg095_release.json", "pg094_continuous.json", "provenance_sources/*.txt"]
+particle_sliders = ["LICENSE", "provenance.json", "locked_provenance.json", "bispf_provenance.json", "pg09_release_sources.json", "pg09_continuous_profile.json", "legacy_stamp.json", "pg093_release.json", "pg094_release.json", "pg095_release.json", "pg094_continuous.json", "provenance_sources/*.txt", "fibo_hndl_010_sources.json", "fibo_projection.hndl", "fibo_critic.hndl"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
