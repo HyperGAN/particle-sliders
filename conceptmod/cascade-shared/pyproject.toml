@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=84.2.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "particle-sliders-cascade"
+version = "0.1.0"
+requires-python = ">=3.11,<3.15"
+description = "Opt-in Cascade Stage C shared response cohort"
+readme = "README.md"
+dependencies = [
+  "particle-sliders-core[hypergan-hndl] @ git+https://github.com/HyperGAN/particle-sliders.git@4abc0eb03a4e3a84fc3e6d02734c13dc7e8ea231#subdirectory=packages/particle-sliders-core",
+  "diffusers==0.36.0", "transformers==4.57.1", "numpy>=2,<3",
+]
+
+[project.entry-points."particle_sliders.response_backends"]
+cascade_stage_c = "particle_sliders_cascade.backend:BACKEND"
+
+[project.entry-points."particle_sliders.inference_backends"]
+cascade_stage_c = "particle_sliders_cascade.backend:INFERENCE"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+particle_sliders_cascade = ["*.hndl"]
