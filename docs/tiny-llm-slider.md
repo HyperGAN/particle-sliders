@@ -1,5 +1,9 @@
 # Tiny-LLM concept-slider test target
 
+The historical Rp/VIC cohort described here is preserved. The separate
+[shared PG/HyperGAN/HNDL preview](tiny-llm-shared-preview.md) has bounded CPU
+plumbing; native Qwen width1024 remains blocked by continuous-domain admission.
+
 Opt-in only. Not a default, not a production recipe. Propose-only: does not
 flip Music ARM_B, live `--lm_target`, locked AdvConfig, or YuE2 defaults.
 
