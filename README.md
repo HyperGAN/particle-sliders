@@ -1,5 +1,10 @@
 # Particle Sliders
 
+**Memory:** controller-only planning needs a calculated **1 GiB host RAM / no GPU**.
+Numerical requirements depend on the model; see [MEMORY.md](MEMORY.md) for the
+engine ledger and the standard required in every product repository.
+The [combined memory index](docs/memory-requirements.md) covers all 28 existing inventory repos.
+
 Particle Sliders trains small adapters that give a frozen generative model a
 controllable edit: make an image shinier, change a musical style, or steer a
 language model's response. The adapter's strength is the slider.
