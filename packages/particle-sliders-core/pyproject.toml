@@ -16,6 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+vibe = ["particle-sliders-vibe>=0.1,<1"]
 test = ["pytest>=8", "setuptools>=84.2.1", "safetensors>=0.4,<1", "pillow>=13.0.0"]
 serialization = ["safetensors>=0.4,<1"]
 hndl = ["hndl==0.8.2; python_version >= '3.11' and python_version < '3.15'"]

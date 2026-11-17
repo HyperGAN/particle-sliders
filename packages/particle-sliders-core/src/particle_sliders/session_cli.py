@@ -8,6 +8,14 @@ from pathlib import Path
 
 def main(argv=None):
     # Keep plan/dispatch dependency-light, including installed console entrypoints.
+    import sys
+    actual = list(sys.argv[1:] if argv is None else argv)
+    if actual and actual[0] == 'collect':
+        try:
+            from particle_sliders_vibe import main as collect_main
+        except ImportError as exc:
+            raise RuntimeError('collect requires the optional particle-sliders-vibe add-on; see VIBE-COLLECTION.md') from exc
+        return collect_main(actual[1:])
     from .execution.cli import should_dispatch, main as execution_main
     if should_dispatch(argv):
         return execution_main(argv)
