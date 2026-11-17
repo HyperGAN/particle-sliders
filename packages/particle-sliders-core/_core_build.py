@@ -10,7 +10,7 @@ CORE_MODULES = frozenset({
     'distillation', 'endpoint_game', 'field_critic', 'formulation',
     'formulation_game', 'grad_regularizers', 'inference', 'initialization', 'legacy_compat',
     'lifecycle', 'native_lora', 'native_lora_compat', 'optimizer_policy', 'peft_scaling', 'pg09',
-    'pg093', 'pg094', 'pg095', 'pg09_audio', 'pg09_backends', 'pg09_hndl',
+    'pg093', 'pg094', 'pg095', 'pg0101', 'pg09_audio', 'pg09_backends', 'pg09_hndl',
     'pg09_readout_critic', 'recipe', 'reference', 'response',
     'restoration', 'routed_projection', 'session_cli', 'teachers', 'weight_policy',
 })

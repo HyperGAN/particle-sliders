@@ -2,7 +2,7 @@
 
 `ConditionalPG09` owns the shared adversarial response game, optimizer state,
 private sampling streams and exact continuation. Current core 0.14.2 uses exact
-released ParticleGAN 0.9.5. For the explanation and equations, see
+released ParticleGAN 0.10.1. For the explanation and equations, see
 [teacher/student training](../../docs/math.md); for model usage, see the
 [product repositories](../../docs/products.md).
 
@@ -21,7 +21,7 @@ game = ConditionalPG09(
     response_domain="continuous_field", response_scale=1.0,
     preset="bispf_optimized", batch_size=2, seed=7, total_steps=100,
     sigma=1.0, sampling="balanced", recipe_overrides=None,
-    pg_source_profile="release-0.9.5", penalty_input_domain="auto",
+    pg_source_profile="release-0.10.1", penalty_input_domain="auto",
 )
 metrics = game.step()
 state = game.state_dict()
@@ -59,7 +59,7 @@ source and geometry check before a native forward.
 
 The core verifies installed ParticleGAN sources against its release manifest.
 It does not install patches, mutate an environment or alias historical profiles
-to the current release. See [compatibility](COMPATIBILITY-PG095.md).
+to the current release. See [compatibility](COMPATIBILITY-PG0101.md).
 
 ## Loss and trainable ownership
 

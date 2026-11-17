@@ -68,7 +68,7 @@ objective and the search metric.
 ## Shared core
 
 Current core **0.14.2** requires Python 3.11+, PyTorch 2.6–2.x and exact
-**`particlegan==0.9.5`**. Products pin reviewed source commits and retain their
+**`particlegan==0.10.1`**. Products pin reviewed source commits and retain their
 own compatible native environments.
 
 ```sh

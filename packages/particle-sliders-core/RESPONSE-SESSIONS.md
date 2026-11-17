@@ -8,7 +8,7 @@ waveform renderer. Model setup and generation live in the
 
 Response sessions use the same `ConditionalPG09`, updates, checkpointing,
 observation and cleanup as image sessions. They do not add another optimizer or
-training loop. Current core pins ParticleGAN 0.9.5.
+training loop. Current core pins ParticleGAN 0.10.1.
 
 ## Register a complete product factory
 
@@ -19,7 +19,7 @@ CAPS = ResponseCapabilities(
     generator_arm="adapter_gan",  # use routed_particle_gan only for a real bank
     modality="text_hidden", response_kind="native_final_hidden",
     response_domain="continuous_vector", response_shape=(1, 2048),
-    pg_version="0.9.5", pg_source_profile="release-0.9.5",
+    pg_version="0.10.1", pg_source_profile="release-0.10.1",
     penalty_input_domain="continuous", base_precisions=("float32",),
 )
 BACKEND = ResponseBackend("my-response", CAPS, prepare, validate,

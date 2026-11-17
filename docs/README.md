@@ -25,7 +25,7 @@ This repository documents the shared core and its integration contracts.
 - [Selective PEFT scaling](../packages/particle-sliders-core/PEFT-SCALING.md)
 - [Conditioning cache identity](conditioning-cache-identity.md)
 - [Optional HyperGAN reporting](../packages/particle-sliders-core/HYPERGAN-REPORTING.md)
-- [Pinned ParticleGAN compatibility](../packages/particle-sliders-core/COMPATIBILITY-PG095.md)
+- [Pinned ParticleGAN compatibility](../packages/particle-sliders-core/COMPATIBILITY-PG0101.md)
 
 ## Historical material
 
