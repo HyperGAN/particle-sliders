@@ -13,6 +13,7 @@ include README.md
 include RESPONSE-SESSIONS.md
 include SHARED-CORE-BOUNDARY.md
 include TRAINING-COMMAND.md
+include VIBE-COLLECTION.md
 include requirements-pg09.txt
 recursive-include tests *.py *.json
 include FIBO-NETWORK-PROVENANCE.json
