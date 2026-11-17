@@ -69,15 +69,20 @@ Torch/core dependency and leaves existing native core source closures intact.
 - Score workflow: `Criterion` text plus `Image` media input; a `judge` Decide
   node in score mode with an explicit model, question and 2–10 ordered levels.
 
-Use `judge_provider='typesafe'` with a verified Jev model such as `jev-latest` to
-execute Nanoodle's Decide node against TypeSafe's official `/v1/systemone` API.
-The transport maps inline images to TypeSafe assets, authenticates with
-`TYPESAFE_API_KEY`, and keeps that key separate from NanoGPT's generation key.
-The default `judge_provider='nanogpt'` instead uses an explicitly configured
-NanoGPT decision-model route. The adapter does not substitute a different judge. It
+The default `judge_provider='nanogpt'` uses an explicitly configured NanoGPT
+decision-model route and `NANOGPT_API_KEY`. Its live decision-model catalog lists
+the image-capable Jev ID `typesafe/jev-1.14`; `typesafe/jev-latest` and `liquid/d1`
+currently advertise text-only input. Choose the exact image-capable model
+explicitly. A TypeSafe vendor prefix in the NanoGPT model ID does not cause a
+direct TypeSafe request. The optional `judge_provider='typesafe'` transport is
+available separately, but is not needed for this NanoGPT path.
+The adapter does not substitute a different judge. It
 retains the full decision distribution and normalizes Nanoodle's one-based
 score as `(score - 1) / (levels - 1)`. Missing/invalid distributions fail before
-selection. `NANOGPT_API_KEY` stays in the environment and is never included in
+selection. NanoGPT can round its score and probabilities independently to two
+decimals. Validation allows only the resulting bounded rounding discrepancy;
+the reported score remains the measurement, and the original distribution plus
+validation diagnostics are retained. `NANOGPT_API_KEY` stays in the environment and is never included in
 the collection. Generation and judging can use independent workflows. Definitive
 provider 4xx rejections are recorded as failed calls and can be retried after
 their cause is resolved; uncertain timeouts remain pending and require explicit

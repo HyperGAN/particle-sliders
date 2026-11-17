@@ -117,17 +117,32 @@ class NanoodleWorkflows:
             if (answer.get('type') != 'score' or type(raw_score) not in (int, float)
                     or not math.isfinite(raw_score) or not 0 <= raw_score <= self.levels - 1):
                 raise ValueError('judge returned no valid measured score')
+            raw_probabilities = answer.get('probabilities')
+            if (not isinstance(raw_probabilities, dict)
+                    or set(raw_probabilities) != {str(i) for i in range(self.levels)}
+                    or any(type(p) not in (int, float) or not math.isfinite(p) or not 0 <= p <= 1
+                           for p in raw_probabilities.values())):
+                raise ValueError('judge returned no valid measured score distribution')
         # Nanoodle exposes score+1. Use the full decision, never rounded text.
         if decision.get('mode') != 'score' or decision.get('levels') != self.levels:
             raise ValueError('score response does not match the frozen rubric')
         probabilities = [r['p'] for r in decision.get('rows', [])]
+        # NanoGPT rounds the reported score and each probability independently
+        # to two decimals. Bound both possible errors; retain its reported score
+        # rather than reconstructing a different ranking from rounded rows.
+        quantum = 0.01 if self.judge_provider == 'nanogpt' else 0
+        mass_tolerance = max(1e-4, self.levels * quantum / 2 + 1e-9)
+        mean_tolerance = max(1e-4, (sum(range(self.levels)) + 1) * quantum / 2 + 1e-9)
+        expected_score = sum(i * p for i, p in enumerate(probabilities))
         if (len(probabilities) != self.levels
                 or any(type(p) not in (int, float) or not math.isfinite(p) or not 0 <= p <= 1 for p in probabilities)
-                or not math.isclose(sum(probabilities), 1, abs_tol=1e-4)
-                or not math.isclose(sum((i+1)*p for i, p in enumerate(probabilities)), decision['score'], abs_tol=1e-4)):
+                or not math.isclose(sum(probabilities), 1, rel_tol=0, abs_tol=mass_tolerance)
+                or not math.isclose(expected_score, decision['score'] - 1, rel_tol=0, abs_tol=mean_tolerance)):
             raise ValueError('judge returned no valid measured score distribution')
         return score_value(dict(score=(decision['score'] - 1) / (self.levels - 1),
             decision=decision, raw=self.last_judgment, request_id=request_id,
+            score_validation=dict(probability_quantum=quantum, probability_sum=sum(probabilities),
+                expected_score=expected_score, reported_score=decision['score'] - 1),
             cost_usd=result.cost_usd if result.cost_exact else None))
 
 
