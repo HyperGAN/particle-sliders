@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-vibe = ["particle-sliders-vibe @ git+https://github.com/HyperGAN/particle-sliders.git@ad151649bb26d87df4da64aedb017c8515315c50#subdirectory=packages/particle-sliders-vibe"]
+vibe = ["particle-sliders-vibe @ git+https://github.com/HyperGAN/particle-sliders.git@2c2952514b8de84262c5034a3567b003a64c06f0#subdirectory=packages/particle-sliders-vibe"]
 test = ["pytest>=8", "setuptools>=84.2.1", "safetensors>=0.4,<1", "pillow>=13.0.0"]
 serialization = ["safetensors>=0.4,<1"]
 hndl = ["hndl==0.8.2; python_version >= '3.11' and python_version < '3.15'"]
