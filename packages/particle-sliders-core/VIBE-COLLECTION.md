@@ -94,6 +94,13 @@ It adds a CUDA-only renderer, model-specific prompt graph and qualified manifest
 that the existing frozen trajectory cache can consume. See its `VIBE.md` for
 native setup and its preserved training source pins.
 
+The first Anima live verification completed four rounds with pool2/replace1 and
+best-of2: five generated prompt pairs over time, 32 native rendered/scored images,
+eight qualified contexts and 160 frozen target records. Adaptive retention and
+completed resume without replay were verified. All cloud requests used NanoGPT;
+Jev's image-capable lookup was explicitly `typesafe/jev-1.14`. No training updates
+occurred, so this verifies the data path rather than trained quality.
+
 The workflow follows the successful-context curation described in
 [the Tiny Aya article](https://huggingface.co/blog/ntc-ai/particle-sliders-learn-the-behavior-keep-the-quest).
 Adaptive prompt replacement is an extension of that fixed-candidate experiment.
