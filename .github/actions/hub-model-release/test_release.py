@@ -49,6 +49,15 @@ class HubReleaseTest(unittest.TestCase):
             hub.release(self.api, REPO, self.manifest, self.writer)
         self.writer.create_commit.assert_not_called()
 
+    def test_checksum_metadata_updates_are_opt_in_and_keep_weights_immutable(self):
+        base = self.base | {"SHA256SUMS": ORIGINAL}
+        changed = base | {"SHA256SUMS": WEIGHT}
+        with self.assertRaisesRegex(ValueError, "historical"):
+            hub.reviewed_changes(base, changed)
+        self.assertEqual(hub.reviewed_changes(base, changed, ["SHA256SUMS"]), {"SHA256SUMS": WEIGHT})
+        with self.assertRaisesRegex(ValueError, "Unsupported"):
+            hub.reviewed_changes(base, changed, ["weights/v1.safetensors"])
+
     def test_commit_copies_exact_delta_and_checks_production(self):
         self.writer.create_commit.return_value = SimpleNamespace(oid=NEW)
         self.api.model_info.side_effect = [
