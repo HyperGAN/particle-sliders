@@ -1,3 +1,7 @@
+from hashlib import sha256
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
 import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -57,6 +61,52 @@ class HubReleaseTest(unittest.TestCase):
         self.assertEqual(hub.reviewed_changes(base, changed, ["SHA256SUMS"]), {"SHA256SUMS": WEIGHT})
         with self.assertRaisesRegex(ValueError, "Unsupported"):
             hub.reviewed_changes(base, changed, ["weights/v1.safetensors"])
+
+    def checksum_files(self, previous, staged, card=b"new card"):
+        temporary = TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        (root / "base.json").write_text(json.dumps({"files": previous}))
+        (root / "staged.json").write_text(json.dumps({"files": staged}))
+        (root / "README.md").write_bytes(card)
+        self.api.hf_hub_download.side_effect = lambda repo, path, *, revision: root / {
+            (BASE, hub.CHECKSUM_MANIFEST): "base.json",
+            (STAGED, hub.CHECKSUM_MANIFEST): "staged.json",
+            (STAGED, "README.md"): "README.md",
+        }[revision, path]
+        self.base[hub.CHECKSUM_MANIFEST] = ORIGINAL
+        self.staged[hub.CHECKSUM_MANIFEST] = ORIGINAL if previous == staged else WEIGHT
+        self.staged["README.md"] = {"bytes": len(card), "git_blob": "f" * 40}
+        self.manifest["changes"] = hub.reviewed_changes(self.base, self.staged)
+
+    def test_stale_release_checksum_blocks_the_writer(self):
+        stale = {"README.md": {"bytes": len(b"old card"), "sha256": sha256(b"old card").hexdigest()}}
+        self.checksum_files(stale, stale)
+        with self.trees(), self.assertRaisesRegex(ValueError, "SHA-256 does not match staged file README.md"):
+            hub.release(self.api, REPO, self.manifest, self.writer, BASE, verify_release_manifest=True)
+        self.writer.create_commit.assert_not_called()
+
+    def test_changed_git_and_lfs_checksums_match_the_staged_revision(self):
+        previous = {"README.md": {"bytes": len(b"old card"), "sha256": sha256(b"old card").hexdigest()}}
+        staged = {
+            "README.md": {"bytes": len(b"new card"), "sha256": sha256(b"new card").hexdigest()},
+            "weights/v2.safetensors": WEIGHT,
+        }
+        self.checksum_files(previous, staged)
+        with self.trees():
+            self.assertEqual(hub.release(self.api, REPO, self.manifest, verify_release_manifest=True), ("ready", BASE))
+        self.api.hf_hub_download.assert_any_call(REPO, "README.md", revision=STAGED)
+        self.assertEqual(self.api.hf_hub_download.call_count, 3)
+
+    def test_new_checksum_for_a_retained_file_is_verified(self):
+        self.checksum_files({}, {"weights/v1.safetensors": {"bytes": 1, "sha256": WEIGHT["sha256"]}})
+        with self.trees(), self.assertRaisesRegex(ValueError, "byte count or path does not match"):
+            hub.release(self.api, REPO, self.manifest, verify_release_manifest=True)
+
+    def test_changed_covered_file_cannot_drop_its_checksum(self):
+        self.checksum_files({"README.md": WEIGHT}, {})
+        with self.trees(), self.assertRaisesRegex(ValueError, "drops checksums for changed files"):
+            hub.release(self.api, REPO, self.manifest, verify_release_manifest=True)
 
     def test_commit_copies_exact_delta_and_checks_production(self):
         self.writer.create_commit.return_value = SimpleNamespace(oid=NEW)
