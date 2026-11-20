@@ -43,7 +43,7 @@ def test_qr_official_result_host_scale_and_global_rng():
     # Default Linear U(-1/sqrt(fan_in), +...) => RMS 1/sqrt(3*fan_in).
     torch.testing.assert_close(layer.weight.square().mean(), torch.tensor(1 / 36), rtol=1e-6, atol=1e-8)
     document = receipt.as_dict()
-    assert document["particlegan"]["version"] == "0.10.1"
+    assert document["particlegan"]["version"] == "0.11.0"
     assert document["particlegan"]["initializer_source"]["sha256"] == "3534ff23efa413cdf8b4125b91e0d30671d873b3e2958547d4e744b750454b9b"
     assert document["components"]["adapter.down"]["parameters"]["weight"]["host_declaration"] == {
         "kind": "Uniform", "low": -1 / math.sqrt(12), "high": 1 / math.sqrt(12)}

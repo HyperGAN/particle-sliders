@@ -15,11 +15,11 @@ from test_conditional_engine import fixture, equal
 
 def test_explicit_release_manifest_and_public_export():
     import particle_sliders
-    assert PG_VERSION == '0.10.1'
-    assert PG_SOURCE_PROFILE == 'release-0.10.1'
+    assert PG_VERSION == '0.11.0'
+    assert PG_SOURCE_PROFILE == 'release-0.11.0'
     assert particle_sliders.ConditionalParticleGAN is ConditionalParticleGAN
-    assert engine._released_sources() == 'cd1a8b2e1b2a05721fb994fd267a78637c883e6576bc2ffa0cf3d923295948c6'
-    assert engine_options({'pg_version': '0.10.1'}) == dict(pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto')
+    assert engine._released_sources() == 'c5e3c7754c0869bb9af4ce70d922a618b3f3bc31284bc69541f9385332713c40'
+    assert engine_options({'pg_version': '0.11.0'}) == dict(pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto')
 
 
 def test_default_game_resolves_upstream_recipe_without_hidden_decay_or_ema(monkeypatch):
@@ -54,7 +54,8 @@ def test_default_game_resolves_upstream_recipe_without_hidden_decay_or_ema(monke
 
 
 @pytest.mark.parametrize('options', [dict(pg_version='0.9.3'), dict(pg_source_profile='release-0.9.3'), dict(pg_version='0.9.1'), dict(pg_source_profile='release'),
-                                    dict(pg_source_profile='alz-continuous-v1'), dict(pg_version='0.9.5')])
+                                    dict(pg_source_profile='alz-continuous-v1'), dict(pg_version='0.9.5'),
+                                    dict(pg_version='0.10.1'), dict(pg_source_profile='release-0.10.1')])
 def test_no_version_or_overlay_fallback_before_factory(options):
     calls = []
     contract = Backend('cpu', Capabilities('adapter_gan', False),
@@ -66,11 +67,12 @@ def test_no_version_or_overlay_fallback_before_factory(options):
         engine_options(options)
 
 
-def test_installed_wrong_version_refused_before_factory(monkeypatch):
+@pytest.mark.parametrize('installed', ['0.9.1', '0.10.1'])
+def test_installed_wrong_version_refused_before_factory(monkeypatch, installed):
     original = metadata.version
-    monkeypatch.setattr(metadata, 'version', lambda name: '0.9.1' if name == 'particlegan' else original(name))
+    monkeypatch.setattr(metadata, 'version', lambda name: installed if name == 'particlegan' else original(name))
     contract = Backend('cpu', Capabilities('adapter_gan', False), lambda options: pytest.fail('allocated'), lambda options: None)
-    with pytest.raises(BackendUnavailable, match='0.10.1'):
+    with pytest.raises(BackendUnavailable, match='0.11.0'):
         contract.open(SessionConfig('cpu', 'new093'))
 
 

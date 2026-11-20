@@ -79,7 +79,7 @@ reconstruction, or distillation term in the training loss.
 
 ## 3. Alternate critic and adapter updates
 
-For the default `bispf_optimized` recipe, ParticleGAN 0.10.1 supplies a
+For the default `bispf_optimized` recipe, ParticleGAN 0.11.0 supplies a
 Sinkhorn-relativistic loss. Let $r_i=D_\phi(x_{r,i},c_i)$ and
 $f_j=D_\phi(x_{f,j},c_j)$ be the raw logits in a batch of size $B$.
 The upstream Sinkhorn coupling gives weights $\Pi_{ij}$. Its reported

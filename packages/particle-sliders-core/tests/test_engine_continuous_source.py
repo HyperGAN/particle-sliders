@@ -125,11 +125,11 @@ def test_old_overlay_and_release_options_do_not_rebind():
     from particle_sliders.engine import engine_options
     assert engine_options({'penalty_input_domain': 'continuous'}) == {
         'pg_source_profile': engine.PG_SOURCE_PROFILE, 'penalty_input_domain': 'continuous'}
-    for old in ['release-0.9.4', 'release-0.9.5', 'source-801ae1e-continuous-v1']:
+    for old in ['release-0.9.4', 'release-0.9.5', 'release-0.10.1', 'source-801ae1e-continuous-v1']:
         with pytest.raises(ValueError, match='qualified source/domain pair'):
             engine_options({'pg_source_profile': old, 'penalty_input_domain': 'continuous'})
-    for old in ['0.9.3', '0.9.4', '0.9.5', '0.10.0']:
-        with pytest.raises(ValueError, match='requires ParticleGAN 0.10.1'):
+    for old in ['0.9.3', '0.9.4', '0.9.5', '0.10.0', '0.10.1']:
+        with pytest.raises(ValueError, match='requires ParticleGAN 0.11.0'):
             engine_options({'pg_version': old})
 
 
