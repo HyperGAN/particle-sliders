@@ -67,7 +67,7 @@ objective and the search metric.
 
 ## Shared core
 
-Current core **0.14.2** requires Python 3.11+, PyTorch 2.6–2.x and exact
+Current core **0.15.0** requires Python 3.11+, PyTorch 2.6–2.x and exact
 **`particlegan==0.10.1`**. Products pin reviewed source commits and retain their
 own compatible native environments.
 
@@ -79,7 +79,7 @@ python -m pip install './packages/particle-sliders-core[serialization]'
 | Integrating a product | Guide |
 |---|---|
 | Decide what belongs in core and what the product owns | [Distribution boundary](packages/particle-sliders-core/SHARED-CORE-BOUNDARY.md) |
-| Bind teacher/student responses and use the shared game | [Response sessions](packages/particle-sliders-core/RESPONSE-SESSIONS.md) · [Engine contract](packages/particle-sliders-core/CONDITIONAL-PG09-CONTRACT.md) |
+| Bind teacher/student responses and use the shared game | [Response sessions](packages/particle-sliders-core/RESPONSE-SESSIONS.md) · [Engine contract](packages/particle-sliders-core/CONDITIONAL-ENGINE-CONTRACT.md) |
 | Train, evaluate, resume and export an image adapter | [Image sessions](packages/particle-sliders-core/IMAGE-LIFECYCLE.md) |
 | Load an adapter without rebuilding training resources | [Native inference](packages/particle-sliders-core/NATIVE-INFERENCE.md) |
 | Plan and dispatch training in the product's environment | [Training command](packages/particle-sliders-core/TRAINING-COMMAND.md) |

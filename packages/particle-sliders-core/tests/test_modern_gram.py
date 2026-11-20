@@ -9,8 +9,8 @@ from particlegan import get_recipe
 from particlegan.optim.gram_polar import GramGuardError, guarded_gram_polar
 from particlegan.optim import gram_svd_fallback as upstream
 from particle_sliders.optimizer_policy import configure_dense_profile, GRAM_PROFILE, POLICY
-from particle_sliders.pg09 import ConditionalPG09, PG_VERSION, PG_SOURCE_PROFILE
-from test_conditional_pg09 import fixture, equal
+from particle_sliders.engine import ConditionalParticleGAN, PG_VERSION, PG_SOURCE_PROFILE
+from test_conditional_engine import fixture, equal
 
 
 @pytest.fixture(autouse=True)
@@ -23,7 +23,7 @@ def cpu_threads():
 
 def game(profile='auto', *, particles=True, preset='bispf_optimized'):
     original = fixture(particles=particles, preset=preset)
-    return ConditionalPG09(original.backend, original.rows, original.critic,
+    return ConditionalParticleGAN(original.backend, original.rows, original.critic,
         conditions=original.conditions,
         particles=original.network.particles if particles else None,
         preset=preset, batch_size=4, total_steps=5, optimizer_dense_profile=profile)
@@ -205,7 +205,7 @@ def test_authoritative_moss112_field_recipe_preserved_except_selected_dense_prof
     import json
     from pathlib import Path
     from particlegan.recipes import Recipe
-    document = json.loads((Path(__file__).parent/'fixtures/pg093_v92_recipe.json').read_text())
+    document = json.loads((Path(__file__).parent/'fixtures/historical_moss112_recipe.json').read_text())
     values = document['recipe']
     assert len(values) == 112 and values['optimizer_dense_profile'] == 'default'
     # This is restoration of a recorded historical recipe, not selection of

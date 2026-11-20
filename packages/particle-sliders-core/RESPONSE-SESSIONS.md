@@ -6,7 +6,7 @@ vectors and other declared continuous responses. It supplies no token, image or
 waveform renderer. Model setup and generation live in the
 [product repositories](../../docs/products.md).
 
-Response sessions use the same `ConditionalPG09`, updates, checkpointing,
+Response sessions use the same `ConditionalParticleGAN`, updates, checkpointing,
 observation and cleanup as image sessions. They do not add another optimizer or
 training loop. Current core pins ParticleGAN 0.10.1.
 

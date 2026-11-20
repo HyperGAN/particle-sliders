@@ -299,7 +299,7 @@ class FrozenResponseAdapter:
         return self.decoder(self._response(row, scale=scale))
 
     def metadata(self):
-        return dict(protocol="frozen-response-pg090-v1", family=self.family,
+        return dict(protocol="frozen-response-engine-v1", family=self.family,
                     model_identity=self.model_identity,
                     target_convention=("neutral + sign*strength*(positive-negative)" if self.teacher_convention == "signed_difference"
                                        else "frozen positive response"),
@@ -349,7 +349,7 @@ class AdapterScaleCheckpoint:
             return
         values = vars(self._module)
         if (values.get("forward") is not self._forward or
-                values.get("_pg09_scale_checkpoint") is not True):
+                values.get("_adapter_scale_checkpoint") is not True):
             raise RuntimeError("checkpoint ownership changed; restore the owned wrapper before closing")
         _restore_checkpoint_attributes(self._module, self._saved)
         self._closed = True
@@ -370,7 +370,7 @@ def _restore_checkpoint_attributes(module, saved):
     # Restore instance ownership exactly: a class-defined forward must remain a
     # descriptor, rather than becoming a permanent bound-method override.
     values = vars(module)
-    for name in ("forward", "_pg09_scale_checkpoint"):
+    for name in ("forward", "_adapter_scale_checkpoint"):
         if name in saved:
             values[name] = saved[name]
         else:
@@ -387,10 +387,10 @@ def checkpoint_with_adapter_scale(module, network):
     Caller owns which blocks to checkpoint; no global service/model mutation.
     """
     from torch.utils.checkpoint import checkpoint
-    if getattr(module, "_pg09_scale_checkpoint", False):
+    if getattr(module, "_adapter_scale_checkpoint", False):
         raise ValueError("block already checkpointed with adapter scale")
     original = module.forward
-    saved = {name: vars(module)[name] for name in ("forward", "_pg09_scale_checkpoint")
+    saved = {name: vars(module)[name] for name in ("forward", "_adapter_scale_checkpoint")
              if name in vars(module)}
 
     def forward(*args, **kwargs):
@@ -400,7 +400,7 @@ def checkpoint_with_adapter_scale(module, network):
 
     try:
         module.forward = forward
-        module._pg09_scale_checkpoint = True
+        module._adapter_scale_checkpoint = True
         return AdapterScaleCheckpoint(module, forward, saved)
     except BaseException:
         _restore_checkpoint_attributes(module, saved)
@@ -483,7 +483,7 @@ def save_adapter(adapter, path, *, model_fingerprint):
         raise ValueError("verified staged-model fingerprint required")
     metadata = dict(backend=adapter.metadata(), model_fingerprint=model_fingerprint)
     save_file({k: v.detach().cpu().clone() for k, v in adapter.network.state_dict().items()},
-              str(path), metadata={"pg09_backend": json.dumps(metadata, sort_keys=True)})
+              str(path), metadata={"response_backend": json.dumps(metadata, sort_keys=True)})
 
 
 def load_adapter(adapter, path, *, model_fingerprint):
@@ -492,7 +492,7 @@ def load_adapter(adapter, path, *, model_fingerprint):
     from safetensors import safe_open
     from safetensors.torch import load_file
     with safe_open(str(path), framework='pt', device='cpu') as file:
-        metadata = json.loads((file.metadata() or {}).get('pg09_backend', '{}'))
+        metadata = json.loads((file.metadata() or {}).get('response_backend', '{}'))
     expected = dict(backend=adapter.metadata(), model_fingerprint=model_fingerprint)
     if metadata != expected:
         raise ValueError("backend protocol, frozen model or adapter target names differ")
