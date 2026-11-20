@@ -6,7 +6,7 @@ import pytest
 import torch
 from torch import nn
 
-from particle_sliders.pg095 import ConditionalPG095, validate_pg09_domain
+from particle_sliders.pg0101 import ConditionalPG0101, validate_pg09_domain
 from particle_sliders.response import ResponseCapabilities
 
 
@@ -54,7 +54,7 @@ def game():
             neutral = torch.randn(1, 7, 64, generator=generator)
             rows.append(Prepared(dict(input=torch.randn(1, 7, 64, generator=generator)),
                                  neutral + .1 * (i + 1), neutral))
-        return ConditionalPG095(backend, rows, critic, conditions=torch.eye(4, 2),
+        return ConditionalPG0101(backend, rows, critic, conditions=torch.eye(4, 2),
             response_domain='continuous_packed', penalty_input_domain='auto',
             batch_size=2, total_steps=2, seed=7, particles=None)
 
@@ -78,7 +78,7 @@ def test_explicit_packed_descriptor_preserves_old_domain_rejections():
     result = validate_pg09_domain((1, 7, 64), response_domain='continuous_packed')
     assert result['resolved_penalty_domain'] == 'image'  # Official PG rank>=3 branch.
     descriptor = ResponseCapabilities('adapter_gan', 'image', 'native packed velocity',
-        'continuous_packed', (1, 7, 64), '0.9.5', 'release-0.9.5')
+        'continuous_packed', (1, 7, 64), '0.10.1', 'release-0.10.1')
     assert descriptor.response_shape == (1, 7, 64) and descriptor.render is False
     for domain in ('continuous_vector', 'continuous_field'):
         with pytest.raises(ValueError):

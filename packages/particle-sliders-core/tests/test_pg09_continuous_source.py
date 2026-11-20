@@ -19,7 +19,7 @@ def installed_profile():
     root = Path(particlegan.__file__).resolve().parent
     actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob('*.py'))}
-    document = json.loads(Path(pg09.__file__).with_name('pg095_release.json').read_text())
+    document = json.loads(Path(pg09.__file__).with_name('pg0101_release.json').read_text())
     assert actual == document['python_sources']
     return document['source_profile']
 
@@ -122,7 +122,7 @@ def test_release_wide_bank_updates_exact_resume_and_inference(width):
 
 
 def test_old_overlay_and_release_entrypoints_do_not_rebind():
-    from particle_sliders.pg095 import engine_options
+    from particle_sliders.pg0101 import engine_options
     from particle_sliders.pg094 import ConditionalPG094
     assert engine_options({'penalty_input_domain': 'continuous'}) == {
         'pg_source_profile': pg09.PG_SOURCE_PROFILE, 'penalty_input_domain': 'continuous'}
