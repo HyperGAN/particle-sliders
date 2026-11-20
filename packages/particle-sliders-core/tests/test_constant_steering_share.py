@@ -67,8 +67,10 @@ the constant share 1 - lam to within 0.003 on every seed;
 recovery(c) -2.75 to -0.46 at lam <= 0.5 (a matched-norm random
 constant actively hurts) and 0.000 at lam = 1 (the fitted norm
 itself vanishes: there is no constant component to match).
-BLOCK placement recovery(b) 1.000 (lam = 0), 0.769-0.843 (0.25),
-0.547-0.646 (0.5), 0.349-0.427 (0.75), 0.111-0.250 (1.0) --
+BLOCK placement recovery(b) 1.000 (lam = 0), 0.758-0.843 (0.25),
+0.538-0.646 (0.5), 0.340-0.427 (0.75), 0.103-0.250 (1.0) --
+(combined spread over two driver runs; the gradient fit's float
+reduction order wiggles block numbers by ~0.01 between runs)
 ABOVE the output-space share at intermediate lam, because a
 hidden constant's output effect is itself input-dependent
 through the tanh, yet still collapsing toward 0 at lam = 1;
