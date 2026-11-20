@@ -10,7 +10,7 @@ import pytest
 import torch
 from torch import nn
 
-from particle_sliders.pg09_hndl import HNDLConditionalReadoutCritic
+from particle_sliders.hndl_critic import HNDLConditionalReadoutCritic
 
 
 @pytest.fixture(autouse=True)
@@ -45,7 +45,7 @@ class Backend:
 
 
 def game(*, source=None, preset='bispf_optimized', legacy=False, domain='continuous_field'):
-    from particle_sliders.pg09 import ConditionalPG09
+    from particle_sliders.engine import ConditionalParticleGAN
     with torch.random.fork_rng(devices=[]):
         torch.manual_seed(17)
         backend = Backend()
@@ -56,7 +56,7 @@ def game(*, source=None, preset='bispf_optimized', legacy=False, domain='continu
                          torch.tensor([[i / 4, 1.]]), sign)
                 for i, sign in enumerate((1, -1, 1, -1))]
         conditions = torch.tensor([[row.sign, i / 4] for i, row in enumerate(rows)])
-        return ConditionalPG09(backend, rows, critic, conditions=conditions,
+        return ConditionalParticleGAN(backend, rows, critic, conditions=conditions,
             response_domain=domain, batch_size=2, total_steps=3, preset=preset)
 
 
@@ -163,7 +163,7 @@ def test_architecture_record_and_same_shape_source_change_reject_resume_transact
 def test_optional_import_is_lazy_and_missing_extra_is_actionable():
     code = '''
 import sys
-import particle_sliders.pg09_hndl as adapter
+import particle_sliders.hndl_critic as adapter
 assert 'hndl' not in sys.modules
 sys.modules['hndl'] = None
 try:

@@ -13,7 +13,7 @@ from .lifecycle import (
     Backend, BackendUnavailable, Capabilities, SliderSession, UnsupportedOperation,
     _open_registered,
 )
-from .pg09 import PG_VERSION, validate_pg09_domain
+from .engine import PG_VERSION, validate_engine_domain
 
 API = 'particle-sliders-response-session-v1'
 TRAINING, INFERENCE = API + '-training', API + '-inference'
@@ -103,7 +103,7 @@ class ResponseBackend(Backend):
         if (profile, domain) != (capabilities.pg_source_profile, capabilities.penalty_input_domain):
             raise BackendUnavailable('configured PG profile/domain differs from response capabilities')
         # Checks actual installed hashes and native dimensions before prepare/weights.
-        validate_pg09_domain(capabilities.response_shape, response_domain=capabilities.response_domain,
+        validate_engine_domain(capabilities.response_shape, response_domain=capabilities.response_domain,
                              pg_source_profile=profile, penalty_input_domain=domain)
 
     def _session(self, config, capabilities, binding):

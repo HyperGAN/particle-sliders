@@ -1,13 +1,13 @@
 """Shared slider package; new image applications use ``particle_sliders.lifecycle``.
 
 The root retains explicitly named historical engines for checkpoint/API
-compatibility. Their objectives are not silently substituted for ConditionalPG09.
+compatibility. Their objectives are not silently substituted for ConditionalParticleGAN.
 """
 from importlib import import_module
 
 _EXPORTS = {
     "BISPFGame": "bispf_game",
-    "ConditionalPG09": "pg09",
+    "ConditionalParticleGAN": "engine",
     "ComponentInitialization": "initialization",
     "InitializationReceipt": "initialization",
     "initialize_fresh_components": "initialization",
@@ -53,11 +53,11 @@ def __dir__():
     return sorted(set(globals()) | set(_EXPORTS))
 
 
-__version__ = "0.14.2"
+__version__ = "0.15.0"
 
 __all__ = [
     "BISPFGame",
-    "ConditionalPG09",
+    "ConditionalParticleGAN",
     "ComponentInitialization",
     "InitializationReceipt",
     "initialize_fresh_components",

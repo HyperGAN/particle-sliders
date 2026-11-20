@@ -1,7 +1,7 @@
 # particle-sliders-core
 
 Shared infrastructure for training and applying small adapters on frozen
-models. Core 0.14.2 is model-independent and pins `particlegan==0.10.1`.
+models. Core 0.15.0 is model-independent and pins `particlegan==0.10.1`.
 
 For model installation, prompts, recipes and generation, use the
 [product repositories](../../docs/products.md). For a readable explanation of
@@ -11,7 +11,7 @@ teacher/student training, see the [project overview](../../README.md) and
 | Task | Contract |
 |---|---|
 | Understand core/product ownership and installed modules | [Distribution boundary](SHARED-CORE-BOUNDARY.md) |
-| Supply native paired responses | [Conditional engine](CONDITIONAL-PG09-CONTRACT.md) |
+| Supply native paired responses | [Conditional engine](CONDITIONAL-ENGINE-CONTRACT.md) |
 | Train numerical responses | [Response sessions](RESPONSE-SESSIONS.md) |
 | Use image operations | [Image sessions](IMAGE-LIFECYCLE.md) |
 | Apply an adapter without training resources | [Native inference](NATIVE-INFERENCE.md) |

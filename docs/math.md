@@ -111,8 +111,8 @@ $\mathcal R_P$ is the recipe's particle regularizer when a real bank participate
 an adapter-only game uses `particles=None`. A disconnected dummy bank is not a
 particle model. Core uses ParticleGAN's public loss, regularizer,
 constraint-geometry backward and optimizer APIs. It does not substitute a local
-optimizer formula. See the [engine contract](../packages/particle-sliders-core/CONDITIONAL-PG09-CONTRACT.md)
-and [pinned release](../packages/particle-sliders-core/COMPATIBILITY-PG0101.md).
+optimizer formula. See the [engine contract](../packages/particle-sliders-core/CONDITIONAL-ENGINE-CONTRACT.md)
+and [pinned release](../packages/particle-sliders-core/COMPATIBILITY.md).
 
 Weight EMA is disabled for the adapter, critic and bank. Training, selection and
 exports use raw current weights. Upstream scalar optimizer statistics stay as

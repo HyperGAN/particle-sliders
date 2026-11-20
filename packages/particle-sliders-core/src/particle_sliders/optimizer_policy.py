@@ -1,6 +1,6 @@
 """Versioned optimizer selection/observability; matrix mathematics stays upstream.
 
-Only the exact modern PG release admitted by pg09 may construct this recipe.
+Only the exact modern PG release admitted by the shared engine may construct this recipe.
 Auto selects Gram only where upstream supports it, never a different GAN law.
 """
 from copy import deepcopy

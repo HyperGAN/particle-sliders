@@ -8,7 +8,7 @@ import torch
 from torch import nn
 
 from particle_sliders.native_lora import lora_target_plan
-from particle_sliders.pg09_audio import ARLastHiddenResponseAdapter, AudioRow
+from particle_sliders.audio import ARLastHiddenResponseAdapter, AudioRow
 from particle_sliders.routed_projection import TinyParticleProjection
 
 

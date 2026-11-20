@@ -1,4 +1,8 @@
-"""Conditional native-response GAN using released ParticleGAN 0.10.1 components (shared core0.14 line).
+"""Conditional native-response GAN using released ParticleGAN 0.10.1 components.
+
+This is the version-neutral shared engine of the core 0.15 line. It admits only
+the exact ParticleGAN release named by ``engine_release.json`` and refuses every
+other installed release or source profile.
 
 Backends own frozen conditioning and differentiable response generation. This
 module owns the adversarial game, optimizer lifecycle, sampling and checkpoint
@@ -34,7 +38,7 @@ def _released_sources(profile=PG_SOURCE_PROFILE):
     import particlegan
     if profile != PG_SOURCE_PROFILE:
         raise ValueError('unknown PG0.10.1 source profile; old releases/overlays require their original environment')
-    document = json.loads(Path(__file__).with_name('pg0101_release.json').read_text())
+    document = json.loads(Path(__file__).with_name('engine_release.json').read_text())
     if (document['version'], document['source_profile'], document['source_commit'], document['wheel_sha256']) != (
             PG_VERSION, PG_SOURCE_PROFILE, PG_SOURCE_COMMIT, PG_WHEEL_SHA256):
         raise RuntimeError('PG0.10.1 source manifest contradicts this engine')
@@ -46,17 +50,17 @@ def _released_sources(profile=PG_SOURCE_PROFILE):
     return _hash(actual)
 
 
-def validate_pg09_domain(response_shape, *, response_domain,
-                         pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto'):
+def validate_engine_domain(response_shape, *, response_domain,
+                           pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto'):
     """Pre-forward host gate for native shape + exact reviewed PG sources.
 
     This never installs a package, applies a patch or reshapes a response.
     Callers declare native geometry and pass this explicitly versioned profile
-    into ConditionalPG09. Released PG0.10.1 accepts explicit continuous vectors
+    into ConditionalParticleGAN. Released PG0.10.1 accepts explicit continuous vectors
     of any width; automatic dispatch retains its shape gates.
     """
     if version('particlegan') != PG_VERSION:
-        raise RuntimeError('ConditionalPG09 requires particlegan==' + PG_VERSION + ' base release')
+        raise RuntimeError('ConditionalParticleGAN requires particlegan==' + PG_VERSION + ' base release')
     if (pg_source_profile, penalty_input_domain) not in _DOMAIN_PAIRS:
         raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
     sources = _released_sources(pg_source_profile)
@@ -75,13 +79,27 @@ def validate_pg09_domain(response_shape, *, response_domain,
         resolved = 'image'
     elif response_domain == 'continuous_vector':
         if len(shape) != 2 or (shape[1] >= 170 and penalty_input_domain != 'continuous'):
-            raise ValueError('released PG09 cannot admit flat continuous vectors with width >=170')
+            raise ValueError('released ParticleGAN auto dispatch cannot admit flat continuous vectors with width >=170')
         resolved = 'continuous'
     else:
         raise ValueError('unsupported response_domain; categorical fallback is forbidden')
     return dict(pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain,
                 pg_sources_sha256=sources, resolved_penalty_domain=resolved)
 
+
+def engine_options(options):
+    """Validate explicit product configuration and return the engine constructor keys.
+
+    A product may state ``pg_version``, ``pg_source_profile`` and
+    ``penalty_input_domain``; any value other than the admitted release refuses.
+    """
+    if options.get('pg_version', PG_VERSION) != PG_VERSION:
+        raise ValueError('this core release requires ParticleGAN ' + PG_VERSION)
+    profile = options.get('pg_source_profile', PG_SOURCE_PROFILE)
+    domain = options.get('penalty_input_domain', 'auto')
+    if (profile, domain) not in _DOMAIN_PAIRS:
+        raise ValueError('this engine requires an explicitly qualified source/domain pair')
+    return dict(pg_source_profile=profile, penalty_input_domain=domain)
 
 def _implementation_sources(backend, critic, provider=None):
     objects = [backend, backend.network, critic]
@@ -101,7 +119,7 @@ def _implementation_sources(backend, critic, provider=None):
                     objects.append(obj)
             if isinstance(owner, nn.Module):
                 objects.extend(owner.modules())
-    result = {'particle_sliders.pg09': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+    result = {'particle_sliders.engine': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               'particle_sliders.restoration': hashlib.sha256(
                   Path(__file__).with_name('restoration.py').read_bytes()).hexdigest()}
     for obj in objects:
@@ -279,7 +297,7 @@ def _validate_optimizer(optimizer, packet, *, require_history=False, completed_s
         raise ValueError('unknown checkpoint optimizer parameter history')
 
 
-class ConditionalPG09:
+class ConditionalParticleGAN:
     """Caller-owned conditional game; ``step`` performs one D and one G update.
 
     ``backend.generated(prepared)`` must keep the row's sign active through
@@ -296,7 +314,7 @@ class ConditionalPG09:
                  optimizer_dense_profile='auto',
                  pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto'):
         if version('particlegan') != PG_VERSION:
-            raise RuntimeError('ConditionalPG09 requires particlegan==' + PG_VERSION + ' with an exact admitted source profile')
+            raise RuntimeError('ConditionalParticleGAN requires particlegan==' + PG_VERSION + ' with an exact admitted source profile')
         if (pg_source_profile, penalty_input_domain) not in _DOMAIN_PAIRS:
             raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
         if preset not in ('bispf_optimized', 'bispf'):
@@ -331,7 +349,7 @@ class ConditionalPG09:
             raise ValueError('at least two frozen response rows required')
         shape = tuple(self.provider.response_shape) if self.provider is not None else tuple(self.rows[0].target.shape)
         self.response_shape = shape
-        domain = validate_pg09_domain(shape, response_domain=response_domain,
+        domain = validate_engine_domain(shape, response_domain=response_domain,
             pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain)
         pg_sources_sha256 = domain['pg_sources_sha256']
         self.targets = None
@@ -580,7 +598,7 @@ class ConditionalPG09:
         if self._failed:
             raise RuntimeError('cannot checkpoint an incomplete failed update')
         opt_g, opt_d = self.opt_g.state_dict(), self.opt_d.state_dict()
-        return deepcopy(dict(schema='conditional-pg09-v1', config=self._signature,
+        return deepcopy(dict(schema='conditional-engine-v1', config=self._signature,
             completed_steps=self.completed_steps, network=self.network.state_dict(),
             critic=self.critic.state_dict(), prior=self.prior.state_dict() if self.prior else None,
             opt_g=opt_g, opt_d=opt_d,
@@ -604,7 +622,7 @@ class ConditionalPG09:
                 + '); resume with the original pinned particle-sliders-core/ParticleGAN '
                 'source environment. Use a fresh cohort for this release; '
                 'automatic checkpoint migration is not supported')
-        if state.get('schema') != 'conditional-pg09-v1' or saved_config != self._signature:
+        if state.get('schema') != 'conditional-engine-v1' or saved_config != self._signature:
             raise ValueError('checkpoint objective, recipe, domain, source or conditioning mismatch; '
                              'resume with the original pinned source/model/data cohort or start a fresh cohort; '
                              'automatic checkpoint migration is not supported')
@@ -822,13 +840,13 @@ class ConditionalPG09:
         """Adapter-only payload, including the actual bank through network ownership."""
         if self._failed:
             raise RuntimeError('cannot export an incomplete failed update')
-        return deepcopy(dict(schema='conditional-pg09-adapter-v1', config=self._signature,
+        return deepcopy(dict(schema='conditional-engine-adapter-v1', config=self._signature,
                              network=self.network.state_dict(), completed_steps=self.completed_steps))
 
     def load_export_state_dict(self, state):
         devices = _rng_devices(self.network, self.critic, self.prior, self.device)
         with torch.random.fork_rng(devices=devices):
-            if state.get('schema') != 'conditional-pg09-adapter-v1' or state.get('config') != self._signature:
+            if state.get('schema') != 'conditional-engine-adapter-v1' or state.get('config') != self._signature:
                 raise ValueError('adapter export protocol differs')
             if type(state['completed_steps']) is not int or not 0 <= state['completed_steps'] <= self.recipe.total_steps:
                 raise ValueError('invalid adapter export step')

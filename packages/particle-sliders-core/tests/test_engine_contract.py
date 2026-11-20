@@ -7,16 +7,18 @@ import pytest
 import torch
 
 from particle_sliders.lifecycle import Backend, BackendUnavailable, Capabilities, SessionConfig
-from particle_sliders.pg0101 import ConditionalPG0101, PG_VERSION, PG_SOURCE_PROFILE, engine_options
-from particle_sliders import pg09
-from test_conditional_pg09 import fixture, equal
+from particle_sliders import engine
+from particle_sliders.engine import (ConditionalParticleGAN, PG_SOURCE_PROFILE, PG_VERSION,
+                                     engine_options)
+from test_conditional_engine import fixture, equal
 
 
-def test_explicit_release_manifest_and_public_alias():
+def test_explicit_release_manifest_and_public_export():
+    import particle_sliders
     assert PG_VERSION == '0.10.1'
     assert PG_SOURCE_PROFILE == 'release-0.10.1'
-    assert ConditionalPG0101 is pg09.ConditionalPG09
-    assert pg09._released_sources() == 'cd1a8b2e1b2a05721fb994fd267a78637c883e6576bc2ffa0cf3d923295948c6'
+    assert particle_sliders.ConditionalParticleGAN is ConditionalParticleGAN
+    assert engine._released_sources() == 'cd1a8b2e1b2a05721fb994fd267a78637c883e6576bc2ffa0cf3d923295948c6'
     assert engine_options({'pg_version': '0.10.1'}) == dict(pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto')
 
 
@@ -25,13 +27,13 @@ def test_default_game_resolves_upstream_recipe_without_hidden_decay_or_ema(monke
     from particle_sliders.optimizer_policy import configure_dense_profile
 
     calls = []
-    original = pg09.get_recipe
+    original = engine.get_recipe
 
     def resolve(name, **options):
         calls.append((name, options))
         return original(name, **options)
 
-    monkeypatch.setattr(pg09, 'get_recipe', resolve)
+    monkeypatch.setattr(engine, 'get_recipe', resolve)
     game = fixture()
     assert len(calls) == 1 and calls[0][0] == 'bispf_optimized'
     name, options = calls[0]
@@ -44,7 +46,7 @@ def test_default_game_resolves_upstream_recipe_without_hidden_decay_or_ema(monke
     # Inspect the scheduler at all historical phase boundaries. These are
     # schedule queries, not optimizer updates or fabricated training steps.
     for step in (0, 199, 200, 799, 800, 959, 960, 1024, 1600):
-        pg09.scale_learning_rates(step, game.recipe, (game.opt_g, game.opt_d),
+        engine.scale_learning_rates(step, game.recipe, (game.opt_g, game.opt_d),
                                  game.base_lrs, game.prior)
         assert [[group['lr'] for group in optimizer.param_groups]
                 for optimizer in (game.opt_g, game.opt_d)] == rates

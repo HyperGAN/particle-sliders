@@ -1,7 +1,7 @@
 # Conditional ParticleGAN engine
 
-`ConditionalPG09` owns the shared adversarial response game, optimizer state,
-private sampling streams and exact continuation. Current core 0.14.2 uses exact
+`ConditionalParticleGAN` owns the shared adversarial response game, optimizer state,
+private sampling streams and exact continuation. Current core 0.15.0 uses exact
 released ParticleGAN 0.10.1. For the explanation and equations, see
 [teacher/student training](../../docs/math.md); for model usage, see the
 [product repositories](../../docs/products.md).
@@ -13,9 +13,9 @@ conditional critic. Most consumers use a [session factory](RESPONSE-SESSIONS.md)
 rather than constructing this engine directly.
 
 ```python
-from particle_sliders.pg09 import ConditionalPG09
+from particle_sliders.engine import ConditionalParticleGAN
 
-game = ConditionalPG09(
+game = ConditionalParticleGAN(
     backend, prepared_rows, critic,
     conditions=conditions, particles=None,
     response_domain="continuous_field", response_scale=1.0,
@@ -54,12 +54,12 @@ The released `continuous` declaration supports wide native vectors, including
 widths 1024, 2048 and 4096. `auto` retains upstream width gates and refuses flat
 continuous vectors of width 170 or more. Do not project, truncate, or spatially
 reshape a vector to get through admission. Pass the same shape/profile/domain
-pair to the descriptor and actual game. `validate_pg09_domain(...)` performs the
+pair to the descriptor and actual game. `validate_engine_domain(...)` performs the
 source and geometry check before a native forward.
 
 The core verifies installed ParticleGAN sources against its release manifest.
 It does not install patches, mutate an environment or alias historical profiles
-to the current release. See [compatibility](COMPATIBILITY-PG0101.md).
+to the current release. See [compatibility](COMPATIBILITY.md).
 
 ## Loss and trainable ownership
 
