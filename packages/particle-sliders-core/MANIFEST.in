@@ -1,6 +1,6 @@
 include CHECKPOINT-OWNERSHIP.md
-include COMPATIBILITY-PG095.md
-include CONDITIONAL-PG09-CONTRACT.md
+include COMPATIBILITY.md
+include CONDITIONAL-ENGINE-CONTRACT.md
 include EVALUATION-AND-LR-SEARCH.md
 include HYPERGAN-REPORTING.md
 include IMAGE-LIFECYCLE.md
@@ -13,7 +13,7 @@ include README.md
 include RESPONSE-SESSIONS.md
 include SHARED-CORE-BOUNDARY.md
 include TRAINING-COMMAND.md
-include requirements-pg09.txt
+include requirements-engine.txt
 recursive-include tests *.py *.json
 include FIBO-NETWORK-PROVENANCE.json
 include _build_backend.py

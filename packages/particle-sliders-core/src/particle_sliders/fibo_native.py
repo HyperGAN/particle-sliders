@@ -1,6 +1,6 @@
 """Fibo 2.0 Edit Turbo: staged native edit responses, no loader or game on import.
 
-Uses the reviewed TinyParticleProjection and ConditionalPG09 interfaces. The
+Uses the reviewed TinyParticleProjection and ConditionalParticleGAN interfaces. The
 official pipeline owns image/VGL preprocessing, VAE normalization and sampling.
 """
 from collections import OrderedDict
@@ -17,11 +17,11 @@ import re
 import torch
 from torch import nn
 
-from .pg09_backends import (
+from .backends import (
     AdapterParameters, FrozenResponseAdapter, PreparedResponse, ResponseRow,
     bind_native_gradient_checkpointing,
 )
-from .pg09_images import image_condition_features
+from .image_bindings import image_condition_features
 from .routed_projection import TinyParticleProjection
 
 MODEL_ID = 'briaai/Fibo-2.0-edit-turbo'
@@ -526,7 +526,7 @@ class FiboCachedRows:
 
 def write_cache(folder, prepared, *, model_identity):
     from dataclasses import fields
-    from .pg09_images import CONDITION_FEATURE_POLICY
+    from .image_bindings import CONDITION_FEATURE_POLICY
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=False)
     prepared = tuple(prepared)
@@ -541,7 +541,7 @@ def write_cache(folder, prepared, *, model_identity):
         row = {field.name: _cpu(getattr(item.row, field.name)) for field in fields(item.row)
                if field.name not in ('neutral', 'positive', 'negative')}
         for key in ('neutral', 'positive', 'negative'):
-            from .pg09 import _hash
+            from .engine import _hash
             value = getattr(item.row, key)
             if id(value) not in seen:
                 seen[id(value)] = _hash(value)
@@ -569,9 +569,9 @@ def build_fibo_game(adapter, provider, *, response_scale, total_steps, batch_siz
     function neither loads a model nor schedules a process. The caller supplies
     a declared response scale; no product normalization/loss is introduced.
     Explicit learning-rate overrides use the same validated upstream recipe
-    fields as other ConditionalPG09 products and bind the checkpoint identity.
+    fields as other ConditionalParticleGAN products and bind the checkpoint identity.
     """
-    from .pg09 import ConditionalPG09, PG_SOURCE_PROFILE
+    from .engine import ConditionalParticleGAN, PG_SOURCE_PROFILE
     from .field_critic import FieldCritic, seed_initialization_rng
     if provider.index['model_identity'] != adapter.model_identity:
         raise ValueError('Fibo cache and backend staged model identity differ')
@@ -590,7 +590,7 @@ def build_fibo_game(adapter, provider, *, response_scale, total_steps, batch_siz
             from .fibo_hndl import HNDLFieldCritic
             critic = HNDLFieldCritic(shape[1], provider.conditions([0]).shape[1], shape[2:])
         critic = critic.to(device=device, dtype=torch.float32)
-    return ConditionalPG09(adapter, provider, critic, conditions=None, particles=adapter.slider.particles,
+    return ConditionalParticleGAN(adapter, provider, critic, conditions=None, particles=adapter.slider.particles,
         response_domain='continuous_field', response_scale=response_scale, preset='bispf_optimized',
         batch_size=batch_size, seed=seed, total_steps=total_steps,
         pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto',
