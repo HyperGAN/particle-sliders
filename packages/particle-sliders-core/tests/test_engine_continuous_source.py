@@ -1,0 +1,145 @@
+"""Source-bound continuous-vector admission; CPU conformance, not model quality."""
+from copy import deepcopy
+from dataclasses import dataclass
+import hashlib
+import json
+from pathlib import Path
+
+import pytest
+import torch
+from torch import nn
+import particlegan
+from particlegan import init
+
+from particle_sliders import engine
+from test_conditional_engine import equal
+
+
+def installed_profile():
+    root = Path(particlegan.__file__).resolve().parent
+    actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
+              for p in sorted(root.rglob('*.py'))}
+    document = json.loads(Path(engine.__file__).with_name('engine_release.json').read_text())
+    assert actual == document['python_sources']
+    return document['source_profile']
+
+
+
+@dataclass(frozen=True)
+class Row:
+    row: dict
+    target: torch.Tensor
+    neutral: torch.Tensor
+
+
+class Network(nn.Module):
+    def __init__(self, width):
+        super().__init__()
+        self.particles = nn.Parameter(torch.linspace(-1, 1, 16).reshape(8, 2))
+        self.projection = nn.Linear(2, width)
+        init.deterministic_orthogonal_(self.projection, seed=0)
+
+    def forward(self, value):
+        return self.projection(value + self.particles.mean(0))
+
+
+class Backend:
+    def __init__(self, width):
+        self.network = Network(width)
+
+    def metadata(self):
+        return {'model': 'bounded CPU vector conformance', 'width': self.network.projection.out_features}
+
+    def generated(self, prepared):
+        return prepared.neutral + prepared.row['sign'] * self.network(prepared.row['input'])
+
+
+class Critic(nn.Module):
+    def __init__(self, width):
+        super().__init__()
+        self.layers = nn.Sequential(nn.Linear(width + 1, 8), nn.SiLU(), nn.Linear(8, 1))
+        init.deterministic_orthogonal_(self.layers, seed=1)
+
+    def forward(self, value, condition):
+        return self.layers(torch.cat((value, condition), 1)).squeeze(-1)
+
+
+def game(width):
+    backend = Backend(width)
+    neutral = torch.linspace(-1, 1, width).reshape(1, width)
+    rows = [Row({'input': torch.tensor([[0.1 * index, -0.2]]), 'sign': sign},
+                neutral + sign * 0.2, neutral) for index, sign in enumerate((-1., 1., -1., 1.))]
+    return engine.ConditionalParticleGAN(backend, rows, Critic(width),
+        particles=backend.network.particles, conditions=torch.arange(4.).reshape(4, 1),
+        response_domain='continuous_vector', response_scale=1., total_steps=4, seed=0,
+        pg_source_profile=engine.PG_SOURCE_PROFILE, penalty_input_domain='continuous',
+        recipe_overrides={'lr': 1e-5, 'd_lr_mult': 3., 'prior_lr_mult': 4.})
+
+
+@pytest.mark.parametrize('width', [16, 169, 170, 1024, 2048, 4096])
+def test_release_continuous_domain_is_explicit_and_native(width):
+    assert installed_profile() == engine.PG_SOURCE_PROFILE
+    result = engine.validate_engine_domain((1, width), response_domain='continuous_vector',
+        penalty_input_domain='continuous')
+    assert result['resolved_penalty_domain'] == 'continuous'
+    if width >= 170:
+        with pytest.raises(ValueError, match='width >=170'):
+            engine.validate_engine_domain((1, width), response_domain='continuous_vector')
+    assert not torch.cuda.is_initialized()
+
+
+@pytest.mark.parametrize('width', [170, 1024, 2048, 4096])
+def test_release_wide_bank_updates_exact_resume_and_inference(width):
+    before_threads = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        original = game(width)
+        assert original.response_shape == (1, width)
+        assert original.penalty.regularizer.input_domain == 'continuous'
+        assert all(group['lr'] == pytest.approx(3e-5) for group in original.opt_d.param_groups)
+        rates = {group['role']:group['lr'] for group in original.opt_g.param_groups}
+        assert rates == pytest.approx({'generator':1e-5, 'prior':4e-5})
+        original.step()
+        checkpoint = original.state_dict()
+        expected = original.step()
+        expected_state = original.state_dict()
+        restored = game(width)
+        restored.load_state_dict(checkpoint)
+        assert restored.step() == expected
+        equal(expected_state, restored.state_dict())
+        inference = game(width)
+        inference.load_export_state_dict(original.export_state_dict())
+        assert torch.equal(original.evaluate(0, seed=0), inference.evaluate(0, seed=0))
+        for key, wrong in [('pg_source_profile', 'release-0.9.4'),
+                           ('penalty_input_domain', 'auto'), ('pg_sources_sha256', '0'*64)]:
+            corrupt = deepcopy(checkpoint); corrupt['config'][key] = wrong
+            before = restored.state_dict()
+            with pytest.raises(ValueError, match='mismatch'):
+                restored.load_state_dict(corrupt)
+            equal(before, restored.state_dict())
+    finally:
+        torch.set_num_threads(before_threads)
+
+
+def test_old_overlay_and_release_options_do_not_rebind():
+    from particle_sliders.engine import engine_options
+    assert engine_options({'penalty_input_domain': 'continuous'}) == {
+        'pg_source_profile': engine.PG_SOURCE_PROFILE, 'penalty_input_domain': 'continuous'}
+    for old in ['release-0.9.4', 'release-0.9.5', 'release-0.10.1', 'source-801ae1e-continuous-v1']:
+        with pytest.raises(ValueError, match='qualified source/domain pair'):
+            engine_options({'pg_source_profile': old, 'penalty_input_domain': 'continuous'})
+    for old in ['0.9.3', '0.9.4', '0.9.5', '0.10.0', '0.10.1']:
+        with pytest.raises(ValueError, match='requires ParticleGAN 0.11.0'):
+            engine_options({'pg_version': old})
+
+
+def test_common_lifecycle_admits_declared_release_domain_before_factory():
+    from particle_sliders.lifecycle import Backend, Capabilities, SessionConfig
+    calls = []
+    def factory(options):
+        calls.append('factory')
+        raise RuntimeError('factory sentinel')
+    backend = Backend('continuous-release-gate', Capabilities('adapter_gan', False), factory, lambda options: None)
+    with pytest.raises(RuntimeError, match='factory sentinel'):
+        backend.open(SessionConfig(backend.name, 'new095', penalty_input_domain='continuous'))
+    assert calls == ['factory']

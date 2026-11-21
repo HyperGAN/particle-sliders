@@ -3,7 +3,7 @@
 `particle_sliders.peft_scaling.peft_adapter_scale_context(roots, *, adapter_names)`
 is an additive opt-in scale owner for an already attached, stock PEFT `Linear`
 on `torch.nn.Linear`. It requires PEFT only when called. It does not change the
-historical `pg09_backends.lora_scale_context`, introduce a dependency pin, attach
+historical `backends.lora_scale_context`, introduce a dependency pin, attach
 adapters or choose product targets. H3/Pika integration belongs to its native
 owner; this helper does not imply that its custom wrapper needs replacement.
 
@@ -60,7 +60,7 @@ owner. The same owner must be captured by checkpoint recomputation:
 ```python
 from contextlib import ExitStack
 from particle_sliders.peft_scaling import peft_adapter_scale_context
-from particle_sliders.pg09_backends import (
+from particle_sliders.backends import (
     AdapterParameters, checkpoint_with_adapter_scale,
 )
 

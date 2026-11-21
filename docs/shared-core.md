@@ -1,6 +1,6 @@
 # Shared core API map
 
-Core 0.14.2 is model-independent. Products depend on core; core does not import
+Core 0.15.1 is model-independent. Products depend on core; core does not import
 products to discover or load models. For end-user usage, see the
 [product repositories](products.md).
 
@@ -17,7 +17,7 @@ Start with the [distribution boundary](../packages/particle-sliders-core/SHARED-
 Use [response sessions](../packages/particle-sliders-core/RESPONSE-SESSIONS.md) for
 numerical responses and [image sessions](../packages/particle-sliders-core/IMAGE-LIFECYCLE.md)
 when the product offers image operations. Both use the same
-[conditional engine](../packages/particle-sliders-core/CONDITIONAL-PG09-CONTRACT.md).
+[conditional engine](../packages/particle-sliders-core/CONDITIONAL-ENGINE-CONTRACT.md).
 
 A product factory owns model-specific construction and cleanup. A separate
 [native inference factory](../packages/particle-sliders-core/NATIVE-INFERENCE.md)
