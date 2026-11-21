@@ -1,7 +1,7 @@
 # Developing the shared core
 
 Use Python 3.11+ and an environment compatible with PyTorch 2.6–2.x and exact
-`particlegan==0.9.5`. Native model dependencies belong in their
+`particlegan==0.11.0`. Native model dependencies belong in their
 [product repositories](products.md).
 
 ## Install and run tests
@@ -50,7 +50,7 @@ Conceptmod installation.
 - Search protocols and arithmetic: `particle_sliders.parameter_search`.
 - Current explanations and API navigation: this docs directory and package guides.
 
-Keep the [math](math.md), [engine contract](../packages/particle-sliders-core/CONDITIONAL-PG09-CONTRACT.md)
+Keep the [math](math.md), [engine contract](../packages/particle-sliders-core/CONDITIONAL-ENGINE-CONTRACT.md)
 and [distribution boundary](../packages/particle-sliders-core/SHARED-CORE-BOUNDARY.md)
 aligned with the implementation. Use the upstream ParticleGAN APIs for optimizer
 and loss behavior rather than copying a local formula. Fresh configs explicitly

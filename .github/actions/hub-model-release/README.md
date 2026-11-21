@@ -28,3 +28,14 @@ CI refuses removals and overwrites of historical files. Root release metadata
 and `.gitattributes` can change when included in the reviewed manifest. Regenerate
 and review the manifest if Hub `main` advances with a distinct file tree. Consumers
 can pin `base_revision` while a corrected release is prepared.
+
+Projects that publish checksum manifests may pass `mutable-files` on the action
+and repeat `--mutable-file` in the staging command. Supported additions are
+`FORMULATION.md`, `manifest.json`, and `SHA256SUMS`.
+
+For a model with a `release-manifest.json` whose `files` object maps paths to
+`bytes` and `sha256`, set `verify-release-manifest: 'true'` in both calling jobs
+and pass `--verify-release-manifest` when generating the staging manifest. The
+action checks both changed tracked files and new or changed checksum entries
+against the staged revision. Include the updated checksum in the same staged
+revision as the file it covers. Validate other checksum formats in the caller.
