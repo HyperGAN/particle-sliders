@@ -2,9 +2,10 @@
 
 Qwen3.5 already evaluates the frozen base, a routed particle teacher, and its
 ordinary LoRA student on GSM8K. The historical release reports that all four
-teacher responses hit the generation cap. The baseline and student each have
-sixteen responses, so comparing their published aggregate scores to the
-four-case teacher score would mix different case sets and censoring. The
+teacher responses hit the generation cap. The release includes the matched
+four-case student subset and a separate sixteen-case baseline and distilled
+student comparison. Those longer summaries mix different case sets with the
+teacher probe, and the base and distilled answers also hit the cap. The
 generation records include decoded text, token counts, and truncation flags.
 They lack emitted token IDs and paired teacher and student distributions on
 the same prefixes. They can support finished-answer audits on completed
