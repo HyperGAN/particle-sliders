@@ -10,6 +10,9 @@ inputs:
   mutable-files:
     description: Space-separated additional root release metadata filenames allowed to change
     default: ''
+  verify-release-manifest:
+    description: Check affected file checksums listed in the staged release-manifest.json
+    default: 'false'
 runs:
   using: composite
   steps:
@@ -25,6 +28,7 @@ runs:
         HF_OIDC_RESOURCE: ${{ inputs.repo }}
         PUBLISH_RELEASE: ${{ inputs.publish }}
         MUTABLE_FILES: ${{ inputs.mutable-files }}
+        VERIFY_RELEASE_MANIFEST: ${{ inputs.verify-release-manifest }}
       run: |
         set -euo pipefail
         read -r -a metadata <<< "$MUTABLE_FILES"
@@ -32,6 +36,11 @@ runs:
         for name in "${metadata[@]}"; do
           args+=(--mutable-file "$name")
         done
+        case "$VERIFY_RELEASE_MANIFEST" in
+          false) ;;
+          true) args+=(--verify-release-manifest) ;;
+          *) echo 'verify-release-manifest must be either true or false' >&2; exit 1 ;;
+        esac
         case "$PUBLISH_RELEASE" in
           false)
             python "$ACTION_PATH/release.py" "${args[@]}"

@@ -1,4 +1,4 @@
-"""Native image response bindings; all adversarial updates live in ConditionalPG09.
+"""Native image response bindings; all adversarial updates live in ConditionalParticleGAN.
 
 Constructors accept already-staged frozen models and attached adapters. They never
 load weights, dispatch a process, or call a historical trainer.
@@ -8,7 +8,7 @@ from copy import deepcopy
 
 import torch
 
-from .pg09_backends import (
+from .backends import (
     AdapterParameters, FrozenResponseAdapter, _lora_scale_context,
     bind_native_gradient_checkpointing,
 )
@@ -131,7 +131,7 @@ class ImageResponseAdapter(FrozenResponseAdapter):
 
     def metadata(self):
         result = super().metadata()
-        result.update(protocol='native-image-response-pg090-v1',
+        result.update(protocol='native-image-response-engine-v1',
                       response_coordinates='native spatial prediction field',
                       text_encoder='frozen precomputed encoding; DiT/UNet LoRA only',
                       particle_bank='none: adapter GAN only',

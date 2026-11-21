@@ -4,7 +4,7 @@ from dataclasses import replace
 
 import pytest
 import torch
-from particle_sliders.pg09_backends import FrozenResponseAdapter, FlowSchedule, ResponseRow
+from particle_sliders.backends import FrozenResponseAdapter, FlowSchedule, ResponseRow
 
 
 class Network(torch.nn.Module):
