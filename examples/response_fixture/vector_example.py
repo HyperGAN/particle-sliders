@@ -6,16 +6,16 @@ from pathlib import Path
 import torch
 from torch import nn
 
-from particle_sliders import pg09
+from particle_sliders import engine
 from particle_sliders.lifecycle import Binding
 from particle_sliders.response import ResponseBackend, ResponseCapabilities
 from particle_sliders.inference import InferenceBackend, InferenceBinding, native_identity
-from particle_sliders.pg09_backends import AdapterParameters
-from particle_sliders.pg09_audio import AudioRow, PreparedAudioResponse, AudioResponseCritic
+from particle_sliders.backends import AdapterParameters
+from particle_sliders.audio import AudioRow, PreparedAudioResponse, AudioResponseCritic
 
-PROFILE = getattr(pg09, 'PG_SOURCE_PROFILE', 'release')
+PROFILE = getattr(engine, 'PG_SOURCE_PROFILE', 'release')
 CAPS = ResponseCapabilities('adapter_gan', 'synthetic_vector', 'native_final_hidden_fixture',
-    'continuous_vector', (1, 32), pg09.PG_VERSION, PROFILE)
+    'continuous_vector', (1, 32), engine.PG_VERSION, PROFILE)
 PROTOCOL = 'synthetic-vector-response-v1'
 CLOSED = []
 
@@ -76,7 +76,7 @@ def prepare_training(options):
         torch.full((1, 32), native.base + .2 + .01 * i),
         torch.full((1, 32), native.base + .01 * i)) for i in range(count)]
     critic = AudioResponseCritic(32, 3)
-    game = pg09.ConditionalPG09(native, rows, critic, conditions=torch.ones(count, 3),
+    game = engine.ConditionalParticleGAN(native, rows, critic, conditions=torch.ones(count, 3),
         particles=None, response_domain='continuous_vector', total_steps=4, batch_size=2,
         pg_source_profile=PROFILE)
     spec = INFERENCE.specification(native, model_identity=native.identity,
