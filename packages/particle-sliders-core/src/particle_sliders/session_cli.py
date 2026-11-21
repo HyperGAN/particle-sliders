@@ -3,11 +3,21 @@ import argparse
 from dataclasses import asdict
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 
 def main(argv=None):
     # Keep plan/dispatch dependency-light, including installed console entrypoints.
+    argv = sys.argv[1:] if argv is None else list(argv)
+    if argv and argv[0] == 'collect':
+        try:
+            from particle_sliders_vibe import main as collect_main
+        except ModuleNotFoundError as exc:
+            if exc.name != 'particle_sliders_vibe':
+                raise
+            raise SystemExit('collect requires particle-sliders-vibe. Install the add-on or see VIBE-COLLECTION.md.') from exc
+        return collect_main(argv[1:])
     from .execution.cli import should_dispatch, main as execution_main
     if should_dispatch(argv):
         return execution_main(argv)
