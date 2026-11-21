@@ -46,3 +46,27 @@ def test_audit_refuses_inconsistent_evidence(tmp_path, change, error):
         state['selected'][0] = {}
     with pytest.raises(ValueError, match=error):
         audit_collection(state)
+
+
+@pytest.mark.parametrize('field, error', [
+    ('round', 'frozen Vibe cohort'), ('seed', 'frozen matched seeds'),
+    ('gain', 'saved case gain differs'), ('best', 'best-of-N index differs'),
+    ('selected-round', 'selected contexts differ'),
+])
+def test_audit_refuses_boolean_impostors(tmp_path, field, error):
+    state = collect(Product(), vibe='rugged', directory=tmp_path, pool_size=2, replace=1, best_of=2, seed=1)
+    round_ = state['rounds'][0]
+    row = round_['ranking'][0]
+    case = row['cases'][0]
+    if field == 'round':
+        round_['index'] = False
+    elif field == 'seed':
+        case['seed'] = True
+    elif field == 'gain':
+        round_['ranking'][1]['cases'][0]['gain'] = False
+    elif field == 'best':
+        row['best'] = False
+    else:
+        state['selected'][0]['round'] = False
+    with pytest.raises(ValueError, match=error):
+        audit_collection(state)

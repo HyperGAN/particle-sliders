@@ -5,7 +5,7 @@ import json
 import math
 from pathlib import Path
 
-from . import SCHEMA, digest, file_digest, prompt_pair, read_json, score_value
+from . import SCHEMA, canonical, digest, file_digest, prompt_pair, read_json, score_value
 
 
 def _summary(rows):
@@ -29,7 +29,7 @@ def audit_collection(state, *, verify_media=False):
 
     for index, round_ in enumerate(state['rounds']):
         ranking = round_['ranking']
-        if round_['index'] != index or len(ranking) != pool_size:
+        if type(round_['index']) is not int or round_['index'] != index or len(ranking) != pool_size:
             raise ValueError('round does not match the frozen Vibe cohort')
         prompt_keys = set()
         fitnesses = []
@@ -42,7 +42,8 @@ def audit_collection(state, *, verify_media=False):
                 raise ValueError('duplicate candidate prompt pair in round')
             prompt_keys.add(key)
             cases = row['cases']
-            if [case['seed'] for case in cases] != expected_seeds:
+            if (any(type(case['seed']) is not int for case in cases)
+                    or [case['seed'] for case in cases] != expected_seeds):
                 raise ValueError('candidate does not cover exactly the frozen matched seeds')
 
             gains = []
@@ -51,7 +52,7 @@ def audit_collection(state, *, verify_media=False):
                 for side in ('neutral', 'positive'):
                     receipt = case[side]
                     output = receipt['output']
-                    if (('seed' in output and output['seed'] != case['seed'])
+                    if (('seed' in output and (type(output['seed']) is not int or output['seed'] != case['seed']))
                             or ('prompt' in output and output['prompt'] != prompt[side])):
                         raise ValueError('output does not bind the case seed and prompt')
                     if verify_media:
@@ -62,7 +63,7 @@ def audit_collection(state, *, verify_media=False):
                             raise ValueError('output media differs from its saved hash')
                     scores.append(score_value(receipt['judgment'])['score'])
                 gain = scores[1] - scores[0]
-                if gain != case['gain']:
+                if type(case['gain']) not in (int, float) or gain != case['gain']:
                     raise ValueError('saved case gain differs from the matched effect scores')
                 gains.append(gain)
             fitness = row['fitness']
@@ -71,7 +72,7 @@ def audit_collection(state, *, verify_media=False):
             # arithmetic within rounding error, and keep the saved tie/order.
             if (type(fitness) not in (int, float)
                     or not math.isclose(fitness, math.fsum(gains) / best_of, rel_tol=0, abs_tol=1e-15)
-                    or row['best'] != winner):
+                    or type(row['best']) is not int or row['best'] != winner):
                 raise ValueError('saved fitness or best-of-N index differs from measured effect')
             fitnesses.append(fitness)
             all_cases.extend(cases)
@@ -85,7 +86,7 @@ def audit_collection(state, *, verify_media=False):
         rounds.append({'round': index, 'candidates': len(fitnesses),
                        'top_effect_gain': fitnesses[0], 'tied_top_candidates': fitnesses.count(fitnesses[0])})
 
-    if state['selected'] != selected:
+    if canonical(state['selected']) != canonical(selected):
         raise ValueError('saved selected contexts differ from the round evidence')
     return {'schema': 'particle-slider-vibe-receipt-audit-v1', 'collection_sha256': digest(state),
             'rounds': rounds, 'all_matched_cases': _summary(all_cases),
