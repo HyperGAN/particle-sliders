@@ -10,10 +10,10 @@ constant-coefficient activation steering at matched coherence.
 Toy operationalization: token states h in R^12. The "prompted" target applies
 a known ground-truth gain profile along a fixed direction v: gain 2.2 on the
 half of tokens whose activation aligns with a probe direction u, 0.1 on the
-rest. Two adapter arms are trained adversarially against the same critic --
-ParticleGAN's current default recipe (EMPF), used through the public
-``get_recipe`` builders (critic optimizer, critic penalty, relativistic
-loss) -- to turn unsteered states into prompted ones:
+rest. Two adapter arms are trained adversarially against identically
+initialized critics. Both arms use EMPF through the shared core's
+ParticleGAN recipe wrapper and its critic optimizer, critic penalty, and
+relativistic loss builders:
 
   (a) constant arm:  h + softplus(alpha) * v, one scalar for every token;
   (b) token arm:     h + softplus(MLP(h)) * v, a coefficient per token.
@@ -21,33 +21,24 @@ loss) -- to turn unsteered states into prompted ones:
 Both arms are given the true direction v, isolating the coefficient claim.
 The constant arm is also compared against the oracle constant (the exact
 MSE-optimal scalar, computed in closed form): training must reach that
-ceiling, and the token arm must beat it by a wide margin. Skips cleanly
-when the installed particlegan does not provide the EMPF recipe.
+ceiling, and the token arm must beat it by a wide margin.
 """
 import pytest
 import torch
 from torch import nn
 
-particlegan = pytest.importorskip("particlegan")
-from particlegan import get_recipe  # noqa: E402
+from particle_sliders import particlegan_get_recipe
 
 
 @pytest.fixture(autouse=True)
 def single_thread():
     before = torch.get_num_threads()
     torch.set_num_threads(1)
-    yield
-    torch.set_num_threads(before)
-
-
-def _empf_recipe():
     try:
-        recipe = get_recipe("empf", loss="relativistic")
-    except Exception:
-        pytest.skip("installed particlegan has no empf recipe")
-    if getattr(recipe, "effective_critic_formulation", None) != "empf":
-        pytest.skip("installed particlegan default recipe is not empf")
-    return recipe
+        with torch.random.fork_rng(devices=[]):
+            yield
+    finally:
+        torch.set_num_threads(before)
 
 
 D = 12
@@ -98,12 +89,13 @@ class _TokenAdapter(nn.Module):
 
 def _train_arm(kind, seed, recipe, steps=75, batch=128, n_train=4096):
     g, v, u = _world(seed)
-    torch.manual_seed(seed)
+    torch.random.default_generator.manual_seed(seed)
     base = torch.randn(n_train, D, generator=g)
     tgt = _target(base, v, u)
-    adapter = _ConstAdapter(v) if kind == "const" else _TokenAdapter(v)
+    # Initialize the shared critic before the adapter consumes random draws.
     critic = nn.Sequential(nn.Linear(D, 48), nn.SiLU(),
                            nn.Linear(48, 48), nn.SiLU(), nn.Linear(48, 1))
+    adapter = _ConstAdapter(v) if kind == "const" else _TokenAdapter(v)
     opt_d = recipe.make_critic_optimizer(critic)
     penalty = recipe.make_critic_penalty(opt_d)
     loss = recipe.make_loss()
@@ -131,7 +123,8 @@ def _train_arm(kind, seed, recipe, steps=75, batch=128, n_train=4096):
 
 
 def test_token_coefficient_beats_best_constant():
-    recipe = _empf_recipe()
+    recipe = particlegan_get_recipe("empf", loss="relativistic", ema_decay=None)
+    assert recipe.effective_critic_formulation == "empf"
     for seed in (0, 1, 2):
         const_mse, oracle, none = _train_arm("const", seed, recipe)
         token_mse, _, _ = _train_arm("token", seed, recipe)
