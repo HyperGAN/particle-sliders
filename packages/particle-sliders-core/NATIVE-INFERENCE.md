@@ -27,6 +27,18 @@ response --native request.json --out response.pt`. This accepts no training
 configuration, resume packet, teacher cache or dataset. It saves the raw selection and
 origin receipt beside the output.
 
+## Scheduled strength
+
+Keep the exported RAW adapter fixed. For a diffusion or flow backend, resolve
+its actual intervals with
+`particle_sliders.strength_schedule.interval_strengths`. Apply each gain inside
+the product's adapter scope at the same forward calls that take scalar strength.
+The shared Euler response adapter accepts
+`adapter.render(row, scale=..., strength_profile="early")`. A product using
+that adapter is responsible for validating the resolved gains and forwarding
+its request option. Other native factories can use the helper with their own
+sampler. See the [qualification and rollout guide](../../docs/strength-schedules.md).
+
 ## Factory contract
 
 `InferenceBackend(name, capabilities, prepare, validate, response=True,

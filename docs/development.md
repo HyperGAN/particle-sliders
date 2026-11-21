@@ -60,3 +60,8 @@ Source-bound checkpoint tests deliberately reject changed identities. Preserve
 old fixtures and receipts; use a new cohort for a changed implementation rather
 than weakening validation. Historical tests outside the default suite apply to
 their original complete checkout; see [history](history.md).
+
+When a product adds [scheduled slider strength](strength-schedules.md), test
+constant replay, native OFF behavior, the adapted branch at each step, and
+restoration on failure. Use finished outputs to qualify the profile on its
+native sampler.

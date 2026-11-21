@@ -25,6 +25,11 @@ builds only the resources needed to apply an exported adapter. Generic core code
 must not acquire product prompts, fixed model directories, class-name target
 selection, native schedulers, media decoders or campaign policy.
 
+For [scheduled slider strength](strength-schedules.md), core resolves the
+per-interval gains. Products choose which stage to steer, supply its native
+intervals, validate the effective strengths and apply them in the native
+generation loop.
+
 Full training checkpoints and adapter exports serve different purposes. Resume
 requires the full original training state and source identity; an export applies
 learned weights for inference. See the session guides for these lifecycle rules.

@@ -47,6 +47,10 @@ output linear in $s$. Products declare strength ranges and their OFF semantics;
 in particular, numeric zero in stock PEFT still evaluates the branch and is not
 a universal bypass guarantee. See [PEFT scaling](../packages/particle-sliders-core/PEFT-SCALING.md).
 
+In a scheduled render, replace the scalar `s` above with the effective strength
+for the current native interval or position. The branch weights stay fixed
+during the render. [Scheduling and matched comparisons](strength-schedules.md)
+
 ## 2. Turn the response difference into a conditional game
 
 For a fixed positive response scale $a$, define

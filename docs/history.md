@@ -2,6 +2,7 @@
 
 Current usage lives in the [product repositories](products.md). Current shared
 contracts are listed in the [documentation index](README.md).
+For current inference comparisons, use [scheduled slider strength](strength-schedules.md).
 
 The repository grew from Concept Sliders through embedded image, audio and text
 experiments into a shared core. Older model instructions, release cards,

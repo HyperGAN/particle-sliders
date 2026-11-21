@@ -25,6 +25,11 @@ establish a valid hit and must be regenerated under the new identity schema.
 Mismatched or malformed payloads at new paths are refused without rewriting
 them. Cache identity does not change the teacher-generation, training or optimizer formula.
 
+When caching finished renders, include the native strength profile, resolved
+gains and scheduler identity in the render request digest. An inference
+schedule does not change the identity of frozen teacher tensors.
+[Scheduled slider strength](strength-schedules.md)
+
 Core 0.14 excludes the historical model-specific consumer from its default
 wheel. The helper lives in the shared execution namespace so product-owned
 consumers can reuse it without importing a model implementation from core.

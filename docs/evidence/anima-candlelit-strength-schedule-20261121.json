@@ -1,0 +1,220 @@
+{
+  "experiment": "Anima Turbo Candlelit RAW256 inference strength by denoising step",
+  "metric": "Equal-case mean of matched finished-image Candlelit intensity ON minus OFF",
+  "constant_replay": "Original case 0 PNG matched byte for byte",
+  "initial": {
+    "case_effects": [
+      {
+        "case": 0,
+        "effect_gain": {
+          "constant": 0.005887115995089213,
+          "early": 0.006613396108150482,
+          "late": 0.0037569676836331687
+        },
+        "integrity": {
+          "constant": "pass",
+          "early": "pass",
+          "late": "pass"
+        },
+        "off_integrity": "pass"
+      },
+      {
+        "case": 1,
+        "effect_gain": {
+          "constant": 0.0035810271898905435,
+          "early": 0.007882808645566303,
+          "late": 0.0004311278462409973
+        },
+        "integrity": {
+          "constant": "pass",
+          "early": "pass",
+          "late": "pass"
+        },
+        "off_integrity": "pass"
+      }
+    ],
+    "means": {
+      "constant": 0.004734071592489879,
+      "early": 0.007248102376858393,
+      "late": 0.002094047764937083
+    },
+    "raw_sha256": "90f831220f630c5a23923da3a7b571b5cc5ab5d99c4150dd054e98b4ddc24ac1",
+    "sigmas": [
+      1.0,
+      0.964285671710968,
+      0.9230769872665405,
+      0.8749999403953552,
+      0.8181818127632141,
+      0.75,
+      0.6666666865348816,
+      0.5625,
+      0.4285714626312256,
+      0.25,
+      0.0
+    ],
+    "strengths": {
+      "constant": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "early": [
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        0.9666667853461673,
+        0.5,
+        0.5
+      ],
+      "late": [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        1.0333332146538328,
+        1.5,
+        1.5
+      ]
+    }
+  },
+  "additional": {
+    "case_effects": [
+      {
+        "case": 0,
+        "effect_gain": {
+          "constant": 0.005255654454231262,
+          "early": 0.01219365249077479,
+          "late": 0.001689136028289795
+        },
+        "integrity": {
+          "constant": "pass",
+          "early": "pass",
+          "late": "pass"
+        },
+        "off_integrity": "pass"
+      },
+      {
+        "case": 1,
+        "effect_gain": {
+          "constant": -0.0014846771955490104,
+          "early": 0.0036855041980743413,
+          "late": -0.002757805089155833
+        },
+        "integrity": {
+          "constant": "pass",
+          "early": "pass",
+          "late": "pass"
+        },
+        "off_integrity": "pass"
+      },
+      {
+        "case": 2,
+        "effect_gain": {
+          "constant": -0.0008348052700360613,
+          "early": -0.0012608418862024937,
+          "late": 0.002060343821843465
+        },
+        "integrity": {
+          "constant": "pass",
+          "early": "pass",
+          "late": "pass"
+        },
+        "off_integrity": "pass"
+      },
+      {
+        "case": 3,
+        "effect_gain": {
+          "constant": 0.010313508411248524,
+          "early": 0.007424851258595784,
+          "late": 0.005971235533555348
+        },
+        "integrity": {
+          "constant": "pass",
+          "early": "pass",
+          "late": "pass"
+        },
+        "off_integrity": "pass"
+      }
+    ],
+    "means": {
+      "constant": 0.0033124200999736786,
+      "early": 0.005510791515310605,
+      "late": 0.0017407275736331938
+    },
+    "raw_sha256": "90f831220f630c5a23923da3a7b571b5cc5ab5d99c4150dd054e98b4ddc24ac1",
+    "sigmas": [
+      1.0,
+      0.964285671710968,
+      0.9230769872665405,
+      0.8749999403953552,
+      0.8181818127632141,
+      0.75,
+      0.6666666865348816,
+      0.5625,
+      0.4285714626312256,
+      0.25,
+      0.0
+    ],
+    "strengths": {
+      "constant": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "early": [
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        1.5,
+        0.9666667853461673,
+        0.5,
+        0.5
+      ],
+      "late": [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        1.0333332146538328,
+        1.5,
+        1.5
+      ]
+    }
+  },
+  "pooled_mean_effect_gain": {
+    "constant": 0.0037863039308124115,
+    "early": 0.006089895135826535,
+    "late": 0.00185850097073449
+  },
+  "pooled_wins_against_constant": {
+    "early": 4,
+    "late": 1
+  }
+}

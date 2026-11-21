@@ -41,6 +41,9 @@ requiring a rendered image, waveform, or generated text at every update.
 At inference, the product applies the learned adapter at a chosen strength.
 Strength scales the adapter branch; a complete generated output need not vary
 linearly, and the product defines supported strengths and OFF behavior.
+For multi-step generators, compare scheduled and constant strength with the
+same RAW adapter, then use the qualified schedule for the product and slider.
+See [scheduled slider strength](docs/strength-schedules.md).
 
 ## Math: a paired residual game
 
