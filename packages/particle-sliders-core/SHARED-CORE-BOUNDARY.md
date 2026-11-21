@@ -1,7 +1,7 @@
 # Model-independent Particle Sliders core
 
-Core 0.15.1 is an explicit packaging cohort, based on released ParticleGAN
-0.11.0. Product repositories depend on this core and register or inject their
+Core 0.15.2 is an explicit packaging cohort, based on released ParticleGAN
+0.11.1. Product repositories depend on this core and register or inject their
 native factories. The core never constructs a named pretrained model. For model setup, training
 recipes and generation, use the [product repositories](../../docs/products.md).
 For the teacher/student game, see the [math guide](../../docs/math.md).
@@ -92,8 +92,7 @@ source change. Native products can keep different runtime/dependency environment
 The full embedded-product core 0.13.0 remains at commit
 `285180ed9813f12e912bb6bce6bada00496fd19a`. Its installed module paths, checkpoint
 cohorts and source receipts remain available at that immutable source pin.
-The exact replaced bindings are also retained under
-`legacy/model-bindings/core-0.13.0` in this repository. Remaining embedded source
+The exact replaced bindings are available in the [archived source tree](https://github.com/HyperGAN/particle-sliders/tree/51da76572cf1417d7f0f4ad95c00b4b869807e4f/legacy/model-bindings/core-0.13.0). Remaining embedded source
 trees are historical migration input and are excluded from the new distribution.
 
 Core 0.14 and later do not alias a removed model implementation to a different product

@@ -13,7 +13,7 @@ available at immutable revisions rather than presented as current guidance:
 |---|---|
 | [Pre-cleanup tree, `ba51374`](https://github.com/HyperGAN/particle-sliders/tree/ba513741b7d4be93d049c4e1d88168f86c41e783) | Full old docs, `MUSIC3.md`, `SCORING.md`, `LM-SCORING.md`, experiment notes and integration proposals |
 | [Core 0.13.0, `285180e`](https://github.com/HyperGAN/particle-sliders/tree/285180ed9813f12e912bb6bce6bada00496fd19a) | Embedded model modules, old installed namespaces and their original loaders |
-| [Archived model bindings](../legacy/model-bindings/core-0.13.0) | Replaced binding source retained for provenance |
+| [Archived model bindings](https://github.com/HyperGAN/particle-sliders/tree/51da76572cf1417d7f0f4ad95c00b4b869807e4f/legacy/model-bindings/core-0.13.0) | Replaced binding source retained for provenance |
 
 Old checkpoints keep their original source, environment, model, data, optimizer,
 step count and metric identity. A current API name or matching tensor shape does
@@ -25,9 +25,10 @@ measurement; completed training does not need to be repeated.
 
 - JSON receipts, figures, audio and other captured evidence are retained as
   recorded. Their presence is not a current default or a new quality claim.
-- [The November 6 architecture audit](audits/implicit-state-machines-20261106/README.md)
+- [The November 6 architecture audit](https://github.com/HyperGAN/particle-sliders/tree/51da76572cf1417d7f0f4ad95c00b4b869807e4f/docs/audits/implicit-state-machines-20261106)
   records findings at that date. Subsequent fixes make some findings historical;
   use current contracts and code for present behavior.
+- [The archived documentation and source inventory](https://github.com/HyperGAN/particle-sliders/tree/51da76572cf1417d7f0f4ad95c00b4b869807e4f/docs) contains the original source inventory and parameter-search validation receipts.
 - [Legacy sweep ownership](execution/sweep-owner-recovery.md) documents a retained
   script's process and recovery rules.
 - `hub-formulation-uni16-gan.md` and `hub-native-usage.md` remain unchanged because

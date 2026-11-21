@@ -17,16 +17,16 @@ def test_native_wide_vectors_remain_refused(width):
     assert not torch.cuda.is_initialized()
 
 
-@pytest.mark.parametrize('profile,domain', [('release-0.9.3', 'auto'),
-    ('release', 'auto'), ('alz-continuous-v1', 'continuous'), ('release-0.9.4', 'continuous')])
+@pytest.mark.parametrize('profile,domain', [('release-0.11.0', 'auto'),
+    ('release', 'auto'), ('alz-continuous-v1', 'continuous'), ('release-unverified', 'continuous')])
 def test_old_or_unqualified_profiles_never_become_a_version_override(profile, domain):
     with pytest.raises(ValueError, match='qualified pair'):
         engine.validate_engine_domain((1, 2048), response_domain='continuous_vector',
             pg_source_profile=profile, penalty_input_domain=domain)
 
 
-@pytest.mark.parametrize('key,value', [('pg_version', '0.9.3'),
-    ('pg_source_profile', 'release-0.9.3'), ('pg_sources_sha256', 'old-source-map')])
+@pytest.mark.parametrize('key,value', [('pg_version', '0.11.0'),
+    ('pg_source_profile', 'release-0.11.0'), ('pg_sources_sha256', 'old-source-map')])
 def test_previous_release_checkpoint_identity_refuses_transactionally(key, value):
     game = fixture()
     game.step()

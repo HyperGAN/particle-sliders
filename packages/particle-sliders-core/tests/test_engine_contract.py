@@ -15,11 +15,11 @@ from test_conditional_engine import fixture, equal
 
 def test_explicit_release_manifest_and_public_export():
     import particle_sliders
-    assert PG_VERSION == '0.11.0'
-    assert PG_SOURCE_PROFILE == 'release-0.11.0'
+    assert PG_VERSION == '0.11.1'
+    assert PG_SOURCE_PROFILE == 'release-0.11.1'
     assert particle_sliders.ConditionalParticleGAN is ConditionalParticleGAN
-    assert engine._released_sources() == 'c5e3c7754c0869bb9af4ce70d922a618b3f3bc31284bc69541f9385332713c40'
-    assert engine_options({'pg_version': '0.11.0'}) == dict(pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto')
+    assert engine._released_sources() == '80abcbf46afa3ab48b4b72fde63132c8507db774eeda4666c9b2285102f63e77'
+    assert engine_options({'pg_version': '0.11.1'}) == dict(pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto')
 
 
 def test_default_game_resolves_upstream_recipe_without_hidden_decay_or_ema(monkeypatch):
@@ -53,9 +53,11 @@ def test_default_game_resolves_upstream_recipe_without_hidden_decay_or_ema(monke
     assert game.completed_steps == 0 and not torch.cuda.is_initialized()
 
 
-@pytest.mark.parametrize('options', [dict(pg_version='0.9.3'), dict(pg_source_profile='release-0.9.3'), dict(pg_version='0.9.1'), dict(pg_source_profile='release'),
-                                    dict(pg_source_profile='alz-continuous-v1'), dict(pg_version='0.9.5'),
-                                    dict(pg_version='0.10.1'), dict(pg_source_profile='release-0.10.1')])
+@pytest.mark.parametrize('options', [
+    dict(pg_version='0.11.0'), dict(pg_source_profile='release-0.11.0'),
+    dict(pg_version='0.11.2'), dict(pg_source_profile='release'),
+    dict(pg_source_profile='alz-continuous-v1'),
+])
 def test_no_version_or_overlay_fallback_before_factory(options):
     calls = []
     contract = Backend('cpu', Capabilities('adapter_gan', False),
@@ -67,12 +69,12 @@ def test_no_version_or_overlay_fallback_before_factory(options):
         engine_options(options)
 
 
-@pytest.mark.parametrize('installed', ['0.9.1', '0.10.1'])
+@pytest.mark.parametrize('installed', ['0.11.0', '0.11.2'])
 def test_installed_wrong_version_refused_before_factory(monkeypatch, installed):
     original = metadata.version
     monkeypatch.setattr(metadata, 'version', lambda name: installed if name == 'particlegan' else original(name))
     contract = Backend('cpu', Capabilities('adapter_gan', False), lambda options: pytest.fail('allocated'), lambda options: None)
-    with pytest.raises(BackendUnavailable, match='0.11.0'):
+    with pytest.raises(BackendUnavailable, match='0.11.1'):
         contract.open(SessionConfig('cpu', 'new093'))
 
 
@@ -80,7 +82,7 @@ def test_old_version_and_source_receipts_cannot_rebind():
     game = fixture()
     game.step()
     before = game.state_dict()
-    for key, wrong in [('pg_version', '0.9.1'), ('pg_source_profile', 'release'), ('pg_sources_sha256', 'other')]:
+    for key, wrong in [('pg_version', '0.11.0'), ('pg_source_profile', 'release'), ('pg_sources_sha256', 'other')]:
         packet = deepcopy(before)
         packet['config'][key] = wrong
         with pytest.raises(ValueError, match='mismatch'):

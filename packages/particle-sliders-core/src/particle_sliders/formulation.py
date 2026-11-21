@@ -379,8 +379,8 @@ def locked_shared_recipe():
 def particlegan_locked_shared():
     """Historical frozen stamp fields plus upstream fixed cap/RpGAN builders.
 
-    The retired upstream stamp is metadata, not a PG0.9.1 training profile.
-    No legacy checkpoint is migrated by calling this helper.
+    The retired upstream stamp records metadata. Restore legacy checkpoints
+    with their original runtime.
     """
     from particlegan import GANLoss
     from .legacy_compat import LEGACY_LOCKED_SHARED

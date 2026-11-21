@@ -110,7 +110,7 @@ def test_release_wide_bank_updates_exact_resume_and_inference(width):
         inference = game(width)
         inference.load_export_state_dict(original.export_state_dict())
         assert torch.equal(original.evaluate(0, seed=0), inference.evaluate(0, seed=0))
-        for key, wrong in [('pg_source_profile', 'release-0.9.4'),
+        for key, wrong in [('pg_source_profile', 'release-unverified'),
                            ('penalty_input_domain', 'auto'), ('pg_sources_sha256', '0'*64)]:
             corrupt = deepcopy(checkpoint); corrupt['config'][key] = wrong
             before = restored.state_dict()
@@ -125,11 +125,11 @@ def test_old_overlay_and_release_options_do_not_rebind():
     from particle_sliders.engine import engine_options
     assert engine_options({'penalty_input_domain': 'continuous'}) == {
         'pg_source_profile': engine.PG_SOURCE_PROFILE, 'penalty_input_domain': 'continuous'}
-    for old in ['release-0.9.4', 'release-0.9.5', 'release-0.10.1', 'source-801ae1e-continuous-v1']:
+    for old in ['release-0.11.0', 'release-unverified', 'source-801ae1e-continuous-v1']:
         with pytest.raises(ValueError, match='qualified source/domain pair'):
             engine_options({'pg_source_profile': old, 'penalty_input_domain': 'continuous'})
-    for old in ['0.9.3', '0.9.4', '0.9.5', '0.10.0', '0.10.1']:
-        with pytest.raises(ValueError, match='requires ParticleGAN 0.11.0'):
+    for old in ['0.11.0', '0.11.2']:
+        with pytest.raises(ValueError, match='requires ParticleGAN 0.11.1'):
             engine_options({'pg_version': old})
 
 

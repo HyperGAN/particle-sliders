@@ -42,9 +42,9 @@ This excludes native model loading and all additional product caches.
 Sources: [the paired native game](packages/particle-sliders-core/src/particle_sliders/engine.py),
 [optimizer policy](packages/particle-sliders-core/src/particle_sliders/optimizer_policy.py),
 [lifecycle and serialization](packages/particle-sliders-core/src/particle_sliders/lifecycle.py),
-and the exact PG0.9.5 source manifest used for this dated estimate (core 0.13.0,
-commit `285180ed9813f12e912bb6bce6bada00496fd19a`). The current engine admits the
-[ParticleGAN 0.10.1 manifest](packages/particle-sliders-core/src/particle_sliders/engine_release.json),
+and the [original core checkout for this estimate](https://github.com/HyperGAN/particle-sliders/tree/285180ed9813f12e912bb6bce6bada00496fd19a).
+The current engine admits the
+[ParticleGAN 0.11.1 manifest](packages/particle-sliders-core/src/particle_sliders/engine_release.json),
 which contains the same optimizer modules. The manifest identifies the recipe and `optim/{dualnorm,constraint_geometry,direction_blend}.py`
 implementations used for state accounting. No weight-EMA copy is budgeted;
 fresh sessions use `ema_decay=None` and raw weights.
