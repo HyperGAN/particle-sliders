@@ -11,7 +11,7 @@ import sys
 import pytest
 import torch
 
-from particle_sliders import lifecycle, pg09, response
+from particle_sliders import engine, lifecycle, response
 from particle_sliders.inference import InferenceSpec, open_inference
 from particle_sliders.lifecycle import CheckpointError, SessionConfig, UnsupportedOperation, _hash
 from particle_sliders.response import ResponseCapabilities
@@ -135,16 +135,11 @@ def test_preflight_domain_profile_and_unsupported_media_before_prepare(tmp_path,
     overlay = replace(vector.CAPS, response_shape=(1, 2048),
         pg_source_profile='alz-continuous-v1', penalty_input_domain='continuous')
     spy = []
-    monkeypatch.setattr(pg09, '_released_sources', lambda profile: spy.append(profile) or 'source-test-double')
+    monkeypatch.setattr(engine, '_released_sources', lambda profile: spy.append(profile) or 'source-test-double')
     gated = replace(vector.TRAINING, capabilities=overlay)
-    if pg09.PG_VERSION == '0.9.1':
-        # Admission control-flow test only, never evidence of installed-overlay update parity.
+    with pytest.raises(ValueError, match='qualified pair'):
         gated._check_pg({}, overlay)
-        assert spy == ['alz-continuous-v1']
-    else:
-        with pytest.raises(ValueError, match='qualified pair'):
-            gated._check_pg({}, overlay)
-        assert spy == []
+    assert spy == []
 
 
 def test_actual_game_must_match_declared_shape_and_cleanup(tmp_path, vector):
@@ -197,13 +192,13 @@ from pathlib import Path
 sys.path[:0] = json.loads(sys.argv[1])
 import torch, vector_fixture
 from particle_sliders.inference import open_inference
-from particle_sliders.pg09 import ConditionalPG09
-from particle_sliders.pg09_audio import AudioResponseCritic
+from particle_sliders.engine import ConditionalParticleGAN
+from particle_sliders.audio import AudioResponseCritic
 root = Path(sys.argv[2])
 assert not (root / 'rows.txt').exists()
 def forbidden(*args, **kwargs):
     raise AssertionError('training/teacher/critic/optimizer construction during native response loading')
-ConditionalPG09.__init__ = forbidden
+ConditionalParticleGAN.__init__ = forbidden
 AudioResponseCritic.__init__ = forbidden
 torch.optim.Optimizer.__init__ = forbidden
 vector_fixture.TRAINING.prepare.__code__ = forbidden.__code__

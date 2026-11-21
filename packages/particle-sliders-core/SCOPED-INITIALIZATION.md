@@ -1,7 +1,7 @@
 # Scoped initialization for a new training cohort
 
 `particle_sliders.initialization.initialize_fresh_components` is an explicit
-fresh-only helper around the admitted ParticleGAN 0.9.5 public initializer APIs.
+fresh-only helper around the admitted ParticleGAN 0.11.0 public initializer APIs.
 It does not change existing constructors, optimizer formulas, default recipes,
 model-weight EMA policy, checkpoints, exports or inference. It does not adopt an
 initialization policy for every product. Product integration remains explicit.
@@ -100,7 +100,7 @@ The receipt records explicit cohort/source declarations, all methods, gains,
 parameter shapes/dtypes, named seeds, resolved host laws and effective operations,
 owned-generator state digests and owned-trainable before/after byte digests.
 It also records the actual helper source and admitted ParticleGAN version/source
-identity. The initializer must be the recorded 0.9.5 `init.py` (SHA-256
+identity. The initializer must be the recorded `init.py` (unchanged from 0.10.1 to 0.11.0; SHA-256
 `3534ff23efa413cdf8b4125b91e0d30671d873b3e2958547d4e744b750454b9b`).
 Later source/version changes require explicit admission; no captured runtime is
 upgraded here. The receipt is immutable canonical JSON; `as_dict()` returns a copy.

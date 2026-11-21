@@ -7,8 +7,8 @@ from torch import nn
 
 from particle_sliders.inference import InferenceSession
 from particle_sliders.lifecycle import (Binding, Capabilities, LifecycleError, SessionConfig, SliderSession)
-from particle_sliders.pg09 import ConditionalPG09
-from particle_sliders.pg09_backends import AdapterParameters, FrozenResponseAdapter, ResponseRow
+from particle_sliders.engine import ConditionalParticleGAN
+from particle_sliders.backends import AdapterParameters, FrozenResponseAdapter, ResponseRow
 from particle_sliders.field_critic import FieldCritic
 
 
@@ -35,7 +35,7 @@ def make_session(kind):
     backend = Response(network)
     rows = [backend.prepare(ResponseRow(torch.zeros(1, 2, 10, 10), torch.ones(1, 2, 10, 10),
         torch.zeros(1, 2, 10, 10), torch.ones(1, 2, 10, 10), timestep=torch.tensor(1.))) for _ in range(2)]
-    game = ConditionalPG09(backend, rows, FieldCritic(2, 1, width=4), conditions=torch.ones(2, 1), total_steps=2, batch_size=2)
+    game = ConditionalParticleGAN(backend, rows, FieldCritic(2, 1, width=4), conditions=torch.ones(2, 1), total_steps=2, batch_size=2)
     binding = Binding(game, lambda: calls.append('close'), lambda **kw: torch.ones(1))
     return SliderSession(SessionConfig('cpu', 'cleanup-test', ema_decay=None), capabilities, binding), calls
 

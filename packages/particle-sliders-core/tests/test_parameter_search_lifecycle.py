@@ -6,7 +6,7 @@ import torch
 
 from particle_sliders.lifecycle import read_packet
 from particle_sliders.parameter_search import LifecycleTrial, score_chunks
-from particle_sliders.pg09 import _hash
+from particle_sliders.engine import _hash
 from test_image_lifecycle import session
 
 
