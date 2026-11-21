@@ -39,6 +39,11 @@ that adapter is responsible for validating the resolved gains and forwarding
 its request option. Other native factories can use the helper with their own
 sampler. See the [qualification and rollout guide](../../docs/strength-schedules.md).
 
+For an autoregressive product that passes the full prefix to native LoRA,
+the [token-position control](../../docs/strength-schedules.md#run-a-token-position-control)
+describes the existing prefix envelope and the separate KV-cache handling
+needed by incremental generation.
+
 ## Factory contract
 
 `InferenceBackend(name, capabilities, prepare, validate, response=True,

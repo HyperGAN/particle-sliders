@@ -72,6 +72,8 @@ Candlelit gain was **+0.00609** stronger early, **+0.00379** constant and
 replay matched its archived PNG byte for byte. All 20 new images passed a
 separate catastrophic-output check. This supports the early profile for this
 tested configuration. Other sliders and samplers need their own comparison.
+The measured panel used cached prompt embeddings. Use the original
+conditioning and numerical profile when replaying the exact benchmark images.
 [Per-case evidence](evidence/anima-candlelit-strength-schedule-20261121.json)
 
 ## Qualify and use a schedule
@@ -94,11 +96,28 @@ tested configuration. Other sliders and samplers need their own comparison.
    saved weights and completed learning-rate evidence.
 
 The per-token research is complementary. The fixed-budget gate in
-[Right Token, Right Time](https://github.com/HyperGAN/particle-sliders/pull/212)
+[Right Token, Right Time](https://arxiv.org/abs/2611.18274)
 and the learned token coefficients in
 [Prompt Steering Replacement](https://github.com/HyperGAN/particle-sliders/pull/209)
-motivate a causal comparison. Their synthetic tests examine different
-interventions from the Anima denoising run. Before using an activation gate on a
-product, check held-out signal quality and compare finished outputs with both
-constant steering and a budget-preserving shuffled control. Use only
-deployment-available information.
+motivate a causal comparison. Before using an activation gate on a product,
+check held-out signal quality and compare finished outputs with both constant
+steering and a budget-preserving shuffled control. Use only deployment-available
+information.
+
+## Run a token-position control
+
+For native LoRA products whose forward receives the full causal prefix,
+`LoRANetwork.set_seq_gain([...], mode="prefix")` sets gains by absolute
+position. Include the prompt positions in the envelope. The last gain repeats
+on longer prefixes, so end with zero when the edit should stop. Restore the
+request's envelope after generation and use a request-owned adapter scope.
+Incremental KV decoding needs the gain for the current absolute position
+injected at the generation step. The length of a one-token tensor cannot
+identify that position.
+
+[PR #212](https://github.com/HyperGAN/particle-sliders/pull/212) exercises
+a caller-supplied prefix envelope on native LoRA. The controlled fixture keeps
+the sum of per-token residual norms equal between the uniform and targeted
+edits. Ungated positions match OFF, including after a full-prefix refresh.
+This is the position control for a product experiment. A learned activation
+gate still needs a finished-output comparison on the product.
