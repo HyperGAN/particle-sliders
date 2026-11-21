@@ -42,7 +42,7 @@ def _readout_source(source):
 
 
 class HNDLConditionalReadoutCritic(nn.Module):
-    """A source-defined raw-logit critic accepted by ``ConditionalPG09``.
+    """A source-defined raw-logit critic accepted by ``ConditionalParticleGAN``.
 
     ``response_width`` counts all non-batch response coordinates. The default
     matches the existing Linear/SiLU/Linear readout. Custom HNDL source receives
