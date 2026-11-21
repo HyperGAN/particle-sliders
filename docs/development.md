@@ -1,7 +1,7 @@
 # Developing the shared core
 
 Use Python 3.11+ and an environment compatible with PyTorch 2.6–2.x and exact
-`particlegan==0.11.0`. Native model dependencies belong in their
+`particlegan==0.11.1`. Native model dependencies belong in their
 [product repositories](products.md).
 
 ## Install and run tests

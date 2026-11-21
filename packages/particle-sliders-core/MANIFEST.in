@@ -15,7 +15,6 @@ include SHARED-CORE-BOUNDARY.md
 include TRAINING-COMMAND.md
 include requirements-engine.txt
 recursive-include tests *.py *.json
-include FIBO-NETWORK-PROVENANCE.json
 include _build_backend.py
 include _core_build.py
 include setup.py

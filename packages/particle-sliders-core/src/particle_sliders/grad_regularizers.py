@@ -1,6 +1,6 @@
 """Historical constructor/import compatibility; all penalty math stays upstream.
 
-Released ParticleGAN 0.9.1 retains fixed L2/autograd b_cap and a_r1r2. Retired
+The admitted ParticleGAN release supplies fixed L2/autograd b_cap and a_r1r2. Retired
 norms, arms, finite differences and annealing fail before touching a critic.
 Use the frozen legacy source pin documented in LEGACY-MIGRATION.md for those.
 """

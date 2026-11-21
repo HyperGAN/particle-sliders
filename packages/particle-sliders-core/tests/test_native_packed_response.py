@@ -78,7 +78,7 @@ def test_explicit_packed_descriptor_preserves_old_domain_rejections():
     result = validate_engine_domain((1, 7, 64), response_domain='continuous_packed')
     assert result['resolved_penalty_domain'] == 'image'  # Official PG rank>=3 branch.
     descriptor = ResponseCapabilities('adapter_gan', 'image', 'native packed velocity',
-        'continuous_packed', (1, 7, 64), '0.11.0', 'release-0.11.0')
+        'continuous_packed', (1, 7, 64), '0.11.1', 'release-0.11.1')
     assert descriptor.response_shape == (1, 7, 64) and descriptor.render is False
     for domain in ('continuous_vector', 'continuous_field'):
         with pytest.raises(ValueError):

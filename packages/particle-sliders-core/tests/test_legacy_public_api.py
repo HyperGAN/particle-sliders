@@ -1,4 +1,4 @@
-"""Public 0.3 constructor/stamp contract on the official PG0.9.1 lane."""
+"""Public 0.3 constructor/stamp compatibility on the admitted runtime."""
 from dataclasses import FrozenInstanceError, asdict
 import json
 import pickle

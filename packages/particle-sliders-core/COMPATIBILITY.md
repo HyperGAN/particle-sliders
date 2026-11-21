@@ -1,16 +1,13 @@
 # ParticleGAN compatibility
 
-Core 0.15.1 runs only on published `particlegan==0.11.0`. Adopting a later ParticleGAN
-release means regenerating `engine_release.json` and its pinned identity; module
-and symbol names stay unchanged. The shared engine is `particle_sliders.engine`
-(`ConditionalParticleGAN`, `validate_engine_domain`, `engine_options`). Its source
-manifest, `engine_release.json`, binds every installed ParticleGAN Python file to
-the published wheel SHA256
-`218ac69efd42e092367b4c7a5c4abb4685dc63a73ccc23223a8bb4dd1543e327` and release-tag
-commit `b86f0379b4d887f4cde88d686aedc04661a2b61b`. Any other installed
-ParticleGAN version (including 0.10.1), source profile or modified source file is refused before a
-model factory runs. `requirements-engine.txt` hash-pins that wheel; after
-installing PyTorch and NumPy, verify it with
+Core 0.15.2 runs on the published `particlegan==0.11.1` wheel. The shared
+engine is `particle_sliders.engine` (`ConditionalParticleGAN`,
+`validate_engine_domain`, `engine_options`). Its `engine_release.json` manifest
+binds the installed ParticleGAN Python files to wheel SHA-256
+`ce9dd51cf2bf0067751c9e6409d05d149ce41c1df98fe3edb0412e3df430de52` and
+release commit `d5dec2fe005305082acf382f0939a4bdb51c7131`. The engine checks
+the version, source profile and file hashes before opening a model. After
+installing PyTorch and NumPy, install the verified wheel with
 `pip install --no-deps --require-hashes -r requirements-engine.txt`.
 
 ## Continuous features
@@ -22,34 +19,26 @@ reinterpreted as categorical. The default `auto` setting retains its width gates
 Image/field responses continue using `auto`. Old unreleased continuous overlays
 are not aliases for this release.
 
-The shared engine calls `get_recipe()` for fresh runs. ParticleGAN 0.11.0 rejects
+The shared engine calls `get_recipe()` for fresh runs. ParticleGAN 0.11.1 rejects
 bare/partial `Recipe(...)`; the existing optimizer-profile helper passes complete
 recipe fields through dataclass replacement. Public losses, penalties, prior
 regularizers and optimizer mathematics remain upstream.
 
-## Changes from ParticleGAN 0.10.1 to 0.11.0
+## ParticleGAN 0.11.1
 
-The 0.11.0 wheel keeps all 87 Python files of 0.10.1, changes five
-(`__init__.py`, `recipes.py`, `training.py`, `recipe_schedules.py`,
-`optim/dualnorm.py`) and adds 76 files for new critic formulations and
-optimizer families. `init.py` is unchanged, so scoped initialization keeps its
-recorded initializer digest. For `bispf_optimized` and `bispf`, every recipe field
-that 0.10.1 resolves keeps its value, and the shared dense policy resolves the same
-way. 0.11.0 adds 16 recipe fields (`t1_*`, `t1c_*`, `rgdt_*`). They are read only by
-the new `t1_coupling`/`rgdt` formulations and by the deconfliction branch when
-`t1c_grad_deconflict > 0`, which is 0 here. The new optimizer paths are inactive
-for these recipes. CPU parity runs of the engine produced bitwise-identical
-network, critic, prior, optimizer state and metrics on both releases. Checkpoints
-from 0.15.0 (ParticleGAN 0.10.1) still do not resume on 0.15.1: the signature
-binds the ParticleGAN version and source digest, and the recorded recipe now has
-16 more keys.
+The release updates Unified's critic, loss, penalty and optimizer, and fixes
+critic hooks that could retain GPU memory. The shared engine explicitly selects
+`bispf_optimized` by default and continues to admit `bispf` as an explicit
+recipe. Their source and recipe fields are unchanged across the patch release.
+The scoped initializer retains the same upstream file digest.
+[Release notes](https://github.com/HyperGAN/ParticleGAN/releases/tag/v0.11.1)
 
 ## Checkpoints and earlier core lines
 
 Core 0.15.x is a fresh training cohort. The engine checkpoint schema is
 `conditional-engine-v1` (adapter export: `conditional-engine-adapter-v1`), and
 the signature binds the source hash of `particle_sliders.engine`. Checkpoints,
-adapter exports and cached responses written by core 0.14.x or earlier resume
+adapter exports and cached responses written by core 0.15.1 or earlier resume
 only with their original package/source pins; there is no automatic migration.
 Version-named entrypoints of earlier lines were removed rather than aliased, and
 no old ParticleGAN release is rebound to this engine. Historical release
