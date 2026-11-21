@@ -17,7 +17,7 @@ from typing import Callable
 
 import torch
 
-from .pg09 import ConditionalPG09, PG_SOURCE_PROFILE, _hash, _validate_module
+from .engine import ConditionalParticleGAN, PG_SOURCE_PROFILE, _hash, _validate_module
 from .weight_policy import require_no_weight_ema, require_raw_selection
 from .restoration import _RESTORATION_FAILED, _restore_all, native_cleanup, checkpoint_cleanup, _rng_devices
 
@@ -134,7 +134,7 @@ class EvaluationRows:
 @dataclass
 class Binding:
     """A factory transfers ownership of one prepared game and cleanup callback."""
-    game: ConditionalPG09
+    game: ConditionalParticleGAN
     close: Callable
     render: Callable | None = None
     inference: object | None = None
@@ -199,13 +199,13 @@ class Backend:
         return SliderSession(config, capabilities, binding)
 
     def _check_pg(self, options, capabilities):
-        from .pg09 import _released_sources, PG_VERSION
+        from .engine import _released_sources, PG_VERSION
         from importlib.metadata import version
         if version('particlegan') != PG_VERSION:
             raise BackendUnavailable('install the exact released ParticleGAN ' + PG_VERSION)
         if options.get('pg_version', PG_VERSION) != PG_VERSION:
             raise BackendUnavailable('requested PG version differs from exact core release ' + PG_VERSION)
-        from .pg095 import engine_options
+        from .engine import engine_options
         try:
             profile = engine_options(options)['pg_source_profile']
         except ValueError as error:
@@ -436,8 +436,8 @@ class SliderSession:
     api, training_schema, inference_schema = API, TRAINING, INFERENCE
 
     def __init__(self, config, capabilities, binding):
-        if not isinstance(binding.game, ConditionalPG09):
-            raise TypeError('slider sessions require ConditionalPG09')
+        if not isinstance(binding.game, ConditionalParticleGAN):
+            raise TypeError('slider sessions require ConditionalParticleGAN')
         self.config, self.capabilities, self.binding = config, capabilities, binding
         self.game = binding.game
         actual_arm = 'routed_particle_gan' if self.game.prior is not None else 'adapter_gan'

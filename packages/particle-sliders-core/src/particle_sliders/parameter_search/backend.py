@@ -172,7 +172,7 @@ class LifecycleTrial:
 
     def state_digest(self):
         # Existing _hash includes full tensor values/shape/dtype and game state.
-        from ..pg09 import _hash
+        from ..engine import _hash
         return _hash(dict(packet=self.session.checkpoint(), native=self.observer.native_state()))
 
     def step(self):

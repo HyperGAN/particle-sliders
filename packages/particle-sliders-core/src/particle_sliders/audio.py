@@ -1,4 +1,4 @@
-"""Native AR last-state bindings for the single shared ConditionalPG09 game.
+"""Native AR last-state bindings for the single shared ConditionalParticleGAN game.
 
 No loaders, losses, optimizers, token generation or audio decoding run here.
 Native continuous-vector responses declare their supported domain explicitly.
@@ -9,8 +9,8 @@ from dataclasses import dataclass, replace
 import torch
 from torch import nn
 
-from .pg09 import PG_SOURCE_PROFILE
-from .pg09_backends import (
+from .engine import PG_SOURCE_PROFILE
+from .backends import (
     AdapterParameters, checkpoint_with_adapter_scale,
 )
 
@@ -41,10 +41,10 @@ class AudioResponseCritic(nn.Module):
 
 
 def require_audio_width(width, *, pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto'):
-    from particle_sliders.pg09 import validate_pg09_domain
+    from particle_sliders.engine import validate_engine_domain
     if type(width) is not int or width < 1:
         raise ValueError('positive native AR hidden width required')
-    return validate_pg09_domain((1, width), response_domain='continuous_vector',
+    return validate_engine_domain((1, width), response_domain='continuous_vector',
         pg_source_profile=pg_source_profile, penalty_input_domain=penalty_input_domain)
 
 
@@ -88,7 +88,7 @@ class ARLastHiddenResponseAdapter:
         modules = tuple(checkpoint_modules)
         if len({id(m) for m in modules}) != len(modules):
             raise ValueError('duplicate checkpoint modules')
-        if any(id(m) not in registered or getattr(m, '_pg09_scale_checkpoint', False) for m in modules):
+        if any(id(m) not in registered or getattr(m, '_adapter_scale_checkpoint', False) for m in modules):
             raise ValueError('checkpoint modules must be unwrapped native host modules')
         handles = []
         try:
@@ -163,7 +163,7 @@ class ARLastHiddenResponseAdapter:
             return self._response(prepared.row.neutral_ids, scale=scale).detach().clone()
 
     def metadata(self):
-        return dict(protocol='audio-ar-last-hidden-pg090-v1', family=self.family,
+        return dict(protocol='audio-ar-last-hidden-engine-v1', family=self.family,
                     model_identity=self.model_identity, adapter_names=list(self.network.names),
                     response_domain='continuous_vector', response_width=int(self.model.config.hidden_size),
                     pg_domain_gate=dict(self.domain_gate),
@@ -184,7 +184,7 @@ def audio_conditions(prepared_rows):
 
     The full frozen neutral last state supplies model-derived context features;
     exact neutral/positive token bytes and history are additionally bound by
-    ConditionalPG09's row signature. No row-number embedding is used.
+    ConditionalParticleGAN's row signature. No row-number embedding is used.
     """
     return torch.cat([torch.cat((p.neutral.detach().clone(), p.neutral.new_tensor([[
         len(p.row.neutral_ids), len(p.row.positive_ids), p.row.history_tokens, p.row.scale,

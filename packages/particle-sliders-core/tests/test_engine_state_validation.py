@@ -5,8 +5,8 @@ import pytest
 import torch
 from torch import nn
 
-from particle_sliders.pg09 import ConditionalPG09
-from test_conditional_pg09 import Backend, Critic, equal, fixture
+from particle_sliders.engine import ConditionalParticleGAN
+from test_conditional_engine import Backend, Critic, equal, fixture
 
 
 @pytest.fixture(autouse=True)
@@ -45,7 +45,7 @@ def test_non_float32_trainables_remain_rejected_before_optimizer_construction(ow
     game = fixture()
     getattr(game, owner).to(dtype=dtype)
     with pytest.raises(ValueError, match='all trainables must share float32 dtype and device'):
-        ConditionalPG09(game.backend, game.rows, game.critic, conditions=game.conditions,
+        ConditionalParticleGAN(game.backend, game.rows, game.critic, conditions=game.conditions,
                         particles=game.network.particles, batch_size=4, total_steps=5)
 
 
@@ -239,7 +239,7 @@ def sparse_critic_fixture(preset):
     with torch.random.fork_rng():
         torch.manual_seed(123)
         critic = SparseCritic()
-    return ConditionalPG09(base.backend, base.rows, critic, conditions=base.conditions,
+    return ConditionalParticleGAN(base.backend, base.rows, critic, conditions=base.conditions,
                           particles=base.network.particles, preset=preset, batch_size=4, total_steps=5)
 
 
@@ -277,7 +277,7 @@ def partially_used_critic_fixture():
     with torch.random.fork_rng():
         torch.manual_seed(123)
         critic = PartiallyUsedCritic()
-    return ConditionalPG09(base.backend, base.rows, critic, conditions=base.conditions,
+    return ConditionalParticleGAN(base.backend, base.rows, critic, conditions=base.conditions,
                           particles=base.network.particles, preset='bispf', batch_size=4, total_steps=5)
 
 
@@ -435,7 +435,7 @@ class BatchNormBackend(Backend):
 def test_evaluate_preserves_batchnorm_buffers_rng_and_mixed_training_modes(fail, monkeypatch):
     base = fixture()
     backend = BatchNormBackend()
-    game = ConditionalPG09(backend, base.rows, base.critic, conditions=base.conditions,
+    game = ConditionalParticleGAN(backend, base.rows, base.critic, conditions=base.conditions,
                           particles=backend.network.particles, batch_size=4, total_steps=5)
     game.network.train()
     game.network.routed.eval()

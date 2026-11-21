@@ -6,7 +6,7 @@ import pytest
 import torch
 from torch import nn
 
-from particle_sliders.pg095 import ConditionalPG095, validate_pg09_domain
+from particle_sliders.engine import ConditionalParticleGAN, validate_engine_domain
 from particle_sliders.response import ResponseCapabilities
 
 
@@ -54,7 +54,7 @@ def game():
             neutral = torch.randn(1, 7, 64, generator=generator)
             rows.append(Prepared(dict(input=torch.randn(1, 7, 64, generator=generator)),
                                  neutral + .1 * (i + 1), neutral))
-        return ConditionalPG095(backend, rows, critic, conditions=torch.eye(4, 2),
+        return ConditionalParticleGAN(backend, rows, critic, conditions=torch.eye(4, 2),
             response_domain='continuous_packed', penalty_input_domain='auto',
             batch_size=2, total_steps=2, seed=7, particles=None)
 
@@ -75,19 +75,19 @@ def equal(left, right):
 
 
 def test_explicit_packed_descriptor_preserves_old_domain_rejections():
-    result = validate_pg09_domain((1, 7, 64), response_domain='continuous_packed')
+    result = validate_engine_domain((1, 7, 64), response_domain='continuous_packed')
     assert result['resolved_penalty_domain'] == 'image'  # Official PG rank>=3 branch.
     descriptor = ResponseCapabilities('adapter_gan', 'image', 'native packed velocity',
-        'continuous_packed', (1, 7, 64), '0.9.5', 'release-0.9.5')
+        'continuous_packed', (1, 7, 64), '0.11.0', 'release-0.11.0')
     assert descriptor.response_shape == (1, 7, 64) and descriptor.render is False
     for domain in ('continuous_vector', 'continuous_field'):
         with pytest.raises(ValueError):
-            validate_pg09_domain((1, 7, 64), response_domain=domain)
+            validate_engine_domain((1, 7, 64), response_domain=domain)
     for shape in ((1, 448), (1, 7, 8, 8), (2, 7, 64), (1, 0, 64)):
         with pytest.raises(ValueError):
-            validate_pg09_domain(shape, response_domain='continuous_packed')
+            validate_engine_domain(shape, response_domain='continuous_packed')
     with pytest.raises(ValueError):
-        validate_pg09_domain((1, 7, 64), response_domain='continuous_packed',
+        validate_engine_domain((1, 7, 64), response_domain='continuous_packed',
                              penalty_input_domain='continuous')
 
 

@@ -6,7 +6,7 @@ inference. It does not flatten, project, subsample or reinterpret tokens as
 spatial image axes. Products own their actual full native response contract,
 position identity, conditioning, critic, loader and numerical sources.
 
-Use ParticleGAN0.9.5's unchanged release profile and `penalty_input_domain="auto"`.
+Use ParticleGAN 0.11.0's unchanged release profile and `penalty_input_domain="auto"`.
 Its official BISPF penalty uses its rank>=3 branch, named `image` internally;
 the shared signature records that resolution. This is the upstream rank law,
 not a claim packed coordinates are spatial pixels. `input_domain="continuous"`

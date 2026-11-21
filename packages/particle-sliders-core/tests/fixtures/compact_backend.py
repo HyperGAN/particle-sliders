@@ -8,7 +8,7 @@ from torch import nn
 
 from particle_sliders.lifecycle import Backend, Binding, Capabilities
 from particle_sliders.inference import InferenceBackend, InferenceBinding, native_identity
-from particle_sliders.pg09_backends import AdapterParameters, FrozenResponseAdapter
+from particle_sliders.backends import AdapterParameters, FrozenResponseAdapter
 
 CAPS = Capabilities('adapter_gan', render=True, strength_min=-1., strength_max=1.,
                     base_precisions=('float32',), render_outputs=('latent',))
@@ -70,15 +70,15 @@ def validate_training(options):
 
 
 def prepare_training(options):
-    from particle_sliders.pg09 import ConditionalPG09
+    from particle_sliders.engine import ConditionalParticleGAN
     from particle_sliders.field_critic import FieldCritic
-    from particle_sliders.pg09_backends import ResponseRow
+    from particle_sliders.backends import ResponseRow
     native = Native(options['model_file'])
     data = torch.load(options['training_file'], weights_only=True)
     rows = [native.prepare(ResponseRow(torch.zeros_like(value), torch.full_like(value, .2),
             torch.zeros_like(value), value, timestep=torch.tensor(500.))) for value in data]
     critic = FieldCritic(2, 3, width=4)
-    game = ConditionalPG09(native, rows, critic, conditions=torch.ones(len(rows), 3),
+    game = ConditionalParticleGAN(native, rows, critic, conditions=torch.ones(len(rows), 3),
         particles=None, total_steps=4, batch_size=2, seed=7)
     spec = INFERENCE.specification(native, model_identity=native.identity,
                                   protocol=PROTOCOL, configuration={'channels': 2})
