@@ -15,6 +15,6 @@ def test_legacy_readout_loudly_refuses_modern_hndl_environment():
     pytest.importorskip('hndl')
     if version('hndl') != '0.10.0':
         pytest.skip('this refusal exercises the separate modern HNDL environment')
-    from particle_sliders.pg09_hndl import HNDLConditionalReadoutCritic
+    from particle_sliders.hndl_critic import HNDLConditionalReadoutCritic
     with pytest.raises(RuntimeError, match='requires hndl==0.8.2'):
         HNDLConditionalReadoutCritic(8, 2)

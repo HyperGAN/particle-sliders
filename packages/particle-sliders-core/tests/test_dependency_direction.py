@@ -8,10 +8,6 @@ import particle_sliders
 PRODUCTS = {'iris_sliders', 'qwen_image_sliders', 'krea2', 'fibo_particle_slider',
             'moss_sliders', 'anima', 'anima_sliders', 'lumen_studio', 'supra',
             'yue2_sliders', 'sana_sliders', 'music3', 'yue2'}
-# One exact pre-existing campaign bridge is inventoried, not a migrated session.
-# It stays outside the new image/lifecycle dependency closure and active old pins
-# are untouched. Remove this exception when its product injects a slider factory.
-LEGACY_REVERSE_IMPORTS = {('pg09_moss_campaign.py', 'moss_sliders.lora', ('Slider',))}
 
 
 def reverse_imports(source, filename):
@@ -36,9 +32,7 @@ def test_core_has_no_uninventoried_product_imports():
     actual = set()
     for source in root.glob('*.py'):
         actual |= reverse_imports(source.read_text(), source.name)
-    assert actual == (LEGACY_REVERSE_IMPORTS if (root / 'pg09_moss_campaign.py').exists() else set())
-    assert all(file not in ('lifecycle.py', 'pg09_images.py', 'qwen_native.py', 'fibo_native.py')
-               for file, _, _ in actual)
+    assert actual == set()
 
 
 @pytest.mark.parametrize('source', [
@@ -56,4 +50,4 @@ def test_core_distribution_does_not_depend_on_products():
     forbidden = ('iris-particle', 'qwen-image-particle', 'krea2-particle',
                  'fibo-particle', 'moss-sliders', 'anima-particle', 'yue2-particle')
     assert not any(any(name in dependency.lower() for name in forbidden) for dependency in dependencies)
-    assert any(dependency.lower().startswith('particlegan==0.9.5') for dependency in dependencies)
+    assert any(dependency.lower().startswith('particlegan==0.11.0') for dependency in dependencies)
