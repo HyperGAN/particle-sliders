@@ -28,22 +28,23 @@ regularizers and optimizer mathematics remain upstream.
 
 The release updates Unified's critic, loss, penalty and optimizer, and fixes
 critic hooks that could retain GPU memory. The shared engine explicitly selects
-`bispf_optimized` by default and continues to admit `bispf` as an explicit
-recipe. Their source and recipe fields are unchanged across the patch release.
-The scoped initializer retains the same upstream file digest.
+`bispf_optimized` by default and admits `bispf` as an explicit recipe. Their
+upstream source and recipe fields are unchanged across the patch release. The
+scoped initializer retains the same upstream file digest. Select stock EMPF
+explicitly with `preset="empf", optimizer_dense_profile="recipe"`.
 [Release notes](https://github.com/HyperGAN/ParticleGAN/releases/tag/v0.11.1)
 
 ## Checkpoints and earlier core lines
 
 Core 0.15.x is a fresh training cohort. The engine checkpoint schema is
 `conditional-engine-v1` (adapter export: `conditional-engine-adapter-v1`), and
-the signature binds the source hash of `particle_sliders.engine`. Checkpoints,
-adapter exports and cached responses written by core 0.15.1 or earlier resume
-only with their original package/source pins; there is no automatic migration.
-Version-named entrypoints of earlier lines were removed rather than aliased, and
-no old ParticleGAN release is rebound to this engine. Historical release
-manifests, receipts and scientific results remain in the repository history and
-in their original pinned core commits.
+the signature binds the source hash of `particle_sliders.engine`. Resume and
+load adapter exports with their original core source and ParticleGAN pins,
+including packets from the earlier BISPF-only core 0.15.2 revision. The package
+version alone does not match source identity. Reuse earlier cached responses
+with their original package/source pins. Historical release manifests, receipts
+and scientific results remain in the repository history and in their original
+pinned core commits.
 
 Training-state source/version/domain checks and transactional restore remain in
 place. CPU tests cover actual updates, exact split continuation, inference export,

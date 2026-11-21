@@ -317,8 +317,10 @@ class ConditionalParticleGAN:
             raise RuntimeError('ConditionalParticleGAN requires particlegan==' + PG_VERSION + ' with an exact admitted source profile')
         if (pg_source_profile, penalty_input_domain) not in _DOMAIN_PAIRS:
             raise ValueError('PG source profile and declared penalty domain must be an explicitly qualified pair')
-        if preset not in ('bispf_optimized', 'bispf'):
-            raise ValueError('only explicitly selected public BISPF presets are admitted')
+        if preset not in ('bispf_optimized', 'bispf', 'empf'):
+            raise ValueError('only explicitly selected public BISPF and EMPF presets are admitted')
+        if preset == 'empf' and optimizer_dense_profile != 'recipe':
+            raise ValueError('EMPF requires the stock recipe optimizer profile')
         if type(batch_size) is not int or not 2 <= batch_size <= 512:
             raise ValueError('batch_size must be an integer in [2,512]')
         if type(total_steps) is not int or total_steps < 1:
@@ -388,13 +390,20 @@ class ConditionalParticleGAN:
         if set(overrides) - allowed:
             raise ValueError('unsupported recipe overrides: ' + str(sorted(set(overrides) - allowed)))
         options.update(overrides)
-        self.recipe, self.optimizer_policy = configure_dense_profile(
-            get_recipe(preset, **options), optimizer_dense_profile)
+        self.recipe = get_recipe(preset, **options)
+        if preset == 'empf':
+            self.optimizer_policy = dict(requested='recipe', resolved=self.recipe.optimizer_dense_profile)
+        else:
+            self.recipe, self.optimizer_policy = configure_dense_profile(self.recipe, optimizer_dense_profile)
         self.opt_g, self.opt_d = self.recipe.make_optimizers(self.network, critic, self.prior)
         self.loss = self.recipe.make_loss()
         penalty_options = {'input_domain': 'continuous'} if penalty_input_domain == 'continuous' else {}
         self.penalty = self.recipe.make_critic_penalty(self.opt_d, collect_stats=True, **penalty_options)
         self.spread = self.recipe.make_prior_regularizer(prior=self.prior) if self.prior else None
+        if preset == 'empf':
+            from particlegan.empf import bind_empf_record
+
+            bind_empf_record(self.opt_d.record, self.loss, self.spread)
         self._check_optimizer_ownership(trainables, d_parameters)
         self.base_lrs = [[g['lr'] for g in opt.param_groups] for opt in (self.opt_g, self.opt_d)]
         self.streams = {name: torch.Generator().manual_seed(seed + offset)
@@ -554,6 +563,8 @@ class ConditionalParticleGAN:
             self.opt_d.zero_grad(set_to_none=True)
             self.critic.requires_grad_(False)
             g_fake = g_real + (generated - g_target) / self.response_scale
+            if self.recipe.effective_critic_formulation == 'empf':
+                self.opt_g.bind_origin_sample(g_fake)
             g_adv = self.loss.g_loss(self.critic(g_fake, g_condition), self.critic(g_real, g_condition))
             if not g_adv.requires_grad:
                 raise ValueError('detached adversarial generator scalar')
@@ -684,21 +695,21 @@ class ConditionalParticleGAN:
             raise ValueError('CUDA checkpoint cannot silently resume on CPU')
         # Public optimizer restore on isolated copies validates BEFORE live mutation.
         # Copies contain adapter/critic parameters only, never a pretrained backend.
-        # Official PG critic restore publishes a process-local thermal channel.
-        # Shadow validation must not publish an incoming checkpoint's channel,
-        # even when the shadow load raises after writing it.
+        # BISPF restore publishes a process-local thermal channel. Shadow
+        # validation must preserve it even if the shadow load raises.
         shadow_g, shadow_d, shadow_spread = deepcopy((self.opt_g, self.opt_d, self.spread))
-        restore_thermal = self._thermal_cleanup()
+        restore_thermal = self._thermal_cleanup() if self.recipe.effective_critic_formulation == 'bispf' else None
         try:
             shadow_g.load_state_dict(deepcopy(state['opt_g']))
             if shadow_spread:
                 shadow_spread.load_state_dict(deepcopy(state['spread']))
             shadow_d.load_state_dict(deepcopy(state['opt_d']))
         finally:
-            restore_thermal()
+            if restore_thermal is not None:
+                restore_thermal()
 
     def _thermal_cleanup(self):
-        """Snapshot only this device's exact PG0.11.1 process-local channel."""
+        """Snapshot this device's process-local BISPF channel."""
         from particlegan.bispf import _LAST_THERMAL_SCALE
         missing = object()
         previous = _LAST_THERMAL_SCALE.get(self.device, missing)
@@ -715,10 +726,16 @@ class ConditionalParticleGAN:
         These are existing official objects, not a replacement serialization law.
         The session attempts all restorers even when live optimizer rollback fails.
         """
-        penalty, kernel, record = self.penalty, self.penalty.regularizer, self.opt_d.record
+        penalty, record = self.penalty, self.opt_d.record
         stats = deepcopy(penalty.last_stats)
         collect_stats = penalty.collect_stats
-        cooler = deepcopy(kernel.cooler.state_dict())
+        restorers = [lambda: setattr(penalty, 'last_stats', stats),
+                     lambda: setattr(penalty, 'collect_stats', collect_stats)]
+        if self.recipe.effective_critic_formulation == 'bispf':
+            cooler = penalty.regularizer.cooler
+            cooler_state = deepcopy(cooler.state_dict())
+            restorers = [self._thermal_cleanup(), *restorers,
+                         lambda: cooler.load_state_dict(cooler_state)]
         absent = object()
         transient = {name: getattr(record, name, absent) for name in ('_in_penalty', '_last_d_logits')}
         transient = {name: value.detach().clone() if isinstance(value, torch.Tensor) else value
@@ -729,12 +746,9 @@ class ConditionalParticleGAN:
                     delattr(record, name)
             else:
                 setattr(record, name, value)
-        return [self._thermal_cleanup(),
-                lambda: setattr(penalty, 'last_stats', stats),
-                lambda: setattr(penalty, 'collect_stats', collect_stats),
-                lambda: kernel.cooler.load_state_dict(cooler),
-                *(lambda name=name, value=value: restore_attribute(name, value)
-                  for name, value in transient.items())]
+        restorers.extend(lambda name=name, value=value: restore_attribute(name, value)
+                         for name, value in transient.items())
+        return restorers
 
     def load_state_dict(self, state):
         """Validate and restore atomically; a failed rollback poisons the game.

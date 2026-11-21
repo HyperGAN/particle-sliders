@@ -1,6 +1,7 @@
 """CPU gates for objective, domains, ownership, conditions and transactional resume."""
 from copy import deepcopy
 from dataclasses import dataclass
+from io import BytesIO
 
 import pytest
 import torch
@@ -60,7 +61,8 @@ class Critic(nn.Module):
         return self.layers(torch.cat((response.flatten(1), condition), 1)).squeeze(-1)
 
 
-def fixture(*, particles=True, preset='bispf_optimized', overrides=None, width=200, domain='continuous_field', activation=None):
+def fixture(*, particles=True, preset='bispf_optimized', overrides=None, width=200,
+            domain='continuous_field', activation=None, optimizer_dense_profile='auto'):
     with torch.random.fork_rng():
         torch.manual_seed(123)
         backend = Backend()
@@ -77,7 +79,8 @@ def fixture(*, particles=True, preset='bispf_optimized', overrides=None, width=2
         conditions = torch.tensor([[i, r.row['sign'], 500.] for i, r in enumerate(rows)])
         game = ConditionalParticleGAN(backend, rows, critic, conditions=conditions,
             particles=backend.network.particles if particles else None, preset=preset,
-            batch_size=4, total_steps=5, recipe_overrides=overrides, response_domain=domain)
+            batch_size=4, total_steps=5, recipe_overrides=overrides, response_domain=domain,
+            optimizer_dense_profile=optimizer_dense_profile)
     return game
 
 
@@ -159,11 +162,30 @@ def test_exact_stochastic_resume_sampling_and_export_reload():
         loader.step()
 
 
+def test_explicit_empf_uses_stock_recipe_and_resumes_exactly():
+    from particlegan import get_recipe
+
+    with pytest.raises(ValueError, match='stock recipe'):
+        fixture(preset='empf')
+    options = dict(preset='empf', optimizer_dense_profile='recipe')
+    game = fixture(**options)
+    assert game.recipe == get_recipe('empf', batch_size=4, total_steps=5, num_particles=8, z_dim=2)
+    assert game.recipe.ema_decay == 0
+    game.step()
+    checkpoint = BytesIO()
+    torch.save(game.state_dict(), checkpoint)
+    checkpoint.seek(0)
+    expected = game.step()
+    resumed = fixture(**options)
+    resumed.load_state_dict(torch.load(checkpoint, weights_only=True))
+    assert resumed.step() == expected
+    equal(game.state_dict(), resumed.state_dict())
+
+
 def test_training_packet_loads_with_weights_only_safe_loader():
-    import io
     game = fixture()
     game.step()
-    buffer = io.BytesIO()
+    buffer = BytesIO()
     torch.save(game.state_dict(), buffer)
     buffer.seek(0)
     packet = torch.load(buffer, weights_only=True)
