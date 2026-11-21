@@ -21,15 +21,20 @@ class NanoodleWorkflows:
                  judge_provider='nanogpt'):
         from nanoodle import Workflow
         self.prompt_graph, self.score_graph = deepcopy(prompt_graph), deepcopy(score_graph)
-        nodes = [n for n in score_graph['nodes'] if n['id'] == score_node]
-        if len(nodes) != 1 or nodes[0]['type'] != 'decide' or nodes[0]['fields'].get('mode') != 'score':
-            raise ValueError('score workflow requires an explicit Decide score node')
+        nodes = [n for n in score_graph['nodes'] if n['type'] == 'decide' or n['id'] == score_node]
+        if (len(nodes) != 1 or nodes[0]['id'] != score_node
+                or nodes[0]['type'] != 'decide' or nodes[0]['fields'].get('mode') != 'score'):
+            raise ValueError('score workflow requires exactly one Decide node, in score mode')
         fields = nodes[0]['fields']
-        if not fields.get('model') or not fields.get('question'):
+        self.question = fields.get('question', '').strip()
+        if not fields.get('model') or not self.question:
             raise ValueError('judge model and criterion question must be explicit')
-        self.levels = len([s for s in fields.get('levels', '').splitlines() if s.strip()])
+        self.anchors = [s.strip() for s in fields.get('levels', '').splitlines() if s.strip()]
+        self.levels = len(self.anchors)
         if not 2 <= self.levels <= 10:
             raise ValueError('judge needs 2 to 10 concrete ordered score levels')
+        if len(set(self.anchors)) != self.levels:
+            raise ValueError('judge needs distinct anchors for each score level')
         if judge_provider not in ('nanogpt', 'typesafe'):
             raise ValueError('judge_provider must be nanogpt or typesafe')
         self.score_node, self.timeout, self.judge_provider = score_node, timeout, judge_provider
@@ -41,7 +46,7 @@ class NanoodleWorkflows:
         # transport maps that primitive onto TypeSafe's official API, keeping
         # each provider's credential at its own origin.
         self.judge = (Workflow(score_graph, api_key='typesafe-transport', http=self._typesafe_http)
-                      if judge_provider == 'typesafe' else Workflow(score_graph, http=self._nanogpt_http))
+                      if judge_provider == 'typesafe' else Workflow(score_graph, http=self._nanogpt_score_http))
         self.identity = dict(provider='nanoodle', version=version('nanoodle'),
             adapter_sha256=file_digest(Path(__file__)),
             prompts_sha256=digest(prompt_graph), score_sha256=digest(score_graph), score_node=score_node,
@@ -56,6 +61,23 @@ class NanoodleWorkflows:
             self.last_judgment = json.loads(response.text())
         return response
 
+    def _score_request(self, method, body):
+        """Bind the provider request to one typed judgment and its ordered anchors."""
+        payload = json.loads(body)
+        questions = payload.get('questions', {})
+        if (method != 'POST' or not isinstance(questions, dict) or set(questions) != {'answer'}
+                or not isinstance(questions['answer'], dict) or questions['answer'].get('type') != 'score'):
+            raise ValueError('Vibe requires a single typed score question per decision request')
+        if (questions['answer'].get('instructions') != self.question
+                or questions['answer'].get('criteria') != self.anchors):
+            raise ValueError('score request does not match the frozen ordered rubric')
+        return payload
+
+    def _nanogpt_score_http(self, method, url, *, headers=None, body=None, timeout=None):
+        if urlsplit(url).path == '/api/v1/decisions':
+            self._score_request(method, body)
+        return self._nanogpt_http(method, url, headers=headers, body=body, timeout=timeout)
+
     def _typesafe_http(self, method, url, *, headers=None, body=None, timeout=None):
         from nanoodle.transport import default_http
         if method != 'POST' or urlsplit(url).path != '/api/v1/decisions':
@@ -63,7 +85,7 @@ class NanoodleWorkflows:
         key = os.environ.get('TYPESAFE_API_KEY')
         if not key:
             raise ValueError('TYPESAFE_API_KEY is required for the TypeSafe judge')
-        payload = typesafe_payload(json.loads(body))
+        payload = typesafe_payload(self._score_request(method, body))
         request_headers = {'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json'}
         if payload.get('assets'):
             request_headers['TypeSafe-Danger-Zone-Images'] = 'true'
