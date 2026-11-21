@@ -1,7 +1,7 @@
 # Learning-rate fields
 
 Products pass finite positive rate values through
-`ConditionalPG09(..., recipe_overrides=...)`:
+`ConditionalParticleGAN(..., recipe_overrides=...)`:
 
 | Field | Meaning |
 |---|---|
