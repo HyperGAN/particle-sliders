@@ -7,7 +7,8 @@ it supports. Keep conflicting native dependencies in separate environments.
 
 For multi-step generation, use the
 [scheduled strength guide](strength-schedules.md) to qualify the product's
-native denoising, generation-token or refinement stages. Check the product
+native denoising, generation-token or refinement stages. Find the exact API
+or flag in the [product entry points](strength-schedules.md#product-entry-points). Check the product
 guide for the schedule and RAW profile that have been measured together.
 
 | Modality | Product | Where to test strength |
@@ -24,13 +25,13 @@ guide for the schedule and RAW profile that have been measured together.
 | Image | [MOSS](https://github.com/HyperGAN/moss-image-sliders) | Denoising intervals. |
 | Image | [FLUX](https://github.com/HyperGAN/flux-particle-sliders) | Native packed flow intervals. |
 | Image | [Klein](https://github.com/HyperGAN/klein-particle-sliders) | Native flow intervals. |
-| Image | [Stable Diffusion](https://github.com/HyperGAN/sd-particle-sliders) | Denoising intervals on a supported native path. |
+| Image | [Stable Diffusion](https://github.com/HyperGAN/sd-particle-sliders) | Retired scaffold without a native renderer. |
 | Video/audio | [LTX 2.5](https://github.com/HyperGAN/ltx25-particle-sliders) | Joint native denoising intervals. Preserve current video/audio routing. |
 | Video/audio | [MiniMax H3](https://github.com/HyperGAN/minimax-h3-particle-sliders) | Native audiovisual flow intervals. |
-| Music | [Music3](https://github.com/HyperGAN/music3-particle-sliders) | Generation tokens for an LM slider, or denoising intervals for a diffusion slider. |
+| Music | [Music3](https://github.com/HyperGAN/music3-particle-sliders) | Prefill and semantic audio frames before the original acoustic decoder. |
 | Music | [YuE2](https://github.com/HyperGAN/yue2-particle-sliders) | Causal music-generation positions where the adapter is attached. |
 | Speech | [Sophon](https://github.com/HyperGAN/sophon-particle-sliders) | Native speech generation stage carrying the slider. Check input-only controls at their native input site. |
-| Speech | [VoxCPM2](https://github.com/HyperGAN/voxcpm2-particle-sliders) | Native acoustic rollout and local denoising intervals for the attached DiT adapter. |
+| Speech | [VoxCPM2](https://github.com/HyperGAN/voxcpm2-particle-sliders) | Acoustic patch positions through native end-of-speech or the fixed patch limit. |
 | Text | [Glimmer](https://github.com/HyperGAN/glimmer-particle-sliders) | Causal language-generation positions. |
 | Text | [Meta Glimmer](https://github.com/HyperGAN/meta-glimmer-particle-slider) | Causal language-generation positions. |
 | Text | [Qwen3.5](https://github.com/HyperGAN/qwen35-particle-sliders) | Causal generation positions. |
