@@ -69,6 +69,42 @@ def test_shared_response_resume_raw_and_observation(tmp_path, vector):
     assert not torch.cuda.is_initialized()
 
 
+def test_full_resume_refuses_recaptured_teacher_tensor_changes(tmp_path, vector, monkeypatch):
+    options = config(tmp_path)
+    checkpoint = tmp_path / 'training.pt'
+    with response.open_response(options) as original:
+        original.train(stop_after=1)
+        saved = original.checkpoint(checkpoint)
+
+    prepared = vector.PreparedAudioResponse
+
+    def recapture(row, target, neutral):
+        if row.positive_ids[-1] == 10:
+            target = target.clone()
+            target[0, 0] += .125
+        return prepared(row, target, neutral)
+
+    with monkeypatch.context() as changed_capture:
+        changed_capture.setattr(vector, 'PreparedAudioResponse', recapture)
+        with response.open_response(options) as current:
+            before = current.checkpoint()
+            saved_signature = dict(saved['manifest']['game_signature'])
+            current_signature = dict(before['manifest']['game_signature'])
+            assert saved_signature.pop('rows_sha256') != current_signature.pop('rows_sha256')
+            assert saved_signature == current_signature
+            with pytest.raises(CheckpointError, match='implicit rebinding'):
+                current.restore(saved)
+            equal(before, current.checkpoint())
+
+        closed = len(vector.CLOSED)
+        with pytest.raises(CheckpointError, match='implicit rebinding'):
+            response.open_response(options, resume=checkpoint)
+        assert len(vector.CLOSED) == closed + 1
+
+    with response.open_response(options, resume=checkpoint) as resumed:
+        equal(saved, resumed.checkpoint())
+
+
 def test_response_failures_are_atomic_and_cleanup(tmp_path, vector):
     with response.open_response(config(tmp_path)) as session:
         before = session.checkpoint()
