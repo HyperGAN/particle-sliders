@@ -3,8 +3,9 @@
 Synthetic adapter-only vector example for core 0.15.2 / ParticleGAN 0.11.1. No native model, token or audio renderer.
 The fixture has installed CPU qualification; it makes no native media claim.
 Use a separate environment with this branch's exact core/ParticleGAN dependency.
-Build this tiny plugin with `python -m pip wheel --no-deps --no-build-isolation .`,
-then install its wheel alongside the reviewed core wheel. Outside the source tree:
+From this example directory, run `python -m pip install .` to install the plugin
+and its pinned shared runtime. To test the installed entry points, run the
+following from a separate directory:
 
 ```sh
 mkdir fresh-vector-run
