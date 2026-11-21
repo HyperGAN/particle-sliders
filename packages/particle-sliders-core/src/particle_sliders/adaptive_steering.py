@@ -212,10 +212,15 @@ def calibrate_gate_budget(
     def measure(parameter):
         return GateCalibration(parameter, target_rate, rollout(parameter))
 
+    # Check the closed rate interval directly. Subtracting the target from a
+    # rounded measured rate can put a boundary observation outside tolerance.
+    minimum_rate, maximum_rate = target_rate - tolerance, target_rate + tolerance
     lower, upper = measure(low), measure(high)
-    best = min((lower, upper), key=lambda trial: abs(trial.usage.rate - target_rate))
-    if abs(best.usage.rate - target_rate) <= tolerance:
-        return best
+    endpoints = sorted((lower, upper), key=lambda trial: abs(trial.usage.rate - target_rate))
+    best = endpoints[0]
+    for endpoint in endpoints:
+        if minimum_rate <= endpoint.usage.rate <= maximum_rate:
+            return endpoint
     if not lower.usage.rate < target_rate < upper.usage.rate:
         raise ValueError(f"active rollout rates {lower.usage.rate:g} and {upper.usage.rate:g} "
                          f"do not bracket target {target_rate:g}")
@@ -224,12 +229,12 @@ def calibrate_gate_budget(
         if midpoint == low or midpoint == high:
             break
         trial = measure(midpoint)
-        distance = abs(trial.usage.rate - target_rate)
-        if distance <= tolerance:
+        rate = trial.usage.rate
+        if minimum_rate <= rate <= maximum_rate:
             return trial
-        if distance < abs(best.usage.rate - target_rate):
+        if abs(rate - target_rate) < abs(best.usage.rate - target_rate):
             best = trial
-        if trial.usage.rate < target_rate:
+        if rate < target_rate:
             low = midpoint
         else:
             high = midpoint

@@ -69,6 +69,37 @@ def test_cfp_bisects_steering_active_trajectories():
                               tolerance=0, max_iterations=4)
 
 
+@pytest.mark.parametrize("fires", [198, 200])
+@pytest.mark.parametrize("parameter", [-1, 0, 1])
+def test_calibration_accepts_inclusive_one_firing_boundary(fires, parameter):
+    eligible = 398
+    measured = GateUsage(fired=fires, eligible=eligible)
+
+    def rollout(candidate):
+        if candidate == parameter:
+            return measured
+        return GateUsage(fired=0 if candidate < parameter else eligible, eligible=eligible)
+
+    result = calibrate_gate_budget(rollout, target_rate=0.5, bounds=(-1, 1),
+                                   tolerance=1 / eligible, max_iterations=1)
+    assert result.parameter == parameter
+    assert result.usage == measured
+
+
+@pytest.mark.parametrize("fires", [197, 201])
+def test_calibration_rejects_firing_counts_outside_boundary(fires):
+    eligible = 398
+
+    def rollout(candidate):
+        if candidate == 0:
+            return GateUsage(fired=fires, eligible=eligible)
+        return GateUsage(fired=0 if candidate < 0 else eligible, eligible=eligible)
+
+    with pytest.raises(ValueError, match="did not meet target"):
+        calibrate_gate_budget(rollout, target_rate=0.5, bounds=(-1, 1),
+                              tolerance=1 / eligible, max_iterations=1)
+
+
 def test_clabs_updates_ema_before_sampling_and_resets_per_request():
     config = CLABSParameters(mean=1.5, std=1.0, epsilon=1e-6, setpoint=0.75,
                              proportional_gain=1.0, integral_gain=0.2, beta=0.2)
