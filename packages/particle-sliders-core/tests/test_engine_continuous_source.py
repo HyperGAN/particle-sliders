@@ -11,15 +11,15 @@ from torch import nn
 import particlegan
 from particlegan import init
 
-from particle_sliders import pg09
-from test_conditional_pg09 import equal
+from particle_sliders import engine
+from test_conditional_engine import equal
 
 
 def installed_profile():
     root = Path(particlegan.__file__).resolve().parent
     actual = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(root.rglob('*.py'))}
-    document = json.loads(Path(pg09.__file__).with_name('pg095_release.json').read_text())
+    document = json.loads(Path(engine.__file__).with_name('engine_release.json').read_text())
     assert actual == document['python_sources']
     return document['source_profile']
 
@@ -69,22 +69,22 @@ def game(width):
     neutral = torch.linspace(-1, 1, width).reshape(1, width)
     rows = [Row({'input': torch.tensor([[0.1 * index, -0.2]]), 'sign': sign},
                 neutral + sign * 0.2, neutral) for index, sign in enumerate((-1., 1., -1., 1.))]
-    return pg09.ConditionalPG09(backend, rows, Critic(width),
+    return engine.ConditionalParticleGAN(backend, rows, Critic(width),
         particles=backend.network.particles, conditions=torch.arange(4.).reshape(4, 1),
         response_domain='continuous_vector', response_scale=1., total_steps=4, seed=0,
-        pg_source_profile=pg09.PG_SOURCE_PROFILE, penalty_input_domain='continuous',
+        pg_source_profile=engine.PG_SOURCE_PROFILE, penalty_input_domain='continuous',
         recipe_overrides={'lr': 1e-5, 'd_lr_mult': 3., 'prior_lr_mult': 4.})
 
 
 @pytest.mark.parametrize('width', [16, 169, 170, 1024, 2048, 4096])
 def test_release_continuous_domain_is_explicit_and_native(width):
-    assert installed_profile() == pg09.PG_SOURCE_PROFILE
-    result = pg09.validate_pg09_domain((1, width), response_domain='continuous_vector',
+    assert installed_profile() == engine.PG_SOURCE_PROFILE
+    result = engine.validate_engine_domain((1, width), response_domain='continuous_vector',
         penalty_input_domain='continuous')
     assert result['resolved_penalty_domain'] == 'continuous'
     if width >= 170:
         with pytest.raises(ValueError, match='width >=170'):
-            pg09.validate_pg09_domain((1, width), response_domain='continuous_vector')
+            engine.validate_engine_domain((1, width), response_domain='continuous_vector')
     assert not torch.cuda.is_initialized()
 
 
@@ -121,16 +121,16 @@ def test_release_wide_bank_updates_exact_resume_and_inference(width):
         torch.set_num_threads(before_threads)
 
 
-def test_old_overlay_and_release_entrypoints_do_not_rebind():
-    from particle_sliders.pg095 import engine_options
-    from particle_sliders.pg094 import ConditionalPG094
+def test_old_overlay_and_release_options_do_not_rebind():
+    from particle_sliders.engine import engine_options
     assert engine_options({'penalty_input_domain': 'continuous'}) == {
-        'pg_source_profile': pg09.PG_SOURCE_PROFILE, 'penalty_input_domain': 'continuous'}
-    for old in ['release-0.9.4', 'source-801ae1e-continuous-v1']:
+        'pg_source_profile': engine.PG_SOURCE_PROFILE, 'penalty_input_domain': 'continuous'}
+    for old in ['release-0.9.4', 'release-0.9.5', 'release-0.10.1', 'source-801ae1e-continuous-v1']:
         with pytest.raises(ValueError, match='qualified source/domain pair'):
             engine_options({'pg_source_profile': old, 'penalty_input_domain': 'continuous'})
-    with pytest.raises(RuntimeError, match='original|pinned'):
-        ConditionalPG094()
+    for old in ['0.9.3', '0.9.4', '0.9.5', '0.10.0', '0.10.1']:
+        with pytest.raises(ValueError, match='requires ParticleGAN 0.11.0'):
+            engine_options({'pg_version': old})
 
 
 def test_common_lifecycle_admits_declared_release_domain_before_factory():

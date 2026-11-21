@@ -1,7 +1,7 @@
 # Model-independent Particle Sliders core
 
-Core 0.14.2 is an explicit new packaging cohort, based on released ParticleGAN
-0.9.5. Product repositories depend on this core and register or inject their
+Core 0.15.1 is an explicit packaging cohort, based on released ParticleGAN
+0.11.0. Product repositories depend on this core and register or inject their
 native factories. The core never constructs a named pretrained model. For model setup, training
 recipes and generation, use the [product repositories](../../docs/products.md).
 For the teacher/student game, see the [math guide](../../docs/math.md).
@@ -16,7 +16,7 @@ For the teacher/student game, see the [math guide](../../docs/math.md).
 
 Use `particle_sliders.lifecycle`, `particle_sliders.response` and
 `particle_sliders.execution` for common operations. `native_lora` contains
-generic adapter primitives, not a model loader. `pg09_audio` retains generic
+generic adapter primitives, not a model loader. `audio` retains generic
 autoregressive rows, last-hidden response base, conditioning and critic helpers;
 model-specific subclasses belong to the product. Products own media generation.
 `FrozenResponseAdapter` takes explicit `trajectory_direction` and
@@ -73,6 +73,14 @@ local builds are removed from the build output before packaging. The build test
 parses every packaged module and requires each intra-package import to resolve
 inside the built wheel, so a new shared module must be added to the list.
 
+Shared module names are version-neutral. `engine` holds `ConditionalParticleGAN`,
+`validate_engine_domain` and `engine_options`; `backends` holds the frozen-response
+adapter primitives; `audio`, `hndl_critic` and `readout_critic` hold the generic
+autoregressive rows and critics. The image family bindings in `image_bindings`
+(Iris, Qwen-Image, Krea2, Flux and SD branches) are model-specific: they stay in
+the source tree as migration input, are excluded from the wheel, and belong in
+the product repositories that use them.
+
 Music3 native loading, its routed adapter and its concrete response subclass
 move to [HyperGAN/music3-particle-sliders](https://github.com/HyperGAN/music3-particle-sliders).
 The product calls the same shared game and owns no second GAN implementation.
@@ -88,7 +96,7 @@ The exact replaced bindings are also retained under
 `legacy/model-bindings/core-0.13.0` in this repository. Remaining embedded source
 trees are historical migration input and are excluded from the new distribution.
 
-Core 0.14 does not alias a removed model implementation to a different product
+Core 0.14 and later do not alias a removed model implementation to a different product
 or silently migrate a pickle/checkpoint. A product pins its reviewed new core
 commit, owns the extracted native implementation, binds a new source cohort,
 and tests complete lifecycle continuation under that cohort. Old checkpoints
@@ -97,7 +105,7 @@ alone is not proof of cross-cohort training resume.
 
 Historical pure teacher geometry is retained as a non-importable text source
 receipt with its original byte digest. Historical generic engines remain named
-APIs; they are not a substitute objective for the shared `ConditionalPG09` path.
+APIs; they are not a substitute objective for the shared `ConditionalParticleGAN` path.
 
 Fresh sessions explicitly use `ema_decay=None` and raw current weights for
 training, ranking, confirmation, export and inference. Upstream optimizer scalar

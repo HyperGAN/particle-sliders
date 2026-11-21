@@ -79,7 +79,7 @@ reconstruction, or distillation term in the training loss.
 
 ## 3. Alternate critic and adapter updates
 
-For the default `bispf_optimized` recipe, ParticleGAN 0.9.5 supplies a
+For the default `bispf_optimized` recipe, ParticleGAN 0.11.0 supplies a
 Sinkhorn-relativistic loss. Let $r_i=D_\phi(x_{r,i},c_i)$ and
 $f_j=D_\phi(x_{f,j},c_j)$ be the raw logits in a batch of size $B$.
 The upstream Sinkhorn coupling gives weights $\Pi_{ij}$. Its reported
@@ -111,8 +111,8 @@ $\mathcal R_P$ is the recipe's particle regularizer when a real bank participate
 an adapter-only game uses `particles=None`. A disconnected dummy bank is not a
 particle model. Core uses ParticleGAN's public loss, regularizer,
 constraint-geometry backward and optimizer APIs. It does not substitute a local
-optimizer formula. See the [engine contract](../packages/particle-sliders-core/CONDITIONAL-PG09-CONTRACT.md)
-and [pinned release](../packages/particle-sliders-core/COMPATIBILITY-PG095.md).
+optimizer formula. See the [engine contract](../packages/particle-sliders-core/CONDITIONAL-ENGINE-CONTRACT.md)
+and [pinned release](../packages/particle-sliders-core/COMPATIBILITY.md).
 
 Weight EMA is disabled for the adapter, critic and bank. Training, selection and
 exports use raw current weights. Upstream scalar optimizer statistics stay as

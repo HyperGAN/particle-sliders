@@ -6,8 +6,8 @@ import pytest
 import torch
 from torch import nn
 
-from particle_sliders.pg09_audio import ARLastHiddenResponseAdapter
-from particle_sliders.pg09_backends import checkpoint_with_adapter_scale
+from particle_sliders.audio import ARLastHiddenResponseAdapter
+from particle_sliders.backends import checkpoint_with_adapter_scale
 
 
 class Scale(nn.Module):
@@ -38,12 +38,12 @@ class Block(nn.Module):
 class InterruptMarker(Block):
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
-        if name == '_pg09_scale_checkpoint' and value is True:
+        if name == '_adapter_scale_checkpoint' and value is True:
             raise KeyboardInterrupt('partial marker installation')
 
 
 def ownership(module):
-    return {key: vars(module)[key] for key in ('forward', '_pg09_scale_checkpoint')
+    return {key: vars(module)[key] for key in ('forward', '_adapter_scale_checkpoint')
             if key in vars(module)}
 
 
@@ -54,10 +54,10 @@ def test_exact_descriptor_or_override_restore_and_idempotence(instance_forward, 
     if instance_forward:
         block.forward = block.forward
     if existing_marker:
-        block._pg09_scale_checkpoint = False
+        block._adapter_scale_checkpoint = False
     before = ownership(block)
     handle = checkpoint_with_adapter_scale(block, block.scale_owner)
-    assert block._pg09_scale_checkpoint is True
+    assert block._adapter_scale_checkpoint is True
     handle.close()
     handle.close()
     assert ownership(block) == before
@@ -82,7 +82,7 @@ def test_same_block_nested_refusal_keeps_outer_owner():
         with pytest.raises(ValueError, match='already checkpointed'):
             checkpoint_with_adapter_scale(block, block.scale_owner)
         assert block.forward is wrapper
-        assert block._pg09_scale_checkpoint is True
+        assert block._adapter_scale_checkpoint is True
     assert ownership(block) == {}
 
 
@@ -95,7 +95,7 @@ def test_nested_scopes_of_same_handle_restore_only_at_outer_exit():
             with handle:
                 raise KeyboardInterrupt('inner')
         assert block.forward is wrapper
-        assert block._pg09_scale_checkpoint is True
+        assert block._adapter_scale_checkpoint is True
     assert ownership(block) == {}
     handle.close()
 
@@ -109,7 +109,7 @@ def test_exit_stack_unwinds_completed_and_partially_installed_blocks():
     assert ownership(first) == ownership(failing) == {}
 
 
-@pytest.mark.parametrize('changed', ['forward', '_pg09_scale_checkpoint'])
+@pytest.mark.parametrize('changed', ['forward', '_adapter_scale_checkpoint'])
 def test_close_refuses_to_overwrite_another_owner(changed):
     block = Block(Scale())
     handle = checkpoint_with_adapter_scale(block, block.scale_owner)
@@ -148,7 +148,7 @@ def test_deferred_backward_after_handle_close_preserves_captured_scale(strength)
 def test_ignored_handle_retains_legacy_eager_installation():
     block = Block(Scale())
     checkpoint_with_adapter_scale(block, block.scale_owner)
-    assert block._pg09_scale_checkpoint is True
+    assert block._adapter_scale_checkpoint is True
     block(torch.tensor(.2)).backward()
     assert block.scale_owner.weight.grad is not None
 
@@ -171,7 +171,7 @@ def test_ar_adapter_owns_and_releases_its_checkpoint_handles():
     model, slider = audio_fixture()
     adapter = ARLastHiddenResponseAdapter(model, slider,
         model_identity={'fixture': 'checkpoint-owner'}, checkpoint_modules=model.blocks)
-    assert all(block._pg09_scale_checkpoint is True for block in model.blocks)
+    assert all(block._adapter_scale_checkpoint is True for block in model.blocks)
     adapter.close_checkpointing()
     adapter.close_checkpointing()
     assert all(ownership(block) == {} for block in model.blocks)
@@ -186,8 +186,8 @@ def test_ar_adapter_partial_constructor_unwinds_wrappers():
 
 
 def record_closes(monkeypatch, blocks, events):
-    from particle_sliders import pg09_backends
-    original = pg09_backends.AdapterScaleCheckpoint.close
+    from particle_sliders import backends
+    original = backends.AdapterScaleCheckpoint.close
     labels = {id(block): index for index, block in enumerate(blocks)}
 
     def close(handle):
@@ -200,10 +200,10 @@ def record_closes(monkeypatch, blocks, events):
             raise
         events.append(('closed', label))
 
-    monkeypatch.setattr(pg09_backends.AdapterScaleCheckpoint, 'close', close)
+    monkeypatch.setattr(backends.AdapterScaleCheckpoint, 'close', close)
 
 
-@pytest.mark.parametrize('changed', ['forward', '_pg09_scale_checkpoint'])
+@pytest.mark.parametrize('changed', ['forward', '_adapter_scale_checkpoint'])
 @pytest.mark.parametrize('conflict_index', [0, 1])
 def test_ar_adapter_retains_failed_handle_until_resolved_retry(monkeypatch, changed, conflict_index):
     model, slider = audio_fixture()
@@ -238,29 +238,29 @@ def test_ar_adapter_retains_failed_handle_until_resolved_retry(monkeypatch, chan
 
 @pytest.mark.parametrize('error_type', [KeyboardInterrupt, MemoryError])
 def test_handle_construction_fault_rolls_back_installed_attributes(monkeypatch, error_type):
-    from particle_sliders import pg09_backends
+    from particle_sliders import backends
     block = Block(Scale())
-    block._pg09_scale_checkpoint = False
+    block._adapter_scale_checkpoint = False
     before = ownership(block)
 
     def fail_handle(module, forward, saved):
         assert module is block
         assert module.forward is forward
-        assert module._pg09_scale_checkpoint is True
+        assert module._adapter_scale_checkpoint is True
         raise error_type('handle construction')
 
-    monkeypatch.setattr(pg09_backends, 'AdapterScaleCheckpoint', fail_handle)
+    monkeypatch.setattr(backends, 'AdapterScaleCheckpoint', fail_handle)
     with pytest.raises(error_type, match='handle construction'):
         checkpoint_with_adapter_scale(block, block.scale_owner)
     assert ownership(block) == before
 
 
 def test_ar_later_handle_construction_fault_closes_earlier_owner(monkeypatch):
-    from particle_sliders import pg09_backends
+    from particle_sliders import backends
     model, slider = audio_fixture()
     events = []
     record_closes(monkeypatch, model.blocks, events)
-    original = pg09_backends.AdapterScaleCheckpoint
+    original = backends.AdapterScaleCheckpoint
 
     def make_handle(module, forward, saved):
         index = next(i for i, block in enumerate(model.blocks) if block is module)
@@ -270,7 +270,7 @@ def test_ar_later_handle_construction_fault_closes_earlier_owner(monkeypatch):
             raise KeyboardInterrupt('later handle construction')
         return original(module, forward, saved)
 
-    monkeypatch.setattr(pg09_backends, 'AdapterScaleCheckpoint', make_handle)
+    monkeypatch.setattr(backends, 'AdapterScaleCheckpoint', make_handle)
     with pytest.raises(KeyboardInterrupt, match='later handle construction'):
         ARLastHiddenResponseAdapter(model, slider,
             model_identity={'fixture': 'partial-owner'}, checkpoint_modules=model.blocks)
@@ -288,7 +288,7 @@ def test_adapter_owner_assignment_fault_keeps_rollback_ledger(monkeypatch, after
     class FailTransfer(ARLastHiddenResponseAdapter):
         def __setattr__(self, name, value):
             if name == '_checkpointing':
-                assert all(block._pg09_scale_checkpoint is True for block in model.blocks)
+                assert all(block._adapter_scale_checkpoint is True for block in model.blocks)
                 events.append(('transfer', after_assignment))
                 if after_assignment:
                     super().__setattr__(name, value)

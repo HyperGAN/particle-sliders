@@ -1,6 +1,6 @@
 # Historical API compatibility
 
-Current core 0.14 installs shared modules only; it does not install embedded
+Current core 0.15 installs shared modules only; it does not install embedded
 products or legacy `conceptmod` aliases. See the [distribution boundary](SHARED-CORE-BOUNDARY.md)
 and [history](../../docs/history.md) for reproduction rules and archived source.
 
@@ -18,7 +18,7 @@ Neither pin makes old checkpoints resumable under a new source identity.
 
 The named compatibility helpers remain installed. This complete numerical
 example exercises that API without native weights or downloads; new product
-training uses the [conditional engine](CONDITIONAL-PG09-CONTRACT.md).
+training uses the [conditional engine](CONDITIONAL-ENGINE-CONTRACT.md).
 
 ```python
 import torch

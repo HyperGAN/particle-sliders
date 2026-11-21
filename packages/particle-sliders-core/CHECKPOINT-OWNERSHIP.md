@@ -9,7 +9,7 @@ an `AdapterScaleCheckpoint` handle with `close()` and context-manager support:
 
 ```python
 from contextlib import ExitStack
-from particle_sliders.pg09_backends import checkpoint_with_adapter_scale
+from particle_sliders.backends import checkpoint_with_adapter_scale
 
 with ExitStack() as checkpoints:
     for block in product_selected_blocks:
