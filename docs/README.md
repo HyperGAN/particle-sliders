@@ -13,7 +13,7 @@ This repository documents the shared core and its integration contracts.
 ## Integration guides
 
 - [Core distribution boundary](../packages/particle-sliders-core/SHARED-CORE-BOUNDARY.md)
-- [Conditional engine](../packages/particle-sliders-core/CONDITIONAL-PG09-CONTRACT.md)
+- [Conditional engine](../packages/particle-sliders-core/CONDITIONAL-ENGINE-CONTRACT.md)
 - [Numerical response sessions](../packages/particle-sliders-core/RESPONSE-SESSIONS.md)
 - [Image sessions](../packages/particle-sliders-core/IMAGE-LIFECYCLE.md)
 - [Native inference](../packages/particle-sliders-core/NATIVE-INFERENCE.md)
@@ -25,7 +25,7 @@ This repository documents the shared core and its integration contracts.
 - [Selective PEFT scaling](../packages/particle-sliders-core/PEFT-SCALING.md)
 - [Conditioning cache identity](conditioning-cache-identity.md)
 - [Optional HyperGAN reporting](../packages/particle-sliders-core/HYPERGAN-REPORTING.md)
-- [Pinned ParticleGAN compatibility](../packages/particle-sliders-core/COMPATIBILITY-PG095.md)
+- [Pinned ParticleGAN compatibility](../packages/particle-sliders-core/COMPATIBILITY.md)
 
 ## Historical material
 

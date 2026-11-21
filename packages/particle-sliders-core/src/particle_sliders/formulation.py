@@ -393,7 +393,7 @@ def particlegan_locked_shared():
 
 
 def particlegan_get_recipe(name="gan", *, optimizer_dense_profile="auto", **overrides):
-    """Upstream Recipe with the same shared dense policy as ConditionalPG09.
+    """Upstream Recipe with the same shared dense policy as ConditionalParticleGAN.
 
     Explicit default retains the original upstream solver; auto changes only the
     dense profile where supported. Returned Recipe owns all optimizer builders.
