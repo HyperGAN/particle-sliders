@@ -6,11 +6,11 @@ from setuptools.command.build_py import build_py
 
 CORE_MODULES = frozenset({
     '__init__', '_restore_training', '_training',
-    'adapter_activation', 'adapter_attachment', 'adapter_loading', 'audio', 'backends',
+    'adapter_activation', 'adapter_attachment', 'adapter_loading', 'adaptive_steering', 'audio', 'backends',
     'bispf_game', 'candidate_failure', 'distillation', 'endpoint_game', 'engine',
     'field_critic', 'formulation', 'formulation_game', 'grad_regularizers', 'hndl_critic',
     'inference', 'initialization', 'legacy_compat', 'lifecycle', 'native_lora',
-    'native_lora_compat', 'optimizer_policy', 'peft_scaling', 'readout_critic', 'recipe',
+    'native_lora_compat', 'optimizer_policy', 'peft_scaling', 'prompt_steering', 'readout_critic', 'recipe',
     'reference', 'response', 'restoration', 'routed_projection', 'session_cli',
     'strength_schedule', 'teachers',
     'weight_policy',
