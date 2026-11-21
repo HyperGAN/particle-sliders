@@ -9,6 +9,40 @@ no qualified schedule winner.
 The [product map](products.md) identifies the generation stage for each public
 product. Use the generation stage and scheduler from its native source cohort.
 
+## Product entry points
+
+Pass gains to the entry point for the saved RAW session. Most `step_gains`
+arguments multiply the nominal strength. VoxCPM2's native EOS helper takes
+effective strengths directly. The linked sources define gain count, limits
+and native ownership requirements.
+
+| Inventory product | Entry point and coordinate | Source |
+| --- | --- | --- |
+| Anima | `python -m release_tools.infer --step-gains` for native Euler steps | [Render guide](https://github.com/HyperGAN/anima-particle-sliders/blob/main/docs/scheduled-strength.md) |
+| Arete | `arete_particle_sliders.scheduled_text.generate` or `arete_native_scheduling.generate` with `step_gains` for prefill and cached positions | [Text helper](https://github.com/HyperGAN/arete-particle-sliders/blob/main/src/arete_particle_sliders/scheduled_text.py), [strict RAW helper](https://github.com/HyperGAN/arete-particle-sliders/blob/main/native-candidate/src/arete_native_scheduling/__init__.py) |
+| Flux | `ps_flux_native.scheduled_render.render` with `step_gains` for native flow steps | [Renderer](https://github.com/HyperGAN/flux-particle-sliders/blob/main/native-candidate/src/ps_flux_native/scheduled_render.py) |
+| GLiDE | Scalar strength on the native two-choice readout, with one scoring forward | [Native scorer](https://github.com/HyperGAN/glide-particle-sliders/blob/main/src/glide_particle_sliders/native.py) |
+| Glimmer | `glimmer_scheduling.generate` with `step_gains` for cached or full-prefix token positions | [Strict RAW helper](https://github.com/HyperGAN/glimmer-particle-sliders/blob/main/native-candidate/src/glimmer_scheduling/__init__.py) |
+| Iris | `iris-slider-infer --step-gains` for native solver intervals | [CLI](https://github.com/HyperGAN/iris-particle-sliders/blob/main/src/iris_sliders/infer.py) |
+| Klein | `klein_sliders.scheduled_render.render` with `step_gains` for native Euler steps | [Renderer](https://github.com/HyperGAN/klein-particle-sliders/blob/main/src/klein_sliders/scheduled_render.py) |
+| Krea2 | `krea2.scheduled_render.render` with `step_gains` for native denoising steps | [Renderer](https://github.com/HyperGAN/krea2-particle-sliders/blob/main/krea2/scheduled_render.py) |
+| LTX 2.5 | `ps_ltx25_native.scheduled_render.render` with `step_gains` for native coupled audiovisual denoising | [Renderer](https://github.com/HyperGAN/ltx25-particle-sliders/blob/main/backends/ltx25-native/src/ps_ltx25_native/scheduled_render.py) |
+| Ming | `ming.scheduled_render.render` with `step_gains` for shared denoising steps across both ordered image frames | [Renderer](https://github.com/HyperGAN/ming-particle-sliders/blob/main/ming/scheduled_render.py) |
+| MiniMax H3 | `minimax_h3_scheduling.render_latents` with `step_gains` for coupled video and audio latent steps | [Native helper](https://github.com/HyperGAN/minimax-h3-particle-sliders/blob/main/native/src/minimax_h3_scheduling/__init__.py) |
+| MiniMax H3 Image | `minimax_h3_image_sliders.scheduled_native.denoise_with_gains` with `step_gains` for the six native PDD heads | [Native helper](https://github.com/HyperGAN/minimax-h3-image-particle-sliders/blob/main/src/minimax_h3_image_sliders/scheduled_native.py) |
+| Music3 | `music3.scheduled_semantic.generate` with `step_gains` for prefill and semantic frames before the original acoustic decoder | [Semantic sampler](https://github.com/HyperGAN/music3-particle-sliders/blob/main/music3/scheduled_semantic.py) |
+| P-H3 Image | `ph3_native_scoped.scheduling.rollout` with `step_gains` for packed image and audio latent denoising | [Native helper](https://github.com/HyperGAN/p-h3-image-particle-sliders/blob/main/backends/ph3-native-scoped/src/ph3_native_scoped/scheduling/__init__.py) |
+| Qwen Image | `qwen_image_sliders.scheduled_inference.render` with `step_gains` for native flow steps | [Renderer](https://github.com/HyperGAN/qwen-image-particle-sliders/blob/main/src/qwen_image_sliders/scheduled_inference.py) |
+| Qwen3.5 | `qwen35-slider evaluate-math --step-gains` for prefill and cached token positions | [Evaluation CLI](https://github.com/HyperGAN/qwen35-particle-sliders/blob/main/src/qwen35_sliders/cli.py) |
+| Ripple | `ripple_native_public.scheduled_text.generate` with `step_gains` for autoregressive text positions | [Native helper](https://github.com/HyperGAN/ripple-particle-sliders/blob/main/backends/ripple-native/src/ripple_native_public/scheduled_text.py) |
+| SD | Retired Stable Diffusion scaffold with no native renderer | [Repository status](https://github.com/HyperGAN/sd-particle-sliders/blob/main/README.md) |
+| Sophon | `sophon_particle_sliders.scheduled_text.render` with `step_gains` for tagged text, or `sophon_speech.scheduled_audio.render` with `frame_gains` for speech | [Tagged text](https://github.com/HyperGAN/sophon-particle-sliders/blob/main/src/sophon_particle_sliders/scheduled_text.py), [speech](https://github.com/HyperGAN/sophon-particle-sliders/blob/main/src/sophon_speech/scheduled_audio.py) |
+| Supra | `supra.scheduled_inference.render` with `step_gains` for native denoising steps | [Renderer](https://github.com/HyperGAN/supra-particle-sliders/blob/main/supra/scheduled_inference.py) |
+| Tiny Aya | `evidence_dial.portable.Portable.generate` with `step_gains` for prefill and cached grounding tokens | [Grounding API](https://github.com/HyperGAN/tiny-aya-particle-sliders/blob/main/src/evidence_dial/portable.py) |
+| VoxCPM2 | `voxcpm2_native.frame_strength.eos_patch_schedule` for effective strengths through native EOS, or `frame_gains` for fixed-length waveforms | [Patch schedule](https://github.com/HyperGAN/voxcpm2-particle-sliders/blob/main/backends/voxcpm2-native/src/voxcpm2_native/frame_strength.py) |
+| YuE2 | `yue2_sliders.scheduled_semantic.generate` with `step_gains` for native semantic tokens | [Semantic sampler](https://github.com/HyperGAN/yue2-particle-sliders/blob/main/yue2_sliders/scheduled_semantic.py) |
+| Z-Image | `embedded_zimage_shared.scheduled_render.render` with `step_gains` for native denoising steps | [Renderer](https://github.com/HyperGAN/zimage-particle-sliders/blob/main/src/embedded_zimage_shared/scheduled_render.py) |
+
 ## Choose the coordinate
 
 | Native operation | Where to apply strength | Starting comparison |
