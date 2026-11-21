@@ -104,4 +104,4 @@ optimizer statistics are unchanged.
 
 See [response sessions](RESPONSE-SESSIONS.md) for numerical audio/text bindings,
 [execution](TRAINING-COMMAND.md) for training commands and
-[engine contracts](CONDITIONAL-PG09-CONTRACT.md) for the shared game.
+[engine contracts](CONDITIONAL-ENGINE-CONTRACT.md) for the shared game.

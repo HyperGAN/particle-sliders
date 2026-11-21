@@ -8,7 +8,7 @@ from torch import nn
 peft = pytest.importorskip('peft')  # Optional native dependency, not core runtime.
 
 from particle_sliders.peft_scaling import peft_adapter_scale_context
-from particle_sliders.pg09_backends import (
+from particle_sliders.backends import (
     AdapterParameters, checkpoint_with_adapter_scale, lora_scale_context,
 )
 

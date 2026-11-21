@@ -1,7 +1,7 @@
 """Data-independent native inference, separate from PG training/resume state.
 
 Products register a native-only factory. No training factory, prepared rows,
-critic, optimizer or ConditionalPG09 instance is constructed by this module.
+critic, optimizer or ConditionalParticleGAN instance is constructed by this module.
 """
 from contextlib import contextmanager
 from copy import deepcopy
@@ -20,7 +20,7 @@ from .lifecycle import (
     BackendUnavailable, Capabilities, CheckpointError, LifecycleError,
     UnsupportedOperation, atomic_save, _rng_devices, _network_observation, capabilities_from_dict, _restore_all,
 )
-from .pg09 import _architectures, _hash, _identity, _validate_module
+from .engine import _architectures, _hash, _identity, _validate_module
 
 INFERENCE_V2 = 'particle-sliders-native-inference-v2'
 IDENTITY_V1 = 'particle-sliders-native-identity-v1'

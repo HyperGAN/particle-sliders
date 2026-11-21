@@ -59,10 +59,16 @@ proposal, generation or judge never becomes a zero score or a synthetic target.
 
 ## Nanoodle and Jev
 
-Install the optional `particle-sliders-vibe[nanoodle]` add-on in the collector's
-environment. Until its first release, install from
-`./packages/particle-sliders-vibe[nanoodle]` in this source checkout. It has no
-Torch/core dependency and leaves existing native core source closures intact.
+Install the separate `particle-sliders-vibe[nanoodle]` add-on in the collector's
+environment. From this source checkout, run:
+
+```sh
+python -m pip install './packages/particle-sliders-vibe[nanoodle]'
+```
+
+Collection uses POSIX file locking. The `particle-slider-vibe` command works
+without Torch or core. Product instructions may pin a specific add-on revision
+for saved collections.
 `particle_sliders_vibe.nanoodle.NanoodleWorkflows` runs saved Nanoodle graphs:
 
 - Prompt workflow: `Context` text input, `Pairs` JSON-list output.

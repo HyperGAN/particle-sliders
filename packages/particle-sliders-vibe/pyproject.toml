@@ -14,7 +14,7 @@ dependencies = []
 
 [project.optional-dependencies]
 nanoodle = ["nanoodle>=0.7.0,<1"]
-test = ["pytest>=8"]
+test = ["pytest>=8", "pillow>=13.0.0"]
 
 [project.scripts]
 particle-slider-vibe = "particle_sliders_vibe:main"

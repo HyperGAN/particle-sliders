@@ -6,7 +6,7 @@ import pytest
 import torch
 from torch import nn
 
-from particle_sliders.pg09 import ConditionalPG09
+from particle_sliders.engine import ConditionalParticleGAN
 from particle_sliders.reference import RoutedMLP
 
 
@@ -75,7 +75,7 @@ def fixture(*, particles=True, preset='bispf_optimized', overrides=None, width=2
             row = dict(input=torch.randn(1, 2, generator=generator), sign=(-1. if i % 2 else 1.))
             rows.append(Prepared(row, neutral + row['sign'] * .2, neutral))
         conditions = torch.tensor([[i, r.row['sign'], 500.] for i, r in enumerate(rows)])
-        game = ConditionalPG09(backend, rows, critic, conditions=conditions,
+        game = ConditionalParticleGAN(backend, rows, critic, conditions=conditions,
             particles=backend.network.particles if particles else None, preset=preset,
             batch_size=4, total_steps=5, recipe_overrides=overrides, response_domain=domain)
     return game
@@ -206,7 +206,7 @@ def test_invalid_checkpoint_rejected_transactionally(corruption):
     if corruption == 'domain':
         packet['config']['response_domain'] = 'categorical'
     elif corruption == 'core_source':
-        packet['config']['implementation_sources']['particle_sliders.pg09'] = 'wrong'
+        packet['config']['implementation_sources']['particle_sliders.engine'] = 'wrong'
     elif corruption == 'module':
         packet['network']['particles'] = torch.zeros(99, 1)
     elif corruption == 'optimizer_groups':
@@ -225,18 +225,18 @@ def test_invalid_checkpoint_rejected_transactionally(corruption):
 
 
 def test_installed_pg_source_override_fails_closed(monkeypatch):
-    from particle_sliders import pg09
-    original = pg09.Path.read_text
+    from particle_sliders import engine
+    original = engine.Path.read_text
     def altered(path, *args, **kwargs):
         text = original(path, *args, **kwargs)
-        return text.replace('"__init__.py": "', '"__init__.py": "invalid') if path.name == 'pg095_release.json' else text
-    monkeypatch.setattr(pg09.Path, 'read_text', altered)
+        return text.replace('"__init__.py": "', '"__init__.py": "invalid') if path.name == 'engine_release.json' else text
+    monkeypatch.setattr(engine.Path, 'read_text', altered)
     with pytest.raises(RuntimeError, match='sources differ'):
         fixture()
 
 
 def test_native_integer_config_keys_keep_types_and_primitive_backend_flags_are_not_objects():
-    from particle_sliders.pg09 import _hash, _implementation_sources, _architectures
+    from particle_sliders.engine import _hash, _implementation_sources, _architectures
     game = fixture()
     game.critic.backend = 'sdpa'
     sources = _implementation_sources(game.backend, game.critic)
@@ -289,7 +289,7 @@ class VirtualRows:
 def lazy_fixture(count=10, identity='frozen-v1'):
     base = fixture()
     provider = VirtualRows(count, identity)
-    game = ConditionalPG09(base.backend, provider, base.critic, particles=base.network.particles,
+    game = ConditionalParticleGAN(base.backend, provider, base.critic, particles=base.network.particles,
                           batch_size=4, total_steps=5)
     return game, provider
 

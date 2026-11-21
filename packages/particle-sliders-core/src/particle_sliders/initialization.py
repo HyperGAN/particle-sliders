@@ -140,8 +140,8 @@ def initialize_fresh_components(
         raise ValueError("components require nonempty names and ComponentInitialization values")
     version = metadata.version("particlegan")
     pg_source = _source(pg_init.__file__)
-    if version != "0.9.5" or pg_source["sha256"] != _ADMITTED_INIT_SHA256:
-        raise ValueError("this helper admits the recorded ParticleGAN 0.9.5 initializer source only")
+    if version != "0.11.0" or pg_source["sha256"] != _ADMITTED_INIT_SHA256:
+        raise ValueError("this helper admits the recorded ParticleGAN 0.11.0 initializer source only")
 
     # Validate ownership globally, including KEEP/frozen parameters and buffers.
     seen_modules, seen_parameters, storages, buffers = set(), set(), set(), set()
