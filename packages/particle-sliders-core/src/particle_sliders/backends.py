@@ -11,6 +11,8 @@ from typing import Any, Callable
 import torch
 from torch import nn
 
+from .strength_schedule import interval_strengths
+
 
 class AdapterParameters(nn.Module):
     """Register only adapter leaves, preserving their identity and target names.
@@ -225,16 +227,20 @@ class FrozenResponseAdapter:
     def _advance(self, latent, velocity, delta):
         return latent + delta * velocity
 
-    def _response(self, row, *, condition=None, scale=1.0):
+    def _response(self, row, *, condition=None, scale=1.0, step_scales=None):
         if condition is not None:
             from dataclasses import replace
             row = replace(row, neutral=condition)
         if row.schedule is None:
             return self.cfg(row, row.latent, row.timestep, scale=scale)
         latent = row.latent.clone()
-        for time, delta in zip(row.schedule.timesteps, row.schedule.deltas):
+        if step_scales is None:
+            step_scales = (scale,) * len(row.schedule.deltas)
+        for time, delta, step_scale in zip(
+            row.schedule.timesteps, row.schedule.deltas, step_scales, strict=True
+        ):
             timestep = latent.new_tensor(time)
-            latent = self._advance(latent, self.cfg(row, latent, timestep, scale=scale), delta)
+            latent = self._advance(latent, self.cfg(row, latent, timestep, scale=step_scale), delta)
         return latent
 
     def prepare(self, row):
@@ -291,12 +297,15 @@ class FrozenResponseAdapter:
         return value
 
     @torch.no_grad()
-    def render(self, row, *, scale=1.0):
+    def render(self, row, *, scale=1.0, strength_profile="constant"):
         if row.schedule is None:
             raise ValueError("render requires an explicit denoising schedule")
         if self.decoder is None:
             raise ValueError("bind the staged model's VAE decoder before rendering")
-        return self.decoder(self._response(row, scale=scale))
+        if strength_profile == "constant":
+            return self.decoder(self._response(row, scale=scale))
+        step_scales = interval_strengths(scale, row.schedule.deltas, profile=strength_profile)
+        return self.decoder(self._response(row, step_scales=step_scales))
 
     def metadata(self):
         return dict(protocol="frozen-response-engine-v1", family=self.family,

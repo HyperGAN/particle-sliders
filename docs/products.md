@@ -5,25 +5,44 @@ training, rendering and supported slider strengths. Core supplies common
 interfaces; the product decides which ones it implements and which source pins
 it supports. Keep conflicting native dependencies in separate environments.
 
-| Modality | Product |
-|---|---|
-| Image | [Anima](https://github.com/HyperGAN/anima-particle-sliders) |
-| Image | [Supra](https://github.com/HyperGAN/supra-particle-sliders) |
-| Image | [Krea2](https://github.com/HyperGAN/krea2-particle-sliders) |
-| Image | [Ming](https://github.com/HyperGAN/ming-particle-sliders) |
-| Image | [Iris](https://github.com/HyperGAN/iris-particle-sliders) |
-| Image | [Qwen Image](https://github.com/HyperGAN/qwen-image-particle-sliders) |
-| Image | [Z-Image](https://github.com/HyperGAN/zimage-particle-sliders) |
-| Image | [P-H3](https://github.com/HyperGAN/p-h3-image-particle-sliders) |
-| Image | [MOSS](https://github.com/HyperGAN/moss-image-sliders) |
-| Music/audio | [Music3](https://github.com/HyperGAN/music3-particle-sliders) |
-| Music/audio | [YuE2](https://github.com/HyperGAN/yue2-particle-sliders) |
-| Text | [Glimmer](https://github.com/HyperGAN/glimmer-particle-sliders) |
-| Text | [Qwen3.5](https://github.com/HyperGAN/qwen35-particle-sliders) |
-| Text | [Glide](https://github.com/HyperGAN/glide-particle-sliders) |
+For multi-step generation, use the
+[scheduled strength guide](strength-schedules.md) to qualify the product's
+native denoising, generation-token or refinement stages. Check the product
+guide for the schedule and RAW profile that have been measured together.
 
-[Meta Glimmer](https://github.com/mikkel/meta-glimmer-particle-slider) provides a
-separately maintained interface around Glimmer. The MOSS and Meta Glimmer names
+| Modality | Product | Where to test strength |
+| --- | --- | --- |
+| Image | [Anima](https://github.com/HyperGAN/anima-particle-sliders) | Denoising intervals. Use early for the measured Candlelit RAW256 profile. |
+| Image | [Supra](https://github.com/HyperGAN/supra-particle-sliders) | Denoising intervals. |
+| Image | [Krea2](https://github.com/HyperGAN/krea2-particle-sliders) | Denoising intervals. |
+| Image/RGBA | [Ming](https://github.com/HyperGAN/ming-particle-sliders) | Native image or layer generation stage carrying the adapter. |
+| Image | [Iris](https://github.com/HyperGAN/iris-particle-sliders) | Denoising intervals. |
+| Image/RGBA | [Qwen Image](https://github.com/HyperGAN/qwen-image-particle-sliders) | Denoising intervals in the selected image or layer workflow. |
+| Image | [Z-Image](https://github.com/HyperGAN/zimage-particle-sliders) | Denoising intervals. |
+| Image | [P-H3 Image](https://github.com/HyperGAN/p-h3-image-particle-sliders) | Native image denoising intervals. |
+| Image | [MiniMax H3 Image](https://github.com/HyperGAN/minimax-h3-image-particle-sliders) | Native PDD solver intervals. |
+| Image | [MOSS](https://github.com/HyperGAN/moss-image-sliders) | Denoising intervals. |
+| Image | [FLUX](https://github.com/HyperGAN/flux-particle-sliders) | Native packed flow intervals. |
+| Image | [Klein](https://github.com/HyperGAN/klein-particle-sliders) | Native flow intervals. |
+| Image | [Stable Diffusion](https://github.com/HyperGAN/sd-particle-sliders) | Denoising intervals on a supported native path. |
+| Video/audio | [LTX 2.5](https://github.com/HyperGAN/ltx25-particle-sliders) | Joint native denoising intervals. Preserve current video/audio routing. |
+| Video/audio | [MiniMax H3](https://github.com/HyperGAN/minimax-h3-particle-sliders) | Native audiovisual flow intervals. |
+| Music | [Music3](https://github.com/HyperGAN/music3-particle-sliders) | Generation tokens for an LM slider, or denoising intervals for a diffusion slider. |
+| Music | [YuE2](https://github.com/HyperGAN/yue2-particle-sliders) | Causal music-generation positions where the adapter is attached. |
+| Speech | [Sophon](https://github.com/HyperGAN/sophon-particle-sliders) | Native speech generation stage carrying the slider. Check input-only controls at their native input site. |
+| Speech | [VoxCPM2](https://github.com/HyperGAN/voxcpm2-particle-sliders) | Native acoustic rollout and local denoising intervals for the attached DiT adapter. |
+| Text | [Glimmer](https://github.com/HyperGAN/glimmer-particle-sliders) | Causal language-generation positions. |
+| Text | [Meta Glimmer](https://github.com/HyperGAN/meta-glimmer-particle-slider) | Causal language-generation positions. |
+| Text | [Qwen3.5](https://github.com/HyperGAN/qwen35-particle-sliders) | Causal generation positions. |
+| Text | [Ripple](https://github.com/HyperGAN/ripple-particle-sliders) | Causal generation positions. |
+| Text | [Arete](https://github.com/HyperGAN/arete-particle-sliders) | Causal generation positions. |
+| Text | [Tiny Aya](https://github.com/HyperGAN/tiny-aya-particle-sliders) | Causal generation positions. |
+| Text | [Gemma 4](https://github.com/HyperGAN/gemma-4-particle-sliders) | Causal generation positions. |
+| Text | [Inkling 2 Mini](https://github.com/HyperGAN/inkling-particle-slider) | Fixed refinement passes when the adapted component runs on multiple passes. |
+| Text decisions | [GLiDE](https://github.com/HyperGAN/glide-particle-sliders) | Scalar for one-shot choice scoring. |
+
+Meta Glimmer provides a separately maintained interface around Glimmer.
+The MOSS and Meta Glimmer names
 are exceptions to the usual `*-particle-sliders` naming pattern.
 
 A repository link is a route to its current documentation, not a claim of native

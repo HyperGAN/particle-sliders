@@ -11,7 +11,8 @@ CORE_MODULES = frozenset({
     'field_critic', 'formulation', 'formulation_game', 'grad_regularizers', 'hndl_critic',
     'inference', 'initialization', 'legacy_compat', 'lifecycle', 'native_lora',
     'native_lora_compat', 'optimizer_policy', 'peft_scaling', 'readout_critic', 'recipe',
-    'reference', 'response', 'restoration', 'routed_projection', 'session_cli', 'teachers',
+    'reference', 'response', 'restoration', 'routed_projection', 'session_cli',
+    'strength_schedule', 'teachers',
     'weight_policy',
 })
 

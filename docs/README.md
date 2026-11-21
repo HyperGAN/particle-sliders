@@ -8,6 +8,7 @@ This repository documents the shared core and its integration contracts.
 - [Project overview](../README.md): what a slider is and how teacher/student training works.
 - [Math](math.md): paired responses, the conditional adversarial game, and search metrics.
 - [Core API map](shared-core.md): ownership boundaries and integration points.
+- [Scheduled slider strength](strength-schedules.md) for qualifying and using a schedule across products.
 - [Development](development.md): install, build, test and contribute.
 
 ## Integration guides

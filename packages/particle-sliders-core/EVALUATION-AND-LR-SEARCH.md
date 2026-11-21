@@ -19,6 +19,11 @@ compare numerical scores across models, traits or numerical cohorts.
 
 ## Use existing RAWs and finished outputs
 
+For a [scheduled strength comparison](../../docs/strength-schedules.md), fix the
+RAW checkpoint and compare native renders at different strength profiles.
+Record the resolved profile with the output and retain the existing
+learning-rate decision.
+
 1. Reuse completed LR banks, source-bound RAW checkpoints, native proofs,
    conditioning, teachers and matched finished outputs. A metric or compatible
    software update does not require a repeated search, training or proof.
