@@ -10,7 +10,7 @@ import warnings
 warnings.warn(
     "concept_slider_core is a deprecated alias of particle_sliders. "
     "Install particle-sliders-core from HyperGAN/particle-sliders and "
-    "import particle_sliders. New native-response integrations use ConditionalPG09.",
+    "import particle_sliders. New native-response integrations use ConditionalParticleGAN.",
     DeprecationWarning,
     stacklevel=2,
 )

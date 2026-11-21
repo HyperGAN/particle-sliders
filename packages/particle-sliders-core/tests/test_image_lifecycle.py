@@ -9,8 +9,8 @@ from particle_sliders.lifecycle import (
     Backend, Binding, Capabilities, CheckpointError, SessionConfig, UnsupportedOperation,
     SliderSession, read_packet,
 )
-from particle_sliders.pg09 import ConditionalPG09, _hash
-from particle_sliders.pg09_backends import AdapterParameters, FrozenResponseAdapter, ResponseRow
+from particle_sliders.engine import ConditionalParticleGAN, _hash
+from particle_sliders.backends import AdapterParameters, FrozenResponseAdapter, ResponseRow
 from particle_sliders.field_critic import FieldCritic
 
 
@@ -48,7 +48,7 @@ def session(particles=True, render=True):
             torch.full((1, 2, 10, 10), .2), torch.zeros(1, 2, 10, 10),
             torch.ones(1, 2, 10, 10), timestep=torch.tensor(500.))) for _ in range(4)]
         critic = FieldCritic(2, 3, width=4)
-        game = ConditionalPG09(response, rows, critic, conditions=torch.ones(4, 3),
+        game = ConditionalParticleGAN(response, rows, critic, conditions=torch.ones(4, 3),
             particles=network.particles if particles else None, total_steps=4, batch_size=2)
         closed = []
         def draw(**kwargs):
