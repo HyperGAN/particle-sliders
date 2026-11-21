@@ -69,6 +69,12 @@ Sinkhorn-relativistic adversarial loss. Critic penalty, particle regularizer,
 constraint-geometry backward and optimizer rules remain upstream. There is no
 added MSE, reconstruction or auxiliary distillation objective.
 
+To select the released EMPF recipe, pass `preset="empf"` and
+`optimizer_dense_profile="recipe"`. This selects its upstream optimizer
+profile, loss, critic penalty, and particle regularizer. The engine binds the
+critic step record to its readers and supplies the generated response to the
+upstream origin-damping hook. The preset disables model-weight EMA.
+
 `particles=None` means an adapter-only game. Otherwise `particles` is the actual
 trainable `nn.Parameter[N,Z]` bank used by generation. A registered but unused
 bank does not qualify. Core validates optimizer ownership and bank dimensions;
@@ -107,5 +113,6 @@ callers must not manipulate engine private flags.
 `export_state_dict()` produces adapter/bank inference weights without the frozen
 base. `load_export_state_dict()` validates and applies them transactionally.
 Inference-loaded state cannot resume training. Use a full training checkpoint
-for continuation and preserve its original source cohort. Weight EMA is disabled;
-ParticleGAN scalar optimizer statistics are unchanged.
+for continuation and pin the original core source revision, including across
+revisions with the same package version. Weight EMA is disabled. ParticleGAN
+scalar optimizer statistics are unchanged.
