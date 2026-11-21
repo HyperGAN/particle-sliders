@@ -384,3 +384,29 @@ def test_historical_full_host_scaler_retains_its_all_names_behavior():
         assert host[0].scaling['slider'] == 1.5
         assert host[0].scaling[FIXED] == .5  # Historical hazard, not new-helper policy.
     assert all(layer.scaling == values for layer, (_, values) in zip(layers(host), before))
+
+
+def test_fused_native_export_cannot_receive_the_same_named_edit_again():
+    host = nn.Sequential(nn.Linear(4, 3))
+    wrapped = peft.get_peft_model(
+        host, peft.LoraConfig(r=2, lora_alpha=3, target_modules=['0']),
+        adapter_name='slider',
+    ).eval()
+    with torch.no_grad():
+        host[0].lora_B['slider'].weight.normal_(std=.15)
+    x = torch.randn(2, 4)
+    scope = peft_adapter_scale_context([('native', wrapped)], adapter_names=('slider',))
+    with scope(0.):
+        off = wrapped(x)
+    with scope(1.):
+        on = wrapped(x)
+    assert not torch.equal(off, on)
+
+    fused = wrapped.merge_and_unload(safe_merge=True, adapter_names=['slider'])
+    torch.testing.assert_close(fused(x), on)
+    with pytest.raises(ValueError, match='no supported leaves'):
+        peft_adapter_scale_context([('native', fused)], adapter_names=('slider',))
+    with pytest.raises(ValueError, match='topology changed'):
+        with scope(1.):
+            pytest.fail('stale scale owner accepted an already fused export')
+    torch.testing.assert_close(fused(x), on)
