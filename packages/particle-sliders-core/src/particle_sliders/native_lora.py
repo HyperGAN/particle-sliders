@@ -354,13 +354,14 @@ class LoRANetwork(nn.Module):
         mode='stretch' interpolates the curve onto the current sequence
         (transformer chunks). mode='prefix' takes the first S values
         (LM tokens, including a full-prefix refresh).
+        The network owns a CPU snapshot of the supplied envelope.
         """
         if mode not in ('stretch', 'prefix'):
             raise ValueError("Sequence gain mode must be 'stretch' or 'prefix'")
         if gain is None:
             tensor = None
         elif torch.is_tensor(gain):
-            tensor = gain.detach().float().reshape(-1).cpu()
+            tensor = gain.detach().to(device="cpu", dtype=torch.float32, copy=True).reshape(-1)
         else:
             tensor = torch.tensor(list(gain), dtype=torch.float32)
         if tensor is not None and (tensor.numel() == 0 or not torch.isfinite(tensor).all()):
