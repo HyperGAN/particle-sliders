@@ -1,7 +1,6 @@
 {
-  "schema": "official-pg093-v92-recipe-reference-v1",
   "receipt_sha256": "8df35ef95802bc69d38d9290a10ad7d2ec636a8ae28070650702efe191caa623",
-  "source_profile": "release-0.9.3",
+  "original_fixture": "https://github.com/HyperGAN/particle-sliders/blob/51da76572cf1417d7f0f4ad95c00b4b869807e4f/packages/particle-sliders-core/tests/fixtures/historical_moss112_recipe.json",
   "recipe": {
     "name": "bispf_optimized",
     "critic_formulation": "bispf",

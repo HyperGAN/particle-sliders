@@ -7,5 +7,5 @@
   "lifecycle_sha256": "cc94be191c5810f79642349c9258c466553c41e509df2e28622bfac82bc802c0",
   "python": "3.12.15",
   "torch": "2.14.1+cpu",
-  "particlegan": "0.9.4"
+  "original_fixture_metadata": "https://github.com/HyperGAN/particle-sliders/blob/51da76572cf1417d7f0f4ad95c00b4b869807e4f/packages/particle-sliders-core/tests/fixtures/lifecycle/provenance.json"
 }
