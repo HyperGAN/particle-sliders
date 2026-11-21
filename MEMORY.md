@@ -39,11 +39,13 @@ serialization headroom, 128 MiB cached responses, 64 MiB metadata and `12T` byte
 for additional checkpoint tensor copies: **2.699 GiB**, rounded to **4 GiB**.
 This excludes native model loading and all additional product caches.
 
-Sources: [the paired native game](packages/particle-sliders-core/src/particle_sliders/pg09.py),
+Sources: [the paired native game](packages/particle-sliders-core/src/particle_sliders/engine.py),
 [optimizer policy](packages/particle-sliders-core/src/particle_sliders/optimizer_policy.py),
 [lifecycle and serialization](packages/particle-sliders-core/src/particle_sliders/lifecycle.py),
-and [exact PG0.9.5 source manifest](packages/particle-sliders-core/src/particle_sliders/pg095_release.json).
-The manifest identifies the recipe and `optim/{dualnorm,constraint_geometry,direction_blend}.py`
+and the exact PG0.9.5 source manifest used for this dated estimate (core 0.13.0,
+commit `285180ed9813f12e912bb6bce6bada00496fd19a`). The current engine admits the
+[ParticleGAN 0.10.1 manifest](packages/particle-sliders-core/src/particle_sliders/engine_release.json),
+which contains the same optimizer modules. The manifest identifies the recipe and `optim/{dualnorm,constraint_geometry,direction_blend}.py`
 implementations used for state accounting. No weight-EMA copy is budgeted;
 fresh sessions use `ema_decay=None` and raw weights.
 

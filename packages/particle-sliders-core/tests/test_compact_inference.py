@@ -13,7 +13,7 @@ import torch
 
 from particle_sliders.inference import INFERENCE_V2, open_inference
 from particle_sliders.lifecycle import CheckpointError, SessionConfig, UnsupportedOperation, read_packet
-from particle_sliders.pg09 import _hash
+from particle_sliders.engine import _hash
 
 
 @pytest.fixture(autouse=True)
@@ -94,14 +94,14 @@ from pathlib import Path
 sys.path[:0] = json.loads(sys.argv[1])
 import torch
 from particle_sliders.inference import open_inference
-from particle_sliders.pg09 import ConditionalPG09
+from particle_sliders.engine import ConditionalParticleGAN
 from particle_sliders.field_critic import FieldCritic
 import compact_fixture
 root = Path(sys.argv[2])
 assert not (root / 'training.pt').exists()
 def forbidden(*args, **kwargs):
     raise AssertionError('training/critic/optimizer construction during inference')
-ConditionalPG09.__init__ = forbidden
+ConditionalParticleGAN.__init__ = forbidden
 FieldCritic.__init__ = forbidden
 torch.optim.Optimizer.__init__ = forbidden
 compact_fixture.TRAINING.prepare.__code__ = forbidden.__code__
