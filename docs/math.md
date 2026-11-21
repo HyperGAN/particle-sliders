@@ -154,7 +154,7 @@ is better. Output-effect measurement is an **optional improvement**, not a
 prerequisite for using proxy search or its existing results. It does not require
 new training or confirmation. Do not mix the two metrics inside one ranking or
 relabel historical scores. The current [search runner](../packages/particle-sliders-core/PARAMETER-SEARCH.md)
-implements its declared relative-error protocol.
+implements its declared relative-error protocol. The [archived MOSS case study](https://github.com/HyperGAN/particle-sliders/blob/564dfc696bee3705cfbf36f9d2d4feab688bea41/docs/evidence/moss-teacher-student-20261103.json) records the exact earlier runtime and results.
 
 ## What the product must get right
 
