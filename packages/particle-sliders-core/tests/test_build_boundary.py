@@ -44,6 +44,8 @@ def test_rebuild_removes_stale_product_files_and_aliases(stale_build_wheel):
     assert 'particle_sliders/native_lora.py' in names
     assert 'particle_sliders/native_lora_compat.py' in names
     assert 'particle_sliders/candidate_failure.py' in names
+    assert 'particle_sliders/adaptive_steering.py' in names
+    assert 'particle_sliders/prompt_steering.py' in names
     assert 'particle_sliders/music3_native.py' not in names
     assert not any(name.startswith('particle_sliders/textsliders/') for name in names)
     assert not any(name.startswith('particle_sliders/rogue_product/') for name in names)

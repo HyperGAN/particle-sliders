@@ -15,6 +15,7 @@ teacher/student training, see the [project overview](../../README.md) and
 | Train numerical responses | [Response sessions](RESPONSE-SESSIONS.md) |
 | Use image operations | [Image sessions](IMAGE-LIFECYCLE.md) |
 | Apply an adapter without training resources | [Native inference](NATIVE-INFERENCE.md) |
+| Calibrate and apply activation-dependent strength | [CFP, CLABS and PSR](../../docs/strength-schedules.md#activation-dependent-steering) |
 | Dispatch training in a product runtime | [Training command](TRAINING-COMMAND.md) |
 | Select rates from intended effect | [Evaluation and saved-output workflow](EVALUATION-AND-LR-SEARCH.md) · [Historical SSE runner](PARAMETER-SEARCH.md) |
 | Manage rates and scaling | [Learning rates](LEARNING-RATE-CONTRACT.md) · [PEFT scaling](PEFT-SCALING.md) |

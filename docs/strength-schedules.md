@@ -6,6 +6,11 @@ product uses the schedule that wins on that product, slider and native sampler.
 Keep constant strength as the comparison and as the fallback for profiles with
 no qualified schedule winner.
 
+The product comparisons here test fixed schedules. Their gains are computed
+from the declared curve and native sampler, then evaluated on finished
+outputs. The cited token-steering papers use activations to decide where or
+how strongly to intervene during generation.
+
 The [product map](products.md) identifies the generation stage for each public
 product. Use the generation stage and scheduler from its native source cohort.
 
@@ -68,6 +73,12 @@ interval, let `f_i` be the fraction of that interval lying in the first half
 of the total traversed distance. A step that straddles halfway receives a
 fractional gain.
 
+The midpoint split and gain bounds of `0.5` and `1.5` are experiment settings.
+Their average over the two equal-distance halves is `1`, which preserves the
+constant profile's total dose. A gain between the bounds comes from the
+fraction of an interval on each side of the midpoint. Record the bounds and
+split with the sampler's sigma grid so the schedule can be regenerated.
+
 | Profile | Effective strength per interval |
 | --- | --- |
 | Constant | `s` |
@@ -129,14 +140,123 @@ conditioning and numerical profile when replaying the exact benchmark images.
    and replay. Record it alongside the scalar strength and RAW identity. Reuse
    saved weights and completed learning-rate evidence.
 
-The per-token research is complementary. The fixed-budget gate in
-[Right Token, Right Time](https://arxiv.org/abs/2611.18274)
-and the learned token coefficients in
-[Prompt Steering Replacement](https://github.com/HyperGAN/particle-sliders/pull/209)
-motivate a causal comparison. Before using an activation gate on a product,
-check held-out signal quality and compare finished outputs with both constant
-steering and a budget-preserving shuffled control. Use only deployment-available
-information.
+## Activation-dependent steering
+
+### CFP and CLABS
+
+*Right Token, Right Time* keeps the edit strength `alpha` fixed and calibrates
+where the edit fires. Fit `v` with `contrastive_sae_direction` from target and
+neutral corpora. The inputs are token-averaged SAE codes for each example and
+the decoder matrix from the selected residual layer. The paper ranks features
+by the signed difference of corpus means and normalizes the sum of the top
+`k` decoder rows. `activation_projection` takes the dot product of the
+current, pre-edit activation with `sign(alpha) * v`.
+[Equations 1–6](https://arxiv.org/html/2611.18274v1#S3)
+
+- CFP fires when alignment is at or below a threshold measured on calibration
+  trajectories with steering active.
+- CLABS standardizes alignment with calibration mean and standard deviation.
+  Its error is `setpoint - standardized_alignment`. It updates the running
+  error with the paper's exponential weighting before computing the clipped
+  probability `bias + proportional_gain * error + integral_gain * running_error`.
+  It samples one Bernoulli gate. Calibrate the bias with steering active.
+- The matched random control fires independently at the same target rate.
+  Log the realized fraction for every arm. For a sampler with unequal spans or
+  variable edit norms, also measure the interval-weighted or residual dose.
+
+```python
+from particle_sliders.adaptive_steering import (
+    ActivationGate, GateUsage, activation_projection, calibrate_gate_budget,
+    steer_residual,
+)
+
+
+def run_cfp(case, threshold):
+    gate = ActivationGate("cfp", threshold)
+
+    def edit_current_residual(h):
+        score = activation_projection(h, direction, strength=alpha)
+        decision = gate.step(score)
+        return steer_residual(
+            h, direction, strength=alpha, gate=decision.fired,
+            preserve_norm=preserve_norm, projection_bounds=projection_bounds,
+        )
+
+    # The native generator calls the hook once for each eligible new position.
+    output = native_generate(case, edit_current_residual)
+    return output, gate.usage
+
+
+def active_rollout(threshold):
+    usage = [run_cfp(case, threshold)[1] for case in calibration_cases]
+    return GateUsage(sum(u.fired for u in usage), sum(u.eligible for u in usage))
+
+
+calibrated = calibrate_gate_budget(
+    active_rollout, target_rate=budget, bounds=threshold_bracket,
+    tolerance=declared_tolerance, max_iterations=calibration_run_limit,
+)
+held_out_output, usage = run_cfp(held_out_case, calibrated.parameter)
+```
+
+For CLABS, instantiate `ActivationGate("clabs", bias, seed=gate_seed,
+clabs=parameters)` with `CLABSParameters` from the same calibration protocol
+and bisect the bias instead of the threshold. Reuse calibration cases and
+seeds across candidate parameters. Use fresh cases and seeds for evaluation.
+If the observations cannot match the declared tolerance at the measured
+resolution, leave that budget unqualified. The paper reports `k=10`,
+`epsilon=1e-6`, setpoint `0.75`, and gains `(1.0, 0.2, 0.2)` for its tested
+setups. Its shared edit rescales to the pre-edit norm and then clamps the
+projection onto `v` to `[0, 40]`. It selects `alpha` on the calibration
+split with a fluency constraint. Record the configuration and the data behind
+any settings used on a new product. [Paper calibration protocol](https://arxiv.org/html/2611.18274v1#A2)
+
+Each generation request owns its gate. Context-only prefill, padding, unadapted CFG
+branches, repeated prefix positions, and repeated solver evaluations do not
+advance the controller. Full-prefix decoding reapplies recorded decisions at
+old positions and decides only the new position. A non-token product must
+define its native event, how it observes pre-intervention alignment, and how
+it maps the gate to a causal intervention. Multiplying a saved LoRA residual
+by the gate uses the paper's allocation equation with the product's edit in
+place of the paper's fixed direction. Report that choice with the evidence.
+
+### PSR with paired activations
+
+*Steer Like the LLM* learns `lambda = relu(h @ w + b)` and adds
+`alpha * lambda * z` to the residual. `PromptSteering` fits the affine probe
+and direction together. To train on positive examples, generate a response
+from the attribute prompt and replay that same response under the neutral and
+attribute prompts. Run the neutral input with the PSR hooks active, and use
+frozen activations from the attribute input as targets at the same aligned
+positions. Supply the annotated attribute score as training `alpha`. Use
+inference `alpha` selected on held-out calibration cases.
+[Equations 7–8 and training pipeline](https://arxiv.org/html/2605.03907v1#S3)
+
+```python
+from particle_sliders.prompt_steering import (
+    PromptSteering, psr_location_penalty, psr_mse_loss,
+)
+
+# Construct one module per intervened layer. Train only the PSR parameters.
+layer_psr = PromptSteering(hidden_size, device=device)
+steered, coefficients = layer_psr(pre_edit_residual, attribute_scores, mask=edit_mask)
+# Continue the native forward from `steered` and collect aligned layer outputs.
+loss = psr_mse_loss(edited_layers, attribute_teacher_layers, aligned_position_mask)
+loss += regularization_weight * psr_location_penalty(coefficients)
+```
+
+S-PSR intervenes at one layer and evaluates the loss at that layer and all
+later layers. A-PSR intervenes at all layers and optimizes them jointly, so
+later probes see the activations produced by earlier interventions. Sum the
+location penalty over intervened layers, using the declared training weight.
+For an image, video, or audio adaptation, qualify paired targets at the same
+native trajectory coordinate and use the same initial noise, references,
+and native sampler. Inference requires fitted probe weights and a selected
+strength. The historical fixtures verified synthetic coefficients and a
+caller-supplied LoRA envelope. Product-level gains from activation-dependent
+steering require native held-out results.
+[PR #209](https://github.com/HyperGAN/particle-sliders/pull/209) ·
+[PR #212](https://github.com/HyperGAN/particle-sliders/pull/212)
 
 ## Run a token-position control
 
