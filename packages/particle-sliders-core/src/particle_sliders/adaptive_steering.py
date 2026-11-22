@@ -196,12 +196,18 @@ class GateCalibration:
 
 def calibrate_gate_budget(
     rollout: Callable[[float], GateUsage], *, target_rate, bounds, tolerance, max_iterations,
+    lower_usage_bound: GateUsage | None = None,
 ):
     """Bisect a CFP threshold or CLABS bias using fresh active calibration rollouts.
 
     Each call resets gate state and reuses the same held-out calibration cases
     and seeds. It must run with candidate steering enabled and return pooled
     fired/eligible counts. Report failure if no measured rate meets tolerance.
+
+    A previously interrupted lower endpoint may supply a proven upper bound
+    on its firings and its exact eligibility count in ``lower_usage_bound``.
+    This skips that endpoint only when its entire range falls below tolerance.
+    Only a measured rollout can qualify or be reported as the closest trial.
     """
     low, high = map(float, bounds)
     if not (0 < target_rate < 1 and 0 <= tolerance < min(target_rate, 1 - target_rate)
@@ -215,14 +221,29 @@ def calibrate_gate_budget(
     # Check the closed rate interval directly. Subtracting the target from a
     # rounded measured rate can put a boundary observation outside tolerance.
     minimum_rate, maximum_rate = target_rate - tolerance, target_rate + tolerance
-    lower, upper = measure(low), measure(high)
-    endpoints = sorted((lower, upper), key=lambda trial: abs(trial.usage.rate - target_rate))
+    if lower_usage_bound is None:
+        lower = measure(low)
+        lower_rate = lower.usage.rate
+    else:
+        lower = None
+        lower_rate = lower_usage_bound.rate
+        if lower_rate >= minimum_rate:
+            raise ValueError("lower endpoint bound must fall strictly below the accepted rate interval")
+
+    upper = measure(high)
+    endpoints = [upper]
+    if lower is not None:
+        endpoints.insert(0, lower)
+    endpoints.sort(key=lambda trial: abs(trial.usage.rate - target_rate))
     best = endpoints[0]
     for endpoint in endpoints:
         if minimum_rate <= endpoint.usage.rate <= maximum_rate:
             return endpoint
-    if not lower.usage.rate < target_rate < upper.usage.rate:
-        raise ValueError(f"active rollout rates {lower.usage.rate:g} and {upper.usage.rate:g} "
+    if not lower_rate < target_rate < upper.usage.rate:
+        if lower is None:
+            raise ValueError(f"active upper rollout rate {upper.usage.rate:g} "
+                             f"does not bracket target {target_rate:g} with the lower endpoint bound")
+        raise ValueError(f"active rollout rates {lower_rate:g} and {upper.usage.rate:g} "
                          f"do not bracket target {target_rate:g}")
     for _ in range(max_iterations):
         midpoint = low / 2 + high / 2

@@ -100,6 +100,45 @@ def test_calibration_rejects_firing_counts_outside_boundary(fires):
                               tolerance=1 / eligible, max_iterations=1)
 
 
+@pytest.mark.parametrize("upper_fired, expected_parameter", [(8, 1), (12, 0)])
+def test_calibration_can_resume_with_a_proven_lower_bound(upper_fired, expected_parameter):
+    upper = GateUsage(upper_fired, 16)
+    midpoint = GateUsage(8, 16)
+    trials = []
+
+    def rollout(parameter):
+        trials.append(parameter)
+        return {1: upper, 0: midpoint}[parameter]
+
+    result = calibrate_gate_budget(rollout, target_rate=0.5, bounds=(-1, 1),
+                                   tolerance=0, max_iterations=4,
+                                   lower_usage_bound=GateUsage(4, 16))
+    assert result.parameter == expected_parameter
+    assert trials == ([1] if expected_parameter == 1 else [1, 0])
+    assert result.usage is (upper if expected_parameter == 1 else midpoint)
+
+
+def test_calibration_rejects_a_bound_that_can_meet_inclusive_tolerance():
+    def rollout(_):
+        pytest.fail("a potentially qualifying lower endpoint requires a measurement")
+
+    with pytest.raises(ValueError, match="strictly below the accepted rate interval"):
+        calibrate_gate_budget(rollout, target_rate=0.5, bounds=(-1, 1),
+                              tolerance=1/16, max_iterations=4,
+                              lower_usage_bound=GateUsage(7, 16))
+
+
+def test_calibration_with_a_lower_bound_requires_a_measured_upper_bracket():
+    def rollout(parameter):
+        assert parameter == 1
+        return GateUsage(6, 16)
+
+    with pytest.raises(ValueError, match="upper rollout.*does not bracket"):
+        calibrate_gate_budget(rollout, target_rate=0.5, bounds=(-1, 1),
+                              tolerance=0, max_iterations=4,
+                              lower_usage_bound=GateUsage(4, 16))
+
+
 def test_clabs_updates_ema_before_sampling_and_resets_per_request():
     config = CLABSParameters(mean=1.5, std=1.0, epsilon=1e-6, setpoint=0.75,
                              proportional_gain=1.0, integral_gain=0.2, beta=0.2)

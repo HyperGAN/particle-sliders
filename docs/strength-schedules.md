@@ -203,6 +203,10 @@ For CLABS, instantiate `ActivationGate("clabs", bias, seed=gate_seed,
 clabs=parameters)` with `CLABSParameters` from the same calibration protocol
 and bisect the bias instead of the threshold. Reuse calibration cases and
 seeds across candidate parameters. Use fresh cases and seeds for evaluation.
+To resume after an interrupted lower endpoint, supply `lower_usage_bound`
+with the largest possible firing count and exact eligible count for that
+endpoint. The entire range must fall below the accepted rate interval.
+Every setting returned by calibration has a measured firing count.
 If the observations cannot match the declared tolerance at the measured
 resolution, leave that budget unqualified. The paper reports `k=10`,
 `epsilon=1e-6`, setpoint `0.75`, and gains `(1.0, 0.2, 0.2)` for its tested
