@@ -19,6 +19,26 @@ class IntervalDoseMatch:
     constant_dose: Fraction
 
 
+def _finite_intervals(strengths, coordinates):
+    strengths = tuple(map(float, strengths))
+    coordinates = tuple(map(float, coordinates))
+    if not strengths or len(coordinates) != len(strengths) + 1:
+        raise ValueError("dose matching requires one coefficient per native interval")
+    if any(not isfinite(x) for x in (*strengths, *coordinates)):
+        raise ValueError("dose matching requires finite coefficients and coordinates")
+    return strengths, coordinates
+
+
+def _exact_interval_dose(strengths, coordinates):
+    edges = tuple(map(Fraction, coordinates))
+    widths = tuple(abs(end - start) for start, end in zip(edges, edges[1:]))
+    total_width = sum(widths)
+    if not total_width:
+        raise ValueError("dose matching requires a nonzero native trajectory width")
+    dose = sum(width * Fraction(s) for width, s in zip(widths, strengths, strict=True))
+    return dose, total_width
+
+
 def match_binary32_interval_dose(strengths, coordinates):
     """Match a fixed-direction edit with the nearest binary32 constant.
 
@@ -28,12 +48,7 @@ def match_binary32_interval_dose(strengths, coordinates):
     even for the constant. Measure any subsequent tensor-rounding effects in
     the native product separately.
     """
-    strengths = tuple(map(float, strengths))
-    coordinates = tuple(map(float, coordinates))
-    if not strengths or len(coordinates) != len(strengths) + 1:
-        raise ValueError("dose matching requires one coefficient per native interval")
-    if any(not isfinite(x) for x in (*strengths, *coordinates)):
-        raise ValueError("dose matching requires finite coefficients and coordinates")
+    strengths, coordinates = _finite_intervals(strengths, coordinates)
     try:
         exact_binary32 = all(_FLOAT32.unpack(_FLOAT32.pack(s))[0] == s for s in strengths)
     except OverflowError:
@@ -41,12 +56,7 @@ def match_binary32_interval_dose(strengths, coordinates):
     if not exact_binary32:
         raise ValueError("dose matching requires resolved binary32 coefficients")
 
-    edges = tuple(map(Fraction, coordinates))
-    widths = tuple(abs(end - start) for start, end in zip(edges, edges[1:]))
-    total_width = sum(widths)
-    if not total_width:
-        raise ValueError("dose matching requires a nonzero native trajectory width")
-    dose = sum(width * Fraction(s) for width, s in zip(widths, strengths, strict=True))
+    dose, total_width = _exact_interval_dose(strengths, coordinates)
     ideal = dose / total_width
     rounded = _UINT32.unpack(_FLOAT32.pack(float(ideal)))[0]
 
@@ -57,6 +67,19 @@ def match_binary32_interval_dose(strengths, coordinates):
                   for b in range(max(0, rounded - 1), min(0xFFFFFFFF, rounded + 1) + 1)]
     _, constant = min(((b, value) for b, value in candidates if isfinite(value)),
                       key=lambda item: (abs(Fraction(item[1]) - ideal), item[0] & 1))
+    return IntervalDoseMatch(constant, dose, total_width * Fraction(constant))
+
+
+def match_binary64_interval_dose(strengths, coordinates):
+    """Match a fixed-direction edit with the nearest binary64 constant.
+
+    Return exact signed doses for the adaptive coefficients and the constant
+    on the supplied native clock. Compare the two doses when a caller requires
+    equality at the coefficient boundary.
+    """
+    strengths, coordinates = _finite_intervals(strengths, coordinates)
+    dose, total_width = _exact_interval_dose(strengths, coordinates)
+    constant = float(dose / total_width)
     return IntervalDoseMatch(constant, dose, total_width * Fraction(constant))
 
 
