@@ -8,7 +8,11 @@ import pytest
 import torch
 
 from particle_sliders.backends import FlowSchedule, FrozenResponseAdapter, ResponseRow
-from particle_sliders.strength_schedule import interval_strengths, match_binary32_interval_dose
+from particle_sliders.strength_schedule import (
+    interval_strengths,
+    match_binary32_interval_dose,
+    match_binary64_interval_dose,
+)
 
 
 @pytest.mark.parametrize("strength", [-2.0, 0.0, 1.0])
@@ -36,8 +40,9 @@ def test_one_interval_uses_nominal_strength():
     assert interval_strengths(1.0, [5e-324], profile="early") == (1.0,)
 
 
-def test_dose_match_uses_signed_coefficients_and_native_interval_widths():
-    result = match_binary32_interval_dose([-2.0, 0.0, 8.0], [1.0, 0.25, 0.0, 0.0])
+@pytest.mark.parametrize("match", [match_binary32_interval_dose, match_binary64_interval_dose])
+def test_dose_match_uses_signed_coefficients_and_native_interval_widths(match):
+    result = match([-2.0, 0.0, 8.0], [1.0, 0.25, 0.0, 0.0])
     assert result.constant_strength == -1.5
     assert result.adaptive_dose == result.constant_dose == Fraction(-3, 2)
 
@@ -57,14 +62,42 @@ def test_dose_match_avoids_double_rounding_near_binary32_midpoint():
     assert result.adaptive_dose < result.constant_dose
 
 
+def test_equal_passes_can_match_binary64_even_when_binary32_rounds():
+    next_binary32 = 1.0 + 2**-23
+    result = match_binary64_interval_dose([1.0, next_binary32], [0.0, 1.0, 2.0])
+    assert result.constant_strength == 1.0 + 2**-24
+    assert result.adaptive_dose == result.constant_dose == 2 + Fraction(1, 2**23)
+
+
+@pytest.mark.parametrize("sign", [-1, 1])
+def test_dose_match_rounds_exact_binary64_midpoint_to_even(sign):
+    next_binary64 = 1.0 + 2**-52
+    result = match_binary64_interval_dose([sign, sign * next_binary64], [2.0, 1.0, 0.0])
+    assert result.constant_strength == sign
+    assert result.adaptive_dose - result.constant_dose == Fraction(sign, 2**52)
+
+
+def test_dose_match_uses_exact_native_widths_to_resolve_a_near_midpoint():
+    next_binary64 = 1.0 + 2**-52
+    result = match_binary64_interval_dose([next_binary64, 1.0, next_binary64], [-2**-60, 0, 1, 2])
+    assert result.constant_strength == next_binary64
+    assert result.adaptive_dose < result.constant_dose
+
+
+@pytest.mark.parametrize("match", [match_binary32_interval_dose, match_binary64_interval_dose])
 @pytest.mark.parametrize("strengths, coordinates", [
     ([], [1.0]), ([1.0], [1.0]), ([1.0], [0.0, 0.0]),
-    ([1.0], [0.0, inf]), ([nan], [0.0, 1.0]), ([0.1], [0.0, 1.0]),
-    ([1e300], [0.0, 1.0]),
+    ([1.0], [0.0, inf]), ([nan], [0.0, 1.0]),
 ])
-def test_dose_match_rejects_invalid_native_clock_or_coefficients(strengths, coordinates):
+def test_dose_match_rejects_invalid_native_clock_or_coefficients(match, strengths, coordinates):
     with pytest.raises(ValueError):
-        match_binary32_interval_dose(strengths, coordinates)
+        match(strengths, coordinates)
+
+
+@pytest.mark.parametrize("strength", [0.1, 1e300])
+def test_binary32_dose_match_rejects_unresolved_native_coefficients(strength):
+    with pytest.raises(ValueError):
+        match_binary32_interval_dose([strength], [0.0, 1.0])
 
 
 class Adapter(torch.nn.Module):
