@@ -1,6 +1,63 @@
 """Resolve adapter strengths over a product's native trajectory intervals."""
 
+from dataclasses import dataclass
+from fractions import Fraction
 from math import isfinite
+from struct import Struct
+
+
+_FLOAT32 = Struct(">f")
+_UINT32 = Struct(">I")
+
+
+@dataclass(frozen=True)
+class IntervalDoseMatch:
+    """Same-direction control and exact coefficient doses on the native clock."""
+
+    constant_strength: float
+    adaptive_dose: Fraction
+    constant_dose: Fraction
+
+
+def match_binary32_interval_dose(strengths, coordinates):
+    """Match a fixed-direction edit with the nearest binary32 constant.
+
+    Provide one resolved binary32 coefficient per interval and its native
+    endpoint coordinates in execution order. Zero-width intervals carry no
+    dose. Return exact signed coefficient-space doses, with ties rounded to
+    even for the constant. Measure any subsequent tensor-rounding effects in
+    the native product separately.
+    """
+    strengths = tuple(map(float, strengths))
+    coordinates = tuple(map(float, coordinates))
+    if not strengths or len(coordinates) != len(strengths) + 1:
+        raise ValueError("dose matching requires one coefficient per native interval")
+    if any(not isfinite(x) for x in (*strengths, *coordinates)):
+        raise ValueError("dose matching requires finite coefficients and coordinates")
+    try:
+        exact_binary32 = all(_FLOAT32.unpack(_FLOAT32.pack(s))[0] == s for s in strengths)
+    except OverflowError:
+        exact_binary32 = False
+    if not exact_binary32:
+        raise ValueError("dose matching requires resolved binary32 coefficients")
+
+    edges = tuple(map(Fraction, coordinates))
+    widths = tuple(abs(end - start) for start, end in zip(edges, edges[1:]))
+    total_width = sum(widths)
+    if not total_width:
+        raise ValueError("dose matching requires a nonzero native trajectory width")
+    dose = sum(width * Fraction(s) for width, s in zip(widths, strengths, strict=True))
+    ideal = dose / total_width
+    rounded = _UINT32.unpack(_FLOAT32.pack(float(ideal)))[0]
+
+    # A binary64 intermediate can land exactly on a binary32 midpoint even
+    # when the exact mean is just to one side. Compare the adjacent values in
+    # rational space. The low significand bit selects even at an exact tie.
+    candidates = [(b, _FLOAT32.unpack(_UINT32.pack(b))[0])
+                  for b in range(max(0, rounded - 1), min(0xFFFFFFFF, rounded + 1) + 1)]
+    _, constant = min(((b, value) for b, value in candidates if isfinite(value)),
+                      key=lambda item: (abs(Fraction(item[1]) - ideal), item[0] & 1))
+    return IntervalDoseMatch(constant, dose, total_width * Fraction(constant))
 
 
 def interval_strengths(strength, deltas, *, profile="constant"):

@@ -79,6 +79,12 @@ constant profile's total dose. A gain between the bounds comes from the
 fraction of an interval on each side of the midpoint. Record the bounds and
 split with the sampler's sigma grid so the schedule can be regenerated.
 
+For a measured fixed-direction edit, pass the resolved FP32 coefficients
+and the native endpoint coordinates to `match_binary32_interval_dose`.
+It returns the nearest representable constant with ties rounded to even,
+plus both exact signed coefficient-space doses. Record rounding in the
+native tensor edit separately when comparing finished outputs.
+
 | Profile | Effective strength per interval |
 | --- | --- |
 | Constant | `s` |
