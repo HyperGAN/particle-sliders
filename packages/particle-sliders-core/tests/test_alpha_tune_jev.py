@@ -109,6 +109,17 @@ def test_jev_clarifies_uncertain_checks_without_rescoring_intensity(setup, monke
     assert set(requests[4]["questions"]) == {"clear_scene_lost"}
 
 
+def test_jev_checks_concrete_anatomy_when_general_question_is_uncertain(setup, monkeypatch):
+    judge, _, off, on = setup
+    requests = _transport(monkeypatch, lambda payload: _response(payload, checks={
+        "broken_anatomy": .67, "clear_broken_anatomy": .55, "detached_part": .08,
+    }))
+    result = judge.observe(off, on, preserve="reference condition")
+    assert result.observation.integrity == "pass"
+    assert result.checks["broken_anatomy"] == .08
+    assert set(requests[-1]["questions"]) == {"detached_part", "joined_faces", "merged_limbs", "extra_part"}
+
+
 def test_uncertain_paid_transport_keeps_existing_off_and_never_retries(setup, monkeypatch):
     judge, receipts, off, on = setup
 

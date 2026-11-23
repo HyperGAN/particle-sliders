@@ -60,6 +60,25 @@ _PAIR_CLARIFICATIONS = {
         "Accept tighter framing, palette changes, and shifts to individual details."
     ),
 }
+_ANATOMY_DETAILS = {
+    "detached_part": (
+        "Is there an unmistakably detached body part belonging to the main figure in image_1, "
+        "separated from the body by a visible gap? A body part outside the crop is ordinary framing."
+    ),
+    "joined_faces": (
+        "Do two separately recognizable faces visibly intersect or share tissue in image_1? "
+        "A single close-up face, heavy shadows, and hair across a face are ordinary illustration."
+    ),
+    "merged_limbs": (
+        "Are two separately recognizable hands, arms or legs visibly merged into a single impossible limb "
+        "in image_1, such as two hands sharing one set of fingers? Only judge visible limbs. Cropped or "
+        "hidden limbs, overlapping clothes and a dark neck shadow give no evidence of this problem."
+    ),
+    "extra_part": (
+        "Is an extra head, face, arm or leg visibly attached in an anatomically impossible position "
+        "in image_1? Inspect actual visible parts rather than inferring them from contours or shadows."
+    ),
+}
 
 @dataclass(frozen=True)
 class JevAssessment:
@@ -233,6 +252,14 @@ class JevJudge:
             if value <= .2 or value >= .8:
                 checks[key.removeprefix("clear_")] = 1. - value
 
+    def _clarify_anatomy(self, candidate, checks):
+        if not _AMBIGUOUS <= checks["broken_anatomy"] < _FAIL:
+            return
+        questions = {name: {"type": "noul", "instructions": text} for name, text in _ANATOMY_DETAILS.items()}
+        details = self._decide((candidate,), "Inspect the visible parts of the main figure in image_1.", questions)
+        if details is not None:
+            checks["broken_anatomy"] = max(details.values())
+
     def observe(self, off: FileRecord, on: FileRecord, *, preserve: str) -> JevAssessment:
         """Return independent normalized intensities and named failure probabilities."""
         if not isinstance(preserve, str):
@@ -247,6 +274,8 @@ class JevJudge:
             if not any(value >= _FAIL for value in checks.values()):
                 self._clarify((candidate,), "Check the candidate for clear structural defects only.",
                               _FRAME_CLARIFICATIONS, checks)
+                if not any(value >= _FAIL for value in checks.values()):
+                    self._clarify_anatomy(candidate, checks)
                 if not any(value >= _FAIL for value in checks.values()):
                     self._clarify((reference, candidate), "image_1 is the reference and image_2 is the edit. "
                                   f"Check whether this is a coherent edit of the reference. Preservation context: {preserve}",

@@ -37,6 +37,8 @@ Jev check screens visible rendering defects and severe replacement of the
 original subject or setting. A severe-defect probability of 0.8 or higher
 rejects a setting. Probabilities from 0.5 up to 0.8 trigger a focused Jev
 clarification and stay unmeasured if the clarification is uncertain.
+An ambiguous anatomy flag can be resolved with questions about visible
+detached, fused, or extra parts.
 Within the settings that pass, the comparison
 uses mean concept gain. A definition may include known passing and failing
 image pairs to check this rubric. Reserved cases can validate the chosen
