@@ -24,6 +24,10 @@ RAW checkpoint and compare native renders at different strength profiles.
 Record the resolved profile with the output and retain the existing
 learning-rate decision.
 
+After exporting a RAW adapter, use the
+[saved-adapter alpha search](../../docs/strength-schedules.md#search-alpha-on-a-saved-adapter)
+to choose a measured inference strength from matched finished outputs.
+
 1. Reuse completed LR banks, source-bound RAW checkpoints, native proofs,
    conditioning, teachers and matched finished outputs. A metric or compatible
    software update does not require a repeated search, training or proof.
@@ -59,12 +63,10 @@ intended-effect rates or force a unique recipe from an effect tie. The
 [runner API](PARAMETER-SEARCH.md) documents that implementation. It does not
 implement automatic finished-output measurement or selection.
 
-No new generic search flag or automatic product renderer is advertised here.
-The current method uses supported product inference and an explicitly frozen
-external first-observation instrument, followed by the arithmetic above. Shared
-training execution/lifecycle APIs are not an effect selector: lifecycle
-`evaluate()` measures native responses, not finished images, while `render()`
-requires an actually supported product renderer.
+Finished-output measurement uses supported product inference and a frozen
+external first-observation instrument. Lifecycle `evaluate()` measures native
+responses. The saved-adapter alpha search accepts a product-supplied scoring
+callback after export.
 Keep all completed SSE searches and saved results under their original labels;
 add only genuinely missing finished-output measurements from existing RAWs.
 

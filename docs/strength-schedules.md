@@ -14,6 +14,53 @@ how strongly to intervene during generation.
 The [product map](products.md) identifies the generation stage for each public
 product. Use the generation stage and scheduler from its native source cohort.
 
+## Search alpha on a saved adapter
+
+Run `particle_sliders.alpha_search.search_alpha` after exporting a RAW adapter.
+Bind the checkpoint, a fixed concept rubric, and matched cases with the same
+prompts, seeds and OFF outputs. Declare a coarse grid of valid native alphas and
+a refinement budget. The search measures the grid and then refines near the
+best measured point. An effect can peak and then disappear as alpha rises,
+so binary search for a monotone threshold answers a different question.
+
+The scoring callback returns one `AlphaObservation` per case. A product can
+render its ON output at the requested alpha and ask a fixed Jev rubric to score
+the blinded OFF/ON pair. Pass the qualified integrity verdict separately.
+Missing or uncertain judgments stay unmeasured. A candidate with a qualified
+catastrophic failure stays in the trial record and is ineligible. Mean
+intended-effect gain is the sole ranking score. Exact ties remain available.
+
+```python
+from particle_sliders.alpha_search import AlphaObservation, search_alpha
+from particle_sliders.candidate_failure import FileRecord
+from particle_sliders.strength_schedule import interval_strengths
+
+checkpoint = FileRecord.from_path(raw_path)
+
+def evaluate(alpha):
+    gains = interval_strengths(alpha, native_interval_widths, profile="early")
+    observations = {}
+    for case in cases:
+        # Product-owned callback. Reuse exact saved renders and judge receipts.
+        off, on, verdict = score_finished_pair(checkpoint, case, gains)
+        observations[case.id] = AlphaObservation(off=off, on=on, integrity=verdict)
+    return observations
+
+result = search_alpha(
+    checkpoint=checkpoint,
+    case_ids=[case.id for case in cases],
+    alphas=(0.5, 1.0, 1.5, 2.0),
+    evaluate=evaluate,
+    refinement_rounds=1,
+)
+```
+
+Save the chosen alpha, resolved per-step gains and exact native sampler for
+replay. To calibrate timing as well as alpha, use the same cases for a
+constant-strength comparison and for the desired timed profile. Respect the
+product's allowed range for each profile. Keep any follow-up panel separate
+from the cases used to choose the setting.
+
 ## Product entry points
 
 Pass gains to the entry point for the saved RAW session. Most `step_gains`
