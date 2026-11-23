@@ -9,6 +9,7 @@ import torch
 
 from particle_sliders.backends import FlowSchedule, FrozenResponseAdapter, ResponseRow
 from particle_sliders.strength_schedule import (
+    interval_dose,
     interval_strengths,
     match_binary32_interval_dose,
     match_binary64_interval_dose,
@@ -38,6 +39,27 @@ def test_invalid_requests_fail_before_sampling(strength, deltas, profile):
 
 def test_one_interval_uses_nominal_strength():
     assert interval_strengths(1.0, [5e-324], profile="early") == (1.0,)
+
+
+@pytest.mark.parametrize("coefficient_format", ["binary32", "binary64"])
+def test_interval_dose_resolves_two_native_clocks_independently(coefficient_format):
+    gate = (-1.0, 0.0, 0.0, 4.0)
+    fixed = (0.0, -1.0, -1.0, 0.0)
+    matching_grids = ([1, 0.5, 0.25, 0, 0], [0, 0.5, 0.625, 1, 1])
+    checked = [*matching_grids, [1, 0.75, 0.5, 0, 0]]
+    differences = [interval_dose(gate, grid, coefficient_format=coefficient_format)
+                   - interval_dose(fixed, grid, coefficient_format=coefficient_format)
+                   for grid in checked]
+    assert differences == [0, 0, Fraction(1, 2)]
+
+
+def test_interval_dose_requires_resolved_scalar_format():
+    value = 1 + 2 ** -24
+    assert interval_dose([value], [0, 1], coefficient_format="binary64") == 1 + Fraction(1, 2 ** 24)
+    with pytest.raises(ValueError, match="resolved binary32"):
+        interval_dose([value], [0, 1], coefficient_format="binary32")
+    with pytest.raises(ValueError, match="format"):
+        interval_dose([1], [0, 1], coefficient_format="float16")
 
 
 @pytest.mark.parametrize("match", [match_binary32_interval_dose, match_binary64_interval_dose])

@@ -39,6 +39,32 @@ def _exact_interval_dose(strengths, coordinates):
     return dose, total_width
 
 
+def _require_binary32_coefficients(strengths):
+    try:
+        exact_binary32 = all(_FLOAT32.unpack(_FLOAT32.pack(s))[0] == s for s in strengths)
+    except OverflowError:
+        exact_binary32 = False
+    if not exact_binary32:
+        raise ValueError("dose matching requires resolved binary32 coefficients")
+
+
+def interval_dose(strengths, coordinates, *, coefficient_format):
+    """Return the exact signed coefficient dose on one native clock.
+
+    Use coefficients already resolved at the product's scalar application
+    boundary and endpoints in execution order. Choose `binary32` to reject
+    coefficients that would round in that format, or `binary64` for Python
+    floats. Zero-width intervals contribute zero. For coupled clocks,
+    compare the two schedules independently on each clock.
+    """
+    if coefficient_format not in ("binary32", "binary64"):
+        raise ValueError("coefficient format must be binary32 or binary64")
+    strengths, coordinates = _finite_intervals(strengths, coordinates)
+    if coefficient_format == "binary32":
+        _require_binary32_coefficients(strengths)
+    return _exact_interval_dose(strengths, coordinates)[0]
+
+
 def match_binary32_interval_dose(strengths, coordinates):
     """Match a fixed-direction edit with the nearest binary32 constant.
 
@@ -49,12 +75,7 @@ def match_binary32_interval_dose(strengths, coordinates):
     the native product separately.
     """
     strengths, coordinates = _finite_intervals(strengths, coordinates)
-    try:
-        exact_binary32 = all(_FLOAT32.unpack(_FLOAT32.pack(s))[0] == s for s in strengths)
-    except OverflowError:
-        exact_binary32 = False
-    if not exact_binary32:
-        raise ValueError("dose matching requires resolved binary32 coefficients")
+    _require_binary32_coefficients(strengths)
 
     dose, total_width = _exact_interval_dose(strengths, coordinates)
     ideal = dose / total_width

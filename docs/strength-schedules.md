@@ -191,6 +191,13 @@ two equal native passes, use endpoints `(0, 1, 2)`. Check equality of
 the returned doses when exact matching is required. Record rounding in
 the native tensor edit when comparing finished outputs.
 
+To verify two measured schedules, call `interval_dose` on each schedule
+with its native endpoint coordinates and the measured `coefficient_format`.
+It returns the exact signed dose as a `Fraction`. The `binary32` mode
+requires coefficients already resolved at that precision. For a sampler
+with multiple clocks, compare the two schedules separately on each clock
+using the recorded endpoints from matching runs.
+
 | Profile | Effective strength per interval |
 | --- | --- |
 | Constant | `s` |
