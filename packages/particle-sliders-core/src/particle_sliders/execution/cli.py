@@ -13,7 +13,7 @@ def should_dispatch(argv):
     argv = list(sys.argv[1:] if argv is None else argv)
     if not argv:
         return False
-    if argv[0] in ('--help', '-h', 'plan', 'profiles', 'status', 'logs', 'cancel', 'fetch'):
+    if argv[0] in ('--help', '-h', 'plan', 'profiles', 'status', 'logs', 'cancel', 'fetch', 'alpha-tune'):
         return True
     if argv[0] != 'train':
         return False
@@ -83,6 +83,8 @@ def main(argv=None):
         command.add_argument('--stop-after', type=int)
         command.add_argument('--check', action='store_true', help='run product validation without training')
     commands.add_parser('profiles')
+    alpha = commands.add_parser('alpha-tune', help='choose an inference strength for a saved RAW adapter with Jev')
+    alpha.add_argument('slider_definition', type=Path)
     for op in ('status', 'logs', 'cancel', 'fetch'):
         command = commands.add_parser(op)
         command.add_argument('--job', type=Path, required=True, help='JSON handle returned by remote submission')
@@ -90,7 +92,11 @@ def main(argv=None):
             command.add_argument('--out', required=True)
     args = parser.parse_args(argv)
     try:
-        if args.operation == 'profiles':
+        if args.operation == 'alpha-tune':
+            from ..alpha_tune import tune
+            print(tune(args.slider_definition), flush=True)
+            return 0
+        elif args.operation == 'profiles':
             result = {'installed': [{'name': p.name, 'value': p.value} for p in entry_points(group='particle_sliders.training_profiles')],
                       'file_profiles': 'pass --profile path/to/training_profile.json; products remain isolated'}
         elif args.operation in ('status', 'logs', 'cancel', 'fetch'):

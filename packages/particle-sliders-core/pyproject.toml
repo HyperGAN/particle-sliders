@@ -37,3 +37,4 @@ testpaths = ["tests"]
 [project.scripts]
 particle-slider-search = "particle_sliders.parameter_search.__main__:main"
 particle-slider = "particle_sliders.session_cli:main"
+alpha-tune = "particle_sliders.alpha_tune:main"
