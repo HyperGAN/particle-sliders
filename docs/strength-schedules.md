@@ -16,6 +16,60 @@ product. Use the generation stage and scheduler from its native source cohort.
 
 ## Search alpha on a saved adapter
 
+### Jev command
+
+```sh
+particle-slider alpha-tune path/to/slider-definition.json
+# The standalone alpha-tune command is installed with the same package.
+alpha-tune path/to/slider-definition.json
+```
+
+Run this in the native product's inference environment. The definition pins a
+saved RAW adapter and the case images. The command opens one registered native
+renderer, searches the declared strengths, and saves
+`slider-definition.alpha-tune/tuning.json` beside the definition. The receipt
+contains the checkpoint hash, nominal alpha, timing profile, sampler identity
+and resolved gains for replay.
+
+The command uses Jev through `NANOGPT_API_KEY`. It scores the concept in each
+image independently and measures an identical OFF image once. A separate
+Jev check screens visible rendering defects and severe replacement of the
+original subject or setting. A severe-defect probability of 0.8 or higher
+rejects a setting. Probabilities from 0.5 up to 0.8 trigger a focused Jev
+clarification and stay unmeasured if the clarification is uncertain.
+Within the settings that pass, the comparison
+uses mean concept gain. A definition may include known passing and failing
+image pairs to check this rubric. Reserved cases can validate the chosen
+setting. A failed or uncertain run leaves its evidence and produces no tuning
+file.
+
+A definition uses schema `particle-slider-alpha-tune-v1` and includes these
+fields.
+
+| Field | Value |
+| --- | --- |
+| `selection`, `ema_decay` | `"raw"` and `null` |
+| `checkpoint` | `{"path", "bytes", "sha256"}` for the saved adapter |
+| `renderer`, `renderer_options` | Installed renderer entry point and native options |
+| `concept` | What Jev should score in a finished image |
+| `profiles` | A map from `constant`, `early`, or `late` to the declared native alpha grid |
+| `refinement_rounds` | Number of local refinement rounds, one by default |
+| `cases` | Rows with `id`, `split` of `search` or `reserved`, native `request`, descriptive `preserve` text, and pinned `off` image |
+| `judge_fixtures` | Optional rows with `id`, pinned `off` and `on`, `preserve`, and `expected` verdict |
+
+Relative file paths resolve beside the definition. Resuming the same definition
+reuses committed renders and Jev receipts. If the definition changes, use a
+new filename for the new run.
+
+Products register a context-managed factory under
+`particle_sliders.alpha_renderers`. The factory receives the checkpoint
+`FileRecord` and native options. The renderer supplies `sampler` metadata,
+`interval_widths`, and `render(request, effective_strengths, output)`. It
+writes the requested finished PNG and returns its `FileRecord`. The product
+owns adapter loading, native strength limits, and accelerator resources.
+
+### Callback API
+
 Run `particle_sliders.alpha_search.search_alpha` after exporting a RAW adapter.
 Bind the checkpoint, a fixed concept rubric, and matched cases with the same
 prompts, seeds and OFF outputs. Declare a coarse grid of valid native alphas and
