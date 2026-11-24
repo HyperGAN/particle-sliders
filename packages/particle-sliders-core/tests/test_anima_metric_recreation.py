@@ -1222,3 +1222,470 @@ def test_r2_end_arms_fail_differently(r2_results):
     assert diag["w0"]["tail_gain"] < gate["fg45"]["tail_gain"]
     assert diag["w0"]["const"][2][2] < gate["fg45"]["const"][2][2]
     assert diag["acq"]["plain"][1] > diag["acq"]["fg45"][1]
+
+
+# =====================================================================
+# ROUND 3 (2026-11-23): the creative round -- variants the Round-2
+# mechanism picture licenses, a final gate attempt via a base-prior
+# re-expression channel, and the dose grid run as MECHANISM CURVES
+# (the gate did not validate; see the verdict). Same frozen score
+# and Round-2 compounded metric throughout; nothing below retunes
+# any Round-1/2 constant.
+#
+# ITEM (1) -- FACTORIAL + COMBINATION (FG45 x pairing x char-pure
+# cue; toy means, 5 seeds; R2 references: fg45 18.14/16.26,
+# cue_char35 19.44/17.20, paired 19.91/16.15):
+#   pair45 (fg45+pair)      17.41 / 16.42
+#   cuepair (pair+char35)   20.96 / 16.86
+#   combo20                 18.08 / 16.94
+#   combo35                 18.57 / 17.32
+#   combo50                 19.05 / 17.68
+# The three winners' mechanisms are NOT fully orthogonal: pairing
+# COSTS FG45 at early (-0.73, wins 1/5 -- pairing averages away
+# the character x context tilt that FG45's trajectory still
+# expresses, while its damage benefit is redundant with per-step
+# damping) and ~ties at const (+0.15). Pairing DOES stack with
+# the char cue at full BG weight (cuepair tops early at 20.96).
+# The full combination is monotone in char dose (20<35<50 at
+# both strengths, paired 5/5 per step) and combo50 beats FG45 at
+# both strengths (paired 5/5; +0.91 early / +1.41 const) and is
+# the FG45 family's const best -- but at early it still trails
+# cue_char35 (19.44) and cuepair (20.96). Combination verdict:
+# the const-side candidate the toy licenses; NOT an early sweep.
+#
+# ITEM (2) -- FRESH-RELABEL ROLLOUT STACKING: does NOT stack.
+# fg45_roll50 17.48/16.31 (~ties fg45 at const, -0.66 early);
+# fg45_roll100 16.41/15.68 (below fg45 at both, 0/5 early);
+# combo35_roll100 18.00/17.23 (~ties combo35 at const, -0.57
+# early). Round 2's rollout benefit was rescuing PLAIN's const
+# instability (6.47 -> 12.99); FG45's per-step damping already
+# removes that instability, so on top of the winners rollout
+# only adds its state-degradation cost. It still improves the
+# plain rollout arm when combined with FG45 (fg45_roll100 const
+# 15.68 > plain_roll100 12.99, +2.69, 4/5) -- the rescue runs
+# the other way. VERDICT: rollout fresh-relabel is a rescue for
+# unstable plain training, not a component for the winners.
+#
+# ITEM (3) -- BASE-PRIOR RE-EXPRESSION CHANNEL + FINAL GATE:
+# trajectory target becomes (1-gamma)*adapter_delta + gamma*P_j
+# per step, P_j the fixed prompt-prior delta (teacher target at
+# the eval context). gamma=0.35 is anchored to Mikkel's
+# strengths (1-alpha_const = 0.3625; 1-alpha_early = 0.333),
+# pre-registered, NOT tuned to the gate; gamma in {0.2, 0.5}
+# run as sensitivity. gamma=0 reproduces Round 2 EXACTLY
+# (bgproj 18.68/17.29, wholeproj 14.05/13.97 -- sanity check).
+# The channel FIRES as hypothesized -- wholeproj const gain
+# 0.68 -> 0.95 at gamma=0.35, recovering MORE than bgproj
+# (1.01 -> 1.19) because it had more in-span character missing
+# -- but the differential is ~4x too small: the const gap
+# narrows 3.32 -> 1.27 and the CROSSOVER DOES NOT REPRODUCE at
+# any gamma in {0.2, 0.35, 0.5} (at 0.5 wholeproj const falls
+# back to 16.59 while early compresses toward prompt). The
+# prior also lifts every arm and reorders little else.
+# FINAL GATE at gamma=0.35 (Mikkel's order in parens):
+#   FG45 top early ......... MISS (#4 of his seven, as in R2)
+#   cue #2 early ........... PASS (#2)
+#   cue #1 const ........... #2 (bgproj 18.34 > cue_char 17.65)
+#   paired ~= bgproj ....... PASS early (delta 0.21) / MISS const
+#   crossover .............. MISS (gap 1.27, no cross, any gamma)
+#   rollout last ........... PASS const / MISS early (#5 of six)
+#   prompt mid early ....... MISS (last; prior lifts wholeproj
+#                            above it)
+# GATE VERDICT, FINAL: NOT VALIDATED after three rounds. The
+# misses are concentrated and mechanistically explained (a
+# linear evaluation cannot let damping beat exact removal on
+# the damage axis at early; the toy's priced in-span character
+# share is too small for its prior channel to cross the projec-
+# tions over), but explained misses are still misses. Conse-
+# quence, applied consistently below: variant results are
+# reported as TOY-INTERNAL margins with mechanism support, and
+# item (5) is run and labeled as MECHANISM CURVES, never as
+# ranking evidence against Mikkel's table.
+#
+# ITEM (4) -- LEACE-PRICED RESTORATION (the round's discovery):
+# deflate, then add back the component of the removed part that
+# lies along the ESTIMATED gain direction (normalized mean
+# target of that region -- estimable from targets alone).
+#   bg_restore            24.29 / 21.64   (gain 1.22/1.47,
+#                         BG energy 0.038/0.057 vs plain
+#                         0.356/0.653, bgproj 0.005/0.006)
+#   whole_restore         17.45 / 16.89   (wholeproj: 14.05/13.97)
+#   whole_restore_both    22.96 / 21.29
+#   bg_restore+char35     25.44 / 22.33   (cue stacks, 5/5 both)
+#   bg_restore+w45        19.15 / 17.79   (FG45 ANTAGONISTIC:
+#                         -5.14/-3.85, 0/5 -- per-step damping
+#                         suppresses exactly the BG gain the
+#                         restoration put back)
+# BG projection's real tax was never the FG character the 0.458
+# LEACE price measures (restoring that piece, whole_restore,
+# recovers most of whole-projection's deficit but only reaches
+# the FG45 family) -- it is the BG GAIN (presence/atmosphere)
+# the BG deflation silently removes: restoring the gain-aligned
+# 20.6% of the removed BG energy refunds nearly all of plain's
+# gain (1.47 vs 1.50 const) at ~1/10 of plain's BG damage, and
+# bg_restore beats EVERY Round-2 gate arm at both strengths by
+# >= +4.3. FG deflation stays net-negative even with restora-
+# tion (whole_restore_both < bg_restore): never deflate FG.
+# FG restoration diagnostics: restored share of removed FG
+# energy 0.072; fidelity (recovered share of the true removed
+# character component) 0.382 -- the mean-target direction is a
+# mediocre FG character estimate, and it still pays.
+#
+# ITEM (5) -- DOSE GRID (w x char-beta, FG45 family, train w =
+# eval w), run as MECHANISM CURVES under the final gate state:
+# char-beta is MONOTONE at every w and both strengths (no
+# inverted-U in the character-pure family, extending Round 2);
+# the const w-optimum sits at Mikkel's 0.45 at EVERY beta
+# (const column peaks: 0.45 row wins all five columns); the
+# early w-optimum sits higher (0.60-0.80); w=1.00 collapses at
+# const (6.47-7.34, plain's instability); grid const argmax is
+# (w=0.45, beta=0.85) = 18.34 and early argmax (0.80, 0.85) =
+# 22.03. Against Mikkel: his 85% cue blend DROPPED at both
+# strengths -- the toy's char-pure curve cannot produce that
+# drop at any dose, so the drop must live in his blend's
+# non-character content (the R1 reading's tilt+leak, which DID
+# invert at const in Round 2). The curves are within-family
+# mechanism evidence only.
+#
+# ITERATION LOG, round 3 (pre-registered designs; prototypes on
+# pop-os in /mnt/nvme/nova/anima-r3, proto1-5):
+#   I1 factorial + rollout stacking: one design round, doses
+#     pre-registered (cue 20/35/50; rollout 50/100 from R2's
+#     ablation curve). No tuning.
+#   I2 prior channel: gamma grid {0.2, 0.35, 0.5} around the
+#     1-alpha anchor, 3 evaluation rounds; gamma=0 sanity
+#     exact. No fourth gamma tried after the 0.5 fallback --
+#     the crossover's absence is structural, not a gamma miss.
+#   I3 restoration: round 1 bg/whole/both along the estimated
+#     gain direction; round 2 combination probes (char35
+#     stacks; w45 antagonistic). Estimator left as the plain
+#     mean target -- no refinement attempted or needed.
+#   I4 dose grid: one run as specced (7x5).
+# Execution-risk flags this round: 0 occurrences.
+#
+# Assertions below encode ONLY the wide-margin / paired-seed
+# facts stated above. Not asserted: any cross-family ranking
+# against Mikkel's table, the gate itself, Jev magnitudes.
+# =====================================================================
+
+R3_GAMMA = 0.35
+
+
+def _r3_traj_deltas(w, seed, W, mode, w_eval, gamma):
+    """Round-2 relaxation trajectory + base-prior channel: at
+    each active step the offset relaxes toward the convex mix
+    (1-gamma) * adapter delta + gamma * prompt-prior delta."""
+    priors = _r2_prompt_deltas(w, seed)
+    xs, _ = _r2_eval_inputs(w, seed)
+    out = []
+    for j, x in enumerate(xs):
+        o = torch.zeros_like(x)
+        for t in range(R2_K_TRAJ):
+            if t < R2_ACTIVE[mode]:
+                d = W @ (x + o)
+                if w_eval != 1.0:
+                    d = d.clone()
+                    d[D_FG:] *= w_eval
+                tgt = (1 - gamma) * d + gamma * priors[j]
+                o = o + R2_S_TRAJ * (tgt - o)
+        out.append(o)
+    return out
+
+
+def _r3_targets(w, seed, beta=0.0, restore=None):
+    """Teacher targets with optional char-pure cue blend and
+    deflate+restore. restore: 'bg' (BG deflate + BG restore),
+    'whole' (BG deflate + FG deflate + FG restore), 'both'
+    (deflate + restore in both regions). Restoration adds back
+    the removed part's component along the region's estimated
+    gain direction (normalized mean target, pre-deflation)."""
+    X, T, NS = _r2_states(w, seed)
+    if beta > 0:
+        T = T.clone()
+        for idx in range(len(NS)):
+            n = NS[idx]
+            cd = _r2_char_dir(w, seed, n)
+            base_fg = A_CHAR * cd + LEAK_FG * (w["U_fg"] @ n)
+            strong_fg = CAR_AMP * A_CHAR * cd + LEAK_FG * (w["U_fg"] @ n)
+            T[idx, :D_FG] = (1 - beta) * base_fg + beta * strong_fg
+    g = torch.Generator().manual_seed(13000 + seed)
+    T = T + _randn(g, *T.shape) * T_NOISE
+    T = T.clone()
+    diag = {}
+    g_fg = T[:, :D_FG].mean(dim=0)
+    g_fg = g_fg / g_fg.norm()
+    g_bg = T[:, D_FG:].mean(dim=0)
+    g_bg = g_bg / g_bg.norm()
+    bgc = T[:, D_FG:] - T[:, D_FG:].mean(dim=0, keepdim=True)
+    Ubg_hat = torch.linalg.svd(bgc, full_matrices=False).Vh[:K_NUIS].T
+    removed_bg = (T[:, D_FG:] @ Ubg_hat) @ Ubg_hat.T
+    T[:, D_FG:] = T[:, D_FG:] - removed_bg
+    if restore in ("bg", "both"):
+        coeff = removed_bg @ g_bg
+        T[:, D_FG:] = T[:, D_FG:] + torch.outer(coeff, g_bg)
+        diag["bg_share"] = float((coeff**2).sum()
+                                 / (removed_bg**2).sum())
+    if restore in ("whole", "both"):
+        fgc = T[:, :D_FG] - T[:, :D_FG].mean(dim=0, keepdim=True)
+        Ufg_hat = torch.linalg.svd(fgc, full_matrices=False).Vh[:K_NUIS].T
+        removed_fg = (T[:, :D_FG] @ Ufg_hat) @ Ufg_hat.T
+        T[:, :D_FG] = T[:, :D_FG] - removed_fg
+        coeff = removed_fg @ g_fg
+        T[:, :D_FG] = T[:, :D_FG] + torch.outer(coeff, g_fg)
+        diag["fg_share"] = float((coeff**2).sum()
+                                 / (removed_fg**2).sum())
+        num, den = 0.0, 0.0
+        for i in range(len(NS)):
+            cd = _r2_char_dir(w, seed, NS[i])
+            true_char = float(removed_fg[i] @ cd)
+            num += float(coeff[i]) * true_char
+            den += true_char**2
+        diag["fg_fidelity"] = num / max(den, 1e-12)
+    return X, T, diag
+
+
+def _r3_train(w, seed, beta=0.0, restore=None, w_bg=1.0):
+    g = torch.Generator().manual_seed(5000 + seed)
+    X, T, diag = _r3_targets(w, seed, beta=beta, restore=restore)
+    D = D_FG + D_BG
+    Vsf = _randn(g, D, RANK) * INIT
+    Vsb = _randn(g, D, RANK) * INIT
+    Uf = _randn(g, D_FG, RANK) * INIT
+    Ub = _randn(g, D_BG, RANK) * INIT
+    N = len(X)
+    for step in range(STEPS):
+        W = torch.cat([Uf @ Vsf.T, Ub @ Vsb.T], dim=0)
+        R = X @ W.T - T
+        gW = (2.0 / N) * (R.T @ X)
+        gWf, gWb = gW[:D_FG], gW[D_FG:]
+        Uf = Uf - LR * (gWf @ Vsf + WD * Uf)
+        Vsf = Vsf - LR * (gWf.T @ Uf + WD * Vsf)
+        Ub = Ub - (LR * w_bg) * (gWb @ Vsb + WD * Ub)
+        Vsb = Vsb - (LR * w_bg) * (gWb.T @ Ub + WD * Vsb)
+    return torch.cat([Uf @ Vsf.T, Ub @ Vsb.T], dim=0), diag
+
+
+def _r3_restore_eval(beta, restore, w_bg, w_eval):
+    res = {"scores": {"early": [], "const": []},
+           "decomp": {"early": [], "const": []}, "diag": []}
+    for s in SEEDS:
+        w = _r2_world(s)
+        W, diag = _r3_train(w, s, beta=beta, restore=restore, w_bg=w_bg)
+        res["diag"].append(diag)
+        for mode in ("early", "const"):
+            d = _r2_decompose(w, s, _r2_traj_deltas(w, s, W, mode, w_eval))
+            res["decomp"][mode].append(d)
+            res["scores"][mode].append(_score(*d, mode))
+    return res
+
+
+def _r3_mean(res, mode):
+    return float(np.mean(res["scores"][mode]))
+
+
+def _r3_dmean(res, mode, i):
+    return float(np.mean([d[i] for d in res["decomp"][mode]]))
+
+
+R3_COMBO_ARMS = {
+    "pair45": (dict(w_bg=W_FG45, pair=True), W_FG45),
+    "cuepair": (dict(pair=True, beta=BETA_CUE, cue_style="char"), 1.0),
+    "combo20": (dict(w_bg=W_FG45, pair=True, beta=0.20,
+                     cue_style="char"), W_FG45),
+    "combo35": (dict(w_bg=W_FG45, pair=True, beta=0.35,
+                     cue_style="char"), W_FG45),
+    "combo50": (dict(w_bg=W_FG45, pair=True, beta=0.50,
+                     cue_style="char"), W_FG45),
+    "fg45_roll50": (dict(w_bg=W_FG45, rollout_frac=0.5,
+                         rollout_label="fresh"), W_FG45),
+    "fg45_roll100": (dict(w_bg=W_FG45, rollout_frac=1.0,
+                          rollout_label="fresh"), W_FG45),
+    "combo35_roll100": (dict(w_bg=W_FG45, pair=True, beta=BETA_CUE,
+                             cue_style="char", rollout_frac=1.0,
+                             rollout_label="fresh"), W_FG45),
+}
+
+
+@pytest.fixture(scope="module")
+def r3_combo():
+    return {name: _r2_arm_eval(kw, we)
+            for name, (kw, we) in R3_COMBO_ARMS.items()}
+
+
+@pytest.fixture(scope="module")
+def r3_prior():
+    out = {}
+    for name, (kw, we) in R2_GATE_ARMS.items():
+        sc = {"early": [], "const": []}
+        dec = {"early": [], "const": []}
+        for s in SEEDS:
+            w = _r2_world(s)
+            W = _r2_train(w, s, **kw)
+            for mode in ("early", "const"):
+                d = _r2_decompose(
+                    w, s, _r3_traj_deltas(w, s, W, mode, we, R3_GAMMA))
+                sc[mode].append(_score(*d, mode))
+                dec[mode].append(d)
+        out[name] = {"scores": sc, "decomp": dec}
+    return out
+
+
+@pytest.fixture(scope="module")
+def r3_restore():
+    return {
+        "bg_restore": _r3_restore_eval(0.0, "bg", 1.0, 1.0),
+        "whole_restore": _r3_restore_eval(0.0, "whole", 1.0, 1.0),
+        "whole_restore_both": _r3_restore_eval(0.0, "both", 1.0, 1.0),
+        "bg_restore_cue": _r3_restore_eval(BETA_CUE, "bg", 1.0, 1.0),
+        "bg_restore_w45": _r3_restore_eval(0.0, "bg", W_FG45, W_FG45),
+    }
+
+
+@pytest.fixture(scope="module")
+def r3_grid():
+    grid = {}
+    for wv in (0.0, 0.15, 0.30, 0.45, 0.60, 0.80, 1.0):
+        for bv in (0.0, 0.15, 0.35, 0.55, 0.85):
+            sc = {"early": [], "const": []}
+            for s in SEEDS:
+                w = _r2_world(s)
+                W = _r2_train(w, s, w_bg=wv, beta=bv, cue_style="char")
+                for mode in ("early", "const"):
+                    d = _r2_decompose(
+                        w, s, _r2_traj_deltas(w, s, W, mode, wv))
+                    sc[mode].append(_score(*d, mode))
+            grid[(wv, bv)] = (float(np.mean(sc["early"])),
+                              float(np.mean(sc["const"])))
+    return grid
+
+
+def test_r3_combo50_beats_fg45(r3_combo, r2_results):
+    fg = r2_results["gate"]["fg45"]
+    c50 = _r2_summ(r3_combo["combo50"])
+    assert c50["early"][0] > fg["early"][0] + 0.5
+    assert c50["const"][0] > fg["const"][0] + 0.75
+
+
+def test_r3_combo_dose_monotone(r3_combo):
+    c20 = _r2_summ(r3_combo["combo20"])
+    c35 = _r2_summ(r3_combo["combo35"])
+    c50 = _r2_summ(r3_combo["combo50"])
+    for mode in ("early", "const"):
+        assert c20[mode][0] < c35[mode][0] < c50[mode][0]
+
+
+def test_r3_pairing_not_orthogonal(r3_combo, r2_results):
+    """Pairing costs FG45 at early (tilt-averaging vs damping
+    redundancy) but stacks with the char cue at full BG weight:
+    cuepair tops paired at early by > 0.5."""
+    fg = r2_results["gate"]["fg45"]
+    p45 = _r2_summ(r3_combo["pair45"])
+    cp = _r2_summ(r3_combo["cuepair"])
+    pr = r2_results["gate"]["paired"]
+    assert p45["early"][0] < fg["early"][0] - 0.25
+    assert cp["early"][0] > pr["early"][0] + 0.5
+
+
+def test_r3_rollout_does_not_stack(r3_combo, r2_results):
+    """Fresh-relabel rollout adds nothing on top of FG45 or the
+    combination (it only rescues plain): fg45_roll100 below
+    fg45 at both strengths; fg45_roll50 and combo35_roll100
+    within noise of their bases at const; FG45 still improves
+    the rollout arm itself (the rescue runs the other way)."""
+    fg = r2_results["gate"]["fg45"]
+    ro = r2_results["gate"]["rollout"]
+    r50 = _r2_summ(r3_combo["fg45_roll50"])
+    r100 = _r2_summ(r3_combo["fg45_roll100"])
+    cr = _r2_summ(r3_combo["combo35_roll100"])
+    c35 = _r2_summ(r3_combo["combo35"])
+    assert r100["early"][0] < fg["early"][0] - 1.0
+    assert r100["const"][0] < fg["const"][0]
+    assert r50["const"][0] < fg["const"][0] + 0.25
+    assert cr["const"][0] < c35["const"][0] + 0.25
+    assert r100["const"][0] > ro["const"][0] + 1.5
+
+
+def test_r3_prior_channel_fires_no_crossover(r3_prior, r2_results):
+    """The base-prior channel re-expresses in-span character
+    (wholeproj const gain rises > 0.15 over the gamma=0 gate)
+    but the BG-vs-whole crossover still does NOT reproduce at
+    gamma=0.35, and FG45 is still not top at early -- the
+    gate's final misses, asserted as measured positions."""
+    wp0 = r2_results["gate"]["wholeproj"]["const"][2][0]
+    wp1 = float(np.mean([d[0] for d in
+                         r3_prior["wholeproj"]["decomp"]["const"]]))
+    assert wp1 > wp0 + 0.15
+    bg_c = float(np.mean(r3_prior["bgproj"]["scores"]["const"]))
+    wp_c = float(np.mean(r3_prior["wholeproj"]["scores"]["const"]))
+    assert bg_c > wp_c
+    fg_e = float(np.mean(r3_prior["fg45"]["scores"]["early"]))
+    bg_e = float(np.mean(r3_prior["bgproj"]["scores"]["early"]))
+    assert fg_e < bg_e
+
+
+def test_r3_bg_restore_dominates(r3_restore, r2_results):
+    """BG deflation + gain-span restoration beats both the
+    plain BG projection and FG45 by wide margins at both
+    strengths, at ~1/10 of plain's BG damage."""
+    gate = r2_results["gate"]
+    br = r3_restore["bg_restore"]
+    for mode in ("early", "const"):
+        assert _r3_mean(br, mode) > gate["bgproj"][mode][0] + 3.0
+        assert _r3_mean(br, mode) > gate["fg45"][mode][0] + 3.0
+    assert _r3_dmean(br, "const", 0) > 1.35
+    assert _r3_dmean(br, "const", 1) < 0.10
+    assert _r3_dmean(br, "early", 1) < 0.08
+
+
+def test_r3_whole_restore_and_fg_deflation(r3_restore, r2_results):
+    """FG restoration recovers most of whole-projection's
+    deficit (+2 or more at both strengths) but FG deflation
+    stays net-negative: restoring both regions still loses
+    to BG-only deflation + restoration."""
+    gate = r2_results["gate"]
+    wr = r3_restore["whole_restore"]
+    wb = r3_restore["whole_restore_both"]
+    br = r3_restore["bg_restore"]
+    for mode in ("early", "const"):
+        assert _r3_mean(wr, mode) > gate["wholeproj"][mode][0] + 2.0
+    assert _r3_mean(wb, "early") < _r3_mean(br, "early") - 0.5
+    assert _r3_mean(wb, "const") < _r3_mean(br, "const")
+
+
+def test_r3_restore_combinations(r3_restore):
+    """The char cue stacks on restoration (paired gains at
+    both strengths); FG45 weighting is antagonistic (per-step
+    damping suppresses the restored BG gain)."""
+    br = r3_restore["bg_restore"]
+    bc = r3_restore["bg_restore_cue"]
+    bw = r3_restore["bg_restore_w45"]
+    for mode in ("early", "const"):
+        assert _r3_mean(bc, mode) > _r3_mean(br, mode) + 0.4
+        assert _r3_mean(bw, mode) < _r3_mean(br, mode) - 2.0
+
+
+def test_r3_restore_shares(r3_restore):
+    """Restored shares of the removed energy: BG ~0.21 (the
+    gain-aligned fifth), FG ~0.07 with fidelity ~0.38."""
+    br = r3_restore["bg_restore"]
+    wr = r3_restore["whole_restore"]
+    bg_share = float(np.mean([d["bg_share"] for d in br["diag"]]))
+    fg_share = float(np.mean([d["fg_share"] for d in wr["diag"]]))
+    fid = float(np.mean([d["fg_fidelity"] for d in wr["diag"]]))
+    assert 0.10 < bg_share < 0.35
+    assert 0.03 < fg_share < 0.15
+    assert 0.2 < fid < 0.6
+
+
+def test_r3_grid_mechanism_curves(r3_grid):
+    """MECHANISM CURVES ONLY (gate not validated): char-beta
+    monotone at w=0.45; the const w-optimum sits at 0.45 at
+    beta=0.35; the early optimum sits higher; w=1 collapses
+    at const."""
+    g = r3_grid
+    chain = [g[(0.45, b)][1] for b in (0.0, 0.15, 0.35, 0.55, 0.85)]
+    assert all(a < b for a, b in zip(chain, chain[1:]))
+    assert g[(0.45, 0.35)][1] > g[(0.30, 0.35)][1]
+    assert g[(0.45, 0.35)][1] > g[(0.60, 0.35)][1] + 0.25
+    assert g[(0.80, 0.0)][0] > g[(0.45, 0.0)][0] + 0.5
+    assert g[(1.0, 0.35)][1] < g[(0.45, 0.35)][1] - 5.0
