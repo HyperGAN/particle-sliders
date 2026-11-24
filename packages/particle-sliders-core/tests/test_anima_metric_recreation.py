@@ -1689,3 +1689,497 @@ def test_r3_grid_mechanism_curves(r3_grid):
     assert g[(0.45, 0.35)][1] > g[(0.60, 0.35)][1] + 0.25
     assert g[(0.80, 0.0)][0] > g[(0.45, 0.0)][0] + 0.5
     assert g[(1.0, 0.35)][1] < g[(0.45, 0.35)][1] - 5.0
+# =====================================================================
+# ROUND 4 (2026-11-24): GROUNDED rebuild + candidate generation.
+# Canonical status (Round-5 reconciliation, 2026-11-24): RUN on
+# pop-os (torch 2.15, pytest 9.2, single-threaded) and PUSHED
+# to PR #321 with this reconciliation. The original torch port
+# first ran 36 passed / 1 failed -- test_r4_k6_tops_
+# candidates_at_early (K6 early 27.97 vs fg45 29.51). The
+# section below was then reconciled against the numpy
+# reference model (~/workspace/.tmp/anima-round4/grounded.py)
+# and now encodes ONLY stream-robust facts (see below); the
+# full file is green on pop-os.
+#
+# WORLD-GENERATOR NOTE (one canonical definition, two
+# streams): the numpy reference and this torch port share one
+# world DEFINITION -- same distributions, same draw
+# structure, same seed offsets (main world stream 7000+seed,
+# contrasts 9000+seed, matte 41000+seed, training 5000+seed,
+# char mixing 31000+seed, cue-tilt mixing 31000+seed+777) --
+# with library-specific RNG streams (numpy default_rng
+# sequential draws vs torch Generators; the matte is drawn
+# as direct Beta samples in numpy and as Gamma ratios in
+# torch, the same Beta distribution). Per-seed VALUES
+# therefore differ between the implementations, and every
+# assertion below encodes a distribution-level agreement
+# measured in BOTH, with its margin set at roughly half the
+# thinner of the two implementations' margins.
+#
+# Two genuine STRUCTURAL (non-stream) divergences were found
+# in the original port and FIXED to match the reference:
+# (1) the cue tilt reused the char direction's mixing matrix
+# (_r2_rmix(seed)) where the reference draws an independent
+# one (_rmix(seed, 777)) -- the port's cue was an amplified
+# char tilt, not an independent rotation, and its measured
+# rotation was 0.129 vs the reference's 0.186 (after the
+# fix: 0.187 vs 0.186); (2) alt_dir was drawn from a fresh
+# 7000+seed generator (numbers overlapping the Qf draw)
+# where the reference draws it inside the main world stream,
+# after the crest vectors and before the base/nuisance
+# draws -- _r4_world now mirrors the reference draw order.
+#
+# STREAM-SENSITIVE (no assertion encodes these): the K6
+# EARLY claim -- K6 vs fg45 at early is +0.67 in the numpy
+# reference but -1.54 in the original torch port (27.97 vs
+# 29.51) and -0.38 in the structurally fixed torch port: the
+# sign itself is implementation-dependent, so K6's early
+# crown is DOWNGRADED to implementation-sensitive. Likewise
+# K6 vs mix35 at const is +0.78 (numpy) / +0.51 (original
+# torch) / -0.09 (fixed torch): a statistical tie whose sign
+# flips across streams. What both implementations DO agree
+# on about K6 is asserted in test_r4_k6_candidates_agree.
+#
+# What changed vs Rounds 1-3 (re-derived from
+# release_tools/final_boss_targets.py; workstream-A grounding):
+#   (i) weighting moves to TARGET construction with exact L2
+#       renorm; the training-time w_bg knob is DELETED (stock
+#       unweighted training -- grounding D1/D2);
+#   (ii) matte = per-position CONTINUOUS weights (per-case draw,
+#       FG dims bright-leaning, BG dims dark-leaning, overall
+#       mean ~0.28; real mattes 0.19-0.30) (D3);
+#   (iii) cue = ROTATION toward a distinct specific-cue contrast
+#       (shared char axis + own tilt + per-case crest object) at
+#       fixed norm; measured rotation at beta=0.35 ~0.19 (real
+#       0.220 early positions / 0.168 late) (D4). The 85%/dose100
+#       arm is EXCLUDED: construction unknown (D5);
+#   (iv) score = per case max(0, g) * (1 - d)^2, equal mean over
+#       cases, x28 display scale; damage map d = e/(e+1) with e
+#       the off-rubric energy ratio -- stated and frozen (D10);
+#   (v) alpha = RENDER profiles over a 10-step trajectory:
+#       early [1x7, 0.64444, 0.33333, 0.33333], const [0.6375]*10;
+#       additive accumulation + base pullback of off-rubric
+#       content only (half-life = render length, pull 0.067).
+#       No gamma base-prior channel (D11/D12).
+# Projection = orthogonalisation vs the top-1 PC of centred BG
+# residual targets (stated estimator), before weighting+renorm.
+# Paired contexts and rollout (self-label) are kept as R2
+# operationalisations and flagged UNGROUNDED (constructions are
+# missing from the anima repo; grounding S3/S5).
+#
+# GATE (numpy reference, 5 seeds): NOT VALIDATED --
+# 2 PASS (rollout last by a wide margin, both strengths;
+# paired@65 > paired@45, both strengths), 2 NEAR (cue early dip
+# sign; prompt-only mid-pack), 5 MISS (FG45 top at early; floor
+# non-monotonicity; cue const crown; paired ~= bgproj; BG-vs-
+# whole crossover). Grounding ATTRIBUTES the FG45 miss: the
+# R1-R3 toy's FG45 power came from mechanisms that do not exist
+# in the code (per-step compounding, training weights); target
+# direction at fixed dose is a weak knob for a linear fit.
+#
+# CANDIDATES (numpy reference; in-toy champions fg45 33.59/
+# 34.72, fg45+mix35 32.35/33.40): K6 paired+mix35@65 was the
+# only candidate positive vs fg45 at early in the reference
+# (+0.67, 3/5) -- implementation-sensitive per the note above;
+# its const margin vs mix35 (+0.78, 4/5) is a cross-stream tie.
+# K2 mean35 >= single cue at both strengths in the reference;
+# K7 timed cue +1.03/+1.07 vs full cue at const (5/5); K5
+# bgproj+mix35 is the worst arm (-2.39 early, 0/5).
+# Round 1-3 verdict revisions: deflate-restore-cue35 DEAD (no
+# PCA in the real system; the capture renorm already restores
+# the dose its "restore" step refunded); soft45-pair-char50
+# REVISED -> K6/K2 ("char-pure" amplification does not exist;
+# the cue is a rotation); soft45-char85 DEAD (no 85% blend
+# exists; the arm is dose100, construction unknown).
+# =====================================================================
+
+# ---- round-4 constants (Round-1 constants above are reused) ----
+R4_D0 = 1.0
+R4_ALPHA_EARLY = [1.0] * 7 + [0.64444, 0.33333, 0.33333]
+R4_ALPHA_CONST = [0.6375] * 10
+R4_CREST, R4_SPEC_TILT, R4_ALT_TILT = 0.55, 0.30, 0.45
+R4_KAPPA_SPEC, R4_BASE_PULL = 0.5, 0.067
+
+
+def _r4_world(seed):
+    # Round-5 structural reconciliation: this mirrors the numpy
+    # reference's _world draw structure exactly (same seed
+    # offsets, same draw order): main stream 7000+seed draws
+    # Qf, Qb, the per-case crest vectors, then alt_dir (ONE
+    # randn, orthogonalised against c and U_fg) BEFORE the
+    # base / nuisance draws it therefore shifts. The original
+    # port instead reused _r2_world (no alt slot) and drew
+    # alt_dir from a FRESH 7000+seed generator -- its first
+    # randn, i.e. numbers overlapping the Qf draw -- a
+    # different draw structure, fixed here.
+    g = torch.Generator().manual_seed(7000 + seed)
+    Qf = torch.linalg.qr(_randn(g, D_FG, D_FG)).Q
+    Qb = torch.linalg.qr(_randn(g, D_BG, D_BG)).Q
+    e = [Qf[:, i] for i in range(D_FG)]
+    c = (1 - RHO**2) ** 0.5 * e[0] + RHO * e[1]
+    U_fg = torch.stack(e[1:1 + K_NUIS], dim=1)
+    vcars = []
+    for _ in range(N_CASES):
+        v = _randn(g, D_FG)
+        v = v - c * (v @ c)
+        for k in range(K_NUIS):
+            v = v - U_fg[:, k] * (v @ U_fg[:, k])
+        vcars.append(v / v.norm())
+    alt = _randn(g, D_FG)
+    alt = alt - c * (alt @ c)
+    for k in range(K_NUIS):
+        alt = alt - U_fg[:, k] * (alt @ U_fg[:, k])
+    w = dict(
+        c=c, U_fg=U_fg, v_car_cases=torch.stack(vcars), q=e[7],
+        s_bg=Qb[:, 0], U_bg=Qb[:, 1:1 + K_NUIS],
+        base_fg=_randn(g, N_CASES, D_FG) * BASE_SD,
+        base_bg=_randn(g, N_CASES, D_BG) * BASE_SD,
+        n_mean=_randn(g, N_CASES, K_NUIS) * SIG_MEAN,
+        n_var=_randn(g, N_CASES, N_CTX, K_NUIS) * SIG_VAR,
+        n_eval_var=_randn(g, N_CASES, K_NUIS) * SIG_VAR,
+        alt_dir=alt / alt.norm(),
+    )
+    matte = torch.empty(N_CASES, D_FG + D_BG, dtype=torch.float64)
+    # Beta draws via gamma ratios: Gamma(a,1)/(Gamma(a,1) +
+    # Gamma(b,1)) ~ Beta(a, b), seeded per world. (The numpy
+    # reference draws Beta directly from its own 41000+seed
+    # stream; same distribution, library-specific stream.)
+    gen = torch.Generator().manual_seed(41000 + seed)
+
+    def beta_g(a, b, shape):
+        ga = torch._standard_gamma(
+            torch.full(shape, float(a), dtype=torch.float64),
+            generator=gen)
+        gb = torch._standard_gamma(
+            torch.full(shape, float(b), dtype=torch.float64),
+            generator=gen)
+        return ga / (ga + gb)
+
+    matte[:, :D_FG] = beta_g(8.0, 2.0, (N_CASES, D_FG))
+    matte[:, D_FG:] = beta_g(1.2, 9.0, (N_CASES, D_BG))
+    w["matte"] = matte
+    return w
+
+
+def _r4_rmix_tilt(seed):
+    """The spec/alt cue tilt's OWN mixing matrix. Round-5
+    structural fix: the numpy reference draws it from
+    31000+seed+777, INDEPENDENT of the char direction's
+    _r2_rmix(seed); the original port reused _r2_rmix(seed),
+    which made the cue tilt a scalar amplification of the
+    char tilt (spec = char with a larger context coefficient
+    + crest) instead of an independent rotation, and shrank
+    the measured cue rotation (0.129 in torch vs 0.186 in
+    the reference, same band test)."""
+    g = torch.Generator().manual_seed(31000 + seed + 777)
+    return _randn(g, K_NUIS, K_NUIS) / (K_NUIS ** 0.5)
+
+
+def _r4_spec_dir(w, seed, n, j):
+    v = (_r2_char_dir(w, seed, n)
+         + R4_SPEC_TILT * (w["U_fg"] @ (_r4_rmix_tilt(seed) @ n))
+         + R4_CREST * w["v_car_cases"][j])
+    return v / v.norm()
+
+
+def _r4_alt_dir(w, seed, n):
+    v = (_r2_char_dir(w, seed, n)
+         + R4_ALT_TILT * w["alt_dir"]
+         + R4_SPEC_TILT * (w["U_fg"] @ (_r4_rmix_tilt(seed) @ n)))
+    return v / v.norm()
+
+
+def _r4_contrasts(w, seed):
+    g = torch.Generator().manual_seed(9000 + seed)
+    sd = (SIG_MEAN**2 + SIG_VAR**2) ** 0.5
+    X, NEU, RES, EXP, ALT, JS, PS = [], [], [], [], [], [], []
+    idx = 0
+    for j in range(N_CASES):
+        for t in range(N_CTX):
+            n = w["n_mean"][j] + w["n_var"][j, t]
+            m_fg = RHO_M * n + (1 - RHO_M**2) ** 0.5 * _randn(g, K_NUIS) * sd
+            m_bg = RHO_M * n + (1 - RHO_M**2) ** 0.5 * _randn(g, K_NUIS) * sd
+            x = torch.cat([w["base_fg"][j] + Q_AMP * w["q"] + w["U_fg"] @ m_fg,
+                           w["base_bg"][j] + w["U_bg"] @ m_bg])
+            leak = torch.cat([LEAK_FG * (w["U_fg"] @ n),
+                              LEAK_BG * (w["U_bg"] @ n)])
+            bg_gain = torch.cat([torch.zeros(D_FG, dtype=torch.float64),
+                                 PRES * w["s_bg"] + ATMO * w["U_bg"][:, 0]])
+            cd = _r2_char_dir(w, seed, n)
+            res = torch.cat([A_CHAR * cd,
+                             torch.zeros(D_BG, dtype=torch.float64)]) + bg_gain
+            exp = torch.cat([A_CHAR * _r4_spec_dir(w, seed, n, j),
+                             torch.zeros(D_BG, dtype=torch.float64)]) + bg_gain
+            alt = torch.cat([A_CHAR * _r4_alt_dir(w, seed, n),
+                             torch.zeros(D_BG, dtype=torch.float64)]) + bg_gain
+            X.append(x); NEU.append(leak); RES.append(res)
+            EXP.append(exp); ALT.append(alt); JS.append(j)
+            PS.append(idx % 10); idx += 1
+    return (torch.stack(X), torch.stack(NEU), torch.stack(RES),
+            torch.stack(EXP), torch.stack(ALT),
+            torch.tensor(JS), torch.tensor(PS))
+
+
+def _r4_targets(w, seed, floor=1.0, beta=0.0, cue="single",
+                pair=False, proj=None, matte_pow=1.0,
+                cue_positions=None):
+    X, NEU, RES, EXP, ALT, JS, PS = _r4_contrasts(w, seed)
+    E = RES.clone()
+    if beta > 0:
+        D = EXP if cue == "single" else 0.5 * (EXP + ALT)
+        b = torch.full((len(E),), float(beta), dtype=torch.float64)
+        if cue_positions is not None:
+            mask = torch.tensor([1.0 if cue_positions(int(p)) else 0.0
+                                 for p in PS], dtype=torch.float64)
+            b = b * mask
+        E = (1 - b)[:, None] * RES + b[:, None] * D
+    if pair:
+        E = E.clone()
+        for j in range(N_CASES):
+            sl = slice(j * N_CTX, (j + 1) * N_CTX)
+            E[sl] = E[sl].mean(dim=0, keepdim=True)
+    if proj in ("bg", "whole"):
+        E = E.clone()
+        bgc = E[:, D_FG:] - E[:, D_FG:].mean(dim=0, keepdim=True)
+        u_bg = torch.linalg.svd(bgc, full_matrices=False).Vh[0]
+        E[:, D_FG:] = E[:, D_FG:] - torch.outer(E[:, D_FG:] @ u_bg, u_bg)
+        if proj == "whole":
+            fgc = E[:, :D_FG] - E[:, :D_FG].mean(dim=0, keepdim=True)
+            u_fg = torch.linalg.svd(fgc, full_matrices=False).Vh[0]
+            E[:, :D_FG] = E[:, :D_FG] - torch.outer(E[:, :D_FG] @ u_fg, u_fg)
+    T = NEU.clone()
+    for i in range(len(E)):
+        m = w["matte"][int(JS[i])] ** matte_pow
+        wt = floor + (1 - floor) * m
+        weighted = E[i] * wt
+        T[i] = NEU[i] + weighted * (E[i].norm() / weighted.norm())
+    return X, T
+
+
+def _r4_train(w, seed, **tkw):
+    """Stock unweighted training (R2 architecture, NO w_bg:
+    weighting lives in the targets now)."""
+    g = torch.Generator().manual_seed(5000 + seed)
+    X, T = _r4_targets(w, seed, **tkw)
+    D = D_FG + D_BG
+    Vsf = _randn(g, D, RANK) * INIT
+    Vsb = _randn(g, D, RANK) * INIT
+    Uf = _randn(g, D_FG, RANK) * INIT
+    Ub = _randn(g, D_BG, RANK) * INIT
+    N = len(X)
+    for step in range(STEPS):
+        W = torch.cat([Uf @ Vsf.T, Ub @ Vsb.T], dim=0)
+        R = X @ W.T - T
+        gW = (2.0 / N) * (R.T @ X)
+        gWf, gWb = gW[:D_FG], gW[D_FG:]
+        Uf = Uf - LR * (gWf @ Vsf + WD * Uf)
+        Vsf = Vsf - LR * (gWf.T @ Uf + WD * Vsf)
+        Ub = Ub - LR * (gWb @ Vsb + WD * Ub)
+        Vsb = Vsb - LR * (gWb.T @ Ub + WD * Vsb)
+    return torch.cat([Uf @ Vsf.T, Ub @ Vsb.T], dim=0)
+
+
+def _r4_render(w, seed, W, mode):
+    prof = R4_ALPHA_EARLY if mode == "early" else R4_ALPHA_CONST
+    xs, _ = _r2_eval_inputs(w, seed)
+    out = []
+    for j, x in enumerate(xs):
+        n = w["n_mean"][j] + w["n_eval_var"][j]
+        cd = _r2_char_dir(w, seed, n)
+        sd_ = _r4_spec_dir(w, seed, n, j)
+        rem = sd_ - (sd_ @ cd) * cd
+        rem = rem / rem.norm()
+        B = torch.zeros(D_FG + D_BG, 4, dtype=torch.float64)
+        B[:D_FG, 0] = cd; B[:D_FG, 1] = rem
+        B[D_FG:, 2] = w["s_bg"]; B[D_FG:, 3] = w["U_bg"][:, 0]
+        o = torch.zeros_like(x)
+        for a in prof:
+            o = o + 0.25 * a * (W @ (x + o))
+            coef = B.T @ o
+            o = B @ coef + (1 - R4_BASE_PULL) * (o - B @ coef)
+        out.append(o)
+    return out
+
+
+def _r4_case_rows(w, seed, deltas):
+    E_n = K_NUIS * (SIG_MEAN**2 + SIG_VAR**2)
+    rows = []
+    for j, d in enumerate(deltas):
+        n = w["n_mean"][j] + w["n_eval_var"][j]
+        cd = _r2_char_dir(w, seed, n)
+        sd_ = _r4_spec_dir(w, seed, n, j)
+        rem = sd_ - (sd_ @ cd) * cd
+        rem = rem / rem.norm()
+        d_fg, d_bg = d[:D_FG], d[D_FG:]
+        u_atmo = w["U_bg"][:, 0]
+        gain = float(d_fg @ cd + R4_KAPPA_SPEC * (d_fg @ sd_)
+                     + PRES_W * (d_bg @ w["s_bg"])
+                     + PRES_W * (d_bg @ u_atmo))
+        fg_off = d_fg - (d_fg @ cd) * cd
+        fg_off = fg_off - (fg_off @ rem) * rem
+        bg_off = (d_bg - (d_bg @ w["s_bg"]) * w["s_bg"]
+                  - (d_bg @ u_atmo) * u_atmo)
+        e = (float(bg_off @ bg_off) + float(fg_off @ fg_off)) / E_n
+        rows.append((gain, e))
+    return rows
+
+
+def _r4_score_rows(rows):
+    tot = 0.0
+    for gain, e in rows:
+        d = e / (e + R4_D0)
+        tot += max(0.0, gain) * (1 - d) ** 2
+    return KSCALE * tot / len(rows)
+
+
+def _r4_arm(kw, seeds=SEEDS):
+    sc = {"early": [], "const": []}
+    for s in seeds:
+        w = _r4_world(s)
+        W = _r4_train(w, s, **kw)
+        for mode in ("early", "const"):
+            sc[mode].append(_r4_score_rows(
+                _r4_case_rows(w, s, _r4_render(w, s, W, mode))))
+    return {m: (float(np.mean(sc[m])), sc[m]) for m in sc}
+
+
+R4_GATE_ARMS = {
+    "prompt": dict(floor=1.0),
+    "fg45": dict(floor=0.45),
+    "fg65": dict(floor=0.65),
+    "mix35": dict(floor=0.45, beta=0.35),
+    "paired45": dict(floor=0.45, pair=True),
+    "paired65": dict(floor=0.65, pair=True),
+    "bgproj45": dict(floor=0.45, proj="bg"),
+    "wholeproj65": dict(floor=0.65, proj="whole"),
+}
+R4_CANDIDATES = {
+    "k6": dict(floor=0.65, beta=0.35, pair=True),
+    "k2": dict(floor=0.45, beta=0.35, cue="mean"),
+    "k7_early3": dict(floor=0.45, beta=0.35,
+                      cue_positions=lambda p: p < 3),
+    "k5": dict(floor=0.45, beta=0.35, proj="bg"),
+}
+
+
+@pytest.fixture(scope="module")
+def r4_results():
+    out = {}
+    for name, kw in {**R4_GATE_ARMS, **R4_CANDIDATES}.items():
+        out[name] = _r4_arm(kw)
+    return out
+
+
+def test_r4_capture_renorm_is_exact():
+    """STREAM-ROBUST (algebraic identity, not a statistic):
+    the grounded capture restores the original L2 dose
+    exactly, for every floor (floor = direction only).
+    Numpy reference max error 7e-16; torch asserts <1e-9."""
+    for s in SEEDS[:2]:
+        w = _r4_world(s)
+        _, NEU, RES, _, _, _, _ = _r4_contrasts(w, s)
+        for fl in (0.30, 0.45, 0.65, 1.0):
+            _, T = _r4_targets(w, s, floor=fl)
+            for i in range(len(RES)):
+                assert abs(float((T[i] - NEU[i]).norm()
+                                 - RES[i].norm())) < 1e-9
+
+
+def test_r4_matte_mean_in_real_band():
+    """STREAM-ROBUST (distribution property): per-seed matte
+    means measure 0.281-0.287 in the numpy reference and
+    0.282-0.295 in torch -- both inside the real-matte band
+    and inside the tightened band below, whose edges sit at
+    roughly half the thinner implementation margin beyond
+    the measured range."""
+    ms = [float(_r4_world(s)["matte"].mean()) for s in SEEDS]
+    assert all(0.24 < m < 0.31 for m in ms)
+
+
+def test_r4_cue_rotation_matches_measured_band():
+    """STREAM-ROBUST after the Round-5 structural fix (the
+    cue tilt's independent mixing matrix): beta=0.35 rotates
+    the edit by 0.186 of its norm in the numpy reference and
+    0.187 in torch (real: 0.220 early positions / 0.168
+    late). The band below is tightened to roughly half the
+    thinner margin around the two measured values. (The
+    original port, reusing the char mixing matrix, measured
+    0.129 -- the structural divergence the fix removed.)"""
+    fracs = []
+    for s in SEEDS:
+        w = _r4_world(s)
+        _, _, RES, EXP, _, _, _ = _r4_contrasts(w, s)
+        for i in range(len(RES)):
+            mixed = 0.65 * RES[i] + 0.35 * EXP[i]
+            fracs.append(float((mixed - RES[i]).norm() / RES[i].norm()))
+    assert 0.15 < float(np.mean(fracs)) < 0.22
+
+
+def test_r4_floor_is_a_weak_direction_knob(r4_results):
+    """STREAM-ROBUST honest negative: at fixed dose, floors
+    0.45-1.0 sit in one compressed cluster in the grounded
+    toy (the R1-R3 FG45 advantage came from mechanisms the
+    code does not contain). |fg45 - prompt| at early
+    measures 1.57 in the numpy reference and 2.43 in torch;
+    the bound sits at the larger value plus roughly half
+    the thinner implementation's headroom under the
+    original 4.0 bound."""
+    e45 = r4_results["fg45"]["early"][0]
+    e100 = r4_results["prompt"]["early"][0]
+    assert abs(e45 - e100) < 3.2
+
+
+def test_r4_paired_prefers_floor65(r4_results):
+    """STREAM-ROBUST: paired@65 > paired@45 in both
+    implementations at both strengths (numpy +0.51 early /
+    +0.19 const; torch +0.94 / +0.56). Offsets are roughly
+    half the thinner (numpy) margin per strength."""
+    offsets = {"early": 0.25, "const": 0.10}
+    for mode in ("early", "const"):
+        assert (r4_results["paired65"][mode][0]
+                > r4_results["paired45"][mode][0] + offsets[mode])
+
+
+def test_r4_k6_candidates_agree(r4_results):
+    """K6 (paired + mix35 @ 0.65): STREAM-ROBUST agreements
+    only. The headline early claim is implementation-
+    sensitive and is NOT asserted: K6 vs fg45 at early is
+    +0.67 in the numpy reference but -1.54 in the original
+    torch port and -0.38 in the structurally fixed port --
+    the sign flips across RNG streams. K6 vs mix35 at const
+    is likewise a cross-stream tie (+0.78 numpy / -0.09
+    fixed torch), asserted below as a tie, not a crown.
+    What both implementations agree on:
+      * K6 beats plain mix35 at early (numpy +1.91, torch
+        +0.20; offset = half the thinner margin);
+      * K6 and mix35 are within 0.8 of each other at const
+        in both (the tie bound adds slack over both);
+      * K6 does NOT beat fg45 at const in either (numpy
+        -0.54, torch -0.90; offset = half the thinner)."""
+    assert (r4_results["k6"]["early"][0]
+            > r4_results["mix35"]["early"][0] + 0.10)
+    assert abs(r4_results["k6"]["const"][0]
+               - r4_results["mix35"]["const"][0]) < 1.2
+    assert (r4_results["k6"]["const"][0]
+            < r4_results["fg45"]["const"][0] - 0.25)
+
+
+def test_r4_timed_cue_beats_full_cue_at_const(r4_results):
+    """STREAM-ROBUST: the timed cue (positions 0-2) beats
+    the full cue at const in both implementations, 5/5
+    paired seeds in each (numpy +1.03, torch +0.62). The
+    +0.3 offset is roughly half the thinner margin."""
+    assert (r4_results["k7_early3"]["const"][0]
+            > r4_results["mix35"]["const"][0] + 0.3)
+
+
+def test_r4_bgproj_plus_cue_is_worst_candidate(r4_results):
+    """STREAM-ROBUST: K5 (orthogonal BG projection + cue)
+    stacks two costs and trails fg45 at early in both
+    implementations (numpy -2.39, torch -1.74, 0/5 paired
+    seeds in each); the R3 'restore' step that rescued it
+    has no counterpart in the real capture (renorm already
+    restores dose). The offset is roughly half the thinner
+    margin."""
+    assert (r4_results["k5"]["early"][0]
+            < r4_results["fg45"]["early"][0] - 0.85)
