@@ -2183,3 +2183,328 @@ def test_r4_bgproj_plus_cue_is_worst_candidate(r4_results):
     margin."""
     assert (r4_results["k5"]["early"][0]
             < r4_results["fg45"]["early"][0] - 0.85)
+
+
+# =====================================================================
+# ROUND 5 (2026-11-24): GROUNDED CONSTRUCTIONS + CANDIDATE SLATE.
+# The Round-4 paired and projection arms were operationalisations;
+# this round grounds both in the core repo's actual PR code and
+# re-scores the slate. Sources: PR #216 (VIAS filtered matched
+# pairs, test_vias_value_isolation.py) and PR #254 (EDITORS
+# diagnose-then-deflate, test_editors_diagnose_deflate.py),
+# read verbatim; numpy reference implementations in
+# ~/workspace/.tmp/anima-round5/a/grounded.py (Builder A),
+# c/ (Builder C), d/ (Builder D). Assertions below are
+# LOOSE-MARGIN versions of the numpy margins, set after the
+# canonical torch run was measured (the Round-4 reconciliation
+# protocol: encode only what survives the stream change).
+#
+# #216 GROUNDING: matched pairs share base + the shared factor
+# EXACTLY (here: latent dims 0-1, "scene", share one n_var draw
+# within each of 4 pairs per case; dims 2-4, "lighting", are
+# independent per member), target = pair-mean assigned to both
+# members. The expressed-flip filter variant (pair216f) was
+# INERT in the reference (+0.07) -- mirroring #216's own
+# diagnostic that pairing cancels and the filter only
+# concentrates -- and is not ported. HEADLINE, as reconciled
+# across implementations in this round: the pair-mean
+# OPERATION is ~neutral on the paired world in BOTH
+# implementations (numpy -0.13, torch -0.19 at floor 0.65),
+# while the matched-pair WORLD restructure has a LARGE
+# IMPLEMENTATION-SENSITIVE effect -- numpy -3.4..-8.4 early
+# (robust across three independent draw streams for the
+# paired world itself), torch +5.5 (5/5). Its sign is a
+# property of the drawn tilt geometry, not of the #216
+# construction, so grounded K6 (pair216 + mix35 @ 0.65) is
+# UNDECIDED by the toy (const vs mix35: numpy -5.09, torch
+# +4.39) and no directional assertion encodes it below.
+# K6's live form remains the pair-mean op on an independent
+# pool (Round 4), whose margins are cross-stream ties.
+# Which reading matches the real blend50 arm -- independent
+# pool or pair-correlated pool -- is the missing anima-side
+# fact, and it is now the whole question for that candidate.
+#
+# #254 GROUNDING: the estimator is a DIAGNOSTIC readout --
+# ridge (1e-3) of the nuisance latent s_i = n_i[0] on the
+# per-case-centred input block (recovery cos to the true
+# carrier U_bg[:,0]: reference 0.877-0.950, mean 0.907; #254
+# measured 0.928-0.931) -- and the SEAT dominates the
+# estimator: during-training deflation of the inputs beats
+# target-side orthogonalisation by +7.01/+5.91 (5/5), and the
+# post-hoc seat (project the trained adapter's BG input
+# columns off the diagnostic direction) tops the whole toy
+# slate in the reference (37.16/36.60). At the capture seat,
+# swapping the PC estimator for the diagnostic one COSTS
+# -4.31/-4.65 (0/5): the diagnostic direction is (a rotation
+# of) the atmosphere-gain carrier inside the BG target, so
+# orthogonalising the target against it amputates gain.
+# K5 (projection + cue, Round 4's worst candidate) REVIVES
+# under the deflation seat (+2.58 early vs its PC form).
+#
+# CANDIDATES (reference margins, paired seeds): floor65+
+# early3 +1.59 const vs mix35 (4/5) and +0.66 early vs fg45
+# (4/5) -- the only double-clear; mean35-early3 +1.07 const
+# (5/5, the cleanest record); mix35@65 +0.49 const (4/5) --
+# ~63% of Round 4's K6 const edge was pairing's preferred
+# floor under a cue, not pairing; matte-root (matte^0.5)
+# +0.43 early vs fg45 (4/5), the damage-first entry. Builder
+# C's companion findings, recorded not asserted: the toy is
+# POSITION-BLIND (early3/late3 profiles identical at every
+# capture position; the adapter has no position input, so a
+# timed cue prices as dose only), and mix50's deficit is
+# half capacity tax, half rank-invariant gain shortfall
+# (rank sweep 1-6: deficit plateaus ~-0.6 vs mix35; mix50
+# never beats fg45 at const at any rank).
+# =====================================================================
+
+
+def _r5_paired_world(seed):
+    """#216 world: _r4_world with n_var restructured into 4
+    matched pairs per case (scene dims 0-1 shared exactly
+    within a pair, lighting dims 2-4 independent), drawn from
+    the 42000+seed stream so every other world element --
+    including n_eval_var, hence the evaluation -- matches the
+    unpaired world draw-for-draw."""
+    w = _r4_world(seed)
+    g = torch.Generator().manual_seed(42000 + seed)
+    scene = _randn(g, N_CASES, 4, 2) * SIG_VAR
+    light = _randn(g, N_CASES, N_CTX, 3) * SIG_VAR
+    nv = torch.empty_like(w["n_var"])
+    for j in range(N_CASES):
+        for p in range(4):
+            for m in range(2):
+                t = p * 2 + m
+                nv[j, t, 0:2] = scene[j, p]
+                nv[j, t, 2:5] = light[j, t]
+    w["n_var"] = nv
+    return w
+
+
+def _r5_diag_dir(w, X, cols):
+    """#254 diagnostic estimator: ridge (lambda 1e-3) of
+    s_i = n_i[0] on the input block X[:, cols], per-case
+    centred; unit direction out."""
+    s = torch.stack([w["n_mean"][j] + w["n_var"][j, t]
+                     for j in range(N_CASES)
+                     for t in range(N_CTX)])[:, 0]
+    Xb = X[:, cols].clone()
+    sc = s.clone()
+    for j in range(N_CASES):
+        sl = slice(j * N_CTX, (j + 1) * N_CTX)
+        Xb[sl] = Xb[sl] - Xb[sl].mean(dim=0, keepdim=True)
+        sc[sl] = sc[sl] - sc[sl].mean()
+    A = Xb.T @ Xb + 1e-3 * torch.eye(Xb.shape[1],
+                                     dtype=torch.float64)
+    what = torch.linalg.solve(A, Xb.T @ sc)
+    return what / what.norm()
+
+
+def _r5_targets(w, seed, floor=1.0, beta=0.0, cue="single",
+                pair_mode=None, diag_proj=False, matte_pow=1.0,
+                cue_positions=None):
+    """_r4_targets plus the Round-5 grounded steps, in the
+    reference's order: cue lerp -> matched-pair mean ->
+    diagnostic target orthogonalisation -> weight -> renorm."""
+    X, NEU, RES, EXP, ALT, JS, PS = _r4_contrasts(w, seed)
+    E = RES.clone()
+    if beta > 0:
+        D = EXP if cue == "single" else 0.5 * (EXP + ALT)
+        b = torch.full((len(E),), float(beta), dtype=torch.float64)
+        if cue_positions is not None:
+            mask = torch.tensor([1.0 if cue_positions(int(p)) else 0.0
+                                 for p in PS], dtype=torch.float64)
+            b = b * mask
+        E = (1 - b)[:, None] * RES + b[:, None] * D
+    if pair_mode == "pair216":
+        E = E.clone()
+        for j in range(N_CASES):
+            for p in range(4):
+                i0 = j * N_CTX + p * 2
+                m = 0.5 * (E[i0] + E[i0 + 1])
+                E[i0] = m
+                E[i0 + 1] = m
+    if diag_proj:
+        chat = _r5_diag_dir(w, X, slice(D_FG, D_FG + D_BG))
+        E = E.clone()
+        E[:, D_FG:] = (E[:, D_FG:]
+                       - torch.outer(E[:, D_FG:] @ chat, chat))
+    T = NEU.clone()
+    for i in range(len(E)):
+        m = w["matte"][int(JS[i])] ** matte_pow
+        wt = floor + (1 - floor) * m
+        weighted = E[i] * wt
+        T[i] = NEU[i] + weighted * (E[i].norm() / weighted.norm())
+    return X, T
+
+
+def _r5_train(w, seed, deflate=None, posthoc_bg=False, **tkw):
+    """_r4_train plus the #254 seats: deflate='bg' projects
+    the training inputs off the BG diagnostic direction
+    before the (full-batch) loop -- identical to projecting
+    at every step; targets untouched. posthoc_bg projects
+    the learned adapter's BG input columns off the same
+    direction after training."""
+    g = torch.Generator().manual_seed(5000 + seed)
+    X, T = _r5_targets(w, seed, **tkw)
+    if deflate == "bg":
+        X = X.clone()
+        cb = _r5_diag_dir(w, X, slice(D_FG, D_FG + D_BG))
+        X[:, D_FG:] = (X[:, D_FG:]
+                       - torch.outer(X[:, D_FG:] @ cb, cb))
+    D = D_FG + D_BG
+    Vsf = _randn(g, D, RANK) * INIT
+    Vsb = _randn(g, D, RANK) * INIT
+    Uf = _randn(g, D_FG, RANK) * INIT
+    Ub = _randn(g, D_BG, RANK) * INIT
+    N = len(X)
+    for step in range(STEPS):
+        W = torch.cat([Uf @ Vsf.T, Ub @ Vsb.T], dim=0)
+        R = X @ W.T - T
+        gW = (2.0 / N) * (R.T @ X)
+        gWf, gWb = gW[:D_FG], gW[D_FG:]
+        Uf = Uf - LR * (gWf @ Vsf + WD * Uf)
+        Vsf = Vsf - LR * (gWf.T @ Uf + WD * Vsf)
+        Ub = Ub - LR * (gWb @ Vsb + WD * Ub)
+        Vsb = Vsb - LR * (gWb.T @ Ub + WD * Vsb)
+    W = torch.cat([Uf @ Vsf.T, Ub @ Vsb.T], dim=0)
+    if posthoc_bg:
+        cb = _r5_diag_dir(w, X, slice(D_FG, D_FG + D_BG))
+        P = (torch.eye(D_BG, dtype=torch.float64)
+             - torch.outer(cb, cb))
+        W = W.clone()
+        W[:, D_FG:] = W[:, D_FG:] @ P
+    return W
+
+
+def _r5_arm(kw, paired=False, seeds=SEEDS):
+    sc = {"early": [], "const": []}
+    for s in seeds:
+        w = _r5_paired_world(s) if paired else _r4_world(s)
+        W = _r5_train(w, s, **kw)
+        for mode in ("early", "const"):
+            sc[mode].append(_r4_score_rows(
+                _r4_case_rows(w, s, _r4_render(w, s, W, mode))))
+    return {m: (float(np.mean(sc[m])), sc[m]) for m in sc}
+
+
+R5_ARMS = {
+    "deflate45": (dict(floor=0.45, deflate="bg"), False),
+    "targetorth_diag45": (dict(floor=0.45, diag_proj=True), False),
+    "posthoc45": (dict(floor=0.45, posthoc_bg=True), False),
+    "k5_grounded": (dict(floor=0.45, beta=0.35, deflate="bg"),
+                    False),
+    "pair216_65": (dict(floor=0.65, pair_mode="pair216"), True),
+    "world_alone65": (dict(floor=0.65), True),
+    "k6_grounded": (dict(floor=0.65, beta=0.35,
+                         pair_mode="pair216"), True),
+}
+R5_CAPTURE_CANDIDATES = {
+    "mix35_65": dict(floor=0.65, beta=0.35),
+    "floor65_early3": dict(floor=0.65, beta=0.35,
+                           cue_positions=lambda p: p < 3),
+    "mean35_early3": dict(floor=0.45, beta=0.35, cue="mean",
+                          cue_positions=lambda p: p < 3),
+    "root45": dict(floor=0.45, matte_pow=0.5),
+}
+
+
+@pytest.fixture(scope="module")
+def r5_results():
+    out = {}
+    for name, (kw, paired) in R5_ARMS.items():
+        out[name] = _r5_arm(kw, paired=paired)
+    for name, kw in R5_CAPTURE_CANDIDATES.items():
+        out[name] = _r4_arm(kw)
+    return out
+
+
+def test_r5_diagnostic_recovers_nuisance_carrier():
+    """The #254 diagnostic estimate recovers the true BG
+    carrier of n[0] imperfectly, at implementation-dependent
+    quality (numpy cos 0.877-0.950 across seeds; torch
+    0.635-0.919; #254's own toy measured 0.928-0.931)."""
+    for s in SEEDS:
+        w = _r4_world(s)
+        X, _ = _r5_targets(w, s)
+        chat = _r5_diag_dir(w, X, slice(D_FG, D_FG + D_BG))
+        cos = float(chat @ w["U_bg"][:, 0])
+        assert 0.55 < cos < 0.99
+
+
+def test_r5_deflation_seat_beats_target_orthogonalisation(
+        r5_results):
+    """Same grounded estimator, two seats: during-training
+    deflation beats capture-seat orthogonalisation by
+    +7.01/+5.91 in the reference (5/5 both)."""
+    assert (r5_results["deflate45"]["early"][0]
+            > r5_results["targetorth_diag45"]["early"][0] + 2.0)
+    assert (r5_results["deflate45"]["const"][0]
+            > r5_results["targetorth_diag45"]["const"][0] + 1.5)
+
+
+def test_r5_posthoc_seat_tops_bg_family(r5_results, r4_results):
+    """Post-hoc projection of the trained adapter is the
+    reference's top arm (+3.58 early vs fg45, 4/5; above the
+    deflation seat by +2.02)."""
+    assert (r5_results["posthoc45"]["early"][0]
+            > r4_results["fg45"]["early"][0] + 0.5)
+    assert (r5_results["posthoc45"]["early"][0]
+            > r5_results["deflate45"]["early"][0] - 1.0)
+
+
+def test_r5_k5_revives_under_deflation_seat(r5_results,
+                                            r4_results):
+    """K5 (projection + cue) was Round 4's worst candidate
+    in its PC/capture form; under the grounded deflation
+    seat it gains +2.58 early over that form (reference)."""
+    assert (r5_results["k5_grounded"]["early"][0]
+            > r4_results["k5"]["early"][0] + 0.8)
+
+
+def test_r5_pairing_op_neutral_world_effect_sensitive(
+        r5_results, r4_results):
+    """The two halves of grounded pairing separate cleanly.
+    The pair-mean OPERATION on the matched-pair world is
+    ~neutral (numpy -0.13, torch -0.19 at floor 0.65,
+    asserted here on the torch side). The WORLD restructure
+    itself has a large effect whose SIGN is implementation-
+    sensitive (numpy -3.4..-8.4 early over three draw
+    streams; torch +5.5, asserted as magnitude only) -- so
+    grounded K6's direction (numpy -5.09 / torch +4.39 vs
+    mix35 at const) is recorded in the header, not asserted."""
+    assert abs(r5_results["pair216_65"]["early"][0]
+               - r5_results["world_alone65"]["early"][0]) < 1.5
+    assert abs(r5_results["world_alone65"]["early"][0]
+               - r4_results["fg65"]["early"][0]) > 3.0
+
+
+def test_r5_floor65_early3_double_clears(r5_results, r4_results):
+    """floor65+early3: +1.59 const vs mix35 (4/5) and +0.66
+    early vs fg45 (4/5) in the reference -- the slate's
+    only candidate clearing both champions."""
+    assert (r5_results["floor65_early3"]["const"][0]
+            > r4_results["mix35"]["const"][0] + 0.3)
+    assert (r5_results["floor65_early3"]["early"][0]
+            > r4_results["fg45"]["early"][0] - 0.3)
+
+
+def test_r5_mean35_early3_beats_mix35_at_const(r5_results,
+                                               r4_results):
+    """K2 x K7 cross: +1.07 const vs mix35 in the reference,
+    positive on all 5 paired seeds (the round's cleanest
+    record)."""
+    assert (r5_results["mean35_early3"]["const"][0]
+            > r4_results["mix35"]["const"][0] + 0.2)
+
+
+def test_r5_mix35_at_floor65_and_matte_root(r5_results,
+                                            r4_results):
+    """mix35@65 (+0.49 const, 4/5) reprices Round 4's K6:
+    most of its const edge was the floor, not pairing.
+    Matte-root (+0.43 early vs fg45, 4/5) is the
+    damage-first entry; both asserted as loose
+    non-inferiority-plus, direction recorded in the header."""
+    assert (r5_results["mix35_65"]["const"][0]
+            > r4_results["mix35"]["const"][0] - 0.3)
+    assert (r5_results["root45"]["early"][0]
+            > r4_results["fg45"]["early"][0] - 0.3)
