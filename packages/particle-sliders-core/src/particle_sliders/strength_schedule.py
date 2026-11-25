@@ -4,10 +4,12 @@ from dataclasses import dataclass
 from fractions import Fraction
 from math import isfinite
 from struct import Struct
+from sys import float_info
 
 
 _FLOAT32 = Struct(">f")
 _UINT32 = Struct(">I")
+_FLOAT32_MAX = float.fromhex("0x1.fffffep127")
 
 
 @dataclass(frozen=True)
@@ -29,14 +31,30 @@ def _finite_intervals(strengths, coordinates):
     return strengths, coordinates
 
 
-def _exact_interval_dose(strengths, coordinates):
+def _interval_widths(coordinates):
     edges = tuple(map(Fraction, coordinates))
-    widths = tuple(abs(end - start) for start, end in zip(edges, edges[1:]))
+    return tuple(abs(end - start) for start, end in zip(edges, edges[1:]))
+
+
+def _exact_interval_dose(strengths, coordinates):
+    widths = _interval_widths(coordinates)
     total_width = sum(widths)
     if not total_width:
         raise ValueError("dose matching requires a nonzero native trajectory width")
     dose = sum(width * Fraction(s) for width, s in zip(widths, strengths, strict=True))
     return dose, total_width
+
+
+def _constant_width(adaptive_width, constant_coordinates):
+    if constant_coordinates is None:
+        return adaptive_width
+    coordinates = tuple(map(float, constant_coordinates))
+    if not all(map(isfinite, coordinates)):
+        raise ValueError("a constant control requires finite native coordinates")
+    width = sum(_interval_widths(coordinates))
+    if not width:
+        raise ValueError("a constant control requires a nonzero native trajectory width")
+    return width
 
 
 def _require_binary32_coefficients(strengths):
@@ -65,21 +83,24 @@ def interval_dose(strengths, coordinates, *, coefficient_format):
     return _exact_interval_dose(strengths, coordinates)[0]
 
 
-def match_binary32_interval_dose(strengths, coordinates):
+def match_binary32_interval_dose(strengths, coordinates, *, constant_coordinates=None):
     """Match a fixed-direction edit with the nearest binary32 constant.
 
     Provide one resolved binary32 coefficient per interval and its native
-    endpoint coordinates in execution order. Zero-width intervals carry no
-    dose. Return exact signed coefficient-space doses, with ties rounded to
-    even for the constant. Measure any subsequent tensor-rounding effects in
-    the native product separately.
+    endpoint coordinates in execution order. ``constant_coordinates`` may
+    supply a different native clock for the constant. Zero-width intervals
+    carry no dose. Return exact signed coefficient-space doses and the
+    nearest finite constant, with ties rounded to even. Measure any
+    subsequent tensor-rounding effects in the native product separately.
     """
     strengths, coordinates = _finite_intervals(strengths, coordinates)
     _require_binary32_coefficients(strengths)
 
-    dose, total_width = _exact_interval_dose(strengths, coordinates)
-    ideal = dose / total_width
-    rounded = _UINT32.unpack(_FLOAT32.pack(float(ideal)))[0]
+    dose, adaptive_width = _exact_interval_dose(strengths, coordinates)
+    width = _constant_width(adaptive_width, constant_coordinates)
+    ideal = dose / width
+    bounded = min(max(ideal, -_FLOAT32_MAX), _FLOAT32_MAX)
+    rounded = _UINT32.unpack(_FLOAT32.pack(float(bounded)))[0]
 
     # A binary64 intermediate can land exactly on a binary32 midpoint even
     # when the exact mean is just to one side. Compare the adjacent values in
@@ -88,20 +109,23 @@ def match_binary32_interval_dose(strengths, coordinates):
                   for b in range(max(0, rounded - 1), min(0xFFFFFFFF, rounded + 1) + 1)]
     _, constant = min(((b, value) for b, value in candidates if isfinite(value)),
                       key=lambda item: (abs(Fraction(item[1]) - ideal), item[0] & 1))
-    return IntervalDoseMatch(constant, dose, total_width * Fraction(constant))
+    return IntervalDoseMatch(constant, dose, width * Fraction(constant))
 
 
-def match_binary64_interval_dose(strengths, coordinates):
+def match_binary64_interval_dose(strengths, coordinates, *, constant_coordinates=None):
     """Match a fixed-direction edit with the nearest binary64 constant.
 
-    Return exact signed doses for the adaptive coefficients and the constant
-    on the supplied native clock. Compare the two doses when a caller requires
+    Return exact signed doses for the adaptive coefficients and the nearest
+    finite constant. ``constant_coordinates`` may supply a different native
+    clock for the constant. Compare the two doses when a caller requires
     equality at the coefficient boundary.
     """
     strengths, coordinates = _finite_intervals(strengths, coordinates)
-    dose, total_width = _exact_interval_dose(strengths, coordinates)
-    constant = float(dose / total_width)
-    return IntervalDoseMatch(constant, dose, total_width * Fraction(constant))
+    dose, adaptive_width = _exact_interval_dose(strengths, coordinates)
+    width = _constant_width(adaptive_width, constant_coordinates)
+    ideal = dose / width
+    constant = float(min(max(ideal, -float_info.max), float_info.max))
+    return IntervalDoseMatch(constant, dose, width * Fraction(constant))
 
 
 def interval_strengths(strength, deltas, *, profile="constant"):
