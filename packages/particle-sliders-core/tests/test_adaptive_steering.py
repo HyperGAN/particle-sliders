@@ -1,4 +1,5 @@
 from fractions import Fraction
+from math import inf, nextafter
 from random import Random
 
 import pytest
@@ -179,6 +180,55 @@ def test_calibration_with_a_lower_bound_requires_a_measured_upper_bracket():
         calibrate_gate_budget(rollout, target_rate=0.5, bounds=(-1, 1),
                               tolerance=0, max_iterations=4,
                               lower_usage_bound=GateUsage(4, 16))
+
+
+@pytest.mark.parametrize("lower_fired, expected_parameter", [(14, -1.0), (0, 0.0)])
+def test_calibration_can_skip_a_proven_upper_endpoint(lower_fired, expected_parameter):
+    lower = GateUsage(lower_fired, 30)
+    midpoint = GateUsage(16, 30)
+    calls = []
+
+    def rollout(parameter):
+        calls.append(parameter)
+        return {-1.0: lower, 0.0: midpoint}[parameter]
+
+    result = calibrate_gate_budget(rollout, target_rate=Fraction(1, 2), bounds=(-1, 1),
+                                   tolerance=Fraction(1, 30), max_iterations=1,
+                                   upper_usage_bound=GateUsage(30, 30))
+    assert result.parameter == expected_parameter
+    assert result.usage is (lower if expected_parameter == -1 else midpoint)
+    assert calls == ([-1.0] if expected_parameter == -1 else [-1.0, 0.0])
+
+
+def test_calibration_cannot_skip_an_upper_endpoint_at_the_inclusive_boundary():
+    def rollout(_):
+        pytest.fail("invalid upper proof must fail before any rollout")
+
+    with pytest.raises(ValueError, match="strictly above the accepted rate interval"):
+        calibrate_gate_budget(rollout, target_rate=Fraction(1, 2), bounds=(-1, 1),
+                              tolerance=Fraction(1, 30), max_iterations=1,
+                              upper_usage_bound=GateUsage(16, 30))
+
+
+def test_calibration_with_two_proofs_reports_the_closest_measured_trial():
+    def rollout(parameter):
+        assert parameter == 0
+        return GateUsage(9, 30)
+
+    with pytest.raises(ValueError, match="closest active rollout was 0.3 at 0"):
+        calibrate_gate_budget(rollout, target_rate=0.5, bounds=(-1, 1), tolerance=0,
+                              max_iterations=1, lower_usage_bound=GateUsage(14, 30),
+                              upper_usage_bound=GateUsage(16, 30))
+
+
+def test_calibration_with_two_proofs_and_no_representable_midpoint_requires_a_rollout():
+    def rollout(_):
+        pytest.fail("no representable interior parameter")
+
+    with pytest.raises(ValueError, match="no representable interior parameter for an active rollout"):
+        calibrate_gate_budget(rollout, target_rate=0.5, bounds=(1.0, nextafter(1.0, inf)),
+                              tolerance=0, max_iterations=1, lower_usage_bound=GateUsage(0, 30),
+                              upper_usage_bound=GateUsage(30, 30))
 
 
 def test_clabs_updates_ema_before_sampling_and_resets_per_request():
