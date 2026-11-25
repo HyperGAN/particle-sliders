@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from particle_sliders.alpha_search import AlphaObservation, search_alpha
+from particle_sliders.alpha_search import AlphaObservation, matched_effect_mean, search_alpha
 from particle_sliders.candidate_failure import FileRecord
 
 
@@ -13,6 +13,35 @@ def checkpoint(tmp_path):
     path = tmp_path / "adapter.raw"
     path.write_bytes(b"fixed saved adapter")
     return FileRecord.from_path(path)
+
+
+def test_matched_effect_mean_keeps_signed_continuous_and_binary_scores():
+    observations = iter((("a", .5, .75), ("b", True, False), ("c", 0, 0)))
+    assert matched_effect_mean(case_ids=("c", "b", "a"), observations=observations) == -.25
+
+
+@pytest.mark.parametrize(("roster", "observations"), [
+    ((), ()),
+    (("a", "a"), (("a", 0, 1),)),
+    (("a", "b"), (("a", 0, 1),)),
+    (("a",), (("a", 0, 1), ("b", 0, 1))),
+    (("a", "b"), (("a", 0, 1), ("a", 0, 1), ("b", 0, 1))),
+])
+def test_matched_effect_mean_requires_exact_roster(roster, observations):
+    with pytest.raises(ValueError, match="case"):
+        matched_effect_mean(case_ids=roster, observations=observations)
+
+
+@pytest.mark.parametrize(("off", "on"), [
+    (0, math.nan),
+    (math.inf, 0),
+    (0, "1"),
+    (0, None),
+    (-1.7e308, 1.7e308),
+])
+def test_matched_effect_mean_requires_finite_scores_and_differences(off, on):
+    with pytest.raises(ValueError, match="finite"):
+        matched_effect_mean(case_ids=("a",), observations=[("a", off, on)])
 
 
 def test_nonmonotonic_grid_and_bounded_refinement(checkpoint):

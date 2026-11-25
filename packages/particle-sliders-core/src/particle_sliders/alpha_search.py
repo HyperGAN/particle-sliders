@@ -12,8 +12,8 @@ from .parameter_search.metric import mean
 Integrity = Literal["pass", "fail", "unmeasured"]
 
 
-def _finite_float(value, label):
-    if type(value) not in (int, float):
+def _finite_float(value, label, *, allow_bool=False):
+    if type(value) not in (int, float) and not (allow_bool and type(value) is bool):
         raise ValueError(f"{label} must be a finite number")
     try:
         result = float(value)
@@ -22,6 +22,49 @@ def _finite_float(value, label):
     if not isfinite(result):
         raise ValueError(f"{label} must be a finite number")
     return result
+
+
+def _registered_case_ids(case_ids):
+    if isinstance(case_ids, str):
+        raise ValueError("provide an iterable of distinct case IDs")
+    cases = tuple(case_ids)
+    if not cases or any(not isinstance(case, str) or not case.strip() for case in cases) or len(set(cases)) != len(cases):
+        raise ValueError("provide nonempty, distinct case IDs")
+    return cases
+
+
+def _effect_delta(off, on):
+    gain = on - off
+    if not isfinite(gain):
+        raise ValueError("matched ON minus OFF gain must be finite")
+    return gain
+
+
+def matched_effect_mean(
+    *,
+    case_ids: Iterable[str],
+    observations: Iterable[tuple[str, float | bool, float | bool]],
+) -> float:
+    """Average signed ON-minus-OFF intensity on an exact registered case roster.
+
+    Each observation is ``(case_id, off, on)`` with finite scalar scores.
+    Boolean scores represent native binary observations and count as zero or
+    one. Every registered case must occur exactly once. The caller owns
+    observer qualification and the separate catastrophic-output verdict.
+    """
+    cases = _registered_case_ids(case_ids)
+    expected = set(cases)
+    gains = {}
+    for case, off, on in observations:
+        if not isinstance(case, str) or case not in expected or case in gains:
+            raise ValueError("provide exactly one observation per registered case")
+        gains[case] = _effect_delta(
+            _finite_float(off, "off", allow_bool=True),
+            _finite_float(on, "on", allow_bool=True),
+        )
+    if gains.keys() != expected:
+        raise ValueError("provide exactly one observation per registered case")
+    return mean(gains[case] for case in cases)
 
 
 @dataclass(frozen=True)
@@ -38,8 +81,8 @@ class AlphaObservation:
         for key, value in (("off", self.off), ("on", self.on)):
             if value is not None:
                 object.__setattr__(self, key, _finite_float(value, key))
-        if self.off is not None and self.on is not None and not isfinite(self.on - self.off):
-            raise ValueError("matched ON minus OFF gain must be finite")
+        if self.off is not None and self.on is not None:
+            _effect_delta(self.off, self.on)
 
 
 @dataclass(frozen=True)
@@ -66,9 +109,12 @@ def _evaluate(alpha, cases, evaluate):
     observations = tuple((case, measured.get(case, missing)) for case in cases)
     if any(not isinstance(item, AlphaObservation) for _, item in observations):
         raise ValueError("each observed case requires an AlphaObservation")
-    gains = [item.on - item.off for _, item in observations
-             if item.off is not None and item.on is not None]
-    mean_gain = mean(gains) if len(gains) == len(cases) else None
+    mean_gain = None
+    if all(item.off is not None and item.on is not None for _, item in observations):
+        mean_gain = matched_effect_mean(
+            case_ids=cases,
+            observations=((case, item.off, item.on) for case, item in observations),
+        )
     if any(item.integrity == "fail" for _, item in observations):
         status = "fail"
     elif mean_gain is None or any(item.integrity != "pass" for _, item in observations):
@@ -130,11 +176,7 @@ def search_alpha(
         raise ValueError("an evaluator callback is required")
     if type(refinement_rounds) is not int or refinement_rounds < 0:
         raise ValueError("refinement_rounds must be a nonnegative integer")
-    if isinstance(case_ids, str):
-        raise ValueError("provide an iterable of distinct case IDs")
-    cases = tuple(case_ids)
-    if not cases or any(not isinstance(case, str) or not case.strip() for case in cases) or len(set(cases)) != len(cases):
-        raise ValueError("provide nonempty, distinct case IDs")
+    cases = _registered_case_ids(case_ids)
     grid = sorted({_finite_float(alpha, "alpha") for alpha in alphas})
     if not grid:
         raise ValueError("provide at least one alpha")
