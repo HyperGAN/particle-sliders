@@ -5,11 +5,11 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 import fcntl
 from importlib.metadata import entry_points
-from math import fsum, isfinite
+from math import isfinite
 from pathlib import Path
 import re
 
-from .alpha_search import search_alpha
+from .alpha_search import matched_effect_mean, search_alpha
 from .alpha_tune_jev import JEV_MODEL, JevJudge
 from .candidate_failure import FileRecord
 from .execution.local import atomic_json
@@ -185,7 +185,12 @@ def tune(path):
                 atomic_json(root / "validation.json", validation)
                 if status == "pass":
                     resolved = interval_strengths(alpha, renderer.interval_widths, profile=profile)
-                    reserved_gain = fsum(item.on - item.off for item in assessment.values()) / len(reserved) if reserved else None
+                    reserved_gain = None
+                    if reserved:
+                        reserved_gain = matched_effect_mean(
+                            case_ids=reserved,
+                            observations=((case, item.off, item.on) for case, item in assessment.items()),
+                        )
                     selected.append(dict(alpha=alpha, profile=profile, effective_strengths=resolved,
                                          step_gains=[gain / alpha if alpha else 1. for gain in resolved],
                                          search_gain=mean_gain, reserved_gain=reserved_gain))
