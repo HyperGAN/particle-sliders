@@ -259,6 +259,18 @@ conditioning and numerical profile when replaying the exact benchmark images.
    and replay. Record it alongside the scalar strength and RAW identity. Reuse
    saved weights and completed learning-rate evidence.
 
+When native observers have already scored the finished outputs, use the same
+reducer as alpha search. Supply one `(case_id, off_score, on_score)` tuple for
+each case in the registered roster. Record the categorical integrity verdicts
+separately and apply the same reducer again with the matched constant's score
+in the baseline position to measure the timing comparison.
+
+```python
+from particle_sliders.alpha_search import matched_effect_mean
+
+gain = matched_effect_mean(case_ids=registered_case_ids, observations=matched_scores)
+```
+
 ## Activation-dependent steering
 
 ### CFP and CLABS
@@ -351,8 +363,9 @@ and direction together. To train on positive examples, generate a response
 from the attribute prompt and replay that same response under the neutral and
 attribute prompts. Run the neutral input with the PSR hooks active, and use
 frozen activations from the attribute input as targets at the same aligned
-positions. Supply the annotated attribute score as training `alpha`. Use
-inference `alpha` selected on held-out calibration cases.
+positions. Supply the annotated attribute score as training `alpha`. Select
+inference `alpha` on a development roster disjoint from the fit data, then
+freeze it before evaluating on further held-out cases.
 [Equations 7–8 and training pipeline](https://arxiv.org/html/2605.03907v1#S3)
 
 ```python
