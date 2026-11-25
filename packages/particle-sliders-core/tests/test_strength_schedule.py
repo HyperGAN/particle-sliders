@@ -69,6 +69,42 @@ def test_dose_match_uses_signed_coefficients_and_native_interval_widths(match):
     assert result.adaptive_dose == result.constant_dose == Fraction(-3, 2)
 
 
+@pytest.mark.parametrize("match", [match_binary32_interval_dose, match_binary64_interval_dose])
+def test_dose_match_uses_the_control_arms_own_observed_clock(match):
+    result = match([1, 0, 0, 0, 0], range(6), constant_coordinates=[9, 9, 7, 5])
+    assert result.constant_strength == 0.25
+    assert result.adaptive_dose == result.constant_dose == 1
+
+
+@pytest.mark.parametrize("match, residual", [
+    (match_binary32_interval_dose, Fraction(1, 2**25)),
+    (match_binary64_interval_dose, Fraction(-1, 2**54)),
+])
+def test_dose_match_does_not_label_a_nondyadic_native_control_exact(match, residual):
+    result = match([1, 0, 0, 0, 0], range(6), constant_coordinates=range(4))
+    assert result.adaptive_dose == 1
+    assert result.constant_dose - result.adaptive_dose == residual
+    assert result.constant_dose == 3 * Fraction(result.constant_strength)
+
+
+@pytest.mark.parametrize("match, maximum", [
+    (match_binary32_interval_dose, float.fromhex("0x1.fffffep127")),
+    (match_binary64_interval_dose, float.fromhex("0x1.fffffffffffffp1023")),
+])
+def test_dose_match_returns_nearest_finite_coefficient_on_shorter_clock(match, maximum):
+    result = match([-maximum], [0, 2], constant_coordinates=[0, 1])
+    assert result.constant_strength == -maximum
+    assert result.constant_dose == Fraction(-maximum)
+    assert result.adaptive_dose == 2 * result.constant_dose
+
+
+@pytest.mark.parametrize("match", [match_binary32_interval_dose, match_binary64_interval_dose])
+@pytest.mark.parametrize("constant_coordinates", [[], [1], [1, 1], [0, inf]])
+def test_dose_match_rejects_invalid_control_clocks(match, constant_coordinates):
+    with pytest.raises(ValueError, match="constant control"):
+        match([1], [0, 1], constant_coordinates=constant_coordinates)
+
+
 @pytest.mark.parametrize("sign", [-1, 1])
 def test_dose_match_rounds_exact_binary32_midpoint_to_even(sign):
     next_value = 1.0 + 2**-23

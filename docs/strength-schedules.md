@@ -191,6 +191,14 @@ two equal native passes, use endpoints `(0, 1, 2)`. Check equality of
 the returned doses when exact matching is required. Record rounding in
 the native tensor edit when comparing finished outputs.
 
+When a constant control ends at a different native position, pass its own
+endpoints as `constant_coordinates`. For example, a token gate that fires
+once over five cached predictions has dose 1. A constant on four cached
+predictions then needs strength `0.25`. A constant on three needs the
+nearest representable value of `1/3` and has a nonzero dose residual.
+After generation, use the control's observed endpoints and applied
+coefficients to verify its dose. Compare only the eligible intervals.
+
 To verify two measured schedules, call `interval_dose` on each schedule
 with its native endpoint coordinates and the measured `coefficient_format`.
 It returns the exact signed dose as a `Fraction`. The `binary32` mode
