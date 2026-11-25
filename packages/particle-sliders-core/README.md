@@ -1,7 +1,7 @@
 # particle-sliders-core
 
 Shared infrastructure for training and applying small adapters on frozen
-models. Core 0.15.2 is model-independent and pins `particlegan==0.11.1`.
+models. Core 0.15.3 is model-independent and pins `particlegan==0.12.0`.
 
 For model installation, prompts, recipes and generation, use the
 [product repositories](../../docs/products.md). For a readable explanation of

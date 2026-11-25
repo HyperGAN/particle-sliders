@@ -1,8 +1,8 @@
 # Conditional ParticleGAN engine
 
 `ConditionalParticleGAN` owns the shared adversarial response game, optimizer state,
-private sampling streams and exact continuation. Current core 0.15.2 uses exact
-released ParticleGAN 0.11.1. For the explanation and equations, see
+private sampling streams and exact continuation. Current core 0.15.3 uses exact
+released ParticleGAN 0.12.0. For the explanation and equations, see
 [teacher/student training](../../docs/math.md); for model usage, see the
 [product repositories](../../docs/products.md).
 
@@ -21,7 +21,7 @@ game = ConditionalParticleGAN(
     response_domain="continuous_field", response_scale=1.0,
     preset="bispf_optimized", batch_size=2, seed=7, total_steps=100,
     sigma=1.0, sampling="balanced", recipe_overrides=None,
-    pg_source_profile="release-0.11.1", penalty_input_domain="auto",
+    pg_source_profile="release-0.12.0", penalty_input_domain="auto",
 )
 metrics = game.step()
 state = game.state_dict()

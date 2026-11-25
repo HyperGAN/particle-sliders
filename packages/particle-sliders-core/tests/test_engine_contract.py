@@ -15,11 +15,11 @@ from test_conditional_engine import fixture, equal
 
 def test_explicit_release_manifest_and_public_export():
     import particle_sliders
-    assert PG_VERSION == '0.11.1'
-    assert PG_SOURCE_PROFILE == 'release-0.11.1'
+    assert PG_VERSION == '0.12.0'
+    assert PG_SOURCE_PROFILE == 'release-0.12.0'
     assert particle_sliders.ConditionalParticleGAN is ConditionalParticleGAN
-    assert engine._released_sources() == '80abcbf46afa3ab48b4b72fde63132c8507db774eeda4666c9b2285102f63e77'
-    assert engine_options({'pg_version': '0.11.1'}) == dict(pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto')
+    assert engine._released_sources() == 'd7316460186c1f51feeebb6ce866ef7f2e6bd734465ca92ad6b0846083c38e28'
+    assert engine_options({'pg_version': '0.12.0'}) == dict(pg_source_profile=PG_SOURCE_PROFILE, penalty_input_domain='auto')
 
 
 def test_default_game_resolves_upstream_recipe_without_hidden_decay_or_ema(monkeypatch):
@@ -74,7 +74,7 @@ def test_installed_wrong_version_refused_before_factory(monkeypatch, installed):
     original = metadata.version
     monkeypatch.setattr(metadata, 'version', lambda name: installed if name == 'particlegan' else original(name))
     contract = Backend('cpu', Capabilities('adapter_gan', False), lambda options: pytest.fail('allocated'), lambda options: None)
-    with pytest.raises(BackendUnavailable, match='0.11.1'):
+    with pytest.raises(BackendUnavailable, match='0.12.0'):
         contract.open(SessionConfig('cpu', 'new093'))
 
 

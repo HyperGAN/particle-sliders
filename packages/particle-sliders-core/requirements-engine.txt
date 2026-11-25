@@ -1,1 +1,1 @@
-particlegan==0.11.1 --hash=sha256:ce9dd51cf2bf0067751c9e6409d05d149ce41c1df98fe3edb0412e3df430de52
+particlegan==0.12.0 --hash=sha256:8ae6ea792d61f7d3e0a6d19b90cd403b50b7eba54d6c5bac48e09324eeac418d
