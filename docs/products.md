@@ -5,6 +5,8 @@ training, rendering and supported slider strengths. Core supplies common
 interfaces; the product decides which ones it implements and which source pins
 it supports. Keep conflicting native dependencies in separate environments.
 
+Use the [shared `--vibe` instructions](vibe.md) when documenting a product’s route from matched teachers to a released RAW adapter and tuned strength.
+
 For multi-step generation, use the
 [scheduled strength guide](strength-schedules.md) to qualify the product's
 native denoising, generation-token or refinement stages. Find the exact API

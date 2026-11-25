@@ -13,4 +13,4 @@ Use `particle-slider-vibe --vibe ... --workflow product.module:factory --out ...
 or `particle-slider collect` in a core version with collection dispatch.
 Full protocol, persistence and scoring details are in
 [VIBE-COLLECTION.md](https://github.com/HyperGAN/particle-sliders/blob/main/packages/particle-sliders-core/VIBE-COLLECTION.md).
-Anima supplies the first product renderer and frozen-target manifest handoff.
+Anima supplies the first product renderer and frozen-target manifest handoff. The [shared `--vibe` instructions](https://github.com/HyperGAN/particle-sliders/blob/main/docs/vibe.md) take a qualified collection through training, alpha selection and release.

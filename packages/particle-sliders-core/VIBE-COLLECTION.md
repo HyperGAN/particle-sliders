@@ -57,6 +57,8 @@ are passed to product callbacks, but Nanoodle currently provides no guarantee of
 server-side idempotency for those IDs. Completed calls are reused. A failed
 proposal, generation or judge never becomes a zero score or a synthetic target.
 
+To take a qualified collection through native target preparation, ParticleGAN training, alpha search and publication, follow the [shared product template](../../docs/vibe.md).
+
 ## Nanoodle and Jev
 
 Install the separate `particle-sliders-vibe[nanoodle]` add-on in the collector's

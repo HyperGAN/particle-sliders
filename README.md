@@ -86,7 +86,7 @@ python -m pip install './packages/particle-sliders-core[serialization]'
 | Train, evaluate, resume and export an image adapter | [Image sessions](packages/particle-sliders-core/IMAGE-LIFECYCLE.md) |
 | Load an adapter without rebuilding training resources | [Native inference](packages/particle-sliders-core/NATIVE-INFERENCE.md) |
 | Plan and dispatch training in the product's environment | [Training command](packages/particle-sliders-core/TRAINING-COMMAND.md) |
-| Collect best-of-N teacher contexts with adaptive prompts | [Vibe collection](packages/particle-sliders-core/VIBE-COLLECTION.md) |
+| Build a product slider from a vibe and publish the winning RAW and alpha | [Shared `--vibe` instructions and Anima worked example](docs/vibe.md) · [Collection API](packages/particle-sliders-core/VIBE-COLLECTION.md) |
 | Select rates from intended effect | [Evaluation and saved-output workflow](packages/particle-sliders-core/EVALUATION-AND-LR-SEARCH.md) · [Historical SSE runner](packages/particle-sliders-core/PARAMETER-SEARCH.md) |
 | Stop catastrophically failed candidates | [Qualified finished-output guard API](packages/particle-sliders-core/CATASTROPHIC-OUTPUT-GUARD.md) |
 | Build and test the core | [Development](docs/development.md) |
