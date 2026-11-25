@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from fractions import Fraction
 from math import isfinite
 from random import Random
 
@@ -203,6 +204,9 @@ def calibrate_gate_budget(
     Each call resets gate state and reuses the same held-out calibration cases
     and seeds. It must run with candidate steering enabled and return pooled
     fired/eligible counts. Report failure if no measured rate meets tolerance.
+    Pass both ``target_rate`` and ``tolerance`` as fractions to compare native
+    counts against exact rational bounds. Float inputs use binary64 rate
+    comparisons. Bisection parameters and the returned target rate stay floats.
 
     A previously interrupted lower endpoint may supply a proven upper bound
     on its firings and its exact eligibility count in ``lower_usage_bound``.
@@ -210,54 +214,64 @@ def calibrate_gate_budget(
     Only a measured rollout can qualify or be reported as the closest trial.
     """
     low, high = map(float, bounds)
+    exact_rates = isinstance(target_rate, Fraction) and isinstance(tolerance, Fraction)
     if not (0 < target_rate < 1 and 0 <= tolerance < min(target_rate, 1 - target_rate)
             and isfinite(low) and isfinite(high) and low < high
             and type(max_iterations) is int and max_iterations > 0):
         raise ValueError("invalid target rate, tolerance, parameter bounds or iteration limit")
 
+    reported_target = float(target_rate) if exact_rates else target_rate
+
     def measure(parameter):
-        return GateCalibration(parameter, target_rate, rollout(parameter))
+        return GateCalibration(parameter, reported_target, rollout(parameter))
+
+    def firing_rate(usage):
+        if exact_rates and usage.eligible:
+            return Fraction(usage.fired, usage.eligible)
+        return usage.rate
 
     # Check the closed rate interval directly. Subtracting the target from a
     # rounded measured rate can put a boundary observation outside tolerance.
     minimum_rate, maximum_rate = target_rate - tolerance, target_rate + tolerance
     if lower_usage_bound is None:
         lower = measure(low)
-        lower_rate = lower.usage.rate
+        lower_rate = firing_rate(lower.usage)
     else:
         lower = None
-        lower_rate = lower_usage_bound.rate
+        lower_rate = firing_rate(lower_usage_bound)
         if lower_rate >= minimum_rate:
             raise ValueError("lower endpoint bound must fall strictly below the accepted rate interval")
 
     upper = measure(high)
+    upper_rate = firing_rate(upper.usage)
     endpoints = [upper]
     if lower is not None:
         endpoints.insert(0, lower)
-    endpoints.sort(key=lambda trial: abs(trial.usage.rate - target_rate))
+    endpoints.sort(key=lambda trial: abs(firing_rate(trial.usage) - target_rate))
     best = endpoints[0]
     for endpoint in endpoints:
-        if minimum_rate <= endpoint.usage.rate <= maximum_rate:
+        if minimum_rate <= firing_rate(endpoint.usage) <= maximum_rate:
             return endpoint
-    if not lower_rate < target_rate < upper.usage.rate:
+    if not lower_rate < target_rate < upper_rate:
         if lower is None:
             raise ValueError(f"active upper rollout rate {upper.usage.rate:g} "
-                             f"does not bracket target {target_rate:g} with the lower endpoint bound")
-        raise ValueError(f"active rollout rates {lower_rate:g} and {upper.usage.rate:g} "
-                         f"do not bracket target {target_rate:g}")
+                             f"does not bracket target {reported_target:g} with the lower endpoint bound")
+        raise ValueError(f"active rollout rates {lower.usage.rate:g} and {upper.usage.rate:g} "
+                         f"do not bracket target {reported_target:g}")
     for _ in range(max_iterations):
         midpoint = low / 2 + high / 2
         if midpoint == low or midpoint == high:
             break
         trial = measure(midpoint)
-        rate = trial.usage.rate
+        rate = firing_rate(trial.usage)
         if minimum_rate <= rate <= maximum_rate:
             return trial
-        if abs(rate - target_rate) < abs(best.usage.rate - target_rate):
+        if abs(rate - target_rate) < abs(firing_rate(best.usage) - target_rate):
             best = trial
         if rate < target_rate:
             low = midpoint
         else:
             high = midpoint
-    raise ValueError(f"gate calibration did not meet target {target_rate:g} ± {tolerance:g}; "
+    display_tolerance = float(tolerance) if exact_rates else tolerance
+    raise ValueError(f"gate calibration did not meet target {reported_target:g} ± {display_tolerance:g}; "
                      f"closest active rollout was {best.usage.rate:g} at {best.parameter:g}")

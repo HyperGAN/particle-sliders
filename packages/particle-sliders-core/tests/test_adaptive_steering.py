@@ -1,3 +1,4 @@
+from fractions import Fraction
 from random import Random
 
 import pytest
@@ -98,6 +99,47 @@ def test_calibration_rejects_firing_counts_outside_boundary(fires):
     with pytest.raises(ValueError, match="did not meet target"):
         calibrate_gate_budget(rollout, target_rate=0.5, bounds=(-1, 1),
                               tolerance=1 / eligible, max_iterations=1)
+
+
+@pytest.mark.parametrize("target,fires", [
+    (Fraction(1, 5), 59),
+    (Fraction(1, 5), 61),
+    (Fraction(4, 5), 239),
+    (Fraction(4, 5), 241),
+])
+def test_calibration_checks_exact_one_firing_boundaries(target, fires):
+    usage = GateUsage(fires, 300)
+    rollouts = {-1.0: GateUsage(0, 300), 0.0: usage, 1.0: GateUsage(300, 300)}
+    result = calibrate_gate_budget(rollouts.__getitem__, target_rate=target, bounds=(-1, 1),
+                                   tolerance=Fraction(1, 300), max_iterations=1)
+    assert result.parameter == 0
+    assert result.usage is usage
+    assert type(result.target_rate) is float
+    assert result.target_rate == float(target)
+
+
+def test_calibration_rejects_rate_below_exact_boundary():
+    rollouts = {-1.0: GateUsage(0, 300), 0.0: GateUsage(58, 300), 1.0: GateUsage(300, 300)}
+    with pytest.raises(ValueError, match="did not meet target"):
+        calibrate_gate_budget(rollouts.__getitem__, target_rate=Fraction(1, 5), bounds=(-1, 1),
+                              tolerance=Fraction(1, 300), max_iterations=1)
+
+
+def test_float_calibration_keeps_binary64_boundary_behavior():
+    rollouts = {-1.0: GateUsage(0, 300), 0.0: GateUsage(59, 300), 1.0: GateUsage(300, 300)}
+    with pytest.raises(ValueError, match="did not meet target"):
+        calibrate_gate_budget(rollouts.__getitem__, target_rate=0.2, bounds=(-1, 1),
+                              tolerance=1 / 300, max_iterations=1)
+
+
+def test_exact_calibration_cannot_skip_a_lower_endpoint_at_the_boundary():
+    def rollout(_):
+        pytest.fail("a potentially qualifying lower endpoint requires a measurement")
+
+    with pytest.raises(ValueError, match="strictly below the accepted rate interval"):
+        calibrate_gate_budget(rollout, target_rate=Fraction(1, 5), bounds=(-1, 1),
+                              tolerance=Fraction(1, 300), max_iterations=1,
+                              lower_usage_bound=GateUsage(59, 300))
 
 
 @pytest.mark.parametrize("upper_fired, expected_parameter", [(8, 1), (12, 0)])

@@ -334,6 +334,11 @@ For CLABS, instantiate `ActivationGate("clabs", bias, seed=gate_seed,
 clabs=parameters)` with `CLABSParameters` from the same calibration protocol
 and bisect the bias instead of the threshold. Reuse calibration cases and
 seeds across candidate parameters. Use fresh cases and seeds for evaluation.
+For an exact count tolerance, pass both the target and tolerance as
+`fractions.Fraction` values. A 20% target with one allowed firing of
+tolerance over 300 eligible positions uses `Fraction(1, 5)` and
+`Fraction(1, 300)`. Measured counts from 59 through 61 qualify, including
+both endpoints. Float arguments retain binary64 comparisons.
 To resume after an interrupted lower endpoint, supply `lower_usage_bound`
 with the largest possible firing count and exact eligible count for that
 endpoint. The entire range must fall below the accepted rate interval.
