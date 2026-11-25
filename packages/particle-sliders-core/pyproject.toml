@@ -5,14 +5,14 @@ backend-path = ["."]
 
 [project]
 name = "particle-sliders-core"
-version = "0.15.2"
+version = "0.15.3"
 description = "Model-independent ParticleGAN slider lifecycle and shared tuning contracts"
 readme = "SHARED-CORE-BOUNDARY.md"
 requires-python = ">=3.11"
 license = {file = "LICENSE"}
 dependencies = [
     "torch>=2.6,<3",
-    "particlegan==0.11.1",
+    "particlegan==0.12.0",
 ]
 
 [project.optional-dependencies]

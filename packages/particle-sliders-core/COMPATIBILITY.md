@@ -1,11 +1,11 @@
 # ParticleGAN compatibility
 
-Core 0.15.2 runs on the published `particlegan==0.11.1` wheel. The shared
+Core 0.15.3 runs on the published `particlegan==0.12.0` wheel. The shared
 engine is `particle_sliders.engine` (`ConditionalParticleGAN`,
 `validate_engine_domain`, `engine_options`). Its `engine_release.json` manifest
 binds the installed ParticleGAN Python files to wheel SHA-256
-`ce9dd51cf2bf0067751c9e6409d05d149ce41c1df98fe3edb0412e3df430de52` and
-release commit `d5dec2fe005305082acf382f0939a4bdb51c7131`. The engine checks
+`8ae6ea792d61f7d3e0a6d19b90cd403b50b7eba54d6c5bac48e09324eeac418d` and
+release commit `3256a05867688ab7ec0e5b4f50354c14d6972e6f`. The engine checks
 the version, source profile and file hashes before opening a model. After
 installing PyTorch and NumPy, install the verified wheel with
 `pip install --no-deps --require-hashes -r requirements-engine.txt`.
@@ -19,20 +19,17 @@ reinterpreted as categorical. The default `auto` setting retains its width gates
 Image/field responses continue using `auto`. Old unreleased continuous overlays
 are not aliases for this release.
 
-The shared engine calls `get_recipe()` for fresh runs. ParticleGAN 0.11.1 rejects
+The shared engine calls `get_recipe()` for fresh runs. ParticleGAN 0.12.0 rejects
 bare/partial `Recipe(...)`; the existing optimizer-profile helper passes complete
 recipe fields through dataclass replacement. Public losses, penalties, prior
 regularizers and optimizer mathematics remain upstream.
 
-## ParticleGAN 0.11.1
+## ParticleGAN 0.12.0
 
-The release updates Unified's critic, loss, penalty and optimizer, and fixes
-critic hooks that could retain GPU memory. The shared engine explicitly selects
-`bispf_optimized` by default and admits `bispf` as an explicit recipe. Their
-upstream source and recipe fields are unchanged across the patch release. The
-scoped initializer retains the same upstream file digest. Select stock EMPF
-explicitly with `preset="empf", optimizer_dense_profile="recipe"`.
-[Release notes](https://github.com/HyperGAN/ParticleGAN/releases/tag/v0.11.1)
+Upstream selects Unified v12 when a caller omits the recipe. The conditional
+slider engine selects its recipe explicitly. Use `bispf_optimized` for the
+existing default or `preset="empf", optimizer_dense_profile="recipe"` for stock EMPF.
+[ParticleGAN release](https://github.com/HyperGAN/ParticleGAN/releases/tag/v0.12.0)
 
 ## Checkpoints and earlier core lines
 

@@ -1,4 +1,4 @@
-"""Conditional native-response GAN using released ParticleGAN 0.11.1 components.
+"""Conditional native-response GAN using released ParticleGAN 0.12.0 components.
 
 This is the version-neutral shared engine of the core 0.15 line. It admits only
 the exact ParticleGAN release named by ``engine_release.json`` and refuses every
@@ -26,11 +26,11 @@ from particlegan.optim.constraint_geometry import constraint_geometry_backward
 from .optimizer_policy import configure_dense_profile, optimizer_diagnostics
 from .restoration import _RESTORATION_FAILED, _restore_all, native_cleanup, _rng_devices
 
-PG_VERSION = '0.11.1'
-PG_SOURCE_PROFILE = 'release-0.11.1'
+PG_VERSION = '0.12.0'
+PG_SOURCE_PROFILE = 'release-0.12.0'
 # Exact published wheel and immutable release-tag source identity.
-PG_WHEEL_SHA256 = 'ce9dd51cf2bf0067751c9e6409d05d149ce41c1df98fe3edb0412e3df430de52'
-PG_SOURCE_COMMIT = 'd5dec2fe005305082acf382f0939a4bdb51c7131'
+PG_WHEEL_SHA256 = '8ae6ea792d61f7d3e0a6d19b90cd403b50b7eba54d6c5bac48e09324eeac418d'
+PG_SOURCE_COMMIT = '3256a05867688ab7ec0e5b4f50354c14d6972e6f'
 _DOMAIN_PAIRS = ((PG_SOURCE_PROFILE, 'auto'), (PG_SOURCE_PROFILE, 'continuous'))
 
 
@@ -56,7 +56,7 @@ def validate_engine_domain(response_shape, *, response_domain,
 
     This never installs a package, applies a patch or reshapes a response.
     Callers declare native geometry and pass this explicitly versioned profile
-    into ConditionalParticleGAN. Released PG0.11.1 accepts explicit continuous vectors
+    into ConditionalParticleGAN. Released PG0.12.0 accepts explicit continuous vectors
     of any width; automatic dispatch retains its shape gates.
     """
     if version('particlegan') != PG_VERSION:
@@ -74,7 +74,7 @@ def validate_engine_domain(response_shape, *, response_domain,
     elif response_domain == 'continuous_packed':
         if len(shape) != 3 or penalty_input_domain != 'auto':
             raise ValueError('continuous_packed requires genuine native rank3 shape on release auto profile')
-        # PG0.11.1 itself selects its rank>=3/image penalty branch. Preserve
+        # PG0.12.0 itself selects its rank>=3/image penalty branch. Preserve
         # that official law without recasting token axes as spatial geometry.
         resolved = 'image'
     elif response_domain == 'continuous_vector':
@@ -367,7 +367,7 @@ class ConditionalParticleGAN:
             raise ValueError('conditions tensor or lazy provider.conditions(indices) is required')
         self.response_domain, self.response_scale = response_domain, float(response_scale)
         self.batch_size, self.sigma = batch_size, float(sigma)
-        # Preserve the authoritative PG0.11.1 research recipe's declared precision.
+        # Preserve the authoritative PG0.12.0 research recipe's declared precision.
         # This native host executes FP32 leaves without GANTrainer autocast; bind
         # that separately below instead of rewriting the public recipe.
         options = dict(batch_size=batch_size, total_steps=total_steps)

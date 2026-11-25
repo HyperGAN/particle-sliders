@@ -129,7 +129,7 @@ def test_old_overlay_and_release_options_do_not_rebind():
         with pytest.raises(ValueError, match='qualified source/domain pair'):
             engine_options({'pg_source_profile': old, 'penalty_input_domain': 'continuous'})
     for old in ['0.11.0', '0.11.2']:
-        with pytest.raises(ValueError, match='requires ParticleGAN 0.11.1'):
+        with pytest.raises(ValueError, match='requires ParticleGAN 0.12.0'):
             engine_options({'pg_version': old})
 
 

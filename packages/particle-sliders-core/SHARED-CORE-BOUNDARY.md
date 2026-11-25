@@ -1,7 +1,7 @@
 # Model-independent Particle Sliders core
 
-Core 0.15.2 is an explicit packaging cohort, based on released ParticleGAN
-0.11.1. Product repositories depend on this core and register or inject their
+Core 0.15.3 is an explicit packaging cohort, based on released ParticleGAN
+0.12.0. Product repositories depend on this core and register or inject their
 native factories. The core never constructs a named pretrained model. For model setup, training
 recipes and generation, use the [product repositories](../../docs/products.md).
 For the teacher/student game, see the [math guide](../../docs/math.md).
