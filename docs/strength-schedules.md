@@ -350,6 +350,12 @@ both endpoints. Float arguments retain binary64 comparisons.
 To resume after an interrupted lower endpoint, supply `lower_usage_bound`
 with the largest possible firing count and exact eligible count for that
 endpoint. The entire range must fall below the accepted rate interval.
+Use `upper_usage_bound` when verified evidence guarantees a minimum firing
+count and exact eligibility for the upper endpoint. Its guaranteed rate must
+exceed the accepted interval, including its upper boundary. For a gate that
+provably fires throughout a recorded always-on trajectory at the same strength,
+use its recorded eligible count as both counts. This requires the same native
+model, request, random state, and numerically verified gate decisions.
 Every setting returned by calibration has a measured firing count.
 If the observations cannot match the declared tolerance at the measured
 resolution, leave that budget unqualified. The paper reports `k=10`,

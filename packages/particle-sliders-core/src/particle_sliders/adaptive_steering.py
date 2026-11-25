@@ -198,6 +198,7 @@ class GateCalibration:
 def calibrate_gate_budget(
     rollout: Callable[[float], GateUsage], *, target_rate, bounds, tolerance, max_iterations,
     lower_usage_bound: GateUsage | None = None,
+    upper_usage_bound: GateUsage | None = None,
 ):
     """Bisect a CFP threshold or CLABS bias using fresh active calibration rollouts.
 
@@ -211,6 +212,8 @@ def calibrate_gate_budget(
     A previously interrupted lower endpoint may supply a proven upper bound
     on its firings and its exact eligibility count in ``lower_usage_bound``.
     This skips that endpoint only when its entire range falls below tolerance.
+    ``upper_usage_bound`` supplies a proven minimum firing count and exact
+    eligibility at the upper endpoint. Its entire range must lie above tolerance.
     Only a measured rollout can qualify or be reported as the closest trial.
     """
     low, high = map(float, bounds)
@@ -233,6 +236,11 @@ def calibrate_gate_budget(
     # Check the closed rate interval directly. Subtracting the target from a
     # rounded measured rate can put a boundary observation outside tolerance.
     minimum_rate, maximum_rate = target_rate - tolerance, target_rate + tolerance
+    if upper_usage_bound is not None:
+        upper_rate = firing_rate(upper_usage_bound)
+        if upper_rate <= maximum_rate:
+            raise ValueError("upper endpoint bound must fall strictly above the accepted rate interval")
+
     if lower_usage_bound is None:
         lower = measure(low)
         lower_rate = firing_rate(lower.usage)
@@ -242,17 +250,21 @@ def calibrate_gate_budget(
         if lower_rate >= minimum_rate:
             raise ValueError("lower endpoint bound must fall strictly below the accepted rate interval")
 
-    upper = measure(high)
-    upper_rate = firing_rate(upper.usage)
-    endpoints = [upper]
-    if lower is not None:
-        endpoints.insert(0, lower)
+    upper = None
+    if upper_usage_bound is None:
+        upper = measure(high)
+        upper_rate = firing_rate(upper.usage)
+
+    endpoints = [trial for trial in (lower, upper) if trial is not None]
     endpoints.sort(key=lambda trial: abs(firing_rate(trial.usage) - target_rate))
-    best = endpoints[0]
+    best = next(iter(endpoints), None)
     for endpoint in endpoints:
         if minimum_rate <= firing_rate(endpoint.usage) <= maximum_rate:
             return endpoint
     if not lower_rate < target_rate < upper_rate:
+        if upper is None:
+            raise ValueError(f"active lower rollout rate {lower.usage.rate:g} "
+                             f"does not bracket target {reported_target:g} with the upper endpoint bound")
         if lower is None:
             raise ValueError(f"active upper rollout rate {upper.usage.rate:g} "
                              f"does not bracket target {reported_target:g} with the lower endpoint bound")
@@ -266,12 +278,15 @@ def calibrate_gate_budget(
         rate = firing_rate(trial.usage)
         if minimum_rate <= rate <= maximum_rate:
             return trial
-        if abs(rate - target_rate) < abs(firing_rate(best.usage) - target_rate):
+        if best is None or abs(rate - target_rate) < abs(firing_rate(best.usage) - target_rate):
             best = trial
         if rate < target_rate:
             low = midpoint
         else:
             high = midpoint
     display_tolerance = float(tolerance) if exact_rates else tolerance
-    raise ValueError(f"gate calibration did not meet target {reported_target:g} ± {display_tolerance:g}; "
+    message = f"gate calibration did not meet target {reported_target:g} ± {display_tolerance:g}"
+    if best is None:
+        raise ValueError(f"{message}; no representable interior parameter for an active rollout")
+    raise ValueError(f"{message}; "
                      f"closest active rollout was {best.usage.rate:g} at {best.parameter:g}")
