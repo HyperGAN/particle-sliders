@@ -97,3 +97,14 @@ measured +0.593 mean held-out effect at strength 1.5 with the early schedule.
 The Glimmer adapter measured +0.053 at constant strength 2.0. Three of its
 four held-out replies changed very little on the rhyme score. Both exports
 reproduced the first held-out reply token for token after reload.
+
+
+### Inkling 2 Mini
+
+Install the Inkling product’s separate `vibe` environment to use `inkling-vibe`.
+It supplies the pinned native packed model and routes the same text teacher
+collection and stock EMPF training through the final attention block. Inkling
+ranks saved RAW checkpoints on matched unit-strength replies. It then calls
+Anima’s constant-strength search and verifies the full scalar trace before
+judging the reserved setting on separate held-out prompts. An intact, positive
+held-out gain and token replay are required for a successful run.

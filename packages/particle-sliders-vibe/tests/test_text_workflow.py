@@ -174,3 +174,43 @@ def test_product_defaults_match_the_qualified_training_budgets():
 
     assert TEXT_RECIPES["tiny-aya"] == TextRecipe(448, 1024, 1, 0.00075, 0.009)
     assert TEXT_RECIPES["glimmer"] == TextRecipe(32, 128, 7, 0.001, 0.018)
+
+
+def test_constant_text_selects_raw_before_alpha_and_reserves_before_confirmation(
+    tmp_path, monkeypatch
+):
+    host = SimpleNamespace(mixer=SimpleNamespace(close=lambda: None))
+
+    def load(key, path):
+        host.raw = path.name
+        return {"updates": 16 if host.raw.startswith("raw-") else 32}
+
+    host.load_adapter = load
+    raw = tmp_path / "raw-16.safetensors"
+    last = tmp_path / "trained.safetensors"
+    raw.write_bytes(b"first RAW")
+    last.write_bytes(b"second RAW")
+
+    def compare(host, judge, prompts, off, alpha, profile):
+        assert prompts == flow.RANK and profile == "constant"
+        # Only the first RAW has an intact unit-strength effect. After choosing
+        # it, the scalar search must expand past two and refine that same RAW.
+        gain = 1 - (alpha - 2.375) ** 2 / 3 if host.raw == raw.name else -1
+        return dict(alpha=alpha, schedule=profile, gain=gain, intact=True)
+
+    monkeypatch.setattr(flow, "compare", compare)
+    chosen, meta, winner = flow.select_constant_text(
+        host,
+        None,
+        tmp_path,
+        last,
+        [{"updates": 16}, {"updates": 32}],
+        [],
+        lambda *args: None,
+    )
+    assert chosen == raw and meta["updates"] == 16
+    assert abs(winner["alpha"] - 2.375) <= 1 / 32
+    selection = flow.read_json(tmp_path / "confirmation-selection.json")
+    assert selection["raw_sha256"] == flow.sha256(raw.read_bytes()).hexdigest()
+    assert selection["prompts"] == list(flow.CONFIRM)
+    assert selection["alpha"] == winner["alpha"]
