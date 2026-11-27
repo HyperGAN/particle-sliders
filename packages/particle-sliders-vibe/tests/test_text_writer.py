@@ -85,6 +85,17 @@ def test_invalid_writer_output_cannot_fall_back_to_templates(tmp_path, monkeypat
     ]
 
 
+def test_gemini_request_field_is_saved_as_the_neutral_prompt():
+    anchors = [{"id": "0", "topic": "a library"}]
+    _, result = reply({}, {"scenes": anchors})
+    scene = result["scenes"][0]
+    scene["request"] = scene.pop("neutral")
+    assert writer.validate(result, anchors)[0]["neutral"] == scene["request"]
+    scene["neutral"] = ""
+    with pytest.raises(ValueError, match="Invalid neutral"):
+        writer.validate(result, anchors)
+
+
 def test_provider_json_with_markdown_fence_is_validated_normally(monkeypatch):
     import io
     import json

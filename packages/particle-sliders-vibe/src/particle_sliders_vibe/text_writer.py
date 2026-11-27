@@ -89,7 +89,11 @@ def validate(reply, anchors):
     result = []
     for anchor in anchors:
         row = by_id[anchor["id"]]
-        neutral = field(row, "neutral")
+        # Some Gemini replies label the neutral user request "request".
+        # Preserve its exact text under the canonical field in the accepted batch.
+        if "neutral" not in row and "request" not in row:
+            raise ValueError("The prompt writer omitted the neutral user request")
+        neutral = field(row, "neutral" if "neutral" in row else "request")
         options = row.get("treatments")
         if not isinstance(options, list) or len(options) != 3:
             raise ValueError("Expected three treatments per topic")
