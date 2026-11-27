@@ -4,7 +4,7 @@ Persistent best-of-N training-data curation with model-specific workflows.
 Keep successful prompts, generate replacements for weaker ones, and retain
 every finished output and judgment as data accumulates.
 
-This optional add-on has no dependency on Torch or a particular core version.
+The base collector installs without Torch or a particular core version.
 It can coexist with a product's pinned Particle Sliders training runtime.
 The separate `particle_sliders_vibe` namespace leaves that core's source closure
 unchanged. Install `[nanoodle]` for the workflow adapters.
@@ -37,3 +37,63 @@ run directory to see the starting image, all three candidates and the selection 
 each scene and round. The measured run prints the ranking and confirmation scores,
 working case counts and structure verdicts. Product READMEs give their model
 locations, sampler and replay commands.
+
+## Train and sample a text vibe
+
+Install the `text` extra in a CUDA environment. For Glimmer, install both
+`text` and `glimmer`. Set `CUDA_VISIBLE_DEVICES` to one GPU UUID and provide
+`NANOGPT_API_KEY` for Jev to score the teacher and evaluation replies.
+Generation from a saved slider needs only the local runtime and snapshot.
+The text extra pins PyTorch 2.13.0. Install its CUDA build for your driver
+first when using a platform-specific wheel index.
+
+```sh
+particle-text-vibe --model tiny-aya --snapshot "$AYA_SNAPSHOT" \
+  --vibe "playful explanations with an unexpected rhyme" --out ./rhyming-aya
+particle-text-vibe --model tiny-aya --snapshot "$AYA_SNAPSHOT" \
+  --adapter ./rhyming-aya/slider.safetensors --prompt "Explain why leaves change color."
+```
+
+Use `--model glimmer` for Muse Glimmer 30B. The supported snapshot revisions
+are `af89d219b53ed9b13b8a4645f9c8028973510324` for Tiny Aya Global and
+`a4e59da52a7bc87ae7251dd5545c0dd437c44b68` for Muse Glimmer. Supply the
+local Hugging Face snapshot directory named for that revision. Tiny Aya uses
+BF16 and Glimmer uses NF4 with BF16 compute. Glimmer generates in the ATEM
+user channel. Both use greedy decoding.
+
+The trainer compares three prompt treatments per context and retries missing
+contexts with a new task. It requires 16 qualifying contexts. For each kept
+pair it freezes both final-layer hidden responses at matched continuation
+tokens. Both text products use Anima's rank-eight routed attention branches,
+128 × 4 particle bank, and the same `ConditionalParticleGAN` stock EMPF
+update from ParticleGAN 0.12.0. New DOWN matrices and the particle bank receive
+scoped initialization. The backbone stays frozen and all UP matrices start
+at zero. The critic operates on final-token hidden vectors. Tiny Aya takes 448 updates on a 1,024-step
+optimizer schedule with seed 1 and generator, critic and particle rates of
+0.00075, 0.009 and 0.03. Glimmer uses 32 updates on a 128-step schedule with
+seed 7 and rates of 0.001, 0.018 and 0.03. Both use batch two and disable
+model-weight EMA. On a rhyme qualification, three longer Glimmer candidates
+stopped for broken replies at updates 448, 224 and 336 respectively. Each quarter of the update budget saves RAW weights and
+checks a generated reply for catastrophic failure before the next update.
+
+Use `--frozen-source PRIOR_RUN` with the same phrase and base revision to train a
+fresh candidate on identical teaching data. Its manifest binds the teacher
+manifest and targets by SHA-256. Set `--g-lr` to test a generator rate with the other rates fixed.
+The optional `--d-lr`, `--steps`, `--horizon`, and `--seed` flags reproduce
+a specific training recipe.
+
+The run directory contains the teacher verdicts, frozen targets, RAW weights,
+strength leaderboard and matched held-out replies. Calibration compares
+constant, early and late token strengths on a separate panel. The numeric
+strength and schedule travel in the exported adapter. Qualification includes
+an intact held-out panel and exact token replay after reloading the export.
+`result.json` records the measured effect, including weak or negative gains.
+
+
+For “answer in short, clearly rhyming couplets,” both models qualified 24
+teaching contexts and froze 72 response rows. Each used four development
+prompts and four separate held-out prompts. The final Tiny Aya adapter
+measured +0.593 mean held-out effect at strength 1.5 with the early schedule.
+The Glimmer adapter measured +0.053 at constant strength 2.0. Three of its
+four held-out replies changed very little on the rhyme score. Both exports
+reproduced the first held-out reply token for token after reload.

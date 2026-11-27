@@ -13,11 +13,18 @@ license-files = ["LICENSE"]
 dependencies = []
 
 [project.optional-dependencies]
+text = [
+    "particlegan==0.12.0", "torch==2.13.0", "pillow>=13,<14",
+    "anima-particle-sliders @ git+https://github.com/HyperGAN/anima-particle-sliders.git@2816265f7273c2dae3feb7e989067dee3bd17a65",
+    "transformers==5.15.0", "accelerate==1.14.0",
+]
+glimmer = ["bitsandbytes==0.50.2"]
 image = ["pillow", "numpy", "opencv-python-headless"]
 nanoodle = ["nanoodle>=0.7.0,<1"]
 test = ["pytest>=8", "pillow>=13.0.0"]
 
 [project.scripts]
+particle-text-vibe = "particle_sliders_vibe.text_cli:main"
 particle-slider-vibe = "particle_sliders_vibe:main"
 
 [tool.setuptools.packages.find]
