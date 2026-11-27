@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import torch
 
 from . import digest, file_digest, read_json, write_json
@@ -83,15 +83,27 @@ def named_images(run, cases, alpha=0., raw=None):
     return {c:run.image(v["prompt"],v["seed"],strength=alpha,raw=raw) for c,v in cases.items()}
 
 
-def sheet(pairs, path):
-    width, cols = 256, 4
-    sheet = Image.new("RGB",(width*cols,2*width*((len(pairs)+cols-1)//cols)),(24,25,28))
-    for i,pair in enumerate(pairs):
-        for j,ref in enumerate(pair):
+def sheet(examples, path, *, product, vibe, alpha):
+    """Label matched thumbnails so the scene and applied strength survive sharing."""
+    width, columns, caption, heading = 256, 4, 26, 38
+    rows = (len(examples) + columns - 1) // columns
+    tile_height = width + caption
+    canvas = Image.new("RGB", (width * columns, heading + 2 * tile_height * rows), (24, 25, 28))
+    draw = ImageDraw.Draw(canvas)
+    try:
+        font = ImageFont.load_default(size=16)
+    except TypeError:  # Older Pillow releases offer only the fixed-size default.
+        font = ImageFont.load_default()
+    draw.text((8, 8), f"{product} | {vibe} | strength {alpha:g}", fill="white", font=font)
+    for i, (name, off, on) in enumerate(examples):
+        x = (i % columns) * width
+        top = heading + (i // columns) * 2 * tile_height
+        for j, (label, ref) in enumerate((("OFF", off), ("ON", on))):
+            y = top + j * tile_height
+            draw.text((x + 6, y + 4), f"{name} | {label}", fill="white", font=font)
             with Image.open(ref["path"]) as image:
-                sheet.paste(image.convert("RGB").resize((width,width),Image.Resampling.LANCZOS),
-                            (i%cols*width,(2*(i//cols)+j)*width))
-    sheet.save(path,quality=88)
+                canvas.paste(image.convert("RGB").resize((width, width), Image.Resampling.LANCZOS), (x, y + caption))
+    canvas.save(path, quality=88)
 
 
 def search(run, reader, raw, cases):
@@ -150,7 +162,8 @@ def evaluate(run, raw, teachers, measure):
     target = dest/(slug+".safetensors")
     for suffix in (".safetensors",".engine.json",".scoped.json"):
         shutil.copyfile(Path(raw["path"]).with_suffix(suffix),target.with_suffix(suffix))
-    sheet([(off[c],on[c]) for c in shown],dest/"samples.jpg")
+    sheet([(c,off[c],on[c]) for c in shown],dest/"samples.jpg", product=run.host.profile["product"],
+          vibe=run.vibe, alpha=alpha)
     write_json(dest/"use.json",dict(vibe=run.vibe,updates=UPDATES,alpha=alpha,raw_sha256=raw["sha256"],
                                      sampler=run.host.profile,step_strengths=[alpha]*run.host.profile["steps"]))
     result = dict(vibe=run.vibe,teachers=len(teachers["kept"]),updates=UPDATES,raw=raw,alpha=alpha,
