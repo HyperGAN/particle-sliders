@@ -149,7 +149,7 @@ def qualify(host, judge, root, vibe, progress):
                 "teachers",
                 len(kept),
                 len(TOPICS),
-                f"Round {round_index+1}, {len(kept)} qualified replies",
+                f"Round {round_index + 1}, context {i + 1}/{len(TOPICS)}, {len(kept)} qualified replies",
             )
         if len(kept) >= 16:
             return list(kept.values())
@@ -195,6 +195,7 @@ def train_vibe(host, vibe, root, *, progress, steps=448):
     root.mkdir(parents=True, exist_ok=False)
     judge = TextJudge(root, vibe)
     pairs = qualify(host, judge, root, vibe, progress)
+    progress("freeze", 0, len(pairs), "Freezing matched native responses")
     rows = freeze_rows(host, pairs)
     fields = root / "frozen-targets.pt"
     torch.save([asdict(row) for row in rows], fields)
@@ -211,6 +212,7 @@ def train_vibe(host, vibe, root, *, progress, steps=448):
         if score["broken"] >= 0.5:
             raise ValueError(f"Broken text output at update {step}. Training stopped.")
 
+    progress("fit", 0, steps, f"Training with ParticleGAN 0.12.0 for {steps} updates")
     config = fit(
         host,
         rows,
@@ -229,6 +231,7 @@ def train_vibe(host, vibe, root, *, progress, steps=448):
             (r, judge.measure(p, r)) for p, r in zip(prompts, baseline, strict=True)
         ]
 
+    progress("strength", 0, 12, "Generating baseline replies for strength selection")
     off = baselines(RANK)
     board = []
     for alpha in (0.5, 1.0, 1.5, 2.0):
@@ -242,6 +245,7 @@ def train_vibe(host, vibe, root, *, progress, steps=448):
     if not valid:
         raise ValueError("Every strength produced a broken reply on the ranking panel")
     winner = max(valid, key=lambda x: x["gain"])
+    progress("confirm", 0, 1, "Comparing held-out replies at the selected strength")
     confirmation = compare(
         host, judge, CONFIRM, baselines(CONFIRM), winner["alpha"], winner["schedule"]
     )
@@ -252,6 +256,7 @@ def train_vibe(host, vibe, root, *, progress, steps=448):
     meta = dict(config, alpha=winner["alpha"], schedule=winner["schedule"])
     output = root / "slider.safetensors"
     save_file(load_file(path), output, metadata={"text_vibe": canonical(meta)})
+    progress("replay", 0, 1, "Reloading the export and checking the held-out tokens")
     host.mixer.close()
     host.load_adapter("replay", output)
     probe = confirmation["pairs"][0]
