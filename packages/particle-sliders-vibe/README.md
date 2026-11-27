@@ -26,3 +26,11 @@ If the proposer returns an invalid batch, the collector saves a failed receipt
 and stops. Running the same command again requests a replacement batch under a
 fresh ID. Completed renders and scores are reused. A pending provider call still
 requires reconciliation before `--retry-pending` retries its original ID.
+
+
+Image products that implement a native `VibeHost` can call `image_cli.entry` to train a
+character slider from its phrase. Install the `image` extra alongside the host's CUDA and
+ParticleGAN dependencies. The workflow keeps per-scene image judgments and structural
+checks, retries unqualified scenes, freezes matched fields on both trajectories, and
+searches a constant strength after the 448-update RAW export. Product READMEs give
+their model locations, sampler and replay commands.

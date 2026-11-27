@@ -1,0 +1,70 @@
+{
+  "splits": {
+    "search": [
+      "archivist",
+      "bookkeeper",
+      "botanist",
+      "seamstress"
+    ],
+    "ranking": [
+      "ranger",
+      "smith",
+      "stationer",
+      "ferryman",
+      "watchmaker",
+      "guide",
+      "guard",
+      "violinist"
+    ]
+  },
+  "cases": {
+    "archivist": {
+      "prompt": "Anime illustration. Waist-up eye-level portrait of one adult woman with lightly freckled face and brown braided hair, wearing a plain blue traveling coat, standing naturally facing the viewer. Background: sunlit stone plaza with an aquamarine door and patterned floor tiles. Lighting: bright neutral morning daylight. Show the surroundings clearly.",
+      "seed": 552241
+    },
+    "ranger": {
+      "prompt": "Anime illustration. Waist-up eye-level portrait of one adult man with wavy blond hair, wearing a russet hiking jacket, standing naturally facing the viewer. Background: alpine cable-car station with a green numbered post, metal railings and snow in the distance. Lighting: bright midday mountain light. Show the surroundings clearly.",
+      "seed": 552242
+    },
+    "smith": {
+      "prompt": "Anime illustration. Waist-up eye-level portrait of one adult woman with a straight gray bob, wearing a denim apron, standing naturally facing the viewer. Background: historical stone smithy with an old iron anvil and tools hanging from a wooden rack. Lighting: steady warm light from the hinged brass wall lamps. Show the surroundings clearly.",
+      "seed": 552243
+    },
+    "stationer": {
+      "prompt": "Anime illustration. Waist-up eye-level portrait of one adult man with short black curls, wearing a brown cardigan, standing naturally facing the viewer. Background: covered town square with orange awnings, terracotta pavement and a blue souvenir sign. Lighting: cool early evening light with street lanterns. Show the surroundings clearly.",
+      "seed": 552244
+    },
+    "bookkeeper": {
+      "prompt": "Anime illustration. Eye-level half-body portrait of one middle-aged woman with short black hair and warm brown skin, standing naturally facing the viewer. Background: quiet bookshop with a brass ladder and green counter. Lighting: cool daylight from a wide front window. Keep the surrounding setting clearly visible.",
+      "seed": 553301
+    },
+    "ferryman": {
+      "prompt": "Anime illustration. Eye-level half-body portrait of one adult man with gray hair and a short beard, standing naturally facing the viewer. Background: covered ferry pier with a red railing and mooring rope. Lighting: clear morning sunlight. Keep the surrounding setting clearly visible.",
+      "seed": 553302
+    },
+    "botanist": {
+      "prompt": "Anime illustration. Eye-level half-body portrait of one adult woman with auburn braids and freckles, standing naturally facing the viewer. Background: botanical museum atrium with two ceramic planters and a blue mosaic. Lighting: soft overcast daylight. Keep the surrounding setting clearly visible.",
+      "seed": 553303
+    },
+    "watchmaker": {
+      "prompt": "Anime illustration. Eye-level half-body portrait of one older man with wavy white hair, standing naturally facing the viewer. Background: watch repair shop with brass clocks and a cream workbench. Lighting: steady warm lamp light. Keep the surrounding setting clearly visible.",
+      "seed": 553304
+    },
+    "guide": {
+      "prompt": "Anime illustration. Eye-level half-body portrait of one adult woman with dark brown curls and dark skin, standing naturally facing the viewer. Background: sandstone trail shelter with a wooden map board and distant dunes. Lighting: bright late-afternoon daylight. Keep the surrounding setting clearly visible.",
+      "seed": 553305
+    },
+    "guard": {
+      "prompt": "Anime illustration. Eye-level half-body portrait of one adult man with short black hair and round glasses, standing naturally facing the viewer. Background: quiet tiled vestibule with green lockers and a white enamel sign. Lighting: neutral fluorescent light. Keep the surrounding setting clearly visible.",
+      "seed": 553306
+    },
+    "seamstress": {
+      "prompt": "Anime illustration. Eye-level half-body portrait of one adult woman with close-cropped blond hair, standing naturally facing the viewer. Background: tailor studio with fabric bolts, a pine desk, and a high window. Lighting: soft diffuse daylight. Keep the surrounding setting clearly visible.",
+      "seed": 553307
+    },
+    "violinist": {
+      "prompt": "Anime illustration. Eye-level half-body portrait of one adult man with straight shoulder-length brown hair, standing naturally facing the viewer. Background: concert hall anteroom with two burgundy chairs and a gilded mirror. Lighting: low warm evening lamp light. Keep the surrounding setting clearly visible.",
+      "seed": 553308
+    }
+  }
+}
