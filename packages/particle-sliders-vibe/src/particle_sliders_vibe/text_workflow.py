@@ -104,10 +104,19 @@ def qualify(host, judge, root, vibe, progress):
             if i in kept:
                 continue
             prompt = task.format(topic)
+            label = f"Round {round_index + 1}, context {i + 1}/{len(TOPICS)} ({topic})"
+            progress(
+                "teachers", len(kept), len(TOPICS),
+                f"{label} · Generating and scoring the plain reply",
+            )
             off = host.reply(prompt)
             off_score = judge.measure(prompt, off)
             candidates = []
-            for cue in CUES:
+            for number, cue in enumerate(CUES, 1):
+                progress(
+                    "teachers", len(kept), len(TOPICS),
+                    f"{label} · Trying style instruction {number}/{len(CUES)}",
+                )
                 cue = cue.format(vibe)
                 on = host.reply(prompt, cue=cue)
                 score = judge.measure(prompt, on)
@@ -148,11 +157,12 @@ def qualify(host, judge, root, vibe, progress):
                 root / "teachers.json",
                 dict(attempts=attempts, qualified=list(kept.values())),
             )
+            decision = "Kept the teaching pair" if passed else "Skipped the pair after scoring"
             progress(
                 "teachers",
                 len(kept),
                 len(TOPICS),
-                f"Round {round_index + 1}, context {i + 1}/{len(TOPICS)}, {len(kept)} qualified replies",
+                f"{label} · {decision} · {len(kept)} pairs kept",
             )
         if len(kept) >= 16:
             return list(kept.values())
