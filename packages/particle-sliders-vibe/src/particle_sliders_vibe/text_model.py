@@ -106,6 +106,7 @@ class TextModel:
         from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
         require_formulation()
+        torch.backends.cuda.matmul.allow_tf32 = False
         snapshot = Path(snapshot).resolve(strict=True)
         kind, revision = MODELS[name]
         config = AutoConfig.from_pretrained(snapshot, local_files_only=True)

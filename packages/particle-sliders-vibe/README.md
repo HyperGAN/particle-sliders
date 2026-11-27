@@ -44,6 +44,8 @@ Install the `text` extra in a CUDA environment. For Glimmer, install both
 `text` and `glimmer`. Set `CUDA_VISIBLE_DEVICES` to one GPU UUID and provide
 `NANOGPT_API_KEY` for Jev to score the teacher and evaluation replies.
 Generation from a saved slider needs only the local runtime and snapshot.
+The text extra pins PyTorch 2.13.0. Install its CUDA build for your driver
+first when using a platform-specific wheel index.
 
 ```sh
 particle-text-vibe --model tiny-aya --snapshot "$AYA_SNAPSHOT" \
