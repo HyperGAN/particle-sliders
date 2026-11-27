@@ -31,5 +31,14 @@ def entry(argv, *, product, env_model, default_model, host_factory):
         try:
             result = finish(ImageRun(root,host,a.vibe),measure=a.measure)
             print(result["slider"]["path"],"alpha",result["alpha"],flush=True)
+            print("Teacher comparisons", root / "teachers.html", flush=True)
+            if a.measure:
+                for panel in ("ranking", "confirmation"):
+                    measured = result[panel]
+                    print(f"{panel} score {measured['score']:.4f}, "
+                          f"{measured['working']}/{len(measured['rows'])} working", flush=True)
+                structure = result["structure_summary"]
+                print(f"Structure: {structure['pass']} intact, {structure['fail']} broken, "
+                      f"{structure['unmeasured']} uncertain", flush=True)
         finally:
             host.runtime.mixer.close()

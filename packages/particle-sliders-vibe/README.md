@@ -32,5 +32,8 @@ Image products that implement a native `VibeHost` can call `image_cli.entry` to 
 character slider from its phrase. Install the `image` extra alongside the host's CUDA and
 ParticleGAN dependencies. The workflow keeps per-scene image judgments and structural
 checks, retries unqualified scenes, freezes matched fields on both trajectories, and
-searches a constant strength after the 448-update RAW export. Product READMEs give
-their model locations, sampler and replay commands.
+searches a constant strength after the 448-update RAW export. Open `teachers.html` in the
+run directory to see the starting image, all three candidates and the selection for
+each scene and round. The measured run prints the ranking and confirmation scores,
+working case counts and structure verdicts. Product READMEs give their model
+locations, sampler and replay commands.

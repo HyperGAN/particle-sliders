@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 import torch
 
 from . import digest, file_digest, read_json, write_json
+from .image_gallery import teacher_gallery
 from .image_integrity import check
 from .image_judge import Reader, raw_image, read_candidates
 from .image_run import pin
@@ -23,13 +24,16 @@ MATTE_SHA = "8d10d2f3bb75ae3b6d527c77944fc5e7dcd94b29809d47a739a7a728a912b491"
 def collect(run):
     saved = run.root/"teachers.json"
     if saved.exists():
-        return read_json(saved)
+        result = read_json(saved)
+        teacher_gallery(run.root,run.vibe,result["attempts"],result["kept"])
+        return result
     model = Path(os.environ.get("U2NET_MODEL", Path.home()/".u2net/u2net.onnx"))
     if not model.exists() or file_digest(model) != MATTE_SHA:
         raise ValueError(f"expected the pinned U²-Net model at {model}")
     progress = run.root/"teacher-progress.json"
     prior = read_json(progress) if progress.exists() else {}
     kept, record, attempt = prior.get("kept",{}),prior.get("attempts",[]),prior.get("round",0)
+    reader = Reader(run.root,run.vibe)
     with ThreadPoolExecutor(4) as pool:
         while len(kept) < 16:
             pending = []
@@ -41,18 +45,14 @@ def collect(run):
                 pending.append((scene,candidates,pool.submit(read_candidates,run.root,run.vibe,candidates)))
             for scene,candidates,job in pending:
                 options = job.result()["options"]
-                viable = [o for o in options if o["reading"]["case"] >= .35 and o["reading"]["separate"] < .5
+                refs = [candidates["neutral"], *(o["image"] for o in options)]
+                statuses = pool.map(lambda ref:check(reader,raw_image(ref))["status"], refs)
+                structure = {ref["sha256"]:status for ref,status in zip(refs,statuses)}
+                viable = [o for o in options if structure[refs[0]["sha256"]] == "pass"
+                          and structure[o["image"]["sha256"]] == "pass"
+                          and o["reading"]["case"] >= .35 and o["reading"]["separate"] < .5
                           and o["reading"]["quality"] >= .5 and max(o["reading"]["off_broken"], o["reading"]["broken"]) < .5]
-                chosen = None
-                structure = {}
-                reader = Reader(run.root,run.vibe)
-                for candidate in sorted(viable,key=lambda o:o["reading"]["case"],reverse=True):
-                    for ref in (candidates["neutral"],candidate["image"]):
-                        if ref["sha256"] not in structure:
-                            structure[ref["sha256"]] = check(reader,raw_image(ref))["status"]
-                    if all(structure[ref["sha256"]] == "pass" for ref in (candidates["neutral"],candidate["image"])):
-                        chosen = candidate
-                        break
+                chosen = max(viable,key=lambda o:o["reading"]["case"],default=None)
                 key = scene["id"]
                 entry = dict(scene=key,attempt=attempt,seed=candidates["seed"],chosen=None,structure=structure)
                 record.append(entry)
@@ -74,6 +74,7 @@ def collect(run):
                                  neutral_image=candidates["neutral"],positive_image=chosen["image"],matte=pin(matte))
             attempt += 1
             write_json(run.root/"teacher-progress.json",dict(kept=kept,round=attempt,attempts=record))
+            teacher_gallery(run.root,run.vibe,record,kept)
     result = dict(vibe=run.vibe, kept=kept, attempts=record, matte_model_sha256=MATTE_SHA)
     write_json(saved,result)
     return result
