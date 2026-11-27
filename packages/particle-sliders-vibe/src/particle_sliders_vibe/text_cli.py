@@ -52,15 +52,18 @@ def main(argv=None, *, model=None):
         parser.error("--prompt takes an optional --adapter and its --strength")
     from .text_model import TextModel
     from .text_device import gpu_slot
-    from .text_workflow import train_vibe
+    from .text_workflow import prepare_inkling_prompts, train_vibe
 
+    def progress(stage, step, total, message):
+        print(f"{stage} {step}/{total} {message}", flush=True)
+
+    plan = None
+    if args.model == "inkling-2-mini" and args.vibe and not args.frozen_source:
+        plan = prepare_inkling_prompts(args.out, args.vibe, progress)
     with gpu_slot(args.model):
         host = TextModel.load(args.model, args.snapshot)
         try:
             if args.vibe:
-
-                def progress(stage, step, total, message):
-                    print(f"{stage} {step}/{total} {message}", flush=True)
 
                 path, _ = train_vibe(
                     host,
@@ -73,6 +76,7 @@ def main(argv=None, *, model=None):
                     steps=args.steps,
                     horizon=args.horizon,
                     seed=args.seed,
+                    teaching_plan=plan,
                 )
                 print(path)
             else:

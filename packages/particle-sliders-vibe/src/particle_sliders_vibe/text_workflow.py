@@ -97,13 +97,35 @@ class TextJudge:
         return self.reader.decide([], JEV, state, self.questions)
 
 
-def qualify(host, judge, root, vibe, progress):
+def authored_round(root, vibe, task, slots, progress):
+    from .text_writer import write_plan
+
+    anchors = [{"id": str(i), "topic": TOPICS[i]} for i in slots]
+    return write_plan(root, vibe, task, anchors, progress=progress)
+
+
+def prepare_inkling_prompts(root, vibe, progress):
+    root = Path(root)
+    if root.exists() and any(p.name != "prompt-rewrites" for p in root.iterdir()):
+        raise FileExistsError("Use a new run directory or resume a prompt-only setup")
+    return authored_round(root, vibe, TASKS[0], range(len(TOPICS)), progress)
+
+
+def qualify(host, judge, root, vibe, progress, first_plan=None):
     kept, attempts = {}, []
     for round_index, task in enumerate(TASKS):
+        plan = first_plan
+        if first_plan is not None and round_index:
+            plan = authored_round(root, vibe, task, [i for i in range(len(TOPICS)) if i not in kept], progress)
         for i, topic in enumerate(TOPICS):
             if i in kept:
                 continue
-            prompt = task.format(topic)
+            if plan is None:
+                prompt = task.format(topic)
+                options = [{"positive": c.format(vibe), "explicit": c.format(vibe)} for c in CUES]
+            else:
+                prompt = plan[str(i)]["neutral"]
+                options = plan[str(i)]["treatments"]
             label = f"Round {round_index + 1}, context {i + 1}/{len(TOPICS)} ({topic})"
             progress(
                 "teachers", len(kept), len(TOPICS),
@@ -112,17 +134,18 @@ def qualify(host, judge, root, vibe, progress):
             off = host.reply(prompt)
             off_score = judge.measure(prompt, off)
             candidates = []
-            for number, cue in enumerate(CUES, 1):
+            for number, option in enumerate(options, 1):
                 progress(
                     "teachers", len(kept), len(TOPICS),
-                    f"{label} · Trying style instruction {number}/{len(CUES)}",
+                    f"{label} · Trying style instruction {number}/{len(options)}",
                 )
-                cue = cue.format(vibe)
+                cue = option["positive"]
                 on = host.reply(prompt, cue=cue)
                 score = judge.measure(prompt, on)
                 candidates.append(
                     dict(
                         cue=cue,
+                        explicit=option["explicit"],
                         reply=on,
                         score=score,
                         gain=score["effect"] - off_score["effect"],
@@ -150,7 +173,8 @@ def qualify(host, judge, root, vibe, progress):
             )
             if passed:
                 kept[i] = dict(
-                    prompt=prompt, neutral=off, positive=best["reply"], cue=best["cue"]
+                    prompt=prompt, neutral=off, positive=best["reply"],
+                    sampling_cue=best["cue"], cue=best["explicit"],
                 )
             attempts.append(record)
             write_json(
@@ -299,14 +323,24 @@ def train_vibe(
     critic_lr=None,
     horizon=None,
     seed=None,
+    teaching_plan=None,
 ):
     steps = TEXT_RECIPES[host.identity["model"]].steps if steps is None else steps
     root = Path(root)
-    root.mkdir(parents=True, exist_ok=False)
+    if host.identity["model"] == "inkling-2-mini" and frozen_source is None:
+        if teaching_plan is None:
+            teaching_plan = prepare_inkling_prompts(root, vibe, progress)
+        # Claim the fit separately from the resumable, locked prompt setup.
+        (root / "readings").mkdir(exist_ok=False)
+    else:
+        root.mkdir(parents=True, exist_ok=False)
     judge = TextJudge(root, vibe)
     fields = root / "frozen-targets.pt"
     if frozen_source is None:
-        pairs = qualify(host, judge, root, vibe, progress)
+        if teaching_plan is None:
+            pairs = qualify(host, judge, root, vibe, progress)
+        else:
+            pairs = qualify(host, judge, root, vibe, progress, first_plan=teaching_plan)
         progress("freeze", 0, len(pairs), "Freezing matched native responses")
         rows = freeze_rows(host, pairs)
         torch.save([asdict(row) for row in rows], fields)

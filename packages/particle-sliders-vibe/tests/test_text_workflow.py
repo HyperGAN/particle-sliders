@@ -214,3 +214,24 @@ def test_constant_text_selects_raw_before_alpha_and_reserves_before_confirmation
     assert selection["raw_sha256"] == flow.sha256(raw.read_bytes()).hexdigest()
     assert selection["prompts"] == list(flow.CONFIRM)
     assert selection["alpha"] == winner["alpha"]
+
+
+def test_authored_instructions_render_then_freeze_the_winning_explicit_cue(tmp_path, monkeypatch):
+    monkeypatch.setattr(flow, "TOPICS", flow.TOPICS[:16])
+    plan = {
+        str(i): {"neutral": f"neutral {i}", "treatments": [
+            {"positive": f"render {j}", "explicit": f"strong {j}"} for j in range(3)
+        ]} for i in range(16)
+    }
+    calls = []
+    def reply(prompt, *, cue=""):
+        assert prompt.startswith("neutral ")
+        calls.append(cue)
+        return {"text": cue or "plain", "tokens": [1, 2]}
+    judge = SimpleNamespace(measure=lambda prompt, r: {
+        "broken": 0, "effect": 1.0 if r["text"] == "render 2" else 0,
+    })
+    pairs = flow.qualify(SimpleNamespace(reply=reply), judge, tmp_path, "warmth", lambda *_: None, plan)
+    assert calls == ["", "render 0", "render 1", "render 2"] * 16
+    assert len(pairs) == 16 and all(p["cue"] == "strong 2" for p in pairs)
+    assert all(p["sampling_cue"] == "render 2" for p in pairs)
