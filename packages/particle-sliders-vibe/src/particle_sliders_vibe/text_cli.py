@@ -1,4 +1,4 @@
-"""Native Glimmer and Tiny Aya prompt and vibe entry point."""
+"""Native text prompt and vibe entry point."""
 
 import argparse
 from pathlib import Path
@@ -7,7 +7,7 @@ from pathlib import Path
 def main(argv=None, *, model=None):
     parser = argparse.ArgumentParser()
     if model is None:
-        parser.add_argument("--model", required=True, choices=("glimmer", "tiny-aya"))
+        parser.add_argument("--model", required=True, choices=("glimmer", "tiny-aya", "inkling-2-mini"))
     else:
         parser.set_defaults(model=model)
     parser.add_argument("--snapshot", type=Path, required=True)

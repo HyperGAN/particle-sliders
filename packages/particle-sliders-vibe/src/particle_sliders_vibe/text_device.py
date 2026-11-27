@@ -24,7 +24,11 @@ def gpu_slot(model):
         raise RuntimeError("Select exactly one GPU with CUDA_VISIBLE_DEVICES")
     props = torch.cuda.get_device_properties(0)
     device = str(props.uuid)
-    max_cap, min_cap, rss_cap = (26, 20, 72) if model == "glimmer" else (10, 9, 24)
+    max_cap, min_cap, rss_cap = {
+        "glimmer": (26, 20, 72),
+        "tiny-aya": (10, 9, 24),
+        "inkling-2-mini": (20, 13, 40),  # Packed experts with native mmap placement
+    }[model]
     reserve = 5
     directory = Path(tempfile.gettempdir()) / f"particle-sliders-text-{os.getuid()}"
     directory.mkdir(mode=0o700, exist_ok=True)
