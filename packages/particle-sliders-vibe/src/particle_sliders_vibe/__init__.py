@@ -7,15 +7,20 @@ objects with a finite `score` in [0, 1] and optional raw judge evidence.
 """
 from contextlib import contextmanager
 import fcntl
+from functools import partial
 import hashlib
 import importlib
+from itertools import count
 import json
 import math
 import os
 from pathlib import Path
 import tempfile
+from uuid import uuid4
 
 SCHEMA = 'particle-slider-vibe-v1'
+# This collector used the same ranking and seed protocol with unscoped call IDs.
+LEGACY_ENGINE_SHA256 = 'ededf033a0c15215e13d7b973e7f11d81489b89ab31c17c14b39bed53acdfe0a'
 
 
 class ProviderRejected(RuntimeError):
@@ -88,32 +93,89 @@ def collection_lock(root):
         yield
 
 
-def _call(root, kind, inputs, callback, *, retry_pending=False):
-    """Commit each call independently; ambiguous paid work never silently replays."""
-    key = digest(dict(kind=kind, inputs=inputs))
-    path = root / 'calls' / (key + '.json')
+def _request_scope(root, identity):
+    path = root / 'request-scope.json'
+    binding = digest(identity)
     if path.exists():
+        scope = read_json(path)
+        if scope['identity_sha256'] != binding:
+            raise ValueError('collection request scope belongs to a different engine or configuration')
+    else:
+        scope = dict(collection_id=uuid4().hex, identity_sha256=binding)
+        write_json(path, scope)
+    return scope
+
+
+def _validate_batch(proposals, size, previous):
+    if not isinstance(proposals, list) or len(proposals) != size:
+        raise ValueError('proposer must return exactly the requested number of prompt pairs')
+    seen = previous.copy()
+    for value in proposals:
+        pair = prompt_pair(value)
+        key = (pair['neutral'], pair['positive'])
+        if key in seen:
+            raise ValueError('proposer returned a duplicate/previously tried prompt pair')
+        seen.add(key)
+
+
+def _record_invalid(path, call, result, error):
+    record = dict(call, status='failed', invalid_proposal=True, reason=str(error))
+    try:
+        canonical(result)
+    except (TypeError, ValueError):
+        pass  # Some invalid callback results cannot be kept in a JSON receipt.
+    else:
+        record['result'] = result
+    write_json(path, record)
+
+
+def _call(root, kind, inputs, callback, *, scope=None, retry_pending=False, validate=None):
+    """Commit each call independently; ambiguous paid work never silently replays."""
+    for attempt in count():
+        attempt_inputs = dict(inputs, proposal_attempt=attempt) if attempt else inputs
+        call = dict(kind=kind, inputs=attempt_inputs)
+        key = digest(call)
+        path = root / 'calls' / (key + '.json')
+        if not path.exists():
+            call['request_id'] = digest(dict(scope=scope, call=key)) if scope is not None else key
+            break
         record = read_json(path)
+        call['request_id'] = record['request_id']
+        if validate and record.get('invalid_proposal'):
+            continue
         if record['status'] == 'done':
             result = record['result']
-            if isinstance(result, dict) and 'path' in result:
+            if validate:
+                try:
+                    validate(result)
+                except (ValueError, TypeError) as error:
+                    # The previous engine could commit an invalid batch as done.
+                    _record_invalid(path, call, result, error)
+                    continue
+            elif isinstance(result, dict) and 'path' in result:
                 if file_digest(result['path']) != result['sha256']:
                     raise ValueError('saved output changed: ' + result['path'])
             return result
         if record['status'] != 'failed' and not retry_pending:
-            raise RuntimeError('unresolved call ' + key + '; reconcile the provider receipt before --retry-pending')
-    write_json(path, dict(status='pending', kind=kind, inputs=inputs, request_id=key))
+            raise RuntimeError('unresolved call ' + call['request_id'] + '; reconcile the provider receipt before --retry-pending')
+        break
+    write_json(path, dict(call, status='pending'))
     try:
-        result = callback(key)
+        result = callback(call['request_id'])
     except ProviderRejected as exc:
-        write_json(path, dict(status='failed', kind=kind, inputs=inputs, request_id=key,
-                              provider=exc.provider, http_status=exc.status))
+        write_json(path, dict(call, status='failed', provider=exc.provider, http_status=exc.status))
         raise
+    if validate:
+        try:
+            validate(result)
+        except (ValueError, TypeError) as error:
+            _record_invalid(path, call, result, error)
+            raise
     canonical(result)
     if isinstance(result, dict) and 'path' in result:
         result = dict(result, path=str(Path(result['path']).resolve()))
         result['sha256'] = file_digest(result['path'])
-    write_json(path, dict(status='done', kind=kind, inputs=inputs, request_id=key, result=result))
+    write_json(path, dict(call, status='done', result=result))
     return result
 
 
@@ -142,30 +204,26 @@ def collect(product, *, vibe, directory, rounds=1, pool_size=8, replace=4,
         path = root / 'collection.json'
         if path.exists():
             state = read_json(path)
-            if state['identity'] != identity:
+            if state['identity'] not in (identity, dict(identity, engine_sha256=LEGACY_ENGINE_SHA256)):
                 raise ValueError('collection identity changed; use a new output directory')
         else:
             if any(p.name != '.lock' for p in root.iterdir()):
                 raise ValueError('new collection requires an empty directory')
             state = dict(identity=identity, rounds=[], selected=[])
             write_json(path, state)
-        call = lambda kind, inputs, callback: _call(root, kind, inputs, callback, retry_pending=retry_pending)
+        if len(state['rounds']) >= rounds:
+            return state
+        call = partial(_call, root, scope=_request_scope(root, identity), retry_pending=retry_pending)
         for index in range(len(state['rounds']), rounds):
             retained = state['rounds'][-1]['ranking'][:pool_size-replace] if index else []
             pool = [r['prompt'] for r in retained]
             count = pool_size - len(pool)
+            previous = {(r['prompt']['neutral'], r['prompt']['positive'])
+                        for history in state['rounds'] for r in history['ranking']}
             proposals = call('propose', dict(round=index, count=count, history=state['rounds']),
-                lambda key: product.propose(vibe, count, state['rounds'], request_id=key))
-            if not isinstance(proposals, list) or len(proposals) != count:
-                raise ValueError('proposer must return exactly the requested number of prompt pairs')
-            pair_key = lambda p: digest({k: p[k] for k in ('neutral', 'positive')})
-            seen = {pair_key(r['prompt']) for history in state['rounds'] for r in history['ranking']}
-            for value in proposals:
-                pair = prompt_pair(value)
-                key = pair_key(pair)
-                if key in seen or any(pair_key(p) == key for p in pool):
-                    raise ValueError('proposer returned a duplicate/previously tried prompt pair')
-                pool.append(pair)
+                lambda key: product.propose(vibe, count, state['rounds'], request_id=key),
+                validate=lambda result: _validate_batch(result, count, previous))
+            pool.extend(proposals)
             ranking = []
             for pair in pool:
                 cases = []

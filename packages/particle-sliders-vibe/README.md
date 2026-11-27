@@ -14,3 +14,15 @@ or `particle-slider collect` in a core version with collection dispatch.
 Full protocol, persistence and scoring details are in
 [VIBE-COLLECTION.md](https://github.com/HyperGAN/particle-sliders/blob/main/packages/particle-sliders-core/VIBE-COLLECTION.md).
 Anima supplies the first product renderer and frozen-target manifest handoff. The [shared `--vibe` instructions](https://github.com/HyperGAN/particle-sliders/blob/main/docs/vibe.md) take a qualified collection through training, alpha selection and release.
+
+The collector stores its provider request namespace in `request-scope.json`. Keep
+this file with the collection when resuming or moving it. Each fresh collection
+has its own request IDs, including when two collections use the same settings.
+The `request_id` in each call receipt identifies the provider request. When an
+older collection resumes, recorded calls keep their original IDs and completed
+rounds keep their original identity.
+
+If the proposer returns an invalid batch, the collector saves a failed receipt
+and stops. Running the same command again requests a replacement batch under a
+fresh ID. Completed renders and scores are reused. A pending provider call still
+requires reconciliation before `--retry-pending` retries its original ID.
