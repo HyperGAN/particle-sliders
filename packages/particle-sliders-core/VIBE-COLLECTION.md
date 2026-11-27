@@ -74,8 +74,11 @@ for saved collections.
 `particle_sliders_vibe.nanoodle.NanoodleWorkflows` runs saved Nanoodle graphs:
 
 - Prompt workflow: `Context` text input, `Pairs` JSON-list output.
-- Score workflow: `Criterion` text plus `Image` media input; a `judge` Decide
-  node in score mode with an explicit model, question and 2–10 ordered levels.
+- Score workflow: `Criterion` text plus `Image` media input. Use one `judge`
+  Decide node in score mode with an explicit model, question and 2–10 distinct
+  ordered anchors. Put conventions that affect a judgment in that question or
+  those anchors. The adapter checks that each provider request contains this
+  single typed question and the frozen anchor text in its original order.
 
 The default `judge_provider='nanogpt'` uses an explicitly configured NanoGPT
 decision-model route and `NANOGPT_API_KEY`. Its live decision-model catalog lists
