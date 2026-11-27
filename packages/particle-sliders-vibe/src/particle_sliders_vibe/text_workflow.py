@@ -4,11 +4,14 @@ from dataclasses import asdict
 from hashlib import sha256
 from pathlib import Path
 from statistics import fmean
+import shutil
 
 import torch
 from safetensors.torch import load_file, save_file
 
-from . import canonical, write_json
+from particle_sliders.backends import PreparedResponse, ResponseRow
+
+from . import canonical, read_json, write_json
 from .image_judge import JEV, Reader
 from .text_model import fit, freeze_rows, token_gain
 
@@ -190,15 +193,62 @@ def compare(host, judge, prompts, off, alpha, profile):
     )
 
 
-def train_vibe(host, vibe, root, *, progress, steps=448):
+def load_frozen(source, root, identity, vibe):
+    manifest = read_json(source / "frozen-source.json")
+    if (
+        manifest.get("format") != "text-vibe-frozen-v1"
+        or manifest.get("identity") != identity
+        or manifest.get("vibe") != vibe
+    ):
+        raise ValueError("Frozen targets belong to a different base model or vibe")
+    for filename, key in (
+        ("teachers.json", "teachers_sha256"),
+        ("frozen-targets.pt", "targets_sha256"),
+    ):
+        path = root / filename
+        shutil.copyfile(source / filename, path)
+        if sha256(path.read_bytes()).hexdigest() != manifest.get(key):
+            raise ValueError(f"Frozen source hash changed for {filename}")
+    pairs = read_json(root / "teachers.json")["qualified"]
+    rows = [
+        PreparedResponse(ResponseRow(**entry["row"]), entry["target"], entry["neutral"])
+        for entry in torch.load(
+            root / "frozen-targets.pt", map_location="cpu", weights_only=True
+        )
+    ]
+    if len(pairs) < 16 or len(rows) < len(pairs):
+        raise ValueError("Incomplete frozen text teaching collection")
+    write_json(root / "frozen-source.json", manifest)
+    return pairs, rows
+
+
+def train_vibe(
+    host, vibe, root, *, progress, steps=448, frozen_source=None, generator_lr=None
+):
     root = Path(root)
     root.mkdir(parents=True, exist_ok=False)
     judge = TextJudge(root, vibe)
-    pairs = qualify(host, judge, root, vibe, progress)
-    progress("freeze", 0, len(pairs), "Freezing matched native responses")
-    rows = freeze_rows(host, pairs)
     fields = root / "frozen-targets.pt"
-    torch.save([asdict(row) for row in rows], fields)
+    if frozen_source is None:
+        pairs = qualify(host, judge, root, vibe, progress)
+        progress("freeze", 0, len(pairs), "Freezing matched native responses")
+        rows = freeze_rows(host, pairs)
+        torch.save([asdict(row) for row in rows], fields)
+        write_json(
+            root / "frozen-source.json",
+            dict(
+                format="text-vibe-frozen-v1",
+                identity=host.identity,
+                vibe=vibe,
+                teachers_sha256=sha256(
+                    (root / "teachers.json").read_bytes()
+                ).hexdigest(),
+                targets_sha256=sha256(fields.read_bytes()).hexdigest(),
+            ),
+        )
+    else:
+        progress("freeze", 0, 1, "Verifying the saved teaching collection")
+        pairs, rows = load_frozen(Path(frozen_source), root, host.identity, vibe)
     path = root / "trained.safetensors"
     checks = []
 
@@ -218,6 +268,7 @@ def train_vibe(host, vibe, root, *, progress, steps=448):
         rows,
         path,
         steps=steps,
+        generator_lr=generator_lr,
         check_output=check_output,
         progress=lambda n, total: progress(
             "fit", n, total, f"{n} of {total} ParticleGAN 0.12.0 updates"

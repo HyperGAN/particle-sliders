@@ -70,9 +70,16 @@ update from ParticleGAN 0.12.0. New DOWN matrices and the particle bank receive
 scoped initialization. The backbone stays frozen and all UP matrices start
 at zero. The critic operates on final-token hidden vectors. The default
 recipe takes 448 updates on the 1,024-step optimizer schedule, batch two,
-with generator, critic and particle rates of 0.00075, 0.009 and 0.03. Model
+with critic and particle rates of 0.009 and 0.03. The generator rate is
+0.00075 for Tiny Aya and 0.000375 for Glimmer. The original Glimmer rate of
+0.00075 produced degenerate repetition at update 448 on the rhyme run. Model
 weight EMA is disabled. Each quarter of the update budget saves RAW weights and
 checks a generated reply for catastrophic failure before the next update.
+
+Use `--frozen-source PRIOR_RUN` with the same phrase and base revision to train a
+fresh candidate on identical teaching data. Its manifest binds the teacher
+manifest and targets by SHA-256. Set `--g-lr` to test a generator rate while
+keeping the critic and particle rates fixed.
 
 The run directory contains the teacher verdicts, frozen targets, RAW weights,
 strength leaderboard and matched held-out replies. Calibration compares

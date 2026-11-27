@@ -289,11 +289,12 @@ def fit(
     steps=448,
     horizon=1024,
     seed=1,
+    generator_lr=None,
     ema_decay=None,
     progress=lambda *_: None,
     check_output=None,
 ):
-    """Anima's stock batch-two EMPF update, schedule and three optimizer rates."""
+    """Anima's stock batch-two EMPF update and schedule, with product training rates."""
     require_formulation()
     require_no_weight_ema(ema_decay)
     if not 1 <= steps <= horizon:
@@ -305,6 +306,13 @@ def fit(
         raise RuntimeError("Fresh text adapter must start at zero output")
     conditions = torch.cat([row.neutral for row in rows])
     critic = ResponseCritic(conditions.shape[1]).to(host.device)
+    # The reference G collapsed on Glimmer at update 448. Keep the critic and bank rates fixed.
+    g_lr = 0.000375 if host.identity["model"] == "glimmer" else 0.00075
+    if generator_lr is not None:
+        if not math.isfinite(generator_lr) or generator_lr <= 0:
+            raise ValueError("Generator learning rate must be finite and positive")
+        g_lr = generator_lr
+    ratio = 0.00075 / g_lr
     game = ConditionalParticleGAN(
         TextResponse(host, adapter),
         rows,
@@ -318,7 +326,9 @@ def fit(
         response_domain="continuous_vector",
         penalty_input_domain="continuous",
         optimizer_dense_profile="recipe",
-        recipe_overrides=dict(lr=0.00075, d_lr_mult=12.0, prior_lr_mult=40.0),
+        recipe_overrides=dict(
+            lr=g_lr, d_lr_mult=12.0 * ratio, prior_lr_mult=40.0 * ratio
+        ),
     )
     if (
         game.recipe.effective_critic_formulation != "empf"
@@ -339,7 +349,7 @@ def fit(
             updates=game.completed_steps,
             schedule_horizon=horizon,
             seed=seed,
-            rates=dict(g=0.00075, d=0.009, particle=0.03),
+            rates=dict(g=g_lr, d=0.009, particle=0.03),
         )
         temp = path.with_suffix(".partial")
         save_file(

@@ -63,6 +63,7 @@ def test_export_uses_intact_winner_and_replays_saved_schedule(monkeypatch, tmp_p
 
     class Host:
         def __init__(self):
+            self.identity = {"model": "fixture"}
             self.mixer = SimpleNamespace(close=lambda: None)
             self.replay_profile = None
 
@@ -90,11 +91,17 @@ def test_export_uses_intact_winner_and_replays_saved_schedule(monkeypatch, tmp_p
             effect=int(r["text"]) / 10, broken=float(r["text"] == "10")
         )
     )
-    monkeypatch.setattr(flow, "qualify", lambda *args: [dict(prompt="training prompt")])
+
+    def qualified(host, judge, root, vibe, progress):
+        pairs = [dict(prompt="training prompt")]
+        flow.write_json(root / "teachers.json", dict(qualified=pairs))
+        return pairs
+
+    monkeypatch.setattr(flow, "qualify", qualified)
     monkeypatch.setattr(flow, "freeze_rows", lambda *args: [Row(1)])
     monkeypatch.setattr(flow, "TextJudge", lambda *args: judge)
 
-    def fit(host, rows, path, *, steps, check_output, progress):
+    def fit(host, rows, path, *, steps, generator_lr, check_output, progress):
         save_file(dict(a=torch.ones(1)), path)
         check_output(steps)
         return dict(updates=steps, weights="raw")
@@ -109,3 +116,42 @@ def test_export_uses_intact_winner_and_replays_saved_schedule(monkeypatch, tmp_p
     assert report["replay_tokens"] == [8]
     assert len(json.loads((out.parent / "strengths.json").read_text())) == 12
     assert json.loads((out.parent / "fit-checks.json").read_text())[0]["updates"] == 1
+
+
+def test_reusing_frozen_targets_binds_the_vibe_model_and_hashes(tmp_path):
+    from dataclasses import asdict
+    from hashlib import sha256
+    import torch
+
+    src = tmp_path / "source"
+    src.mkdir()
+    identity = {"model": "glimmer", "revision": "pinned"}
+    pairs = [{"prompt": f"training question {i}"} for i in range(16)]
+    flow.write_json(src / "teachers.json", {"qualified": pairs})
+    tensor = torch.ones(1, 3)
+    row = flow.PreparedResponse(
+        flow.ResponseRow(tensor, tensor, None, tensor), tensor, tensor
+    )
+    torch.save([asdict(row)] * len(pairs), src / "frozen-targets.pt")
+    flow.write_json(
+        src / "frozen-source.json",
+        dict(
+            format="text-vibe-frozen-v1",
+            identity=identity,
+            vibe="warm",
+            teachers_sha256=sha256((src / "teachers.json").read_bytes()).hexdigest(),
+            targets_sha256=sha256((src / "frozen-targets.pt").read_bytes()).hexdigest(),
+        ),
+    )
+    destination = tmp_path / "fresh"
+    destination.mkdir()
+    kept, rows = flow.load_frozen(src, destination, identity, "warm")
+    assert kept == pairs
+    assert torch.equal(rows[0].target, row.target)
+    with pytest.raises(ValueError, match="different base model or vibe"):
+        flow.load_frozen(src, destination, {"model": "tiny-aya"}, "warm")
+    with pytest.raises(ValueError, match="different base model or vibe"):
+        flow.load_frozen(src, destination, identity, "rhyme")
+    (src / "frozen-targets.pt").write_bytes(b"changed")
+    with pytest.raises(ValueError, match="hash changed"):
+        flow.load_frozen(src, destination, identity, "warm")
