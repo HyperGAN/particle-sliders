@@ -63,7 +63,7 @@ def test_export_uses_intact_winner_and_replays_saved_schedule(monkeypatch, tmp_p
 
     class Host:
         def __init__(self):
-            self.identity = {"model": "fixture"}
+            self.identity = {"model": "tiny-aya"}
             self.mixer = SimpleNamespace(close=lambda: None)
             self.replay_profile = None
 
@@ -101,7 +101,19 @@ def test_export_uses_intact_winner_and_replays_saved_schedule(monkeypatch, tmp_p
     monkeypatch.setattr(flow, "freeze_rows", lambda *args: [Row(1)])
     monkeypatch.setattr(flow, "TextJudge", lambda *args: judge)
 
-    def fit(host, rows, path, *, steps, generator_lr, check_output, progress):
+    def fit(
+        host,
+        rows,
+        path,
+        *,
+        steps,
+        generator_lr,
+        critic_lr,
+        horizon,
+        seed,
+        check_output,
+        progress,
+    ):
         save_file(dict(a=torch.ones(1)), path)
         check_output(steps)
         return dict(updates=steps, weights="raw")
@@ -155,3 +167,10 @@ def test_reusing_frozen_targets_binds_the_vibe_model_and_hashes(tmp_path):
     (src / "frozen-targets.pt").write_bytes(b"changed")
     with pytest.raises(ValueError, match="hash changed"):
         flow.load_frozen(src, destination, identity, "warm")
+
+
+def test_product_defaults_match_the_qualified_training_budgets():
+    from particle_sliders_vibe.text_model import TEXT_RECIPES, TextRecipe
+
+    assert TEXT_RECIPES["tiny-aya"] == TextRecipe(448, 1024, 1, 0.00075, 0.009)
+    assert TEXT_RECIPES["glimmer"] == TextRecipe(32, 128, 7, 0.001, 0.018)

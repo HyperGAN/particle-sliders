@@ -22,6 +22,10 @@ def main(argv=None, *, model=None):
     parser.add_argument(
         "--g-lr", type=float, help="Generator rate for a fresh training candidate"
     )
+    parser.add_argument("--d-lr", type=float, help="Critic rate for a fresh candidate")
+    parser.add_argument("--steps", type=int, help="Number of training updates")
+    parser.add_argument("--horizon", type=int, help="Optimizer schedule length")
+    parser.add_argument("--seed", type=int, help="Training initialization seed")
     parser.add_argument("--out", type=Path, help="New training directory")
     parser.add_argument("--adapter", type=Path, help="A saved text vibe adapter")
     parser.add_argument(
@@ -38,7 +42,10 @@ def main(argv=None, *, model=None):
     if args.prompt is not None and (
         args.out
         or args.frozen_source
-        or args.g_lr is not None
+        or any(
+            value is not None
+            for value in (args.g_lr, args.d_lr, args.steps, args.horizon, args.seed)
+        )
         or not args.prompt.strip()
         or (args.strength is not None and not args.adapter)
     ):
@@ -62,6 +69,10 @@ def main(argv=None, *, model=None):
                     progress=progress,
                     frozen_source=args.frozen_source,
                     generator_lr=args.g_lr,
+                    critic_lr=args.d_lr,
+                    steps=args.steps,
+                    horizon=args.horizon,
+                    seed=args.seed,
                 )
                 print(path)
             else:

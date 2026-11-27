@@ -13,7 +13,7 @@ from particle_sliders.backends import PreparedResponse, ResponseRow
 
 from . import canonical, read_json, write_json
 from .image_judge import JEV, Reader
-from .text_model import fit, freeze_rows, token_gain
+from .text_model import TEXT_RECIPES, fit, freeze_rows, token_gain
 
 TOPICS = (
     "a neighborhood library",
@@ -223,8 +223,19 @@ def load_frozen(source, root, identity, vibe):
 
 
 def train_vibe(
-    host, vibe, root, *, progress, steps=448, frozen_source=None, generator_lr=None
+    host,
+    vibe,
+    root,
+    *,
+    progress,
+    steps=None,
+    frozen_source=None,
+    generator_lr=None,
+    critic_lr=None,
+    horizon=None,
+    seed=None,
 ):
+    steps = TEXT_RECIPES[host.identity["model"]].steps if steps is None else steps
     root = Path(root)
     root.mkdir(parents=True, exist_ok=False)
     judge = TextJudge(root, vibe)
@@ -269,6 +280,9 @@ def train_vibe(
         path,
         steps=steps,
         generator_lr=generator_lr,
+        critic_lr=critic_lr,
+        horizon=horizon,
+        seed=seed,
         check_output=check_output,
         progress=lambda n, total: progress(
             "fit", n, total, f"{n} of {total} ParticleGAN 0.12.0 updates"

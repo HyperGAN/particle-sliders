@@ -68,18 +68,19 @@ tokens. Both text products use Anima's rank-eight routed attention branches,
 128 × 4 particle bank, and the same `ConditionalParticleGAN` stock EMPF
 update from ParticleGAN 0.12.0. New DOWN matrices and the particle bank receive
 scoped initialization. The backbone stays frozen and all UP matrices start
-at zero. The critic operates on final-token hidden vectors. The default
-recipe takes 448 updates on the 1,024-step optimizer schedule, batch two,
-with critic and particle rates of 0.009 and 0.03. The generator rate is
-0.00075 for Tiny Aya and 0.000375 for Glimmer. The original Glimmer rate of
-0.00075 produced degenerate repetition at update 448 on the rhyme run. Model
-weight EMA is disabled. Each quarter of the update budget saves RAW weights and
+at zero. The critic operates on final-token hidden vectors. Tiny Aya takes 448 updates on a 1,024-step
+optimizer schedule with seed 1 and generator, critic and particle rates of
+0.00075, 0.009 and 0.03. Glimmer uses 32 updates on a 128-step schedule with
+seed 7 and rates of 0.001, 0.018 and 0.03. Both use batch two and disable
+model-weight EMA. On a rhyme qualification, three longer Glimmer candidates
+stopped for broken replies at updates 448, 224 and 336 respectively. Each quarter of the update budget saves RAW weights and
 checks a generated reply for catastrophic failure before the next update.
 
 Use `--frozen-source PRIOR_RUN` with the same phrase and base revision to train a
 fresh candidate on identical teaching data. Its manifest binds the teacher
-manifest and targets by SHA-256. Set `--g-lr` to test a generator rate while
-keeping the critic and particle rates fixed.
+manifest and targets by SHA-256. Set `--g-lr` to test a generator rate with the other rates fixed.
+The optional `--d-lr`, `--steps`, `--horizon`, and `--seed` flags reproduce
+a specific training recipe.
 
 The run directory contains the teacher verdicts, frozen targets, RAW weights,
 strength leaderboard and matched held-out replies. Calibration compares
@@ -87,3 +88,12 @@ constant, early and late token strengths on a separate panel. The numeric
 strength and schedule travel in the exported adapter. Qualification includes
 an intact held-out panel and exact token replay after reloading the export.
 `result.json` records the measured effect, including weak or negative gains.
+
+
+For “answer in short, clearly rhyming couplets,” both models qualified 24
+teaching contexts and froze 72 response rows. Each used four development
+prompts and four separate held-out prompts. The final Tiny Aya adapter
+measured +0.593 mean held-out effect at strength 1.5 with the early schedule.
+The Glimmer adapter measured +0.053 at constant strength 2.0. Three of its
+four held-out replies changed very little on the rhyme score. Both exports
+reproduced the first held-out reply token for token after reload.

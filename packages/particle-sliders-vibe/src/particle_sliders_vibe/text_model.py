@@ -1,6 +1,7 @@
 """Text-side binding for Anima's routed attention adapter and stock EMPF game."""
 
 from contextlib import ExitStack
+from dataclasses import dataclass
 from hashlib import sha256
 from importlib.metadata import version
 import math
@@ -23,6 +24,22 @@ MODELS = {
 }
 FORMAT = "text-vibe-routed-empf-v1"
 PROJECTIONS = ("q_proj", "k_proj", "v_proj", "o_proj")
+
+
+@dataclass(frozen=True)
+class TextRecipe:
+    steps: int
+    horizon: int
+    seed: int
+    generator_lr: float
+    critic_lr: float
+
+
+# Qualified finished-output recipes, using the same stock batch-two EMPF game.
+TEXT_RECIPES = {
+    "tiny-aya": TextRecipe(448, 1024, 1, 0.00075, 0.009),
+    "glimmer": TextRecipe(32, 128, 7, 0.001, 0.018),
+}
 
 
 def require_formulation():
@@ -286,10 +303,11 @@ def fit(
     rows,
     destination,
     *,
-    steps=448,
-    horizon=1024,
-    seed=1,
+    steps=None,
+    horizon=None,
+    seed=None,
     generator_lr=None,
+    critic_lr=None,
     ema_decay=None,
     progress=lambda *_: None,
     check_output=None,
@@ -297,6 +315,19 @@ def fit(
     """Anima's stock batch-two EMPF update and schedule, with product training rates."""
     require_formulation()
     require_no_weight_ema(ema_decay)
+    recipe = TEXT_RECIPES[host.identity["model"]]
+    steps = recipe.steps if steps is None else steps
+    horizon = recipe.horizon if horizon is None else horizon
+    seed = recipe.seed if seed is None else seed
+    g_lr = recipe.generator_lr if generator_lr is None else generator_lr
+    critic_lr = recipe.critic_lr if critic_lr is None else critic_lr
+    if (
+        not math.isfinite(g_lr)
+        or g_lr <= 0
+        or not math.isfinite(critic_lr)
+        or critic_lr <= 0
+    ):
+        raise ValueError("Learning rates must be finite and positive")
     if not 1 <= steps <= horizon:
         raise ValueError("The update budget must fit the optimizer schedule")
     torch.manual_seed(seed)
@@ -306,12 +337,6 @@ def fit(
         raise RuntimeError("Fresh text adapter must start at zero output")
     conditions = torch.cat([row.neutral for row in rows])
     critic = ResponseCritic(conditions.shape[1]).to(host.device)
-    # The reference G collapsed on Glimmer at update 448. Keep the critic and bank rates fixed.
-    g_lr = 0.000375 if host.identity["model"] == "glimmer" else 0.00075
-    if generator_lr is not None:
-        if not math.isfinite(generator_lr) or generator_lr <= 0:
-            raise ValueError("Generator learning rate must be finite and positive")
-        g_lr = generator_lr
     ratio = 0.00075 / g_lr
     game = ConditionalParticleGAN(
         TextResponse(host, adapter),
@@ -327,7 +352,9 @@ def fit(
         penalty_input_domain="continuous",
         optimizer_dense_profile="recipe",
         recipe_overrides=dict(
-            lr=g_lr, d_lr_mult=12.0 * ratio, prior_lr_mult=40.0 * ratio
+            lr=g_lr,
+            d_lr_mult=(12.0 if critic_lr == 0.009 else critic_lr / 0.00075) * ratio,
+            prior_lr_mult=40.0 * ratio,
         ),
     )
     if (
@@ -349,7 +376,7 @@ def fit(
             updates=game.completed_steps,
             schedule_horizon=horizon,
             seed=seed,
-            rates=dict(g=g_lr, d=0.009, particle=0.03),
+            rates=dict(g=g_lr, d=critic_lr, particle=0.03),
         )
         temp = path.with_suffix(".partial")
         save_file(
