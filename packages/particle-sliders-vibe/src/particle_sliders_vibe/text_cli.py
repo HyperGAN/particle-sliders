@@ -1,4 +1,4 @@
-"""Native Glimmer and Tiny Aya prompt and vibe entry point."""
+"""Native text prompt and vibe entry point."""
 
 import argparse
 from pathlib import Path
@@ -7,7 +7,7 @@ from pathlib import Path
 def main(argv=None, *, model=None):
     parser = argparse.ArgumentParser()
     if model is None:
-        parser.add_argument("--model", required=True, choices=("glimmer", "tiny-aya"))
+        parser.add_argument("--model", required=True, choices=("glimmer", "tiny-aya", "inkling-2-mini"))
     else:
         parser.set_defaults(model=model)
     parser.add_argument("--snapshot", type=Path, required=True)
@@ -52,15 +52,18 @@ def main(argv=None, *, model=None):
         parser.error("--prompt takes an optional --adapter and its --strength")
     from .text_model import TextModel
     from .text_device import gpu_slot
-    from .text_workflow import train_vibe
+    from .text_workflow import prepare_inkling_prompts, train_vibe
 
+    def progress(stage, step, total, message):
+        print(f"{stage} {step}/{total} {message}", flush=True)
+
+    plan = None
+    if args.model == "inkling-2-mini" and args.vibe and not args.frozen_source:
+        plan = prepare_inkling_prompts(args.out, args.vibe, progress)
     with gpu_slot(args.model):
         host = TextModel.load(args.model, args.snapshot)
         try:
             if args.vibe:
-
-                def progress(stage, step, total, message):
-                    print(f"{stage} {step}/{total} {message}", flush=True)
 
                 path, _ = train_vibe(
                     host,
@@ -73,6 +76,7 @@ def main(argv=None, *, model=None):
                     steps=args.steps,
                     horizon=args.horizon,
                     seed=args.seed,
+                    teaching_plan=plan,
                 )
                 print(path)
             else:

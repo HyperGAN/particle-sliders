@@ -37,6 +37,8 @@ class TextRecipe:
 
 # Qualified finished-output recipes, using the same stock batch-two EMPF game.
 TEXT_RECIPES = {
+    # Initial Inkling candidate, subject to the same finished-reply checks.
+    "inkling-2-mini": TextRecipe(64, 256, 1, 0.00075, 0.009),
     "tiny-aya": TextRecipe(448, 1024, 1, 0.00075, 0.009),
     "glimmer": TextRecipe(32, 128, 7, 0.001, 0.018),
 }
@@ -125,6 +127,10 @@ class TextModel:
         require_formulation()
         torch.backends.cuda.matmul.allow_tf32 = False
         snapshot = Path(snapshot).resolve(strict=True)
+        if name == "inkling-2-mini":
+            from inkling_vibe import load_model
+
+            return load_model(snapshot)
         kind, revision = MODELS[name]
         config = AutoConfig.from_pretrained(snapshot, local_files_only=True)
         if config.model_type != kind or snapshot.name != revision:

@@ -97,3 +97,19 @@ measured +0.593 mean held-out effect at strength 1.5 with the early schedule.
 The Glimmer adapter measured +0.053 at constant strength 2.0. Three of its
 four held-out replies changed very little on the rhyme score. Both exports
 reproduced the first held-out reply token for token after reload.
+
+
+### Inkling 2 Mini
+
+Install the Inkling product’s separate `vibe` environment to use `inkling-vibe`.
+A NanoGPT language model writes neutral tasks, three different ways to express
+the phrase, and stronger training instructions for the 24 contexts. The initial
+plan is saved before GPU admission. A prompt-only retry reuses completed batches
+from `prompt-rewrites/`. Set `INKLING_PROMPT_MODEL` to override Gemini Flash.
+Inkling generates matched replies and Jev scores the original phrase. The winning
+treatment’s stronger instruction supplies the positive target for stock EMPF
+training on the final attention block. Inkling
+ranks saved RAW checkpoints on matched unit-strength replies. It then calls
+Anima’s constant-strength search and verifies the full scalar trace before
+judging the reserved setting on separate held-out prompts. An intact, positive
+held-out gain and token replay are required for a successful run.

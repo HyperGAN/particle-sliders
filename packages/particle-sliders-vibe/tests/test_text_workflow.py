@@ -174,3 +174,64 @@ def test_product_defaults_match_the_qualified_training_budgets():
 
     assert TEXT_RECIPES["tiny-aya"] == TextRecipe(448, 1024, 1, 0.00075, 0.009)
     assert TEXT_RECIPES["glimmer"] == TextRecipe(32, 128, 7, 0.001, 0.018)
+
+
+def test_constant_text_selects_raw_before_alpha_and_reserves_before_confirmation(
+    tmp_path, monkeypatch
+):
+    host = SimpleNamespace(mixer=SimpleNamespace(close=lambda: None))
+
+    def load(key, path):
+        host.raw = path.name
+        return {"updates": 16 if host.raw.startswith("raw-") else 32}
+
+    host.load_adapter = load
+    raw = tmp_path / "raw-16.safetensors"
+    last = tmp_path / "trained.safetensors"
+    raw.write_bytes(b"first RAW")
+    last.write_bytes(b"second RAW")
+
+    def compare(host, judge, prompts, off, alpha, profile):
+        assert prompts == flow.RANK and profile == "constant"
+        # Only the first RAW has an intact unit-strength effect. After choosing
+        # it, the scalar search must expand past two and refine that same RAW.
+        gain = 1 - (alpha - 2.375) ** 2 / 3 if host.raw == raw.name else -1
+        return dict(alpha=alpha, schedule=profile, gain=gain, intact=True)
+
+    monkeypatch.setattr(flow, "compare", compare)
+    chosen, meta, winner = flow.select_constant_text(
+        host,
+        None,
+        tmp_path,
+        last,
+        [{"updates": 16}, {"updates": 32}],
+        [],
+        lambda *args: None,
+    )
+    assert chosen == raw and meta["updates"] == 16
+    assert abs(winner["alpha"] - 2.375) <= 1 / 32
+    selection = flow.read_json(tmp_path / "confirmation-selection.json")
+    assert selection["raw_sha256"] == flow.sha256(raw.read_bytes()).hexdigest()
+    assert selection["prompts"] == list(flow.CONFIRM)
+    assert selection["alpha"] == winner["alpha"]
+
+
+def test_authored_instructions_render_then_freeze_the_winning_explicit_cue(tmp_path, monkeypatch):
+    monkeypatch.setattr(flow, "TOPICS", flow.TOPICS[:16])
+    plan = {
+        str(i): {"neutral": f"neutral {i}", "treatments": [
+            {"positive": f"render {j}", "explicit": f"strong {j}"} for j in range(3)
+        ]} for i in range(16)
+    }
+    calls = []
+    def reply(prompt, *, cue=""):
+        assert prompt.startswith("neutral ")
+        calls.append(cue)
+        return {"text": cue or "plain", "tokens": [1, 2]}
+    judge = SimpleNamespace(measure=lambda prompt, r: {
+        "broken": 0, "effect": 1.0 if r["text"] == "render 2" else 0,
+    })
+    pairs = flow.qualify(SimpleNamespace(reply=reply), judge, tmp_path, "warmth", lambda *_: None, plan)
+    assert calls == ["", "render 0", "render 1", "render 2"] * 16
+    assert len(pairs) == 16 and all(p["cue"] == "strong 2" for p in pairs)
+    assert all(p["sampling_cue"] == "render 2" for p in pairs)

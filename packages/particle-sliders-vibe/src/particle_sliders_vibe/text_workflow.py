@@ -97,23 +97,55 @@ class TextJudge:
         return self.reader.decide([], JEV, state, self.questions)
 
 
-def qualify(host, judge, root, vibe, progress):
+def authored_round(root, vibe, task, slots, progress):
+    from .text_writer import write_plan
+
+    anchors = [{"id": str(i), "topic": TOPICS[i]} for i in slots]
+    return write_plan(root, vibe, task, anchors, progress=progress)
+
+
+def prepare_inkling_prompts(root, vibe, progress):
+    root = Path(root)
+    if root.exists() and any(p.name != "prompt-rewrites" for p in root.iterdir()):
+        raise FileExistsError("Use a new run directory or resume a prompt-only setup")
+    return authored_round(root, vibe, TASKS[0], range(len(TOPICS)), progress)
+
+
+def qualify(host, judge, root, vibe, progress, first_plan=None):
     kept, attempts = {}, []
     for round_index, task in enumerate(TASKS):
+        plan = first_plan
+        if first_plan is not None and round_index:
+            plan = authored_round(root, vibe, task, [i for i in range(len(TOPICS)) if i not in kept], progress)
         for i, topic in enumerate(TOPICS):
             if i in kept:
                 continue
-            prompt = task.format(topic)
+            if plan is None:
+                prompt = task.format(topic)
+                options = [{"positive": c.format(vibe), "explicit": c.format(vibe)} for c in CUES]
+            else:
+                prompt = plan[str(i)]["neutral"]
+                options = plan[str(i)]["treatments"]
+            label = f"Round {round_index + 1}, context {i + 1}/{len(TOPICS)} ({topic})"
+            progress(
+                "teachers", len(kept), len(TOPICS),
+                f"{label} · Generating and scoring the plain reply",
+            )
             off = host.reply(prompt)
             off_score = judge.measure(prompt, off)
             candidates = []
-            for cue in CUES:
-                cue = cue.format(vibe)
+            for number, option in enumerate(options, 1):
+                progress(
+                    "teachers", len(kept), len(TOPICS),
+                    f"{label} · Trying style instruction {number}/{len(options)}",
+                )
+                cue = option["positive"]
                 on = host.reply(prompt, cue=cue)
                 score = judge.measure(prompt, on)
                 candidates.append(
                     dict(
                         cue=cue,
+                        explicit=option["explicit"],
                         reply=on,
                         score=score,
                         gain=score["effect"] - off_score["effect"],
@@ -141,18 +173,20 @@ def qualify(host, judge, root, vibe, progress):
             )
             if passed:
                 kept[i] = dict(
-                    prompt=prompt, neutral=off, positive=best["reply"], cue=best["cue"]
+                    prompt=prompt, neutral=off, positive=best["reply"],
+                    sampling_cue=best["cue"], cue=best["explicit"],
                 )
             attempts.append(record)
             write_json(
                 root / "teachers.json",
                 dict(attempts=attempts, qualified=list(kept.values())),
             )
+            decision = "Kept the teaching pair" if passed else "Skipped the pair after scoring"
             progress(
                 "teachers",
                 len(kept),
                 len(TOPICS),
-                f"Round {round_index + 1}, context {i + 1}/{len(TOPICS)}, {len(kept)} qualified replies",
+                f"{label} · {decision} · {len(kept)} pairs kept",
             )
         if len(kept) >= 16:
             return list(kept.values())
@@ -222,6 +256,61 @@ def load_frozen(source, root, identity, vibe):
     return pairs, rows
 
 
+def select_constant_text(host, judge, root, last_raw, checkpoints, off, progress):
+    """Choose a RAW at unit strength, then measure Anima's constant-alpha search."""
+    from lumen_studio.study.scalar_search import search_constant, verify_search
+
+    def activate(raw):
+        host.mixer.close()
+        return host.load_adapter("training", raw)
+
+    candidates = []
+    for i, check in enumerate(checkpoints):
+        step = check["updates"]
+        raw = (
+            last_raw if i == len(checkpoints) - 1 else root / f"raw-{step}.safetensors"
+        )
+        activate(raw)
+        row = compare(host, judge, RANK, off, 1.0, "constant")
+        candidates.append(dict(file=raw.name, updates=step, score=row))
+        progress(
+            "checkpoint", i + 1, len(checkpoints), f"Compared RAW{step} at strength 1"
+        )
+    eligible = [r for r in candidates if r["score"]["intact"]]
+    if not eligible:
+        raise ValueError("No intact RAW checkpoint at unit strength")
+    selected = max(eligible, key=lambda r: r["score"]["gain"])
+    raw = root / selected["file"]
+    config = activate(raw)
+    digest = sha256(raw.read_bytes()).hexdigest()
+    write_json(
+        root / "training-selection.json",
+        dict(candidates=candidates, selected=raw.name, raw_sha256=digest),
+    )
+
+    probes = {1.0: selected["score"]}
+
+    def score(alpha):
+        if alpha not in probes:
+            probes[alpha] = compare(host, judge, RANK, off, alpha, "constant")
+        row = probes[alpha]
+        write_json(root / "strengths.json", list(probes.values()))
+        progress("strength", len(probes), 0, f"Measured constant strength {alpha:g}")
+        return row["gain"] if row["intact"] else None
+
+    trace = list(search_constant(score).items())
+    measured = [(alpha, value) for alpha, value in trace if value is not None]
+    alpha, gain = max(measured, key=lambda pair: (pair[1], -pair[0]))
+    verify_search(trace, alpha)
+    if gain <= 0:
+        raise ValueError("No measured constant strength improved the requested vibe")
+    write_json(
+        root / "confirmation-selection.json",
+        dict(raw_sha256=digest, alpha=alpha, trace=trace, prompts=CONFIRM),
+    )
+    return raw, config, probes[alpha]
+
+
 def train_vibe(
     host,
     vibe,
@@ -234,14 +323,24 @@ def train_vibe(
     critic_lr=None,
     horizon=None,
     seed=None,
+    teaching_plan=None,
 ):
     steps = TEXT_RECIPES[host.identity["model"]].steps if steps is None else steps
     root = Path(root)
-    root.mkdir(parents=True, exist_ok=False)
+    if host.identity["model"] == "inkling-2-mini" and frozen_source is None:
+        if teaching_plan is None:
+            teaching_plan = prepare_inkling_prompts(root, vibe, progress)
+        # Claim the fit separately from the resumable, locked prompt setup.
+        (root / "readings").mkdir(exist_ok=False)
+    else:
+        root.mkdir(parents=True, exist_ok=False)
     judge = TextJudge(root, vibe)
     fields = root / "frozen-targets.pt"
     if frozen_source is None:
-        pairs = qualify(host, judge, root, vibe, progress)
+        if teaching_plan is None:
+            pairs = qualify(host, judge, root, vibe, progress)
+        else:
+            pairs = qualify(host, judge, root, vibe, progress, first_plan=teaching_plan)
         progress("freeze", 0, len(pairs), "Freezing matched native responses")
         rows = freeze_rows(host, pairs)
         torch.save([asdict(row) for row in rows], fields)
@@ -288,7 +387,6 @@ def train_vibe(
             "fit", n, total, f"{n} of {total} ParticleGAN 0.12.0 updates"
         ),
     )
-    raw_hash = sha256(path.read_bytes()).hexdigest()
 
     def baselines(prompts):
         baseline = [host.reply(prompt) for prompt in prompts]
@@ -298,18 +396,29 @@ def train_vibe(
 
     progress("strength", 0, 12, "Generating baseline replies for strength selection")
     off = baselines(RANK)
-    board = []
-    for alpha in (0.5, 1.0, 1.5, 2.0):
-        for profile in ("constant", "early", "late"):
-            board.append(compare(host, judge, RANK, off, alpha, profile))
-            write_json(root / "strengths.json", board)
-            progress(
-                "strength", len(board), 12, f"Measured {profile} at strength {alpha:g}"
+    constant = host.identity["model"] == "inkling-2-mini"
+    if constant:
+        path, config, winner = select_constant_text(
+            host, judge, root, path, checks, off, progress
+        )
+    else:
+        board = []
+        for alpha in (0.5, 1.0, 1.5, 2.0):
+            for profile in ("constant", "early", "late"):
+                board.append(compare(host, judge, RANK, off, alpha, profile))
+                write_json(root / "strengths.json", board)
+                progress(
+                    "strength",
+                    len(board),
+                    12,
+                    f"Measured {profile} at strength {alpha:g}",
+                )
+        valid = [row for row in board if row["intact"]]
+        if not valid:
+            raise ValueError(
+                "Every strength produced a broken reply on the ranking panel"
             )
-    valid = [row for row in board if row["intact"]]
-    if not valid:
-        raise ValueError("Every strength produced a broken reply on the ranking panel")
-    winner = max(valid, key=lambda x: x["gain"])
+        winner = max(valid, key=lambda x: x["gain"])
     progress("confirm", 0, 1, "Comparing held-out replies at the selected strength")
     confirmation = compare(
         host, judge, CONFIRM, baselines(CONFIRM), winner["alpha"], winner["schedule"]
@@ -317,6 +426,8 @@ def train_vibe(
     write_json(root / "confirmation.json", confirmation)
     if not confirmation["intact"]:
         raise ValueError("The selected text slider failed held-out response integrity")
+    if constant and confirmation["gain"] <= 0:
+        raise ValueError("The held-out replies showed no positive vibe gain")
     # Package calibration alongside the untouched RAW tensor values.
     meta = dict(config, alpha=winner["alpha"], schedule=winner["schedule"])
     output = root / "slider.safetensors"
@@ -333,7 +444,7 @@ def train_vibe(
         vibe=vibe,
         teachers=len(pairs),
         frozen_rows=len(rows),
-        raw_sha256=raw_hash,
+        raw_sha256=sha256(path.read_bytes()).hexdigest(),
         frozen_sha256=sha256(fields.read_bytes()).hexdigest(),
         ranking=winner,
         confirmation=confirmation,

@@ -24,22 +24,25 @@ def gpu_slot(model):
         raise RuntimeError("Select exactly one GPU with CUDA_VISIBLE_DEVICES")
     props = torch.cuda.get_device_properties(0)
     device = str(props.uuid)
-    max_cap, min_cap, rss_cap = (26, 20, 72) if model == "glimmer" else (10, 9, 24)
+    max_cap, min_cap, rss_cap = {
+        "glimmer": (26, 20, 72),
+        "tiny-aya": (10, 9, 24),
+        "inkling-2-mini": (20, 13, 40),  # Packed experts with native mmap placement
+    }[model]
     reserve = 5
     directory = Path(tempfile.gettempdir()) / f"particle-sliders-text-{os.getuid()}"
     directory.mkdir(mode=0o700, exist_ok=True)
     parent = os.getppid()
     with (directory / (device + ".lock")).open("a") as lock:
+        # Another admitted text job owns the device until its model is released.
+        # Start the memory admission timeout after that job has actually exited.
+        fcntl.flock(lock, fcntl.LOCK_EX)
         deadline = time.monotonic() + 90
         while True:
             free = torch.cuda.mem_get_info(0)[0] / 2**30
             host = memory_gib("/proc/meminfo", "MemAvailable")
             if free >= min_cap + reserve and host >= 47:
-                try:
-                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    break
-                except BlockingIOError:
-                    pass
+                break
             if time.monotonic() >= deadline:
                 raise RuntimeError(
                     f"No shared GPU slot for {model} ({free:.1f} GiB GPU and {host:.1f} GiB host available)"
